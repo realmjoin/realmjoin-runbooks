@@ -1,10 +1,9 @@
 # Check Assignments Of Users
 
-Check Intune assignments for one or more user principal names
+Show which Intune policies and apps target given users
 
 ## Detailed description
-This runbook queries Intune policies and optionally app assignments relevant to the specified user(s).
-It resolves transitive group membership and reports matching assignments.
+Lists the Intune policies, and optionally the apps, that apply to one or more users by resolving their group memberships, nested groups included, and matching them against the assignments. Nothing is changed.
 
 ## Where to find
 Org \ General \ Check Assignments Of Users
@@ -20,7 +19,7 @@ Org \ General \ Check Assignments Of Users
 
 ## Parameters
 ### UserPrincipalName
-User Principal Names of the users to check assignments for.
+Each picked user is checked separately through their group memberships, nested groups included.
 
 | Property | Value |
 |----------|-------|
@@ -29,7 +28,7 @@ User Principal Names of the users to check assignments for.
 | Type | String Array |
 
 ### IncludeApps
-If set to true, also evaluates application assignments.
+Also lists the apps assigned to the users.
 
 | Property | Value |
 |----------|-------|

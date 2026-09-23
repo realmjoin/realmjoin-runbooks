@@ -1,30 +1,36 @@
 <#
 	.SYNOPSIS
-	Assign cloud-only groups to a device based on a template
+	Add this device to a predefined set of groups
 
 	.DESCRIPTION
-	Adds a device to one or more Entra ID groups using either group object IDs or display names. The list of groups is typically provided via runbook customization templates.
+	Adds this device to one or more Entra ID groups. The groups come from a template that an administrator defines in the runbook customization, so the person running it picks a template instead of individual groups.
 
 	.PARAMETER DeviceId
-	ID of the target device in Microsoft Graph.
+	Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
 	.PARAMETER GroupsTemplate
-	Template selector used by portal customization to populate the group list.
+	Template that decides which groups the device joins. The available templates are set up in the runbook customization.
 
 	.PARAMETER GroupsString
-	Comma-separated list of group object IDs or group display names.
+	Groups to add the device to, separated by commas. Usually filled in by the selected template.
 
 	.PARAMETER UseDisplaynames
-	If set to true, treats values in GroupsString as group display names instead of IDs.
+	Whether the group list contains display names instead of object IDs. Preset in the runbook customization.
 
 	.PARAMETER CallerName
-	Caller name is tracked purely for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
 		"Parameters": {
 			"DeviceId": {
 				"Hide": true
+			},
+			"GroupsTemplate": {
+				"DisplayName": "Group template"
+			},
+			"GroupsString": {
+				"DisplayName": "Groups"
 			},
 			"CallerName": {
 				"Hide": true
@@ -34,7 +40,6 @@
 			}
 		}
 	}
-
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }

@@ -1,54 +1,54 @@
 <#
 	.SYNOPSIS
-	Monitor SharePoint Online tenant storage and alert when thresholds are exceeded
+	Monitor SharePoint storage and alert when limits are exceeded
 
 	.DESCRIPTION
-	Scheduled monitor for SharePoint Online tenant storage capacity and usage. Connects to the SharePoint admin center using managed identity, retrieves the tenant storage quota and the top site collections by consumed storage, and reports the full inventory to the runbook output on every run. An alert email is sent only when free storage falls below the configured low-storage limit or unused licensed storage rises above the configured reclaimable threshold.
+	Checks the storage of the SharePoint Online tenant on every run: the quota, how much is used, and the site collections that use the most. The full inventory is written to the run output. An alert email is sent only when the free storage drops below the low-storage limit or the licensed but unused storage exceeds the reclaimable limit.
 
-	.PARAMETER AlertLowStorageLimitInGB
-	Low-storage alert threshold in megabytes. An alert email is sent when free tenant storage falls below this limit.
+    .PARAMETER AlertLowStorageLimitInGB
+    Send an alert when the free tenant storage drops below this many gigabytes.
 
-	.PARAMETER AlertUnusedStorageLimitInGB
-	Unused-storage alert threshold in megabytes. An alert email is sent when unused licensed storage (storage assigned but not consumed by any site) rises above this limit, indicating storage that could be reclaimed.
+    .PARAMETER AlertUnusedStorageLimitInGB
+    Send an alert when the licensed storage that no site uses exceeds this many gigabytes. That storage could be reclaimed.
 
 	.PARAMETER TopSiteCount
-	Number of site collections to report, ordered by consumed storage. Default is 10.
+	How many of the largest site collections are listed.
 
 	.PARAMETER EmailFrom
-	The sender email address. This needs to be configured in the runbook customization.
+	Sender address of the alert email. Taken from the tenant setting RJReport.EmailSender.
 
 	.PARAMETER BrandingHeaderImageUrl
-	URL of a custom header image for report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding.
+	Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
 	.PARAMETER BrandingFooterImageUrl
-	URL of a custom footer image for report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding.
+	Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
 	.PARAMETER BrandingFooterLink
-	Link target applied to the footer image in report emails, for example the company website. Configured as a tenant setting; leave empty to use the default RealmJoin branding.
+	Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
 	.PARAMETER BrandingAccentColor
-	Accent color used for headings and highlights in report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding.
+	Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
 	.PARAMETER BrandingTextColor
-	Body text color used in report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding.
+	Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
 	.PARAMETER AlertEmailTo
-	Recipient email address for alert emails. Emails are sent only when storage thresholds are exceeded.
+	Address the alert goes to when a limit is exceeded.
 
 	.PARAMETER AlertEmailSubject
-	Subject line for alert emails.
+	Subject line of the alert email.
 
 	.PARAMETER CallerName
-	Name of the user or system that started the runbook. Tracked for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
-
+		"Parameters": {
 			"AlertLowStorageLimitInGB": {
-				"DisplayName": "Alert when free storage falls below (MB)"
+				"DisplayName": "Alert when free storage falls below (GB)"
 			},
 			"AlertUnusedStorageLimitInGB": {
-				"DisplayName": "Alert when unused storage rises above (MB)"
+				"DisplayName": "Alert when unused storage rises above (GB)"
 			},
 			"TopSiteCount": {
 				"DisplayName": "Number of top site collections to report"
@@ -83,36 +83,8 @@
 		}
 	}
 
-	.NOTES
-	Common Use Cases:
-	- Scheduled daily health check of SharePoint Online tenant storage, alerting only when a
-	  threshold is breached.
-	- Spotting a tenant approaching its storage quota before users are blocked from saving files.
-	- Spotting a large amount of unused, potentially reclaimable licensed storage.
-
-	Runbook Type: Scheduled (recommended: daily). The storage summary and the top site collections
-	are written to the runbook output on every run regardless of whether a threshold is breached, so
-	job history remains useful even on days with no alert.
-
-	Parameter Interactions:
-	- AlertLowStorageLimitInGB alerts when free tenant storage drops below the configured value.
-	- AlertUnusedStorageLimitInGB alerts when free tenant storage rises above the configured value
-	  (an indicator of reclaimable licensed storage); set it to 0 to disable this check.
-	- Both checks can fire in the same run only if AlertLowStorageLimitInGB is configured higher than
-	  AlertUnusedStorageLimitInGB - review both values together when tuning thresholds.
-	- The alert email is sent only when at least one threshold is breached; a run with no breach
-	  completes normally and sends nothing.
-	- The top site collections list covers SharePoint site collections only; OneDrive for Business
-	  sites are excluded because their storage does not count against the tenant storage quota this
-	  runbook monitors.
-
-
-	Notes and Limitations:
-	- Get-PnPTenantSite does not reliably report a site's creation date on every tenant or module
-	  version; the report shows "Unknown" for that site when this occurs.
-	- Enumerating all site collections can take several minutes in tenants with a large number of
-	  sites.
 #>
+
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 #Requires -Modules @{ModuleName = "PnP.PowerShell"; ModuleVersion = "3.4.1" }
 

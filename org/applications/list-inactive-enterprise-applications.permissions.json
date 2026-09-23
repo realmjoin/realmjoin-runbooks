@@ -6,8 +6,18 @@
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
                 {
+                    "Value": "AuditLog.Read.All",
+                    "Reason": "Reads the service principal sign-in activity report for the last sign-in date of each application"
+                },
+                {
                     "Value": "Directory.Read.All",
                     "Reason": "Lists service principals and reads the tenant name for the report"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the report email via Send-RjRbReportEmail when EmailTo is configured"
                 }
             ]
         }

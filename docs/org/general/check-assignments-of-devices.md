@@ -1,10 +1,9 @@
 # Check Assignments Of Devices
 
-Check Intune assignments for one or more device names
+Show which Intune policies and apps target given devices
 
 ## Detailed description
-This runbook queries Intune policies and optionally app assignments relevant to the specified device(s).
-It resolves device group memberships and reports matching assignments.
+Lists the Intune policies, and optionally the apps, that apply to one or more devices by resolving the devices' group memberships and matching them against the assignments. Nothing is changed.
 
 ## Where to find
 Org \ General \ Check Assignments Of Devices
@@ -20,7 +19,7 @@ Org \ General \ Check Assignments Of Devices
 
 ## Parameters
 ### DeviceNames
-Comma-separated list of device names to check.
+Names of the devices to check, separated by commas.
 
 | Property | Value |
 |----------|-------|
@@ -29,7 +28,7 @@ Comma-separated list of device names to check.
 | Type | String |
 
 ### IncludeApps
-If set to true, also evaluates application assignments.
+Also lists the apps assigned to the devices.
 
 | Property | Value |
 |----------|-------|

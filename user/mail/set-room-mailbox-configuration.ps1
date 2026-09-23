@@ -1,39 +1,39 @@
 <#
     .SYNOPSIS
-    Set room mailbox resource policies
+    Configure the booking rules of this room mailbox
 
     .DESCRIPTION
-    Updates room mailbox settings such as booking policy, calendar processing, and capacity. The runbook can optionally restrict BookInPolicy to members of a specific mail-enabled security group.
+    Sets the booking rules of this room mailbox: who may book it, whether recurring meetings and conflicts are allowed, and how requests are processed. It also sets how far ahead and how long meetings may be, and the room capacity. All booking settings are written as shown; the capacity only when it is greater than 0.
 
     .PARAMETER UserName
-    User principal name of the room mailbox.
+    User principal name of the room mailbox the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER AllBookInPolicy
-    "Allow BookIn for everyone" (final value: $true) or "Custom BookIn Policy" (final value: $false) can be selected as action to perform. If set to true, the room will allow BookIn for everyone and the BookInPolicyGroup parameter will be ignored. If set to false, only members of the group specified in the BookInPolicyGroup parameter will be allowed to BookIn.
+    Everyone lets all users book the room. Only members of a group restricts booking to the "Booking group".
 
     .PARAMETER BookInPolicyGroup
-    Group whose members are allowed to book when AllBookInPolicy is false.
+    Mail-enabled security group whose members may book the room.
 
     .PARAMETER AllowRecurringMeetings
-    If set to true, allows recurring meetings.
+    Turn off to decline recurring meeting requests; single meetings are still accepted.
 
     .PARAMETER AutomateProcessing
-    Calendar processing mode for the room mailbox.
+    Auto accept books the room automatically. Auto update only marks requests as tentative for a delegate to decide. None leaves requests untouched.
 
     .PARAMETER BookingWindowInDays
-    How many days into the future bookings are allowed.
+    Requests further ahead than this many days are declined.
 
     .PARAMETER MaximumDurationInMinutes
-    Maximum meeting duration in minutes.
+    Longest meeting the room accepts, in minutes.
 
     .PARAMETER AllowConflicts
-    If set to true, allows scheduling conflicts.
+    Lets overlapping bookings through instead of declining them.
 
     .PARAMETER Capacity
-    Capacity to set for the room when greater than 0.
+    Number of seats. Leave at 0 to keep the current value.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -45,17 +45,19 @@
                 "Hide": true
             },
             "AutomateProcessing": {
+                "DisplayName": "Request processing",
                 "SelectSimple": {
-                    "Auto Accept": "AutoAccept",
-                    "Auto Update": "AutoUpdate",
+                    "Auto accept": "AutoAccept",
+                    "Auto update": "AutoUpdate",
                     "None": "None"
                 }
             },
             "AllBookInPolicy": {
+                "DisplayName": "Who may book the room",
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Allow BookIn for everyone",
+                            "Display": "Everyone",
                             "Customization": {
                                 "Hide": [
                                     "BookInPolicyGroup"
@@ -64,16 +66,33 @@
                             "Value": true
                         },
                         {
-                            "Display": "Custom BookIn Policy",
+                            "Display": "Only members of a group",
                             "Value": false
                         }
                     ],
                     "Default": true
                 }
+            },
+            "BookInPolicyGroup": {
+                "DisplayName": "Booking group"
+            },
+            "AllowRecurringMeetings": {
+                "DisplayName": "Allow recurring meetings?"
+            },
+            "BookingWindowInDays": {
+                "DisplayName": "Booking window (days)"
+            },
+            "MaximumDurationInMinutes": {
+                "DisplayName": "Maximum duration (minutes)"
+            },
+            "AllowConflicts": {
+                "DisplayName": "Allow conflicting bookings?"
+            },
+            "Capacity": {
+                "DisplayName": "Capacity"
             }
         }
     }
-
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
@@ -82,9 +101,9 @@
 param (
     [Parameter(Mandatory = $true)]
     [string] $UserName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Allow BookIn for everyone" -Type Setting -Attribute "RoomMailbox.AllBookInPolicy" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Who may book the room" -Type Setting -Attribute "RoomMailbox.AllBookInPolicy" } )]
     [bool] $AllBookInPolicy = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Allow BookIn for members of this group" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Booking group" } )]
     [string] $BookInPolicyGroup,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "RoomMailbox.AllowRecurringMeetings" } )]
     [bool] $AllowRecurringMeetings = $true,
@@ -96,7 +115,7 @@ param (
     [int] $MaximumDurationInMinutes = 1440,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "RoomMailbox.AllowConflicts" } )]
     [bool] $AllowConflicts = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Capacity (will only update on values greater 0)" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Capacity" } )]
     [int] $Capacity = 0,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

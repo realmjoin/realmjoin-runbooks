@@ -8,6 +8,102 @@
   - Optional license check (`CheckSharePointLicense`, enabled by default) aborts when the user has no enabled SharePoint service plan, regardless of the license source (e.g. Microsoft 365 E3/E5, F3, SharePoint Online Plan 1/2, group-based licensing).
   - Idempotent: no request is sent if the OneDrive already exists; a warning is shown if a deleted OneDrive of the user is found in the tenant recycle bin. Provisioning is asynchronous, the runbook only queues the request and points to **Check OneDrive Status** for verification.
 
+## 2026-09-21
+
+- Update **Delegate Full Access** Runbook in User/Mail
+  - Address the mailbox by its directory object id in all permission reads and changes, so mailboxes whose name also matches other recipients in the tenant (for example a shared mailbox named `Export`) are processed reliably
+  - Include the Exchange Online response in the run result when the connection, the mailbox lookup or the permission read-back fails
+
+- Update **Add Or Remove User** Runbook in Group/General
+  - Accept every Exchange Online recipient as a member of a distribution or mail-enabled security group, including mail users whose mailbox is hosted on-premises in a hybrid setup; a user without an Exchange Online recipient object is reported with a clear message
+
+- Address recipients by unique identifiers in further Exchange Online runbooks, so recipient names shared with other objects in the tenant are handled reliably
+  - **Add Or Remove User** and **Add Or Remove Nested Group** in Group/General: distribution group members are recognized and addressed by their directory object id
+  - **Add Or Remove Owner** in Group/General: the owner is recognized by directory object id and added to or removed from the distribution group's owner list individually
+  - **Hide Mailboxes (Scheduled)** in Org/Mail: Bookings calendars are addressed by their SMTP address
+  - **List Room Mailbox Configuration** in User/Mail: the calendar processing settings are read via the user principal name
+  - **Delegate Send On Behalf** and **List Mailbox Permissions** in User/Mail: Send on Behalf entries that resolve to more than one recipient are listed by name
+
+- Update **Get Teams User Info** Runbook in User/Phone
+  - Read the assigned Teams voice applications policy under its correct name, so a policy assigned to the user is reported instead of always showing `Global`
+
+- Add **Add Or Remove Call Queue Agents** Runbook in Org/Phone
+  - Adds several users at once as individually assigned agents of a call queue given by its name, or removes them; every user is checked for Enterprise Voice enablement and the limit of 20 individually assigned agents is enforced before any change
+  - Recognizes call queues whose agents come from a Teams channel, a group or a Shifts schedule and explains where the members are managed instead of changing anything; a removal that would leave the queue without any agent is refused
+  - Optional Graph permissions resolve team, channel and group names in the output; the call queue is read back after the change to confirm the result
+
+- Add **Add Or Remove Call Queue Authorized Users** Runbook in Org/Phone
+  - Adds several users at once as authorized users of a call queue given by its name, or removes them; every user is checked for Enterprise Voice enablement, the limit of 15 authorized users is enforced before any change and the list of hidden authorized users is kept consistent
+  - Optionally assigns or removes the Teams voice applications policy of the users; a policy is only removed when the user is not an authorized user of another call queue or auto attendant, and group-based policy assignments are reported instead of changed
+
+- New **Rename Devices By Group Tag (Scheduled)** Runbook in Org/Devices
+  - Builds the computer name of every Windows Autopilot device from a template of group tag and serial number (for example `%GROUPTAG%-%SERIAL%`), writes it to the Autopilot record for the next deployment and renames already enrolled, Entra joined, corporate-owned devices through the Intune rename action
+  - Shortens the serial number to fit the 15-character limit (end or start of the serial number), drops repeated, leading and trailing hyphens that hyphen-separated virtual machine serial numbers would otherwise leave in the name, reports and skips name collisions, invalid names, hybrid joined and personal devices and renames that are still pending
+  - Dry run (default), group tag filter and exclude list with `*` wildcard (for example `MTR,SHARED,KIOSK` for device types that must keep their names) and a maximum number of changes per run for a staged rollout
+  - Lists the result as separate named tables in the portal's Output Data tab: summary, planned or applied changes, skipped devices with their reason, devices already named
+  - Replaces per-location Autopilot deployment profiles and dynamic groups that only exist to apply a location-specific naming template
+
+## 2026-09-18
+
+- Update **Show Bitlocker Recovery Key** Runbook in Device/Security
+  - Add optional `skipIfAtRisk` parameter (default off): when enabled, the recovery keys are only shown if the device's Microsoft Defender for Endpoint risk score is not Medium or High, so the keys of a device potentially involved in a security incident are not disclosed without aligning with the security team first; the check runs before any key is read and aborts with a clearly visible warning
+  - Adds the optional `WindowsDefenderATP` permission `Machine.Read.All` for the risk check
+  - New companion documentation describing the check, its outcomes and how to enable it by default via runbook customization
+
+- Update **Reset Mobile Device Pin** Runbook in Device/Security
+  - Add optional `skipIfAtRisk` parameter (default off): when enabled, the passcode is only reset if the device's Microsoft Defender for Endpoint risk score is not Medium or High, so a reset on a device potentially involved in a security incident does not grant access or interfere with the investigation; the check runs before the Intune device is looked up and aborts with a clearly visible warning
+  - Adds the optional `WindowsDefenderATP` permission `Machine.Read.All` for the risk check
+  - New companion documentation describing the check, its outcomes and how to enable it by default via runbook customization
+
+- Update **Wipe Device** Runbook in Device/General
+  - Describe the Microsoft Defender for Endpoint risk check (`skipWipeIfAtRisk`) in the companion documentation, including its outcomes and a customization example to enable it by default
+  - Mark the `WindowsDefenderATP` permission `Machine.Read.All` as optional in the permission manifest, as it is only needed when the risk check is enabled
+
+- Revise the portal help texts (synopsis, description and parameter descriptions) of all runbooks for readability in the RealmJoin Portal; technical background moves to the companion documentation, every parameter is documented and the runbook customization of three runbooks is parsed again
+  - **Report SharePoint Tenant Storage (Scheduled)**: the alert thresholds in gigabytes are evaluated again after the parameter rename
+
+## 2026-09-16
+
+- Update **Notify Users About Low Diskspace (Scheduled)** in Org/Devices
+  - Point out in the documentation, in the override warning and in the notification summary that the override mailbox receives one email per affected user within seconds, that mail filters may classify such a burst as bulk or spam, and where to look when the emails do not arrive (junk folder, quarantine, message trace of the sender)
+
+- Move the background notes of 27 runbooks from the comment-based help (`.NOTES`) into their companion documentation (`<runbook>.md` next to the script), so the generated runbook reference presents each topic once and in a consistent place; use cases, parameter interactions, limitations and configuration examples that were previously only available in the notes are now part of the documentation page, permission lists are covered by the permission manifests
+  - New companion documentation for **Add Or Remove Trusted Site**, **Check Intune Enrollment Readiness**, **Check OneDrive Status**, **Dedup Device Names (Scheduled)**, **Enable Or Disable External Mail**, **Invite External Guest Users**, **List SharePoint Site Collection Permission** and **Report SharePoint Tenant Storage (Scheduled)**
+  - Extended companion documentation for **Add Primary Users Of Devices To Group (Scheduled)**, **Auto Approve Driver Updates (Scheduled)**, **Cleanup Autopilot Devices (Scheduled)**, **Delete Stale Devices (Scheduled)**, **List MFA Methods**, **List Mobile Devices**, **List Signin Events**, **Monitor Pending EPM Requests (Scheduled)**, **Monitor Service Health (Scheduled)**, **Notify Users About Low Diskspace (Scheduled)**, **Notify Users About Stale Devices (Scheduled)**, **Report Devices Low Diskspace (Scheduled)**, **Report EPM Elevation Requests (Scheduled)**, **Report Intune Enrollment Readiness**, **Report Primary User Mismatch (Scheduled)**, **Report Stale Devices (Scheduled)** and **Sync Shared Channel Owners (Scheduled)**
+
+## 2026-09-15
+
+- Update **Report Expiring Application Credentials (Scheduled)** in Org/Applications
+  - Emit the credential list as structured objects at the end of the run, so it appears as a sortable and filterable table in the portal's Output Data tab - also when neither email nor download link is configured
+
+## 2026-09-10
+
+- Update **Notify Users About Low Diskspace (Scheduled)** and **Report Devices Low Diskspace (Scheduled)** in Org/Devices
+  - Evaluate the threshold against the exact free disk space and round the displayed values down, so a device just below the configured limit is reliably reported and never shown with a value that equals the threshold
+  - Rank the flagged devices by the metric the threshold uses, so the most urgent devices lead the report and the notification in both threshold modes
+  - Render device name, operating system, model and primary user as Intune reports them, including values containing Markdown characters such as "|", "*" or "<"
+  - Describe in both runbooks why the pair can list a different number of devices: the report includes devices with a stale inventory, the notification skips them
+
+- Update **Notify Users About Low Diskspace (Scheduled)** in Org/Devices
+  - Resolve the primary user by the Entra object id that Intune reports in `managedDevice.userId`, with the escaped user principal name as fallback, so guest accounts and users whose UPN has changed are reached as well
+  - Group all devices of a person into a single notification, also when Intune reports an object id for some of them and only a user principal name for others
+  - Return the resolved group scopes as a set, so the include/exclude user scope and the device group scope match case-insensitively and report their real size
+  - Report the delivery result per recipient, so a partially delivered notification is visible and a run without a single delivery ends as a failed job
+  - Keep a custom mail template in its own language by taking the headline from the custom subject and omitting the generated closing note
+
+- Update **Report Devices Low Diskspace (Scheduled)** in Org/Devices
+  - Deliver the report email independently of the optional download link: a failed upload is reported as a warning naming the likely cause and the run continues
+  - Ship "CSV & XLSX" as the `ReportFileFormat` default, matching the parameter help, the dropdown and the runbook description
+  - Treat manufacturer and model filter entries as literal substrings, so an entry containing `*`, `?`, `[` or `]` matches as written
+  - Reduce the tenant name to a file-safe form before it becomes part of the report file name
+  - Attach and announce only the report files that were actually written, and report the delivery result per recipient
+
+- Update **List Inactive Enterprise Applications** Runbook in Org/Applications
+  - Determine the last sign-in from the Entra service principal sign-in activity report, which keeps the date per application, instead of the raw sign-in log with its 7 resp. 30 day retention - a threshold above the retention period, such as the default of 90 days, is evaluated on data that covers it
+  - Assign every application of the tenant to exactly one of the two result lists
+  - Leave the tenant unchanged: the runbook reports only and no longer writes the date of the last sign-in into the application's `notes` field
+  - Read the tenant with two paged Graph calls instead of one lookup per application, which noticeably shortens the runtime in tenants with many enterprise applications
+
 ## 2026-09-07
 
 - Fix **Report SharePoint Tenant Storage** as the Quota was not calculated correctly

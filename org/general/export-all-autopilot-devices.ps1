@@ -3,32 +3,47 @@
     List or export all Windows Autopilot devices
 
     .DESCRIPTION
-    Lists all Windows Autopilot devices and optionally exports them to a CSV file in Azure Storage. If exporting is enabled, the runbook uploads the report and returns a time-limited SAS (download) link.
+    Lists every Windows Autopilot registration with its details, either in the run output or as a CSV file uploaded to an Azure Storage account with a time-limited download link. Nothing is changed.
 
     .PARAMETER ExportToFile
-    "List in Console" (final value: $false) or "Export to a CSV file" (final value: $true) can be selected as action to perform.
+    List in the run output, or export to a CSV file with a download link.
 
     .PARAMETER ContainerName
-    Name of the Azure Storage container to upload the CSV report to.
+    Storage container the CSV file is uploaded to. Taken from the tenant setting IntuneDevicesReport.Container.
 
     .PARAMETER ResourceGroupName
-    Name of the Azure Resource Group containing the Storage Account.
+    Resource group of the storage account. Taken from the tenant setting IntuneDevicesReport.ResourceGroup.
 
     .PARAMETER StorageAccountName
-    Name of the Azure Storage Account used for upload.
+    Storage account for the export. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Name.
 
     .PARAMETER StorageAccountLocation
-    Azure region for the Storage Account if it needs to be created.
+    Azure region used when the storage account has to be created. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Location.
 
     .PARAMETER StorageAccountSku
-    SKU name for the Storage Account if it needs to be created.
+    Performance tier used when the storage account has to be created. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Sku.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
+            "ContainerName": {
+                "Hide": true
+            },
+            "ResourceGroupName": {
+                "Hide": true
+            },
+            "StorageAccountName": {
+                "Hide": true
+            },
+            "StorageAccountLocation": {
+                "Hide": true
+            },
+            "StorageAccountSku": {
+                "Hide": true
+            },
             "CallerName": {
                 "Hide": true
             },
@@ -40,7 +55,7 @@
                             "ParameterValue": true
                         },
                         {
-                            "Display": "List in Console",
+                            "Display": "List in the run output",
                             "ParameterValue": false,
                             "Customization": {
                                 "Hide": [

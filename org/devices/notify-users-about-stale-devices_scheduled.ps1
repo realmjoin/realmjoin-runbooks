@@ -1,146 +1,120 @@
 <#
     .SYNOPSIS
-    Notify primary users about their stale devices via email
+    Email users about devices they have not used for a while
 
     .DESCRIPTION
-    Identifies devices that haven't been active for a specified number of days and sends personalized email notifications to the primary users of those devices. The email contains device information and action steps for the user. Optionally filter users by including or excluding specific groups. Three optional routing targets are available: a global override recipient that redirects ALL notifications (for testing and piloting), a dedicated recipient for users whose UPN matches a name pattern (e.g. Device Enrollment Manager accounts), and a dedicated recipient that receives one combined email for stale devices without a primary user.
-
-    .NOTES
-    This runbook automatically sends personalized email notifications to users who have devices that haven't synced for a specified number of days.
-    The email is sent directly to the primary user's email address and includes detailed information about each inactive device.
-
-    Prerequisites:
-    - EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)
-    - Optional: Service Desk contact information can be configured (ServiceDesk_DisplayName, ServiceDesk_EMail, ServiceDesk_Phone, ServiceDesk_PortalUrl)
-
-    Common Use Cases:
-    - Automated user reminders about inactive devices to encourage regular device check-ins
-    - Proactive device lifecycle management by alerting users before devices are retired
-    - Security and compliance by ensuring users are aware of all devices registered to them
-    - Using MaxDays parameter for staged notifications (e.g., first reminder at 30 days, final notice at 60 days)
-    - User scope filtering to target specific departments or exclude service accounts
-    - Centrally handling devices without a primary user or owned by Device Enrollment Manager (e.g. DEM-*) accounts via dedicated recipients
-
-    Pilot and Testing Options:
-    - Use OverrideEmailRecipient parameter to send all notifications to a test mailbox instead of end users
-    - Perfect for validating email content and testing filters before rolling out to production
-    - Send notifications to ticket systems or shared mailboxes for centralized handling
+    Finds Intune devices that have not been active for a given number of days. Each primary user gets an email listing their stale devices and what to do about them. Users can be included or excluded by group. Emails can be redirected: all of them to an override address for tests, or those of accounts matching a name pattern to a dedicated recipient. Stale devices without a primary user can be collected into one combined email.
 
     .PARAMETER Days
-    Number of days without activity to be considered stale (minimum threshold).
+    Devices inactive for at least this many days count as stale.
 
     .PARAMETER MaxDays
-    Optional maximum number of days without activity. If set, only devices inactive between Days and MaxDays will be included.
+    Only devices inactive for at most this many days are included. Leave empty for no upper limit.
 
     .PARAMETER Windows
-    Include Windows devices in the results.
+    Includes Windows devices.
 
     .PARAMETER MacOS
-    Include macOS devices in the results.
+    Includes macOS devices.
 
     .PARAMETER iOS
-    Include iOS devices in the results.
+    Includes iOS and iPadOS devices.
 
     .PARAMETER Android
-    Include Android devices in the results.
+    Includes Android devices.
 
     .PARAMETER EmailFrom
-    The sender email address. This needs to be configured in the runbook customization.
+    Sender address of the notification email. Taken from the tenant setting RJReport.EmailSender.
 
     .PARAMETER BrandingHeaderImageUrl
-    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
     .PARAMETER BrandingFooterImageUrl
-    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
     .PARAMETER BrandingFooterLink
-    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-    When empty, the default link (https://www.realmjoin.com) is used.
+    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
     .PARAMETER BrandingAccentColor
-    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER BrandingTextColor
-    Optional text color override (6-digit hex) for the report email template.
-    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER ServiceDeskDisplayName
-    Service Desk display name for user contact information (optional).
+    Service desk name shown in the email. Taken from the tenant setting RJReport.ServiceDesk_DisplayName.
 
     .PARAMETER ServiceDeskEmail
-    Service Desk email address for user contact information (optional).
+    Service desk email address shown in the email. Taken from the tenant setting RJReport.ServiceDesk_EMail.
 
     .PARAMETER ServiceDeskPhone
-    Service Desk phone number for user contact information (optional).
+    Service desk phone number shown in the email. Taken from the tenant setting RJReport.ServiceDesk_Phone.
 
     .PARAMETER ServiceDeskPortalUrl
-    Service Desk portal URL for user contact information, rendered as a clickable link (optional).
+    Link to the service desk portal shown in the email. Taken from the tenant setting RJReport.ServiceDesk_PortalUrl.
 
     .PARAMETER ServiceDeskTicketUrl
-    Direct link to a Service Desk ticket, rendered as a clickable link (optional). Empty by default, so no ticket link is added.
+    Link to the service desk ticket shown in the email. Leave empty for no link.
 
     .PARAMETER UseUserScope
-    Enable user scope filtering to include or exclude users based on group membership.
+    Whether users are filtered by group membership. Set by the "Filter users by group?" choice.
 
     .PARAMETER IncludeUserGroup
-    Only send emails to users who are members of this group. Requires UseUserScope to be enabled.
+    Only users in this group are notified.
 
     .PARAMETER ExcludeUserGroup
-    Do not send emails to users who are members of this group. Requires UseUserScope to be enabled.
+    Users in this group are not notified.
 
     .PARAMETER OverrideEmailRecipient
-    Optional: Global override - when set, ALL notifications (user notifications, pattern-routed notifications and the combined email for devices without a primary user) are sent to this address instead of their normal recipients. Can be comma-separated for multiple recipients. Perfect for testing and piloting, or for routing everything to a ticket system. If left empty, the normal routing applies.
+    Sends every email, including pattern-routed ones and the combined email, to these addresses instead of the normal recipients. For tests, pilots or a ticket system.
 
     .PARAMETER SendNoPrimaryUserDevicesToOverride
-    If enabled, stale devices without a primary user are collected into one combined email to NoPrimaryUserEmailRecipient (or to OverrideEmailRecipient while the global override is active). Does not change how user notifications are routed. Devices without a primary user bypass user scope filtering.
+    Collects stale devices that have no primary user into one combined email to the "Recipient for devices without primary user". Those devices ignore the user filter.
 
     .PARAMETER NoPrimaryUserEmailRecipient
-    Email address(es) that receive the combined email for stale devices without a primary user. Can be comma-separated. Required when SendNoPrimaryUserDevicesToOverride is enabled, unless OverrideEmailRecipient is set.
+    Addresses for the combined email, separated by commas. Required when the combined email is enabled and no override is set.
 
     .PARAMETER OverrideUserNamePattern
-    Optional wildcard pattern(s) matched against the primary user UPN (comma-separated, e.g. 'DEM-*,KIOSK-*', case-insensitive). Notifications of matching users are redirected to UserNamePatternEmailRecipient; all other users are mailed directly. Not evaluated separately while the global override (OverrideEmailRecipient) is active, since all notifications are redirected anyway.
+    Wildcard patterns for user names, separated by commas, for example DEM-*,KIOSK-*. Emails of matching users go to the "Recipient for pattern-matched users" instead.
 
     .PARAMETER UserNamePatternEmailRecipient
-    Email address(es) that receive the notifications of users matching OverrideUserNamePattern. Can be comma-separated. Required when OverrideUserNamePattern is set, unless OverrideEmailRecipient is set.
+    Addresses that receive the emails of users matching the pattern, separated by commas. Required when a pattern is set and no override is active.
 
     .PARAMETER MailTemplateLanguage
-    Select which email template to use: EN (English, default), DE (German), or Custom (from Runbook Customizations).
+    English, German, or the custom template from the runbook customization; English is used where the custom template is empty.
 
     .PARAMETER CustomMailTemplateSubject
-    Custom email subject line (only used when MailTemplateLanguage is set to 'Custom').
+    Subject of the email when the custom template is used.
 
     .PARAMETER CustomMailTemplateBeforeDeviceDetails
-    Custom text to display before the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting.
+    Text above the device list when the custom template is used. Markdown is allowed.
 
     .PARAMETER CustomMailTemplateAfterDeviceDetails
-    Custom text to display after the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting.
+    Text below the device list when the custom template is used. Markdown is allowed.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "Days": {
-                "DisplayName": "Minimum Days Without Activity"
+                "DisplayName": "Days without activity"
             },
             "MaxDays": {
-                "DisplayName": "(Optional) Maximum Days Without Activity"
+                "DisplayName": "Maximum days without activity"
             },
             "Windows": {
-                "DisplayName": "Include Windows Devices"
+                "DisplayName": "Include Windows devices?"
             },
             "MacOS": {
-                "DisplayName": "Include macOS Devices"
+                "DisplayName": "Include macOS devices?"
             },
             "iOS": {
-                "DisplayName": "Include iOS Devices"
+                "DisplayName": "Include iOS devices?"
             },
             "Android": {
-                "DisplayName": "Include Android Devices"
+                "DisplayName": "Include Android devices?"
             },
             "EmailFrom": {
                 "Hide": true
@@ -176,48 +150,46 @@
                 "Hide": true
             },
             "UseUserScope": {
-                "DisplayName": "Use User Scope Filtering",
                 "Hide": true
             },
             "IncludeUserGroup": {
-                "DisplayName": "Users to include (Group)",
+                "DisplayName": "Include users from group",
                 "Hide": true
             },
             "ExcludeUserGroup": {
-                "DisplayName": "Users to exclude (Group)",
+                "DisplayName": "Exclude users from group",
                 "Hide": true
             },
             "OverrideEmailRecipient": {
-                "DisplayName": "Redirect * ALL * Emails to Override Recipient(s)"
+                "DisplayName": "Redirect all emails to"
             },
             "SendNoPrimaryUserDevicesToOverride": {
-                "DisplayName": "Send Devices without Primary User as Combined Email",
                 "Hide": true
             },
             "NoPrimaryUserEmailRecipient": {
-                "DisplayName": "Recipient(s) for Devices without Primary User",
+                "DisplayName": "Recipient for devices without primary user",
                 "Hide": true
             },
             "OverrideUserNamePattern": {
-                "DisplayName": "(Optional) Primary User Name Pattern - redirect matching users (e.g. 'DEM-*')"
+                "DisplayName": "Primary user name pattern"
             },
             "UserNamePatternEmailRecipient": {
-                "DisplayName": "Recipient(s) for Pattern-Matched Users"
+                "DisplayName": "Recipient for pattern-matched users"
             },
             "MailTemplateLanguage": {
-                "DisplayName": "Mail Template",
+                "DisplayName": "Mail template",
                 "Hide": true
             },
             "CustomMailTemplateSubject": {
-                "DisplayName": "Custom: Email Subject",
+                "DisplayName": "Custom: email subject",
                 "Hide": true
             },
             "CustomMailTemplateBeforeDeviceDetails": {
-                "DisplayName": "Custom: Text Before Device List",
+                "DisplayName": "Custom: text before device list",
                 "Hide": true
             },
             "CustomMailTemplateAfterDeviceDetails": {
-                "DisplayName": "Custom: Text After Device List",
+                "DisplayName": "Custom: text after device list",
                 "Hide": true
             },
             "CallerName": {
@@ -226,13 +198,13 @@
         },
         "ParameterList": [
             {
-                "DisplayName": "(Optional) Enable user scope filtering to include or exclude users based on group membership.",
+                "DisplayName": "Filter users by group?",
                 "DisplayAfter": "EmailFrom",
                 "Default": false,
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Yes - filter by group membership",
+                            "Display": "Yes, filter by group membership",
                             "Customization": {
                                 "Hide": [],
                                 "Show": ["IncludeUserGroup", "ExcludeUserGroup"],
@@ -242,7 +214,7 @@
                             }
                         },
                         {
-                            "Display": "No - send to all primary users",
+                            "Display": "No, send to all primary users",
                             "Customization": {
                                 "Hide": ["IncludeUserGroup", "ExcludeUserGroup"],
                                 "Default": {
@@ -255,13 +227,13 @@
                 }
             },
             {
-                "DisplayName": "(Optional) Send inactive devices with no primary user as one combined email.",
+                "DisplayName": "Combine devices without primary user?",
                 "DisplayAfter": "UserNamePatternEmailRecipient",
                 "Default": false,
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Yes - send one combined email for devices without primary user",
+                            "Display": "Yes, send one combined email",
                             "Customization": {
                                 "Hide": [],
                                 "Show": ["NoPrimaryUserEmailRecipient"],
@@ -271,7 +243,7 @@
                             }
                         },
                         {
-                            "Display": "No - skip devices without primary user (default)",
+                            "Display": "No, skip them",
                             "Customization": {
                                 "Hide": ["NoPrimaryUserEmailRecipient"],
                                 "Default": {
@@ -284,13 +256,13 @@
                 }
             },
             {
-                "DisplayName": "Select which email template to use",
+                "DisplayName": "Mail template",
                 "DisplayAfter": "Android",
                 "Default": "EN",
                 "Select": {
                     "Options": [
                         {
-                            "Display": "EN (English - Default)",
+                            "Display": "English (default)",
                             "Customization": {
                                 "Default": {
                                     "MailTemplateLanguage": "EN"
@@ -299,7 +271,7 @@
                             "ParameterValue": "EN"
                         },
                         {
-                            "Display": "DE (German)",
+                            "Display": "German",
                             "Customization": {
                                 "Default": {
                                     "MailTemplateLanguage": "DE"
@@ -308,7 +280,7 @@
                             "ParameterValue": "DE"
                         },
                         {
-                            "Display": "Custom - Use Template from Runbook Customizations (Fallback is English)",
+                            "Display": "Custom template from runbook customization",
                             "Customization": {
                                 "Default": {
                                     "MailTemplateLanguage": "Custom"
@@ -355,9 +327,9 @@ param(
     [string]$ServiceDeskPortalUrl,
     [string]$ServiceDeskTicketUrl = "",
     [bool] $UseUserScope = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Include Users from Group" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Include users from group" } )]
     [string]$IncludeUserGroup,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude Users from Group" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude users from group" } )]
     [string]$ExcludeUserGroup,
     [string]$OverrideEmailRecipient,
     [string]$OverrideUserNamePattern = "",

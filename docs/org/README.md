@@ -30,6 +30,7 @@
   - [Notify Users About Low Diskspace (Scheduled)](devices/notify-users-about-low-diskspace_scheduled.md)
   - [Notify Users About Stale Devices (Scheduled)](devices/notify-users-about-stale-devices_scheduled.md)
   - [Outphase Devices](devices/outphase-devices.md)
+  - [Rename Devices By Group Tag (Scheduled)](devices/rename-devices-by-group-tag_scheduled.md)
   - [Report Devices Low Diskspace (Scheduled)](devices/report-devices-low-diskspace_scheduled.md)
   - [Report Devices Without Primary User (Scheduled)](devices/report-devices-without-primary-user_scheduled.md)
   - [Report Primary User Mismatch (Scheduled)](devices/report-primary-user-mismatch_scheduled.md)
@@ -92,6 +93,8 @@
   - [Set Booking Config](mail/set-booking-config.md)
 <a name='org-phone'></a>
 ## Phone
+  - [Add Or Remove Call Queue Agents](phone/add-or-remove-call-queue-agents.md)
+  - [Add Or Remove Call Queue Authorized Users](phone/add-or-remove-call-queue-authorized-users.md)
   - [Get Teams Phone Number Assignment](phone/get-teams-phone-number-assignment.md)
 <a name='org-security'></a>
 ## Security

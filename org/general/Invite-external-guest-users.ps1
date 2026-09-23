@@ -1,59 +1,48 @@
 <#
 	.SYNOPSIS
-	Invite external guest users to the organization
+	Invite an external person as a guest user
 
 	.DESCRIPTION
-	This runbook invites an external user as a guest user in Microsoft Entra ID.
-	Optional profile properties such as given name, surname, company name, usage location, manager, and sponsor can be set after the invitation is accepted.
-	The invited user can optionally be added to a specified group.
-
-	.NOTES
-	Common Use Cases:
-	- Basic guest invite: provide only the email address and display name; all profile and group parameters can be left blank
-	- Full onboarding: supply all optional fields to set profile properties, assign a manager/sponsor, and add to a group in a single run
-
-	Parameter Interactions:
-	- Profile properties (givenName, surname, companyName, usageLocation) are applied only when non-empty; omitting them skips the PATCH call entirely
-	- Manager and sponsor assignment and group membership each require their respective parameters; all are silently skipped when not provided
+	Sends a Microsoft Entra ID guest invitation to an external email address. Optionally the guest is added to a group, and profile details such as name, company, usage location, manager and sponsor are set on the guest account right away. The invitation email and the landing page can be customized.
 
 	.PARAMETER InvitedUserEmail
-	Email address of the guest user to invite.
+	Email address of the person to invite.
 
 	.PARAMETER InvitedUserDisplayName
-	Display name of the guest user.
+	Name shown for the guest in the directory.
 
 	.PARAMETER GroupId
-	The object ID of the group to add the guest user to. If not specified, the user will not be added to any group.
+	Group the guest is added to. Preset in the runbook customization; empty means none.
 
 	.PARAMETER GivenName
-	Given name (first name) of the guest user.
+	First name of the guest.
 
 	.PARAMETER Surname
-	Surname (last name) of the guest user.
+	Last name of the guest.
 
 	.PARAMETER CompanyName
-	Company name of the guest user.
+	Company the guest works for.
 
 	.PARAMETER ManagerName
-	Manager to assign to the guest user. Select a user from the directory.
+	User who becomes the guest's manager.
 
 	.PARAMETER SponsorName
-	Sponsor to assign to the guest user. Select a user from the directory.
+	User recorded as the guest's sponsor.
 
 	.PARAMETER CustomizeInvitation
-	Enable to customize the invitation message and redirect URL.
+	Shows fields for an own invitation message and redirect URL.
 
 	.PARAMETER InvitationMessage
-	Custom message body to include in the invitation email. Only used when CustomizeInvitation is enabled.
+	Text included in the invitation email.
 
 	.PARAMETER InviteRedirectUrl
-	Custom URL the user is redirected to after accepting the invitation. Only used when CustomizeInvitation is enabled.
+	Page the guest lands on after accepting, for example a SharePoint site.
 
 	.PARAMETER UsageLocation
-	ISO 3166-1 alpha-2 country code for the usage location of the guest user (e.g. "US", "DE").
+	Two-letter country code, for example US or DE, needed before licenses can be assigned.
 
 	.PARAMETER CallerName
-	Caller name for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
@@ -75,35 +64,35 @@
 			},
 			{
 				"Name": "GivenName",
-				"DisplayName": "Given name (optional)"
+				"DisplayName": "Given name"
 			},
 			{
 				"Name": "Surname",
-				"DisplayName": "Surname (optional)"
+				"DisplayName": "Surname"
 			},
 			{
 				"Name": "CompanyName",
-				"DisplayName": "Company name (optional)"
+				"DisplayName": "Company name"
 			},
 			{
 				"Name": "ManagerName",
-				"DisplayName": "Manager (optional)"
+				"DisplayName": "Manager"
 			},
 			{
 				"Name": "SponsorName",
-				"DisplayName": "Sponsor (optional)"
+				"DisplayName": "Sponsor"
 			},
 			{
 				"Name": "CustomizeInvitation",
-				"DisplayName": "Customize Invitation",
+				"DisplayName": "Customize the invitation?",
 				"Select": {
 					"Options": [
 						{
-							"Display": "Yes - customize message/redirect",
+							"Display": "Yes, customize message and redirect",
 							"ParameterValue": true
 						},
 						{
-							"Display": "No - use defaults",
+							"Display": "No, use the defaults",
 							"ParameterValue": false,
 							"Customization": {
 								"Hide": [
@@ -119,15 +108,15 @@
 			},
 			{
 				"Name": "InvitationMessage",
-				"DisplayName": "Invitation message (optional)"
+				"DisplayName": "Invitation message"
 			},
 			{
 				"Name": "InviteRedirectUrl",
-				"DisplayName": "Invite redirect URL (optional)"
+				"DisplayName": "Redirect URL"
 			},
 			{
 				"Name": "UsageLocation",
-				"DisplayName": "Usage location - ISO country code (optional)"
+				"DisplayName": "Usage location"
 			},
 			{
 				"Name": "CallerName",

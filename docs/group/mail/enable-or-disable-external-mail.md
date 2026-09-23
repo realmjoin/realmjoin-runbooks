@@ -1,19 +1,17 @@
 # Enable Or Disable External Mail
 
-Enable or disable external parties to send emails to a Microsoft 365 group
+Allow or block external senders for this Microsoft 365 group
 
 ## Detailed description
-This runbook configures whether external senders are allowed to email a Microsoft 365 group.
-It uses Exchange Online to enable or disable the RequireSenderAuthenticationEnabled setting.
-You can also query the current state without making changes.
+Controls whether people outside the organization can send email to this Microsoft 365 group. The current setting can also be shown without changing it.
 
 ## Where to find
 Group \ Mail \ Enable Or Disable External Mail
 
-## Notes
-Setting this via Microsoft Graph is broken as of 2021-06-28.
-Attribute: allowExternalSenders.
-See https://docs.microsoft.com/en-us/graph/known-issues#setting-the-allowexternalsenders-property.
+## Implementation notes
+
+The setting is changed through Exchange Online (`RequireSenderAuthenticationEnabled`), not through Microsoft Graph. Writing the corresponding `allowExternalSenders` property of the group via Microsoft Graph is a documented known issue (as of 2021-06-28), see [Setting the allowExternalSenders property](https://docs.microsoft.com/en-us/graph/known-issues#setting-the-allowexternalsenders-property).
+
 
 ## Permissions
 ### Application permissions
@@ -26,7 +24,7 @@ See https://docs.microsoft.com/en-us/graph/known-issues#setting-the-allowexterna
 
 ## Parameters
 ### GroupId
-Object ID of the Microsoft 365 group.
+Object ID of the group the runbook acts on. Set by the portal from the selected group.
 
 | Property | Value |
 |----------|-------|
@@ -35,7 +33,7 @@ Object ID of the Microsoft 365 group.
 | Type | String |
 
 ### Action
-"Enable External Mail" (final value: 0), "Disable External Mail" (final value: 1) or "Query current state only" (final value: 2) can be selected as action to perform. If set to 0, the runbook will allow external senders to email the group. If set to 1, it will block external senders from emailing the group. If set to 2, it will return whether external mailing is currently enabled or disabled for the group without making any changes.
+Allow lets external senders email the group. Block limits it to internal senders. Query only shows the current state.
 
 | Property | Value |
 |----------|-------|

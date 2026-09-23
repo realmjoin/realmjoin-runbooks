@@ -1,130 +1,96 @@
 <#
     .SYNOPSIS
-    Notify primary users about low disk space on their devices via email
+    Email users whose devices are running out of disk space
 
     .DESCRIPTION
-    Identifies Intune managed Windows and macOS devices whose free disk space is below a configurable threshold, either a fixed amount of free space in gigabytes or a percentage of the total disk size, and sends one personalized email per primary user.
-    The email lists all affected devices of the user with their free and total disk space, rates each device as Critical or Warning and contains practical, platform-specific steps to free up space.
-    The evaluation can be limited to critical devices, to devices with a recent Intune inventory, to the members of an Entra device group and to users included in or excluded by a group.
-    A simulation mode lists the affected users and devices without sending anything, and a global override recipient redirects all notifications to a test or shared mailbox.
-
-    .NOTES
-    This runbook is the user-facing counterpart of the "Report Devices Low Diskspace" runbook. Both use the same threshold settings and the same
-    Critical/Warning rating, so the report gives administrators the overview while this runbook asks the affected users to free up space themselves.
-
-    Prerequisites:
-    - EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)
-    - Optional: Service Desk contact information can be configured (ServiceDesk_DisplayName, ServiceDesk_EMail, ServiceDesk_Phone, ServiceDesk_PortalUrl)
-
-    Data source and freshness:
-    The free and total disk space values are taken from the Intune hardware inventory of each device, which is refreshed with the regular device check-in.
-    They describe the state of the last successful inventory and not necessarily the current state of the device. To avoid notifying users based on outdated
-    numbers, devices whose last Intune sync is older than MaxInventoryAgeDays are skipped (0 disables this check).
-    Devices that report a total disk size of zero bytes have no usable storage inventory and are excluded from the evaluation, but their number is reported.
-    Only Windows and macOS devices are evaluated, because the storage inventory of mobile devices is less reliable and the cleanup guidance differs.
-
-    Common Use Cases:
-    - Recurring reminders to users whose devices are about to run out of disk space, before updates and app installations start to fail
-    - Two-stage campaigns: report all devices below the threshold to administrators, notify only the critical ones (NotifyOnSeverity)
-    - Staged rollouts per department or pilot group via the user and device group scope options
-    - Excluding service or shared accounts via the exclude group
-
-    Pilot and Testing Options:
-    - Use SimulationMode to list the affected users and devices without sending any email
-    - Use OverrideEmailRecipient to send all notifications to a test mailbox instead of end users
-    - Perfect for validating email content and testing thresholds and filters before rolling out to production
+    Finds Windows and macOS devices in Intune whose free disk space is below a limit, either a fixed number of gigabytes or a percentage of the disk. Each primary user gets one email listing their affected devices with practical steps to free up space. Devices are rated Warning or Critical. The run can be limited to critical devices, to devices with a fresh inventory, to a device group and to certain users. A simulation mode only lists who would be notified, and an override recipient redirects all emails to a test mailbox.
 
     .PARAMETER ThresholdType
-    Determines how low disk space is detected, either by a fixed amount of free space in gigabytes or by the percentage of free space relative to the disk size.
+    By a fixed amount of free gigabytes or by the percentage of free space on the disk.
 
     .PARAMETER FreeSpaceThresholdGB
-    Devices with less free disk space than this value in gigabytes are considered. Only used when the threshold type is set to free space in gigabytes.
+    Devices with less free space than this many gigabytes are affected.
 
     .PARAMETER FreeSpacePercentThreshold
-    Devices with a lower percentage of free disk space than this value are considered. Only used when the threshold type is set to free space in percent.
+    Devices with less free space than this percentage of the disk are affected.
 
     .PARAMETER NotifyOnSeverity
-    Selects which devices trigger a notification: every device below the threshold (Warning and Critical) or only devices below half of the threshold (Critical only).
+    Every device below the limit (Warning and Critical), or only devices below half of it (Critical only).
 
     .PARAMETER Windows
-    Include Windows devices in the evaluation.
+    Includes Windows devices.
 
     .PARAMETER MacOS
-    Include macOS devices in the evaluation.
+    Includes macOS devices.
 
     .PARAMETER MaxInventoryAgeDays
-    Devices whose last Intune sync is older than this number of days are skipped, because their storage inventory is considered outdated. Devices without a last sync date are skipped as well. Set to 0 to disable the check.
+    Devices whose last Intune sync is older than this many days are skipped, as their disk data is stale. 0 disables the check.
 
     .PARAMETER EmailFrom
-    The sender email address. This needs to be configured in the runbook customization.
+    Sender address of the notification email. Taken from the tenant setting RJReport.EmailSender.
 
     .PARAMETER BrandingHeaderImageUrl
-    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the notification email.
-    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
     .PARAMETER BrandingFooterImageUrl
-    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the notification email.
-    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
     .PARAMETER BrandingFooterLink
-    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-    When empty, the default link (https://www.realmjoin.com) is used.
+    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
     .PARAMETER BrandingAccentColor
-    Optional accent color override (6-digit hex, e.g. '#0052cc') for the notification email template.
-    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER BrandingTextColor
-    Optional text color override (6-digit hex) for the notification email template.
-    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER ServiceDeskDisplayName
-    Service Desk display name for user contact information (optional).
+    Service desk name shown in the email. Taken from the tenant setting RJReport.ServiceDesk_DisplayName.
 
     .PARAMETER ServiceDeskEmail
-    Service Desk email address for user contact information (optional).
+    Service desk email address shown in the email. Taken from the tenant setting RJReport.ServiceDesk_EMail.
 
     .PARAMETER ServiceDeskPhone
-    Service Desk phone number for user contact information (optional).
+    Service desk phone number shown in the email. Taken from the tenant setting RJReport.ServiceDesk_Phone.
 
     .PARAMETER ServiceDeskPortalUrl
-    Service Desk portal URL for user contact information, rendered as a clickable link (optional).
+    Link to the service desk portal shown in the email. Taken from the tenant setting RJReport.ServiceDesk_PortalUrl.
 
     .PARAMETER ServiceDeskTicketUrl
-    Direct link to a Service Desk ticket, rendered as a clickable link (optional). Empty by default, so no ticket link is added.
+    Link to the service desk ticket shown in the email. Taken from the tenant setting RJReport.ServiceDesk_TicketUrl; empty means no link.
 
     .PARAMETER UseUserScope
-    Enable user scope filtering to include or exclude users based on group membership.
+    Whether users are filtered by group membership. Set by the "Filter users by group?" choice.
 
     .PARAMETER IncludeUserGroup
-    Only notify users who are (transitive) members of this group. Requires UseUserScope to be enabled.
+    Only users in this group, nested groups included, are notified.
 
     .PARAMETER ExcludeUserGroup
-    Do not notify users who are (transitive) members of this group. Requires UseUserScope to be enabled.
+    Users in this group, nested groups included, are not notified.
 
     .PARAMETER IncludeDeviceGroup
-    Optional Entra device group. When set, only devices that are (transitive) members of this group are evaluated. Can be combined with the user scope.
+    Only devices in this Entra ID group, nested groups included, are checked. Can be combined with the user filter.
 
     .PARAMETER OverrideEmailRecipient
-    Optional: Global override - when set, ALL notifications are sent to this address instead of the end users. Can be comma-separated for multiple recipients. Perfect for testing and piloting, or for routing everything to a shared mailbox. If left empty, every user is mailed directly.
+    Sends every email to these addresses instead of the users, for tests and pilots. The mailbox gets one email per affected user within seconds, which mail filters may treat as spam; prefer a mailbox in your own tenant.
 
     .PARAMETER SimulationMode
-    When enabled, the runbook lists the affected users and devices in the output but does not send any email.
+    Simulation only lists the affected users and devices; nothing is sent.
 
     .PARAMETER MailTemplateLanguage
-    Select which email template to use: EN (English, default), DE (German), or Custom (from Runbook Customizations).
+    English, German, or the custom template from the runbook customization; English is used where the custom template is empty.
 
     .PARAMETER CustomMailTemplateSubject
-    Custom email subject line (only used when MailTemplateLanguage is set to 'Custom').
+    Subject of the email when the custom template is used, for Warning and Critical alike.
 
     .PARAMETER CustomMailTemplateBeforeDeviceDetails
-    Custom text to display before the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting.
+    Text above the device list when the custom template is used. Markdown is allowed.
 
     .PARAMETER CustomMailTemplateAfterDeviceDetails
-    Custom text to display after the device list (only used when MailTemplateLanguage is set to 'Custom'). Supports Markdown formatting. Replaces the built-in cleanup steps, so it should contain its own guidance.
+    Text below the device list when the custom template is used; it replaces the built-in cleanup steps. Markdown is allowed.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -162,10 +128,10 @@
                 }
             },
             "FreeSpaceThresholdGB": {
-                "DisplayName": "Low Disk Space Threshold (free GB)"
+                "DisplayName": "Free space limit (GB)"
             },
             "FreeSpacePercentThreshold": {
-                "DisplayName": "Low Disk Space Threshold (free %)",
+                "DisplayName": "Free space limit (%)",
                 "Hide": true
             },
             "NotifyOnSeverity": {
@@ -185,19 +151,19 @@
                 }
             },
             "Windows": {
-                "DisplayName": "Include Windows Devices"
+                "DisplayName": "Include Windows devices?"
             },
             "MacOS": {
-                "DisplayName": "Include macOS Devices"
+                "DisplayName": "Include macOS devices?"
             },
             "MaxInventoryAgeDays": {
-                "DisplayName": "Skip devices whose last Intune sync is older than (days, 0 = no limit)"
+                "DisplayName": "Skip devices not synced for (days)"
             },
             "IncludeDeviceGroup": {
-                "DisplayName": "Limit to devices in group (optional)"
+                "DisplayName": "Limit to devices in group"
             },
             "OverrideEmailRecipient": {
-                "DisplayName": "Redirect * ALL * Emails to Override Recipient(s)"
+                "DisplayName": "Redirect all emails to"
             },
             "SimulationMode": {
                 "DisplayName": "Notification mode",
@@ -240,31 +206,30 @@
                 "Hide": true
             },
             "UseUserScope": {
-                "DisplayName": "Use User Scope Filtering",
                 "Hide": true
             },
             "IncludeUserGroup": {
-                "DisplayName": "Users to include (Group)",
+                "DisplayName": "Include users from group",
                 "Hide": true
             },
             "ExcludeUserGroup": {
-                "DisplayName": "Users to exclude (Group)",
+                "DisplayName": "Exclude users from group",
                 "Hide": true
             },
             "MailTemplateLanguage": {
-                "DisplayName": "Mail Template",
+                "DisplayName": "Mail template",
                 "Hide": true
             },
             "CustomMailTemplateSubject": {
-                "DisplayName": "Custom: Email Subject",
+                "DisplayName": "Custom: email subject",
                 "Hide": true
             },
             "CustomMailTemplateBeforeDeviceDetails": {
-                "DisplayName": "Custom: Text Before Device List",
+                "DisplayName": "Custom: text before device list",
                 "Hide": true
             },
             "CustomMailTemplateAfterDeviceDetails": {
-                "DisplayName": "Custom: Text After Device List",
+                "DisplayName": "Custom: text after device list",
                 "Hide": true
             },
             "CallerName": {
@@ -273,13 +238,13 @@
         },
         "ParameterList": [
             {
-                "DisplayName": "(Optional) Enable user scope filtering to include or exclude users based on group membership.",
+                "DisplayName": "Filter users by group?",
                 "DisplayAfter": "IncludeDeviceGroup",
                 "Default": false,
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Yes - filter by group membership",
+                            "Display": "Yes, filter by group membership",
                             "Customization": {
                                 "Hide": [],
                                 "Show": ["IncludeUserGroup", "ExcludeUserGroup"],
@@ -289,7 +254,7 @@
                             }
                         },
                         {
-                            "Display": "No - notify all primary users",
+                            "Display": "No, notify all primary users",
                             "Customization": {
                                 "Hide": ["IncludeUserGroup", "ExcludeUserGroup"],
                                 "Default": {
@@ -302,13 +267,13 @@
                 }
             },
             {
-                "DisplayName": "Select which email template to use",
+                "DisplayName": "Mail template",
                 "DisplayAfter": "SimulationMode",
                 "Default": "EN",
                 "Select": {
                     "Options": [
                         {
-                            "Display": "EN (English - Default)",
+                            "Display": "English (default)",
                             "Customization": {
                                 "Default": {
                                     "MailTemplateLanguage": "EN"
@@ -317,7 +282,7 @@
                             "ParameterValue": "EN"
                         },
                         {
-                            "Display": "DE (German)",
+                            "Display": "German",
                             "Customization": {
                                 "Default": {
                                     "MailTemplateLanguage": "DE"
@@ -326,7 +291,7 @@
                             "ParameterValue": "DE"
                         },
                         {
-                            "Display": "Custom - Use Template from Runbook Customizations (Fallback is English)",
+                            "Display": "Custom template from runbook customization",
                             "Customization": {
                                 "Default": {
                                     "MailTemplateLanguage": "Custom"
@@ -377,13 +342,14 @@ param(
     [string] $ServiceDeskPhone,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.ServiceDesk_PortalUrl" } )]
     [string] $ServiceDeskPortalUrl,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.ServiceDesk_TicketUrl" } )]
     [string] $ServiceDeskTicketUrl = "",
     [bool] $UseUserScope = $false,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Include Users from Group" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Include users from group" } )]
     [string] $IncludeUserGroup,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude Users from Group" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude users from group" } )]
     [string] $ExcludeUserGroup,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Limit to devices in group (optional)" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Limit to devices in group" } )]
     [string] $IncludeDeviceGroup,
     [string] $OverrideEmailRecipient,
     [bool] $SimulationMode = $false,
@@ -456,6 +422,10 @@ if (-not $EmailFrom) {
 $globalOverrideActive = -not [string]::IsNullOrWhiteSpace($OverrideEmailRecipient)
 if ($globalOverrideActive) {
     Write-Warning "OverrideEmailRecipient is set - ALL notifications are redirected to '$OverrideEmailRecipient'. No end user receives an email."
+    # The override mailbox gets one email per affected user, all within seconds and with urgent subject lines - a pattern
+    # that mail filters may classify as bulk or spam. Said up front so a test run whose emails never show up in the inbox
+    # is checked at the right place instead of being read as a runbook failure.
+    Write-Warning "The override mailbox receives one email per affected user within a few seconds. Mail filters may treat such a burst of similar, urgently worded emails as bulk or spam - if the emails do not arrive, check the junk folder and the quarantine of that mailbox and the message trace of the sender '$EmailFrom'. A mailbox in the same tenant is the more reliable test target."
 }
 
 if ($SimulationMode) {
@@ -501,6 +471,9 @@ $platformSummary = $selectedPlatforms -join ', '
 $userScopeConfigured = $UseUserScope -and (-not [string]::IsNullOrWhiteSpace($IncludeUserGroup) -or -not [string]::IsNullOrWhiteSpace($ExcludeUserGroup))
 if ($UseUserScope -and -not $userScopeConfigured) {
     Write-Warning "UseUserScope is enabled but neither an include nor an exclude group is configured - all primary users are notified."
+}
+elseif (-not $UseUserScope -and (-not [string]::IsNullOrWhiteSpace($IncludeUserGroup) -or -not [string]::IsNullOrWhiteSpace($ExcludeUserGroup))) {
+    Write-Warning "An include or exclude user group is configured but UseUserScope is disabled - the group is ignored and all primary users are notified."
 }
 
 $deviceGroupActive = -not [string]::IsNullOrWhiteSpace($IncludeDeviceGroup)
@@ -625,13 +598,16 @@ function Get-DiskSeverity {
     return 'Warning'
 }
 
-function Get-GroupUserUpnSet {
+function Get-GroupUserSet {
     <#
         .SYNOPSIS
-        Resolves the transitive user members of a group into a case-insensitive set of user principal names.
+        Resolves the transitive user members of a group into case-insensitive sets of object ids and user principal names.
 
         .DESCRIPTION
         Uses the transitiveMembers navigation with the user type cast, so nested group memberships are included.
+        Both the object id and the user principal name are kept: a device is matched on the object id of its
+        primary user whenever Intune reports one, because that id survives UPN changes and is unambiguous for
+        guest accounts, and falls back to the UPN otherwise.
         A failing lookup stops the runbook, because a silently empty include group would notify every user
         and a silently empty exclude group would notify users that should have been excluded.
 
@@ -648,25 +624,70 @@ function Get-GroupUserUpnSet {
         [string]$Label
     )
 
+    $idSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
     $upnSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $memberCount = 0
 
-    Write-Output "Retrieving members of the $Label user group (including nested groups)..."
+    # No Write-Output in this function: it returns its result on the success stream, and any progress
+    # line written here would be captured into that return value, turning it into an Object[] and
+    # flattening the HashSets. The caller prints the progress instead.
     try {
         $groupUri = "https://graph.microsoft.com/v1.0/groups/$GroupId/transitiveMembers/microsoft.graph.user?`$top=999&`$select=id,userPrincipalName"
         $members = Get-GraphPagedResult -Uri $groupUri
         foreach ($member in $members) {
+            $memberCount++
+            if (-not [string]::IsNullOrEmpty($member.id)) {
+                [void]$idSet.Add($member.id)
+            }
             if (-not [string]::IsNullOrEmpty($member.userPrincipalName)) {
                 [void]$upnSet.Add($member.userPrincipalName)
             }
         }
-        Write-Output "The $Label user group contains $($upnSet.Count) user(s)."
     }
     catch {
         Write-Error "Failed to retrieve members of the $Label user group ('$GroupId'): $($_.Exception.Message)" -ErrorAction Continue
         throw "Unable to retrieve $Label user group membership"
     }
 
-    return $upnSet
+    return [PSCustomObject]@{
+        Ids   = $idSet
+        Upns  = $upnSet
+        Count = $memberCount
+    }
+}
+
+function Test-UserInScope {
+    <#
+        .SYNOPSIS
+        Tests whether the primary user of a device belongs to a resolved user group scope.
+
+        .DESCRIPTION
+        Matches on the Entra object id whenever Intune reports one on the device; the user principal name is
+        only used as a fallback for devices without a userId.
+
+        .PARAMETER Scope
+        A scope as returned by Get-GroupUserSet.
+
+        .PARAMETER UserId
+        The Entra object id of the device's primary user, if reported by Intune.
+
+        .PARAMETER UserPrincipalName
+        The user principal name of the device's primary user.
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$Scope,
+        [string]$UserId,
+        [string]$UserPrincipalName
+    )
+
+    # Ids and Upns are filled from the same member list, so a UPN hit on a device that reports a userId
+    # necessarily describes a different account - a renamed or recycled UPN - and would include or exclude
+    # the wrong user. The UPN is therefore only consulted when Intune reports no userId.
+    if (-not [string]::IsNullOrWhiteSpace($UserId)) {
+        return $Scope.Ids.Contains($UserId)
+    }
+    return (-not [string]::IsNullOrWhiteSpace($UserPrincipalName) -and $Scope.Upns.Contains($UserPrincipalName))
 }
 
 function Get-GroupDeviceIdSet {
@@ -688,7 +709,7 @@ function Get-GroupDeviceIdSet {
 
     $deviceIdSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 
-    Write-Output "Retrieving members of the device group (including nested groups)..."
+    # No Write-Output here either - see the note in Get-GroupUserSet
     try {
         $groupUri = "https://graph.microsoft.com/v1.0/groups/$GroupId/transitiveMembers?`$select=id,deviceId,displayName"
         $members = Get-GraphPagedResult -Uri $groupUri
@@ -697,14 +718,38 @@ function Get-GroupDeviceIdSet {
                 [void]$deviceIdSet.Add($member.deviceId)
             }
         }
-        Write-Output "The device group contains $($deviceIdSet.Count) device(s)."
     }
     catch {
         Write-Error "Failed to retrieve members of the device group ('$GroupId'): $($_.Exception.Message)" -ErrorAction Continue
         throw "Unable to retrieve device group membership"
     }
 
-    return $deviceIdSet
+    # The comma keeps PowerShell from enumerating the HashSet into loose strings, which would lose
+    # the OrdinalIgnoreCase comparer and turn Contains() into case-sensitive array membership
+    return , $deviceIdSet
+}
+
+function ConvertTo-GraphPathSegment {
+    <#
+        .SYNOPSIS
+        Escapes a value for use as a single path segment of a Microsoft Graph URL.
+
+        .DESCRIPTION
+        Graph resolves a user principal name as a path segment, where '@' is a legal character (RFC 3986 pchar)
+        and has to stay literal - percent-encoding it as '%40' breaks the route resolution of the $batch endpoint,
+        which rejects the request with status 400 because the identifier then contains a '%'. Only '%' itself and
+        '#' (guest accounts contain '#EXT#') actually need escaping. The '%' has to be replaced first, otherwise
+        the escape sequence introduced for '#' would be escaped a second time.
+
+        .PARAMETER Value
+        The raw path segment, e.g. a user principal name.
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Value
+    )
+
+    return $Value.Replace('%', '%25').Replace('#', '%23')
 }
 
 function Resolve-NotificationUsers {
@@ -713,33 +758,45 @@ function Resolve-NotificationUsers {
         Resolves the mail address and account state of the users to notify via Graph JSON batching.
 
         .DESCRIPTION
-        Each user is looked up individually (/users/{upn}) to obtain the mail attribute and the accountEnabled flag.
+        Each user is looked up individually to obtain the mail attribute and the accountEnabled flag. Intune
+        reports the Entra object id of the primary user in managedDevice.userId, which is used as the lookup
+        identifier whenever it is present: an object id needs no escaping and stays valid for guest accounts and
+        for users whose current UPN differs from the address that Intune recorded at enrollment. Devices without
+        a userId fall back to a lookup by user principal name.
         The requests are sent through the Graph $batch endpoint by the module function Invoke-RjRbGraphBatch, which
         handles the chunking (20 requests per call), the transport and the retry of throttled inner requests
         (status 429) with the Retry-After interval reported by Graph. Lookups that are still throttled after the
         last retry and other failed lookups are marked and reported so that the affected users are skipped instead
         of aborting the run.
 
-        .PARAMETER UserPrincipalNames
-        The user principal names (as reported on the managed devices) to resolve.
+        .PARAMETER Users
+        The user identities to resolve, as objects with Key, Id and UserPrincipalName.
     #>
     param(
-        [array]$UserPrincipalNames
+        [array]$Users
     )
 
     $resolvedUsers = @{}
 
-    # The request id has to be a string; a sequential counter is mapped back to the UPN
-    $upnByRequestId = @{}
+    # The request id has to be a string; a sequential counter is mapped back to the user identity
+    $userByRequestId = @{}
     $requestCounter = 0
-    $requests = foreach ($upn in $UserPrincipalNames) {
+    $requests = foreach ($user in $Users) {
         $requestCounter++
-        $upnByRequestId["$requestCounter"] = $upn
-        $encodedUpn = [System.Uri]::EscapeDataString($upn)
+        $userByRequestId["$requestCounter"] = $user
+        $identifier = if (-not [string]::IsNullOrWhiteSpace($user.Id)) {
+            $user.Id
+        }
+        else {
+            ConvertTo-GraphPathSegment -Value $user.UserPrincipalName
+        }
         @{
             id     = "$requestCounter"
             method = "GET"
-            url    = "/users/$encodedUpn?`$select=id,displayName,mail,accountEnabled"
+            # The identifier MUST be wrapped in a subexpression: '?' is a legal character in an unbraced
+            # PowerShell variable name (cf. the automatic variable $?), so "$identifier?" would parse as the
+            # undefined variable 'identifier?' and silently drop the user from the URL.
+            url    = "/users/$($identifier)?`$select=id,displayName,mail,userPrincipalName,accountEnabled"
         }
     }
 
@@ -747,46 +804,59 @@ function Resolve-NotificationUsers {
         $responses = Invoke-RjRbGraphBatch -Requests @($requests) -ProgressLabel "user lookups" -ProgressInterval 10
 
         foreach ($item in $responses) {
-            $upn = $upnByRequestId["$($item.id)"]
-            if (-not $upn) { continue }
+            $user = $userByRequestId["$($item.id)"]
+            if (-not $user) { continue }
+
+            # Prefer the UPN in log lines; devices without one are only identifiable by their user object id
+            $identityLabel = if (-not [string]::IsNullOrWhiteSpace($user.UserPrincipalName)) { $user.UserPrincipalName } else { $user.Id }
 
             if ($item.status -eq 200) {
                 $mail = $item.body.mail
-                $resolvedUsers[$upn.ToLowerInvariant()] = [PSCustomObject]@{
+                # The UPN returned by Graph is authoritative; the one recorded by Intune can be outdated
+                $upn = if (-not [string]::IsNullOrWhiteSpace($item.body.userPrincipalName)) { $item.body.userPrincipalName } else { $user.UserPrincipalName }
+                $resolvedUsers[$user.Key] = [PSCustomObject]@{
                     UserPrincipalName = $upn
                     DisplayName       = $item.body.displayName
                     Recipient         = if (-not [string]::IsNullOrWhiteSpace($mail)) { $mail } else { $upn }
                     AccountEnabled    = [bool]$item.body.accountEnabled
                     LookupFailed      = $false
+                    FailureStatus     = $null
                 }
             }
             elseif ($item.status -eq 429) {
                 # Still throttled after the retries of Invoke-RjRbGraphBatch - handled as a missing result below
-                Write-RjRbLog -Message "User lookup for '$upn' was still throttled after the retries." -Verbose
+                Write-RjRbLog -Message "User lookup for '$identityLabel' was still throttled after the retries." -Verbose
             }
             else {
-                Write-RjRbLog -Message "User lookup for '$upn' failed with status $($item.status)." -Verbose
-                $resolvedUsers[$upn.ToLowerInvariant()] = [PSCustomObject]@{
-                    UserPrincipalName = $upn
+                # The Graph error body carries the actual reason - a bare status code is not diagnosable
+                $errorCode = $item.body.error.code
+                $errorMessage = $item.body.error.message
+                $errorDetail = if ($errorCode -or $errorMessage) { " - $($errorCode): $($errorMessage)" } else { "" }
+                Write-RjRbLog -Message "User lookup for '$identityLabel' failed with status $($item.status).$errorDetail" -Verbose
+                $resolvedUsers[$user.Key] = [PSCustomObject]@{
+                    UserPrincipalName = $user.UserPrincipalName
                     DisplayName       = $null
                     Recipient         = $null
                     AccountEnabled    = $false
                     LookupFailed      = $true
+                    FailureStatus     = $item.status
                 }
             }
         }
     }
 
     # Users that are still throttled after the retries, or that received no response at all, count as failed lookups
-    foreach ($upn in $UserPrincipalNames) {
-        if (-not $resolvedUsers.ContainsKey($upn.ToLowerInvariant())) {
-            Write-RjRbLog -Message "User lookup for '$upn' returned no result." -Verbose
-            $resolvedUsers[$upn.ToLowerInvariant()] = [PSCustomObject]@{
-                UserPrincipalName = $upn
+    foreach ($user in $Users) {
+        if (-not $resolvedUsers.ContainsKey($user.Key)) {
+            $identityLabel = if (-not [string]::IsNullOrWhiteSpace($user.UserPrincipalName)) { $user.UserPrincipalName } else { $user.Id }
+            Write-RjRbLog -Message "User lookup for '$identityLabel' returned no result." -Verbose
+            $resolvedUsers[$user.Key] = [PSCustomObject]@{
+                UserPrincipalName = $user.UserPrincipalName
                 DisplayName       = $null
                 Recipient         = $null
                 AccountEnabled    = $false
                 LookupFailed      = $true
+                FailureStatus     = $null
             }
         }
     }
@@ -802,7 +872,8 @@ function Get-MailTemplate {
         .DESCRIPTION
         The built-in templates contain the subject lines, the introduction, the platform-specific cleanup steps
         and the closing text. The custom template only provides subject, introduction and closing text - the
-        cleanup steps are left empty, so the custom closing text should contain its own guidance.
+        cleanup steps are left empty, so the custom closing text should contain its own guidance. It also has no
+        separate critical subject, so Warning and Critical notifications share the configured custom subject.
     #>
     param(
         [Parameter(Mandatory = $true)]
@@ -912,6 +983,8 @@ Wenn Sie Fragen haben oder Hilfe beim Freigeben von Speicherplatz benötigen, we
         }
         "Custom" {
             $template.Subject = $CustomSubject
+            # The customization exposes a single subject; escalating it here would add English wording to a
+            # template that is written in the customer's language
             $template.SubjectCritical = $CustomSubject
             $template.BeforeDeviceDetails = $CustomBeforeDeviceDetails
             $template.AfterDeviceDetails = $CustomAfterDeviceDetails
@@ -919,6 +992,59 @@ Wenn Sie Fragen haben oder Hilfe beim Freigeben von Speicherplatz benötigen, we
     }
 
     return $template
+}
+
+function ConvertTo-MarkdownSafeText {
+    <#
+        .SYNOPSIS
+        Escapes a device-supplied value for use in the markdown body of the notification email.
+
+        .DESCRIPTION
+        ConvertFrom-RjRbMarkdownToHtml escapes '<' and '>' only inside code blocks, inline code and button labels,
+        and its final pass escapes bare '&' only, so angle brackets in an Intune device name, model or operating
+        system reach the mail client as raw markup: a user-typed name like 'Toms <work> iPhone' loses the bracketed
+        part as an unknown tag and the recipient can no longer tell which device is meant. The '&' has to be
+        replaced first, otherwise the entities introduced afterwards would be escaped a second time.
+        The remaining characters are Markdown markup - a device named 'PC-A*B*C' would otherwise arrive with
+        an emphasised middle - and are backslash-escaped, which the converter resolves back to the literal
+        character. '_' is left alone because the converter has no underscore markup. The escape set is kept
+        identical to ConvertTo-MarkdownTableCell in the report counterpart, minus nothing, so both runbooks
+        render a given device name the same way.
+
+        .PARAMETER Value
+        The raw value as reported by Intune.
+    #>
+    param(
+        [string]$Value
+    )
+
+    if ([string]::IsNullOrEmpty($Value)) { return $Value }
+
+    $encodedValue = $Value.Replace('&', '&amp;').Replace('<', '&lt;').Replace('>', '&gt;')
+    return ($encodedValue -replace '([\\`*\[\]|])', '\$1')
+}
+
+function ConvertTo-MarkdownSafeLinkTarget {
+    <#
+        .SYNOPSIS
+        Escapes a configured value for use as the target of a markdown link.
+
+        .DESCRIPTION
+        ConvertFrom-RjRbMarkdownToHtml ends the link target at the first ')', so a phone number in the common
+        '+49 (0) 221 ...' notation or a portal URL pointing at a page like '/Page_(x)' would produce a dead link
+        followed by the rest of the value as literal text. Percent-encoded parentheses are valid in both 'tel:'
+        and 'http(s):' targets.
+
+        .PARAMETER Value
+        The raw value as configured in the runbook customization.
+    #>
+    param(
+        [string]$Value
+    )
+
+    if ([string]::IsNullOrEmpty($Value)) { return $Value }
+
+    return $Value.Replace('(', '%28').Replace(')', '%29')
 }
 
 function Get-DeviceListMarkdown {
@@ -955,10 +1081,15 @@ function Get-DeviceListMarkdown {
         $modelValue = (("$($device.Manufacturer) $($device.Model)").Trim())
         if (-not $modelValue) { $modelValue = "N/A" }
 
-        $deviceListMarkdown += @"
-### $($device.DeviceName)
+        # Name, operating system and model are free-form values of the device itself and can carry markup characters
+        $deviceNameText = ConvertTo-MarkdownSafeText -Value $device.DeviceName
+        $osText = ConvertTo-MarkdownSafeText -Value "$($device.OperatingSystem) $($device.OSVersion)"
+        $modelValue = ConvertTo-MarkdownSafeText -Value $modelValue
 
-- **$($osLabel):** $($device.OperatingSystem) $($device.OSVersion)
+        $deviceListMarkdown += @"
+### $deviceNameText
+
+- **$($osLabel):** $osText
 - **$($modelLabel):** $modelValue
 - **$($freeSpaceLabel):** $($device.FreeSpaceGB) GB $ofLabel $($device.TotalSpaceGB) GB ($($device.FreePercent) %)
 - **$($statusLabel):** $statusText
@@ -1011,7 +1142,9 @@ try {
     Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
 }
 catch {
-    Write-Error "Failed to connect to Microsoft Graph: $($_)"
+    # Write-Error is terminating in this runtime ($Global:ErrorActionPreference = 'Stop'), so it has to be
+    # non-terminating for the rethrow below to reach Automation with the original exception and its details
+    Write-Error "Failed to connect to Microsoft Graph: $($_)" -ErrorAction Continue
     throw
 }
 
@@ -1068,17 +1201,23 @@ Write-Output ""
 # Resolve the optional scope filters first, so that a broken group configuration stops the run before any evaluation
 $includeDeviceIds = $null
 if ($deviceGroupActive) {
+    Write-Output "Retrieving members of the device group (including nested groups)..."
     $includeDeviceIds = Get-GroupDeviceIdSet -GroupId $IncludeDeviceGroup
+    Write-Output "The device group contains $($includeDeviceIds.Count) device(s)."
 }
 
-$includeUserUpns = $null
-$excludeUserUpns = $null
+$includeUserScope = $null
+$excludeUserScope = $null
 if ($userScopeConfigured) {
     if (-not [string]::IsNullOrWhiteSpace($IncludeUserGroup)) {
-        $includeUserUpns = Get-GroupUserUpnSet -GroupId $IncludeUserGroup -Label "include"
+        Write-Output "Retrieving members of the include user group (including nested groups)..."
+        $includeUserScope = Get-GroupUserSet -GroupId $IncludeUserGroup -Label "include"
+        Write-Output "The include user group contains $($includeUserScope.Count) user(s)."
     }
     if (-not [string]::IsNullOrWhiteSpace($ExcludeUserGroup)) {
-        $excludeUserUpns = Get-GroupUserUpnSet -GroupId $ExcludeUserGroup -Label "exclude"
+        Write-Output "Retrieving members of the exclude user group (including nested groups)..."
+        $excludeUserScope = Get-GroupUserSet -GroupId $ExcludeUserGroup -Label "exclude"
+        Write-Output "The exclude user group contains $($excludeUserScope.Count) user(s)."
     }
 }
 
@@ -1088,6 +1227,7 @@ $selectProperties = @(
     'id'
     'azureADDeviceId'
     'deviceName'
+    'userId'
     'userPrincipalName'
     'userDisplayName'
     'serialNumber'
@@ -1118,6 +1258,7 @@ $flaggedDevices = @()
 $devicesByUser = @{}
 $devicesWithoutUser = @()
 $devicesEvaluated = 0
+$devicesSkippedByPlatform = 0
 $devicesSkippedByDeviceGroup = 0
 $devicesWithoutStorageData = 0
 $devicesInventoryOutdated = 0
@@ -1128,6 +1269,7 @@ $inventoryCutoff = if ($MaxInventoryAgeDays -gt 0) { (Get-Date).AddDays(-$MaxInv
 
 foreach ($device in $devices) {
     if (-not (Test-PlatformIncluded -OperatingSystem $device.operatingSystem)) {
+        $devicesSkippedByPlatform++
         continue
     }
 
@@ -1140,17 +1282,22 @@ foreach ($device in $devices) {
         }
     }
 
-    $devicesEvaluated++
-
     $totalBytes = [double]($device.totalStorageSpaceInBytes)
     $freeBytes = [double]($device.freeStorageSpaceInBytes)
 
-    # Devices without a usable hardware inventory report a total size of zero and cannot be rated
-    if ($totalBytes -le 0 -or $freeBytes -lt 0) {
+    # Devices without a usable hardware inventory report a total size of zero and cannot be rated.
+    # The free-space value is additionally guarded because it is only meaningful next to a total size;
+    # note that Graph declares freeStorageSpaceInBytes as a non-nullable Int64, so a device that has not
+    # inventoried its free space yet reports 0 and cannot be told apart from a genuinely full disk.
+    if ($totalBytes -le 0 -or $null -eq $device.freeStorageSpaceInBytes) {
         $devicesWithoutStorageData++
         Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - no usable storage inventory (total: $($device.totalStorageSpaceInBytes), free: $($device.freeStorageSpaceInBytes))" -Verbose
         continue
     }
+
+    # Counted after the storage inventory gate so that the evaluated and the excluded devices stay
+    # disjoint - both numbers are reported next to each other in the console output
+    $devicesEvaluated++
 
     # Devices with an outdated inventory are skipped, so users are not notified based on stale numbers
     $lastSyncDateTime = if ($device.lastSyncDateTime) { Get-Date $device.lastSyncDateTime } else { $null }
@@ -1162,18 +1309,28 @@ foreach ($device in $devices) {
         }
     }
 
-    $freeSpaceGB = [math]::Round($freeBytes / 1GB, 1)
-    $totalSpaceGB = [math]::Round($totalBytes / 1GB, 1)
-    $freePercent = [int][math]::Round(($freeBytes / $totalBytes) * 100, 0)
+    # Exact values drive the threshold test and the severity rating; the rounded ones are for display
+    # only. Comparing rounded values would shift the effective boundary by up to half a percentage
+    # point, silently dropping devices that are measurably below the configured threshold.
+    $freeSpaceGBExact = $freeBytes / 1GB
+    $freePercentExact = ($freeBytes / $totalBytes) * 100
 
-    if (-not (Test-LowDiskSpace -FreeGB $freeSpaceGB -FreePercent $freePercent)) {
+    # The displayed values are rounded down, not to the nearest step: rounding up would print a value
+    # that is no longer below the threshold the runbook announces, so a device with 9.96 GB / 9.6 % free
+    # would appear as "10" where the threshold is "less than 10".
+    $freeSpaceGB = [math]::Floor($freeSpaceGBExact * 10) / 10
+    $totalSpaceGB = [math]::Round($totalBytes / 1GB, 1)
+    $freePercent = [math]::Floor($freePercentExact * 10) / 10
+
+    if (-not (Test-LowDiskSpace -FreeGB $freeSpaceGBExact -FreePercent $freePercentExact)) {
         continue
     }
 
-    $severity = Get-DiskSeverity -FreeGB $freeSpaceGB -FreePercent $freePercent
+    $severity = Get-DiskSeverity -FreeGB $freeSpaceGBExact -FreePercent $freePercentExact
 
     $flaggedDevice = [PSCustomObject]@{
         DeviceName       = $device.deviceName
+        PrimaryUserId    = $device.userId
         PrimaryUser      = $device.userPrincipalName
         UserDisplayName  = $device.userDisplayName
         OperatingSystem  = $device.operatingSystem
@@ -1198,38 +1355,66 @@ foreach ($device in $devices) {
         continue
     }
 
-    # Devices without a primary user cannot be notified; they are listed in the output for central follow-up
-    if ([string]::IsNullOrWhiteSpace($device.userPrincipalName)) {
+    # Devices without a primary user cannot be notified; they are listed in the output for central follow-up.
+    # A userId on its own is sufficient: Resolve-NotificationUsers looks the user up by object id and only
+    # falls back to the UPN, so requiring a UPN here would discard notifiable devices.
+    if ([string]::IsNullOrWhiteSpace($device.userId) -and [string]::IsNullOrWhiteSpace($device.userPrincipalName)) {
         $devicesWithoutUser += $flaggedDevice
         Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - no primary user assigned" -Verbose
         continue
     }
 
-    # Optional user scope, matched via the primary user's UPN
+    # Optional user scope, matched via the primary user's object id and, as a fallback, its UPN
     if ($userScopeConfigured) {
-        if ($null -ne $includeUserUpns -and -not $includeUserUpns.Contains($device.userPrincipalName)) {
+        if ($null -ne $includeUserScope -and -not (Test-UserInScope -Scope $includeUserScope -UserId $device.userId -UserPrincipalName $device.userPrincipalName)) {
             $devicesSkippedByUserScope++
             Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - user '$($device.userPrincipalName)' is not in the include group" -Verbose
             continue
         }
-        if ($null -ne $excludeUserUpns -and $excludeUserUpns.Contains($device.userPrincipalName)) {
+        if ($null -ne $excludeUserScope -and (Test-UserInScope -Scope $excludeUserScope -UserId $device.userId -UserPrincipalName $device.userPrincipalName)) {
             $devicesSkippedByUserScope++
             Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - user '$($device.userPrincipalName)' is in the exclude group" -Verbose
             continue
         }
     }
 
-    $userKey = $device.userPrincipalName.ToLowerInvariant()
+    # Group on the primary user's object id when Intune reports one - it survives UPN changes and is
+    # unambiguous for guest accounts; devices without a userId fall back to the lowercased UPN
+    $userKey = if (-not [string]::IsNullOrWhiteSpace($device.userId)) { $device.userId.ToLowerInvariant() } else { $device.userPrincipalName.ToLowerInvariant() }
     if (-not $devicesByUser.ContainsKey($userKey)) {
         $devicesByUser[$userKey] = @()
     }
     $devicesByUser[$userKey] += $flaggedDevice
 }
 
-# Worst devices first, both in the overall list and per user
-$flaggedDevices = @($flaggedDevices | Sort-Object -Property FreeSpaceGB, FreePercent)
+# Intune reports a userId on some devices of a person and only a UPN on others, which splits that person
+# into two buckets: two lookups, two mails each listing only part of her devices - the one without the
+# Critical device even with the mild subject - and every user counter counting her twice. The UPN-keyed
+# buckets are therefore folded into the id-keyed bucket of the same user before anything consumes them.
+$userKeyByUpn = @{}
 foreach ($userKey in @($devicesByUser.Keys)) {
-    $devicesByUser[$userKey] = @($devicesByUser[$userKey] | Sort-Object -Property FreeSpaceGB, FreePercent)
+    foreach ($userDevice in $devicesByUser[$userKey]) {
+        if (-not [string]::IsNullOrWhiteSpace($userDevice.PrimaryUserId) -and -not [string]::IsNullOrWhiteSpace($userDevice.PrimaryUser)) {
+            $userKeyByUpn[$userDevice.PrimaryUser.ToLowerInvariant()] = $userKey
+        }
+    }
+}
+foreach ($userKey in @($devicesByUser.Keys)) {
+    $canonicalUserKey = $userKeyByUpn[$userKey]
+    if ($canonicalUserKey -and $canonicalUserKey -ne $userKey) {
+        Write-RjRbLog -Message "Merging the devices grouped by UPN '$($userKey)' into the user object id '$($canonicalUserKey)'" -Verbose
+        $devicesByUser[$canonicalUserKey] += $devicesByUser[$userKey]
+        $devicesByUser.Remove($userKey)
+    }
+}
+
+# Worst devices first, both in the overall list and per user. The sort key has to follow the active threshold type: in percent mode a large
+# disk with a small percentage is worse than a small disk with more absolute gigabytes free, and sorting
+# by gigabytes there would rank Critical devices below Warning ones and push them out of any Top-N view.
+$deviceSortProperty = if ($ThresholdType -eq 'Free space in percent') { @('FreePercent', 'FreeSpaceGB') } else { @('FreeSpaceGB', 'FreePercent') }
+$flaggedDevices = @($flaggedDevices | Sort-Object -Property $deviceSortProperty)
+foreach ($userKey in @($devicesByUser.Keys)) {
+    $devicesByUser[$userKey] = @($devicesByUser[$userKey] | Sort-Object -Property $deviceSortProperty)
 }
 
 $criticalCount = ($flaggedDevices | Where-Object { $_.Severity -eq 'Critical' } | Measure-Object).Count
@@ -1239,20 +1424,38 @@ $warningCount = ($flaggedDevices | Where-Object { $_.Severity -eq 'Warning' } | 
 $usersToNotify = @()
 $usersSkippedDisabled = @()
 $usersSkippedLookupFailed = @()
+$lookupPermissionDenied = $false
 
 if ($devicesByUser.Count -gt 0) {
     Write-Output ""
     Write-Output "Resolving $($devicesByUser.Count) user(s) with affected devices..."
 
-    $userPrincipalNames = @($devicesByUser.Keys | ForEach-Object { $devicesByUser[$_][0].PrimaryUser })
-    $resolvedUsers = Resolve-NotificationUsers -UserPrincipalNames $userPrincipalNames
+    $userIdentities = @($devicesByUser.Keys | ForEach-Object {
+            $identityKey = $_
+            $identityDevices = $devicesByUser[$identityKey]
+            # A bucket merged from an id-keyed and a UPN-keyed group can start with a device that reports no
+            # userId, so both identifiers are taken from the first device that carries one - the lookup has to
+            # stay id-first even then
+            $identityIds = @($identityDevices | Where-Object { -not [string]::IsNullOrWhiteSpace($_.PrimaryUserId) })
+            $identityUpns = @($identityDevices | Where-Object { -not [string]::IsNullOrWhiteSpace($_.PrimaryUser) })
+            [PSCustomObject]@{
+                Key               = $identityKey
+                Id                = if ($identityIds.Count -gt 0) { $identityIds[0].PrimaryUserId } else { "" }
+                UserPrincipalName = if ($identityUpns.Count -gt 0) { $identityUpns[0].PrimaryUser } else { "" }
+            }
+        })
+    $resolvedUsers = Resolve-NotificationUsers -Users $userIdentities
 
     foreach ($userKey in ($devicesByUser.Keys | Sort-Object)) {
         $userDevices = $devicesByUser[$userKey]
         $userInfo = $resolvedUsers[$userKey]
 
         if ($null -eq $userInfo -or $userInfo.LookupFailed) {
-            $usersSkippedLookupFailed += $userDevices[0].PrimaryUser
+            # Devices whose primary user is only known by object id have no UPN to name here
+            $usersSkippedLookupFailed += if (-not [string]::IsNullOrWhiteSpace($userDevices[0].PrimaryUser)) { $userDevices[0].PrimaryUser } else { $userDevices[0].PrimaryUserId }
+            if ($null -ne $userInfo -and $userInfo.FailureStatus -in 401, 403) {
+                $lookupPermissionDenied = $true
+            }
             continue
         }
         if (-not $userInfo.AccountEnabled) {
@@ -1271,8 +1474,16 @@ if ($devicesByUser.Count -gt 0) {
         }
     }
 
-    if ($usersSkippedLookupFailed.Count -gt 0 -and $usersToNotify.Count -eq 0 -and $usersSkippedDisabled.Count -eq 0) {
-        Write-Warning "None of the affected users could be resolved via Microsoft Graph. Check that the managed identity has the User.Read.All permission."
+    # A partial failure has to warn as well - a handful of successful lookups would otherwise hide that the
+    # bulk of the affected users was never notified, for example when the tenant throttles the batch lookups
+    if ($usersSkippedLookupFailed.Count -gt 0) {
+        $lookupFailureText = "$($usersSkippedLookupFailed.Count) of $($devicesByUser.Count) affected user(s) could not be resolved via Microsoft Graph and are not notified."
+        if ($lookupPermissionDenied) {
+            Write-Warning "$($lookupFailureText) At least one lookup was denied - check that the managed identity has the User.Read.All permission."
+        }
+        else {
+            Write-Warning "$($lookupFailureText) The verbose log lists the Graph error of each individual lookup."
+        }
     }
 }
 
@@ -1285,10 +1496,12 @@ if ($devicesByUser.Count -gt 0) {
 Write-Output ""
 Write-Output "Summary of devices with low disk space for $($tenantDisplayName):"
 Write-Output "Devices scanned: $($totalDevicesScanned)"
+Write-Output "Devices skipped - platform not included: $($devicesSkippedByPlatform)"
 if ($deviceGroupActive) {
+    # The device group is evaluated after the platform filter, so this figure covers included platforms only
     Write-Output "Devices skipped - not in device group: $($devicesSkippedByDeviceGroup)"
 }
-Write-Output "Devices evaluated (after platform and device group filter): $($devicesEvaluated)"
+Write-Output "Devices evaluated (after platform and device group filter, with usable storage inventory): $($devicesEvaluated)"
 Write-Output "Devices without usable storage inventory (excluded): $($devicesWithoutStorageData)"
 if ($MaxInventoryAgeDays -gt 0) {
     Write-Output "Devices skipped - inventory outdated (last sync older than $($MaxInventoryAgeDays) day(s)): $($devicesInventoryOutdated)"
@@ -1365,47 +1578,61 @@ Write-Output ""
 
 $emailsSent = 0
 $emailsFailed = 0
+$emailsPartiallySent = 0
 $emailsSimulated = 0
 
 # Get mail template based on language selection
 $mailTemplate = Get-MailTemplate -Language $MailTemplateLanguage -CustomSubject $CustomMailTemplateSubject -CustomBeforeDeviceDetails $CustomMailTemplateBeforeDeviceDetails -CustomAfterDeviceDetails $CustomMailTemplateAfterDeviceDetails
 
+# Localized text fragments that are identical for every user
+$isGermanTemplate = $MailTemplateLanguage -eq "DE"
+$isCustomTemplate = $MailTemplateLanguage -eq "Custom"
+
 # Build Service Desk contact information section
 $serviceDeskSection = ""
 if ($ServiceDeskDisplayName -or $ServiceDeskEmail -or $ServiceDeskPhone -or $ServiceDeskPortalUrl -or $ServiceDeskTicketUrl) {
-    $serviceDeskSection = "`n`n### Service Desk Contact Information`n"
+    $serviceDeskSection = if ($isGermanTemplate) { "`n`n### Kontakt zum Service Desk`n" } else { "`n`n### Service Desk Contact Information`n" }
+    $serviceDeskEmailLabel = if ($isGermanTemplate) { "E-Mail" } else { "Email" }
+    $serviceDeskPhoneLabel = if ($isGermanTemplate) { "Telefon" } else { "Phone" }
     if ($ServiceDeskDisplayName) {
         $serviceDeskSection += "`n $($ServiceDeskDisplayName)"
     }
     if ($ServiceDeskEmail) {
-        $serviceDeskSection += "`n **Email:** [$($ServiceDeskEmail)](mailto:$($ServiceDeskEmail))"
+        $serviceDeskSection += "`n **$($serviceDeskEmailLabel):** [$($ServiceDeskEmail)](mailto:$(ConvertTo-MarkdownSafeLinkTarget -Value $ServiceDeskEmail))"
     }
     if ($ServiceDeskPhone) {
-        $serviceDeskSection += "`n **Phone:** [$($ServiceDeskPhone)](tel:$($ServiceDeskPhone))"
+        $serviceDeskSection += "`n **$($serviceDeskPhoneLabel):** [$($ServiceDeskPhone)](tel:$(ConvertTo-MarkdownSafeLinkTarget -Value $ServiceDeskPhone))"
     }
     if ($ServiceDeskPortalUrl) {
-        $serviceDeskSection += "`n **Portal:** [$($ServiceDeskPortalUrl)]($($ServiceDeskPortalUrl))"
+        $serviceDeskSection += "`n **Portal:** [$($ServiceDeskPortalUrl)]($(ConvertTo-MarkdownSafeLinkTarget -Value $ServiceDeskPortalUrl))"
     }
     if ($ServiceDeskTicketUrl) {
-        $serviceDeskSection += "`n **Ticket:** [$($ServiceDeskTicketUrl)]($($ServiceDeskTicketUrl))"
+        $serviceDeskSection += "`n **Ticket:** [$($ServiceDeskTicketUrl)]($(ConvertTo-MarkdownSafeLinkTarget -Value $ServiceDeskTicketUrl))"
     }
 }
 
-# Localized text fragments that are identical for every user
-$isGermanTemplate = $MailTemplateLanguage -eq "DE"
-
-$emailHeader = if ($isGermanTemplate) {
+# The custom template carries the customer's own wording and language, so its headline is taken from the
+# custom subject instead of adding one of the built-in headlines in English
+$emailHeader = if ($isCustomTemplate) {
+    "# $($mailTemplate.Subject)"
+}
+elseif ($isGermanTemplate) {
     "# Wenig freier Speicherplatz - Handlungsbedarf"
 }
 else {
     "# Low Disk Space - Action Required"
 }
 
-$autoGeneratedNote = if ($isGermanTemplate) {
-    "*Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht auf diese E-Mail.*"
+# For the same reason the closing note is omitted for the custom template - there is no way to word it in the
+# language the customer wrote the template in
+$emailFooter = if ($isCustomTemplate) {
+    ""
+}
+elseif ($isGermanTemplate) {
+    "`n---`n`n*Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht auf diese E-Mail.*"
 }
 else {
-    "*This email was automatically generated. Please do not reply to this email.*"
+    "`n---`n`n*This email was automatically generated. Please do not reply to this email.*"
 }
 
 $thresholdSentence = switch ($MailTemplateLanguage) {
@@ -1462,8 +1689,10 @@ foreach ($user in $usersToNotify) {
         }
     }
 
-    # Introduction: the built-in templates append the threshold and, if applicable, the critical hint
-    $introduction = if ($MailTemplateLanguage -eq "Custom") {
+    # Introduction: the built-in templates append the threshold and, if applicable, the critical hint. The custom
+    # text is used as configured - both sentences exist in English and German only, so for a custom template the
+    # severity of a notification is carried by the status of each device in the device list
+    $introduction = if ($isCustomTemplate) {
         $mailTemplate.BeforeDeviceDetails
     }
     else {
@@ -1484,24 +1713,39 @@ $($deviceListMarkdown)
 $tipsMarkdown
 
 $($mailTemplate.AfterDeviceDetails)$($serviceDeskSection)
-
----
-
-$autoGeneratedNote
+$emailFooter
 "@
 
-    # Send email to user
-    try {
-        Send-RjRbReportEmail -EmailFrom $EmailFrom -EmailTo $actualRecipient -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version @brandingMailParams
+    # Send email to user. Send-RjRbReportEmail splits a comma-separated recipient list itself but only throws
+    # when every single address failed, so the addresses are sent one by one to notice a partial delivery
+    $recipientAddresses = @($actualRecipient -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    $addressesDelivered = 0
+    $addressesFailed = 0
+    foreach ($recipientAddress in $recipientAddresses) {
+        try {
+            Send-RjRbReportEmail -EmailFrom $EmailFrom -EmailTo $recipientAddress -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version @brandingMailParams
 
-        Write-Output "Email sent successfully to $($actualRecipient)"
-        Write-RjRbLog -Message "Email sent to $($actualRecipient) for user $($user.UserPrincipalName) with $($userDevices.Count) device(s)" -Verbose
-        $emailsSent++
+            Write-Output "Email sent successfully to $($recipientAddress)"
+            Write-RjRbLog -Message "Email sent to $($recipientAddress) for user $($user.UserPrincipalName) with $($userDevices.Count) device(s)" -Verbose
+            $addressesDelivered++
+        }
+        catch {
+            Write-Warning "Failed to send email to $($recipientAddress) : $_"
+            Write-RjRbLog -Message "Failed to send email to $($recipientAddress) for user $($user.UserPrincipalName) : $_" -Verbose
+            $addressesFailed++
+        }
     }
-    catch {
-        Write-Warning "Failed to send email to $($actualRecipient) : $_"
-        Write-RjRbLog -Message "Failed to send email to $($actualRecipient) for user $($user.UserPrincipalName) : $_" -Verbose
+
+    if ($addressesDelivered -eq 0) {
         $emailsFailed++
+    }
+    else {
+        $emailsSent++
+        if ($addressesFailed -gt 0) {
+            # Reported separately so that an override list with one undeliverable address is not summarized as
+            # a clean send
+            $emailsPartiallySent++
+        }
     }
 }
 
@@ -1538,17 +1782,20 @@ if ($SimulationMode) {
 }
 else {
     Write-Output "Users notified: $($emailsSent)"
+    if ($emailsPartiallySent -gt 0) {
+        Write-Output "  Delivered to some, but not all recipients: $($emailsPartiallySent)"
+    }
     Write-Output "Failed notifications: $($emailsFailed)"
 }
 
 if ($userScopeConfigured) {
     Write-Output ""
     Write-Output "User Scope Filtering:"
-    if ($null -ne $includeUserUpns) {
-        Write-Output "  - Include group: $($includeUserUpns.Count) users"
+    if ($null -ne $includeUserScope) {
+        Write-Output "  - Include group: $($includeUserScope.Count) users"
     }
-    if ($null -ne $excludeUserUpns) {
-        Write-Output "  - Exclude group: $($excludeUserUpns.Count) users"
+    if ($null -ne $excludeUserScope) {
+        Write-Output "  - Exclude group: $($excludeUserScope.Count) users"
     }
     Write-Output "  - Devices skipped by user scope: $($devicesSkippedByUserScope)"
 }
@@ -1563,11 +1810,19 @@ if ($deviceGroupActive) {
 if ($globalOverrideActive) {
     Write-Output ""
     Write-Output "Email Routing:"
-    Write-Output "  - Global override active: ALL emails sent to: $($OverrideEmailRecipient)"
+    if ($SimulationMode) {
+        Write-Output "  - Global override active: ALL emails would be sent to: $($OverrideEmailRecipient)"
+    }
+    else {
+        Write-Output "  - Global override active: ALL emails sent to: $($OverrideEmailRecipient)"
+        if ($emailsSent -gt 0) {
+            # "Sent" means accepted by Microsoft Graph - what the receiving mail filter does with a burst of similar,
+            # urgently worded emails from one sender to one mailbox is invisible from here. Repeated at the end with the
+            # actual count so the hint sits next to the number the reader compares against the inbox.
+            Write-Output "  - $($emailsSent) separate email(s) were handed over to Microsoft Graph for this address within a few seconds. Mail filters may classify such a burst as bulk or spam - if the emails do not arrive, check the junk folder and the quarantine of the override mailbox and the message trace of the sender '$($EmailFrom)'."
+        }
+    }
 }
-
-Write-Output ""
-Write-Output "Done!"
 
 #endregion
 
@@ -1575,11 +1830,19 @@ Write-Output "Done!"
 #region     Cleanup
 ########################################################
 
-# Remove the downloaded branding images, if any were used.
+# Remove the downloaded branding images, if any were used. This runs before the failure signal below so
+# the temporary files are cleaned up on the failing path as well.
 foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
     if ($brandingMailParams -and $brandingMailParams.ContainsKey($brandingKey) -and (Test-Path -LiteralPath $brandingMailParams[$brandingKey])) {
         Remove-Item -LiteralPath $brandingMailParams[$brandingKey] -Force -ErrorAction SilentlyContinue
     }
 }
+
+Write-Output ""
+if ($emailsSent -eq 0 -and $emailsFailed -gt 0) {
+    # A completed job with no delivered notification would stay unnoticed in a schedule
+    throw "None of the $($emailsFailed) notification(s) could be sent - see the warnings above for the individual errors."
+}
+Write-Output "Done!"
 
 #endregion

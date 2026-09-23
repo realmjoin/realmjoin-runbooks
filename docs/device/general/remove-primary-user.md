@@ -1,10 +1,9 @@
 # Remove Primary User
 
-Removes the primary user from a device.
+Remove the primary user from this device
 
 ## Detailed description
-This script removes the assigned primary user from a specified Azure AD device.
-It requires the DeviceId of the target device and the name of the caller for auditing purposes.
+Clears the primary user of this device in Intune. The device then has no assigned user, which is useful for shared devices or before handing the device to someone else. The user account itself is not changed.
 
 ## Where to find
 Device \ General \ Remove Primary User
@@ -17,8 +16,7 @@ Device \ General \ Remove Primary User
 
 ## Parameters
 ### DeviceId
-The unique identifier of the device from which the primary user will be removed.
-It will be prefilled from the RealmJoin Portal and is hidden in the UI.
+Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
 | Property | Value |
 |----------|-------|

@@ -1,3 +1,11 @@
+## Common use cases
+
+- Inventory of all mobile devices including IMEI, serial number, phone number and carrier
+- Identifying in which (Wi-Fi) networks mobile devices were last active, for example handheld scanners across warehouse locations
+- Reviewing the compliance, supervision and encryption state of the mobile fleet
+- SIM/eSIM inventory via ICCID and eSIM identifier
+- Handing the full mobile inventory to asset management as an Excel workbook or CSV file
+
 ## Output columns
 
 The runbook prints a summary block (device counts per platform, compliance state and ownership, applied filters and - with network details enabled - the number of devices without a reported IP address) followed by up to three tables. The same data can optionally be delivered as an email report and/or as a download link, see [Report delivery](#report-delivery).

@@ -1,3 +1,34 @@
+## Purpose and use cases
+
+- Regular reporting of Endpoint Privilege Management (EPM) activities
+- Audit trail for approved and denied elevation requests
+- Analysis of expired requests to identify process bottlenecks
+- Identification of frequently requested applications for automatic elevation rules
+
+A monthly schedule is recommended.
+
+## Status types
+
+- **Pending:** awaits an admin decision (use **Monitor Pending EPM Requests** for time-critical alerting)
+- **Approved:** an admin approved the request, the user can proceed with the elevation
+- **Denied:** an admin rejected the request due to security or policy concerns
+- **Expired:** the request expired before an admin reviewed it, which may indicate slow response times
+- **Revoked:** a previously approved elevation was later revoked by an admin
+- **Completed:** the user successfully executed the elevated application after approval
+
+## Data retention and time ranges
+
+- Intune retains EPM request details for 30 days after creation.
+- For long-term analysis, archive the CSV exports outside of Intune.
+- The default filter covers the states Approved, Denied, Expired and Revoked over the last 30 days.
+
+## Email and export details
+
+- Generates CSV and/or Excel (xlsx) report files with the complete request details (see `ReportFileFormat`).
+- Emails are sent individually to each recipient for privacy.
+- No email is sent when no request matches the filter criteria.
+- The report files include timestamps, users, devices, applications, justifications and file hashes.
+
 ## Setup regarding email sending
 
 Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.

@@ -1,37 +1,48 @@
 <#
 	.SYNOPSIS
-	Create a Viva Engage (Yammer) community
+	Create a Viva Engage community with owners
 
 	.DESCRIPTION
-	This runbook creates a Viva Engage community via the Yammer REST API using a stored developer token.
-	It can optionally assign owners and remove the initial API user from the resulting Microsoft 365 group.
+	Creates a Viva Engage (Yammer) community with the given name, visibility and directory listing, and adds the named owners. The API user that creates the community can be removed from the resulting Microsoft 365 group once another owner exists.
 
 	.PARAMETER CommunityName
-	Name of the community to create. Maximum length is 264 characters.
+	Name of the community, up to 264 characters.
 
 	.PARAMETER CommunityPrivate
-	If set to true, the community is created as private.
+	A private community is visible only to its members.
 
 	.PARAMETER CommunityShowInDirectory
-	If set to true, the community is visible in the directory.
+	Lists the community in the Viva Engage directory so people can find it.
 
 	.PARAMETER CommunityOwners
-	Comma-separated list of owner UPNs to add to the community.
+	Sign-in names of the owners, separated by commas.
 
 	.PARAMETER removeCreatorFromGroup
-	If set to true, removes the initial API user from the group when at least one other owner exists.
+	Takes the API user that created the community out of the group, as long as at least one other owner exists.
 
 	.PARAMETER CallerName
-	Caller name for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
 		"Parameters": {
+			"CommunityName": {
+				"DisplayName": "Community name"
+			},
+			"CommunityPrivate": {
+				"DisplayName": "Private community?"
+			},
+			"CommunityShowInDirectory": {
+				"DisplayName": "Show in directory?"
+			},
+			"CommunityOwners": {
+				"DisplayName": "Owners"
+			},
 			"CallerName": {
 				"Hide": true
 			},
 			"removeCreatorFromGroup": {
-				"DisplayName": "Remove initial API user/owner from group"
+				"DisplayName": "Remove the API user from the group?"
 			}
 		}
 	}

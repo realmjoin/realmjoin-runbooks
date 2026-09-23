@@ -1,11 +1,9 @@
 # Add Application Registration
 
-Add an application registration to Azure AD
+Create an application registration in Entra ID
 
 ## Detailed description
-This runbook creates a new application registration in Microsoft Entra ID and optionally configures redirect URIs and SAML settings.
-It validates the submitted parameters, prevents duplicate app creation, and writes verbose logs for troubleshooting.
-Use it to standardize application registration setup, including visibility and assignment-related options.
+Creates a new application registration in Entra ID. Optionally it also configures redirect URIs for web, SPA or public clients, SAML sign-in, visibility in My Apps, user assignment with an access group, and implicit grant. Duplicate names are refused and the inputs are checked before anything is created.
 
 ## Where to find
 Org \ Applications \ Add Application Registration
@@ -23,7 +21,7 @@ Org \ Applications \ Add Application Registration
 
 ## Parameters
 ### ApplicationName
-The display name of the application registration to create.
+Display name of the new application registration.
 
 | Property | Value |
 |----------|-------|
@@ -32,7 +30,7 @@ The display name of the application registration to create.
 | Type | String |
 
 ### RedirectURI
-Used for UI selection only. Determines which redirect URI type to configure - None, Web, SPA, or Public Client
+Type of sign-in to set up: none, a web redirect URI, SAML, a public client (mobile and desktop) or a single-page application. The matching fields appear once you choose.
 
 | Property | Value |
 |----------|-------|
@@ -41,7 +39,7 @@ Used for UI selection only. Determines which redirect URI type to configure - No
 | Type | String |
 
 ### signInAudience
-Specifies who can use the application. Defaults to "AzureADMyOrg" (single tenant).
+Who may sign in to the application. Preset to accounts in this tenant only (AzureADMyOrg).
 
 | Property | Value |
 |----------|-------|
@@ -50,7 +48,7 @@ Specifies who can use the application. Defaults to "AzureADMyOrg" (single tenant
 | Type | String |
 
 ### webRedirectURI
-Redirect URI or URIs for web applications. Multiple values can be separated by semicolons.
+Redirect URI of a web application, for example https://myapp.com/auth. Separate several with semicolons.
 
 | Property | Value |
 |----------|-------|
@@ -59,7 +57,7 @@ Redirect URI or URIs for web applications. Multiple values can be separated by s
 | Type | String |
 
 ### spaRedirectURI
-Redirect URI or URIs for single-page applications. Multiple values can be separated by semicolons.
+Redirect URI of a single-page application, for example https://myapp.com. Separate several with semicolons.
 
 | Property | Value |
 |----------|-------|
@@ -68,7 +66,7 @@ Redirect URI or URIs for single-page applications. Multiple values can be separa
 | Type | String |
 
 ### publicClientRedirectURI
-Redirect URI or URIs for public client/native applications. Multiple values can be separated by semicolons.
+Redirect URI of a mobile or desktop client, for example myapp://auth. Separate several with semicolons.
 
 | Property | Value |
 |----------|-------|
@@ -77,7 +75,7 @@ Redirect URI or URIs for public client/native applications. Multiple values can 
 | Type | String |
 
 ### EnableSAML
-If set to true, SAML-based authentication is configured for the application. If enabled, additional SAML-related parameters become required.
+Whether SAML sign-in is configured. Set by the "Redirect URI" choice.
 
 | Property | Value |
 |----------|-------|
@@ -86,7 +84,7 @@ If set to true, SAML-based authentication is configured for the application. If 
 | Type | Boolean |
 
 ### SAMLReplyURL
-The reply URL for SAML-based authentication
+Where the SAML response is sent (assertion consumer service URL).
 
 | Property | Value |
 |----------|-------|
@@ -95,7 +93,7 @@ The reply URL for SAML-based authentication
 | Type | String |
 
 ### SAMLSignOnURL
-The sign-on URL for SAML authentication.
+URL where users start the sign-in to the application.
 
 | Property | Value |
 |----------|-------|
@@ -104,7 +102,7 @@ The sign-on URL for SAML authentication.
 | Type | String |
 
 ### SAMLLogoutURL
-The logout URL for SAML authentication.
+URL the application uses to sign users out.
 
 | Property | Value |
 |----------|-------|
@@ -113,7 +111,7 @@ The logout URL for SAML authentication.
 | Type | String |
 
 ### SAMLIdentifier
-The SAML identifier (Entity ID). If not specified, defaults to "urn:app:{AppId}".
+Identifier of the application in SAML (entity ID). Leave empty to use urn:app: followed by the client ID.
 
 | Property | Value |
 |----------|-------|
@@ -122,7 +120,7 @@ The SAML identifier (Entity ID). If not specified, defaults to "urn:app:{AppId}"
 | Type | String |
 
 ### SAMLRelayState
-The SAML relay state parameter for maintaining application state during authentication.
+Value the application receives back after sign-in, for example to return to a page.
 
 | Property | Value |
 |----------|-------|
@@ -131,7 +129,7 @@ The SAML relay state parameter for maintaining application state during authenti
 | Type | String |
 
 ### SAMLExpiryNotificationEmail
-Email address to receive notifications when the SAML token signing certificate is about to expire.
+Email address that is notified before the SAML signing certificate expires.
 
 | Property | Value |
 |----------|-------|
@@ -140,7 +138,7 @@ Email address to receive notifications when the SAML token signing certificate i
 | Type | String |
 
 ### SAMLCertificateLifeYears
-Lifetime of the SAML token signing certificate in years. Default is 3 years.
+How many years the SAML signing certificate stays valid.
 
 | Property | Value |
 |----------|-------|
@@ -149,7 +147,7 @@ Lifetime of the SAML token signing certificate in years. Default is 3 years.
 | Type | Int32 |
 
 ### isApplicationVisible
-Determines whether the application is visible in the My Apps portal. Default is true.
+Lists the application in the users' My Apps portal.
 
 | Property | Value |
 |----------|-------|
@@ -158,7 +156,7 @@ Determines whether the application is visible in the My Apps portal. Default is 
 | Type | Boolean |
 
 ### UserAssignmentRequired
-Determines whether users must be assigned to the application before accessing it. When enabled, an EntraID group is created for user assignment. Default is false.
+Only assigned users can use the application. An access group is created for the assignment.
 
 | Property | Value |
 |----------|-------|
@@ -167,7 +165,7 @@ Determines whether users must be assigned to the application before accessing it
 | Type | Boolean |
 
 ### groupAssignmentPrefix
-Prefix for the automatically created EntraID group when UserAssignmentRequired is enabled. Default is "col - Entra - users - ".
+Text put in front of the access group name. Only used when user assignment is required.
 
 | Property | Value |
 |----------|-------|
@@ -176,7 +174,7 @@ Prefix for the automatically created EntraID group when UserAssignmentRequired i
 | Type | String |
 
 ### implicitGrantAccessTokens
-Enable implicit grant flow for access tokens. Default is false.
+Lets the application receive access tokens through the implicit flow. Needed only for older single-page apps.
 
 | Property | Value |
 |----------|-------|
@@ -185,7 +183,7 @@ Enable implicit grant flow for access tokens. Default is false.
 | Type | Boolean |
 
 ### implicitGrantIDTokens
-Enable implicit grant flow for ID tokens. Default is false.
+Lets the application receive ID tokens through the implicit flow.
 
 | Property | Value |
 |----------|-------|

@@ -1,112 +1,78 @@
 <#
     .SYNOPSIS
-    Scheduled report of managed devices running low on free disk space.
+    Report devices that are running out of disk space
 
     .DESCRIPTION
-    Identifies and lists Intune managed devices whose free disk space is below a configurable threshold, either a fixed amount of free space in gigabytes or a percentage of the total disk size.
-    The result can be narrowed down by platform and by manufacturer and model filters, and each reported device is rated as Critical or Warning depending on how far below the threshold it is.
-    Automatically sends a report via email with CSV and/or Excel (xlsx) attachments.
-    The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
-    The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
-    When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
-
-    .NOTES
-    This runbook complements the reporting foundation and delivers a recurring overview of devices that are about to run out of disk space,
-    so that affected users can be contacted before the lack of free space starts to block updates, app installations or profile synchronization.
-
-    Prerequisites:
-    - EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)
-
-    Data source and freshness:
-    The free and total disk space values are taken from the Intune hardware inventory of each device, which is refreshed with the regular device check-in.
-    They therefore describe the state of the last successful inventory and not necessarily the current state, so the Last Sync column of the report should be used to judge how up to date a row is.
-    Devices that report a total disk size of zero bytes have no usable storage inventory (this is common for Android Enterprise work profiles) and are excluded from the evaluation, but their number is reported.
-
-    Platform defaults:
-    Windows and macOS are included by default, iOS/iPadOS and Android are not, because the default threshold in gigabytes is dimensioned for desktop disks
-    and would report a large number of perfectly healthy mobile devices. When mobile platforms are enabled, the percentage based threshold usually gives more meaningful results.
-
-    Common Use Cases:
-    - Recurring disk space monitoring across the managed device fleet
-    - Finding devices that are likely to fail feature updates or app deployments because of insufficient free space
-    - Preparing targeted user communication or cleanup campaigns
-    - Checking a specific hardware generation via the manufacturer and model filters
+    Lists Intune devices whose free disk space is below a limit, either a fixed number of gigabytes or a percentage of the disk. Each device is rated Warning or Critical depending on how far below it is. The list can be narrowed by platform, manufacturer and model. The report can be sent by email or provided as a download link.
 
     .PARAMETER ThresholdType
-    Determines how low disk space is detected, either by a fixed amount of free space in gigabytes or by the percentage of free space relative to the disk size.
+    By a fixed amount of free gigabytes or by the percentage of free space on the disk.
 
     .PARAMETER FreeSpaceThresholdGB
-    Devices with less free disk space than this value in gigabytes are reported. Only used when the threshold type is set to free space in gigabytes.
+    Devices with less free space than this many gigabytes are reported.
 
     .PARAMETER FreeSpacePercentThreshold
-    Devices with a lower percentage of free disk space than this value are reported. Only used when the threshold type is set to free space in percent.
+    Devices with less free space than this percentage of the disk are reported.
 
     .PARAMETER Windows
-    Include Windows devices in the results.
+    Includes Windows devices.
 
     .PARAMETER MacOS
-    Include macOS devices in the results.
+    Includes macOS devices.
 
     .PARAMETER iOS
-    Include iOS and iPadOS devices in the results.
+    Includes iOS and iPadOS devices.
 
     .PARAMETER Android
-    Include Android devices in the results.
+    Includes Android devices.
 
     .PARAMETER ManufacturerFilter
-    Optional comma-separated list of manufacturer names. A device is included when its manufacturer contains one of the entries. Leave empty to include all manufacturers.
+    Only these manufacturers, separated by commas; Dell also matches Dell Inc. Leave empty for all.
 
     .PARAMETER ModelFilter
-    Optional comma-separated list of model names. A device is included when its model contains one of the entries. Leave empty to include all models.
+    Only these models, separated by commas; Surface also matches Surface Laptop 3. Leave empty for all.
 
     .PARAMETER EmailTo
-    If specified, an email with the report will be sent to the provided address(es).
-    Can be a single address or multiple comma-separated addresses (string).
-    The function sends individual emails to each recipient for privacy reasons.
+    Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
     .PARAMETER EmailFrom
-    The sender email address. This needs to be configured in the runbook customization
+    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
     .PARAMETER BrandingHeaderImageUrl
-    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
     .PARAMETER BrandingFooterImageUrl
-    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
     .PARAMETER BrandingFooterLink
-    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-    When empty, the default link (https://www.realmjoin.com) is used.
+    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
     .PARAMETER BrandingAccentColor
-    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER BrandingTextColor
-    Optional text color override (6-digit hex) for the report email template.
-    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER ReportFileFormat
-    Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+    Deliver the report as CSV, as an Excel workbook, or both.
 
     .PARAMETER CreateDownloadLink
-    If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+    Also upload the report and return a download link that expires after a few days.
 
     .PARAMETER ContainerName
-    Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+    Storage container the report files are uploaded to. Set per runbook.
 
     .PARAMETER ResourceGroupName
-    Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
     .PARAMETER StorageAccountName
-    Storage account name used for the upload. Sourced from the RJReport tenant settings.
+    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
     .PARAMETER LinkExpiryDays
-    Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -144,35 +110,35 @@
                 }
             },
             "FreeSpaceThresholdGB": {
-                "DisplayName": "Low Disk Space Threshold (free GB)"
+                "DisplayName": "Free space limit (GB)"
             },
             "FreeSpacePercentThreshold": {
-                "DisplayName": "Low Disk Space Threshold (free %)",
+                "DisplayName": "Free space limit (%)",
                 "Hide": true
             },
             "Windows": {
-                "DisplayName": "Include Windows Devices"
+                "DisplayName": "Include Windows devices?"
             },
             "MacOS": {
-                "DisplayName": "Include macOS Devices"
+                "DisplayName": "Include macOS devices?"
             },
             "iOS": {
-                "DisplayName": "Include iOS/iPadOS Devices"
+                "DisplayName": "Include iOS/iPadOS devices?"
             },
             "Android": {
-                "DisplayName": "Include Android Devices"
+                "DisplayName": "Include Android devices?"
             },
             "ManufacturerFilter": {
-                "DisplayName": "Manufacturer Filter (comma-separated, substring match, leave empty for all)"
+                "DisplayName": "Manufacturer filter"
             },
             "ModelFilter": {
-                "DisplayName": "Model Filter (comma-separated, substring match, leave empty for all)"
+                "DisplayName": "Model filter"
             },
             "CallerName": {
                 "Hide": true
             },
             "EmailTo": {
-                "DisplayName": "Recipient Email Address(es)"
+                "DisplayName": "Recipient email address(es)"
             },
             "EmailFrom": {
                 "Hide": true
@@ -213,7 +179,7 @@
                 }
             },
             "CreateDownloadLink": {
-                "DisplayName": "Create a file download link (upload report to storage)?",
+                "DisplayName": "Create a download link?",
                 "SelectSimple": {
                     "Yes - upload report and return a download link": true,
                     "No - do not create a download link": false
@@ -265,7 +231,7 @@ param(
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
     [string] $BrandingTextColor,
     [ValidateSet('CSV only', 'CSV & XLSX', 'XLSX only')]
-    [string] $ReportFileFormat = 'XLSX only',
+    [string] $ReportFileFormat = 'CSV & XLSX',
     [bool] $CreateDownloadLink = $false,
     [string] $ContainerName = "report-devices-low-diskspace",
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" -Value $_ } )]
@@ -405,6 +371,31 @@ function ConvertTo-FilterList {
     return @($RawValue -split "," | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" })
 }
 
+function ConvertTo-MarkdownTableCell {
+    <#
+        .SYNOPSIS
+        Escapes a device-supplied value so it stays inside its own cell of the Markdown report table.
+
+        .DESCRIPTION
+        An unescaped "|" ends the table cell and shifts every following column of that row, so the mail
+        would show a wrong operating system, model or owner for that device.
+
+        .PARAMETER Value
+        The raw value as reported by Intune.
+    #>
+    param([string]$Value)
+
+    if ([string]::IsNullOrEmpty($Value)) { return $Value }
+
+    # Angle brackets are not encoded by the Markdown converter outside code blocks and would reach the
+    # mail as raw HTML, so they are handed over already encoded. The remaining characters are Markdown
+    # markup and are backslash-escaped, which the converter resolves back to the literal character.
+    # '_' is deliberately not escaped: the converter has no underscore markup, so escaping it would only
+    # leave the escape artefact behind in a value like 'DESKTOP_01'.
+    $encodedValue = $Value -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;'
+    return ($encodedValue -replace '([\\`*\[\]|])', '\$1')
+}
+
 function Test-PlatformIncluded {
     <#
         .SYNOPSIS
@@ -521,12 +512,9 @@ try {
     $organizationUri = "https://graph.microsoft.com/v1.0/organization?`$select=displayName"
     $organizationResponse = Invoke-MgGraphRequest -Uri $organizationUri -Method GET -ErrorAction Stop
 
+    # /organization is a collection endpoint, the tenant is always the single entry in "value"
     if ($organizationResponse.value -and $organizationResponse.value.Count -gt 0) {
         $tenantDisplayName = $organizationResponse.value[0].displayName
-        Write-Output "## Tenant: $($tenantDisplayName)"
-    }
-    elseif ($organizationResponse.displayName) {
-        $tenantDisplayName = $organizationResponse.displayName
         Write-Output "## Tenant: $($tenantDisplayName)"
     }
 }
@@ -565,8 +553,9 @@ if ($modelList.Count -gt 0) { Write-Output "Model filter: $($modelList -join ', 
 Write-Output "Note: This may take a while depending on the number of devices in your tenant."
 Write-Output ""
 
-# The storage properties cannot be used in an OData filter, so all devices are retrieved
-# with a narrow property projection and evaluated locally.
+# The storage properties cannot be used in an OData filter, and the platform selection is matched
+# against operatingSystem prefixes ("Windows*", "iPadOS*", "Android*", ...) that an "eq" based filter
+# would not cover, so all devices are retrieved with a narrow property projection and evaluated locally.
 $selectProperties = @(
     'id'
     'deviceName'
@@ -608,30 +597,47 @@ foreach ($device in $devices) {
 
     # Each filter is independent; an empty filter means "match all values for that dimension".
     # When both are populated they are combined with AND (a device must match every set filter).
-    $manufacturerMatch = ($manufacturerList.Count -eq 0) -or ($manufacturerList | Where-Object { $manufacturer -like "*$_*" }).Count -gt 0
-    $modelMatch = ($modelList.Count -eq 0) -or ($modelList | Where-Object { $model -like "*$_*" }).Count -gt 0
+    # The filter entries are documented as substring matches, so wildcard characters like "[", "?" or "*"
+    # inside an entry are escaped instead of being interpreted as a wildcard expression.
+    $manufacturerMatch = ($manufacturerList.Count -eq 0) -or ($manufacturerList | Where-Object { $manufacturer -like "*$([System.Management.Automation.WildcardPattern]::Escape($_))*" }).Count -gt 0
+    $modelMatch = ($modelList.Count -eq 0) -or ($modelList | Where-Object { $model -like "*$([System.Management.Automation.WildcardPattern]::Escape($_))*" }).Count -gt 0
 
     if (-not ($manufacturerMatch -and $modelMatch)) {
         continue
     }
 
-    $devicesEvaluated++
-
     $totalBytes = [double]($device.totalStorageSpaceInBytes)
     $freeBytes = [double]($device.freeStorageSpaceInBytes)
 
-    # Devices without a usable hardware inventory report a total size of zero and cannot be rated
-    if ($totalBytes -le 0 -or $freeBytes -lt 0) {
+    # Devices without a usable hardware inventory report a total size of zero and cannot be rated.
+    # The free-space value is additionally guarded because it is only meaningful next to a total size;
+    # note that Graph declares freeStorageSpaceInBytes as a non-nullable Int64, so a device that has not
+    # inventoried its free space yet reports 0 and cannot be told apart from a genuinely full disk.
+    if ($totalBytes -le 0 -or $null -eq $device.freeStorageSpaceInBytes) {
         $devicesWithoutStorageData++
         Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - no usable storage inventory (total: $($device.totalStorageSpaceInBytes), free: $($device.freeStorageSpaceInBytes))" -Verbose
         continue
     }
 
-    $freeSpaceGB = [math]::Round($freeBytes / 1GB, 1)
-    $totalSpaceGB = [math]::Round($totalBytes / 1GB, 1)
-    $freePercent = [int][math]::Round(($freeBytes / $totalBytes) * 100, 0)
+    # Counted after the storage inventory gate so that the evaluated and the excluded devices stay
+    # disjoint - both numbers are reported next to each other in the console output and in the email.
+    $devicesEvaluated++
 
-    if (-not (Test-LowDiskSpace -FreeGB $freeSpaceGB -FreePercent $freePercent)) {
+    # Exact values drive the threshold test and the severity rating; the rounded ones are for display
+    # only. Comparing rounded values would shift the effective boundary by up to half a percentage
+    # point, silently dropping devices that are measurably below the configured threshold.
+    # Kept identical to the notify counterpart so both rate a given device the same way.
+    $freeSpaceGBExact = $freeBytes / 1GB
+    $freePercentExact = ($freeBytes / $totalBytes) * 100
+
+    # The displayed values are rounded down, not to the nearest step: rounding up would print a value
+    # that is no longer below the threshold the runbook announces, so a device with 9.96 GB / 9.6 % free
+    # would appear as "10" where the threshold is "less than 10".
+    $freeSpaceGB = [math]::Floor($freeSpaceGBExact * 10) / 10
+    $totalSpaceGB = [math]::Round($totalBytes / 1GB, 1)
+    $freePercent = [math]::Floor($freePercentExact * 10) / 10
+
+    if (-not (Test-LowDiskSpace -FreeGB $freeSpaceGBExact -FreePercent $freePercentExact)) {
         continue
     }
 
@@ -647,15 +653,18 @@ foreach ($device in $devices) {
         FreeSpaceGB     = $freeSpaceGB
         TotalSpaceGB    = $totalSpaceGB
         FreePercent     = $freePercent
-        Severity        = Get-DiskSeverity -FreeGB $freeSpaceGB -FreePercent $freePercent
+        Severity        = Get-DiskSeverity -FreeGB $freeSpaceGBExact -FreePercent $freePercentExact
         ComplianceState = $device.complianceState
         LastSync        = if ($device.lastSyncDateTime) { Get-Date $device.lastSyncDateTime -Format yyyy-MM-dd } else { "N/A" }
         DeviceId        = $device.id
     }
 }
 
-# Worst devices first
-$flaggedDevices = @($flaggedDevices | Sort-Object -Property FreeSpaceGB, FreePercent)
+# Worst devices first. The sort key has to follow the active threshold type: in percent mode a large
+# disk with a small percentage is worse than a small disk with more absolute gigabytes free, and sorting
+# by gigabytes there would rank Critical devices below Warning ones and push them out of any Top-N view.
+$deviceSortProperty = if ($ThresholdType -eq 'Free space in percent') { @('FreePercent', 'FreeSpaceGB') } else { @('FreeSpaceGB', 'FreePercent') }
+$flaggedDevices = @($flaggedDevices | Sort-Object -Property $deviceSortProperty)
 
 $criticalCount = ($flaggedDevices | Where-Object { $_.Severity -eq 'Critical' } | Measure-Object).Count
 $warningCount = ($flaggedDevices | Where-Object { $_.Severity -eq 'Warning' } | Measure-Object).Count
@@ -668,7 +677,7 @@ $warningCount = ($flaggedDevices | Where-Object { $_.Severity -eq 'Warning' } | 
 
 Write-Output "## Summary of devices with low disk space for $($tenantDisplayName):"
 Write-Output "Devices scanned: $($totalDevicesScanned)"
-Write-Output "Devices evaluated (after platform and hardware filters): $($devicesEvaluated)"
+Write-Output "Devices evaluated (after platform and hardware filters, with usable storage inventory): $($devicesEvaluated)"
 Write-Output "Devices without usable storage inventory (excluded): $($devicesWithoutStorageData)"
 Write-Output "Devices below the threshold: $($flaggedDevices.Count)"
 Write-Output "  Critical: $($criticalCount)"
@@ -773,9 +782,13 @@ $(
     # A subexpression joins multiple output strings with $OFS (a space), so the lines are
     # joined explicitly - otherwise the heading and its description end up on one line and
     # Markdown swallows the description into the heading.
+    # The table is ordered by the metric the threshold actually uses, so the heading has to name that
+    # metric - otherwise a percent-based report promises "least free disk space" while ranking by percent.
+    $topHeading = if ($ThresholdType -eq 'Free space in percent') { "## Top 10 Devices (by Lowest Free Disk Space in Percent)" } else { "## Top 10 Devices (by Lowest Free Disk Space)" }
+    $topDescription = if ($ThresholdType -eq 'Free space in percent') { "the ten devices with the lowest percentage of free disk space" } else { "the ten devices with the least free disk space" }
     $headingLines = if ($flaggedDevices.Count -gt 10) {
-        @("## Top 10 Devices (by Lowest Free Disk Space)", "",
-          "This table lists the ten devices with the least free disk space, based on the current threshold ($($thresholdText)).")
+        @($topHeading, "",
+          "This table lists $($topDescription), based on the current threshold ($($thresholdText)).")
     }
     else {
         @("## Devices With Low Disk Space", "",
@@ -798,7 +811,7 @@ $(
 "@
 
     foreach ($device in $devicesToShow) {
-        $table += "`n| $($device.FreeSpaceGB) | $($device.FreePercent) | $($device.TotalSpaceGB) | $($device.Severity) | $($device.DeviceName) | $($device.OperatingSystem) | $($device.Model) | $($device.PrimaryUser) | $($device.LastSync) |"
+        $table += "`n| $($device.FreeSpaceGB) | $($device.FreePercent) | $($device.TotalSpaceGB) | $($device.Severity) | $(ConvertTo-MarkdownTableCell -Value $device.DeviceName) | $(ConvertTo-MarkdownTableCell -Value $device.OperatingSystem) | $(ConvertTo-MarkdownTableCell -Value $device.Model) | $(ConvertTo-MarkdownTableCell -Value $device.PrimaryUser) | $($device.LastSync) |"
     }
 
     $table
@@ -849,16 +862,30 @@ $fileNameSuffix = if ($ThresholdType -eq 'Free space in percent') {
 else {
     "$($FreeSpaceThresholdGB)GB"
 }
-$fileNameBase = "DevicesLowDiskspaceReport_$($tenantDisplayName)_$($fileNameSuffix)"
+# The tenant display name comes from Graph and may contain path separators or other characters that are
+# illegal in a file name, which would let the export fail or the upload write to an unintended path.
+$sanitizedTenantName = ($tenantDisplayName -replace '[\\/:*?"<>|]', '_') -replace '\s+', '_'
+$fileNameBase = "DevicesLowDiskspaceReport_$($sanitizedTenantName)_$($fileNameSuffix)"
 $csvFilePath = $null
 $xlsxFilePath = $null
 $reportFiles = @()
+$uploadResults = @()
+$reportFileMissing = $false
 if (($EmailTo -or $CreateDownloadLink) -and $flaggedDevices.Count -gt 0) {
+    # A write failure is only statement-terminating by default, so without -ErrorAction Stop the path of a
+    # file that was never written would still be attached to the email and handed to the upload.
     if ($ReportFileFormat -ne 'XLSX only') {
         $csvFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath "$fileNameBase.csv"
-        $flaggedDevices | Export-Csv -Path $csvFilePath -NoTypeInformation
-        $reportFiles += $csvFilePath
-        Write-RjRbLog -Message "Exported devices with low disk space to CSV: $($csvFilePath)" -Verbose
+        try {
+            $flaggedDevices | Export-Csv -Path $csvFilePath -NoTypeInformation -ErrorAction Stop
+            $reportFiles += $csvFilePath
+            Write-RjRbLog -Message "Exported devices with low disk space to CSV: $($csvFilePath)" -Verbose
+        }
+        catch {
+            $csvFilePath = $null
+            $reportFileMissing = $true
+            Write-Warning "Writing the CSV report file failed - it is neither attached to the email nor uploaded. Error: $($_.Exception.Message)"
+        }
     }
     if ($ReportFileFormat -ne 'CSV only') {
         $xlsxFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath "$fileNameBase.xlsx"
@@ -866,10 +893,23 @@ if (($EmailTo -or $CreateDownloadLink) -and $flaggedDevices.Count -gt 0) {
             @{ Column = 'Severity'; Value = 'Critical'; Color = 'Red' }
             @{ Column = 'Severity'; Value = 'Warning'; Color = 'Yellow' }
         )
-        $flaggedDevices | Export-RjRbXlsx -Path $xlsxFilePath -WorksheetName "Low Disk Space" -HighlightRules $highlightRules
-        $reportFiles += $xlsxFilePath
-        Write-RjRbLog -Message "Exported devices with low disk space to XLSX: $($xlsxFilePath)" -Verbose
+        try {
+            $flaggedDevices | Export-RjRbXlsx -Path $xlsxFilePath -WorksheetName "Low Disk Space" -HighlightRules $highlightRules -ErrorAction Stop
+            $reportFiles += $xlsxFilePath
+            Write-RjRbLog -Message "Exported devices with low disk space to XLSX: $($xlsxFilePath)" -Verbose
+        }
+        catch {
+            $xlsxFilePath = $null
+            $reportFileMissing = $true
+            Write-Warning "Writing the XLSX report file failed - it is neither attached to the email nor uploaded. Error: $($_.Exception.Message)"
+        }
     }
+}
+
+# The email body is composed before the export, so a missing report file is noted here - otherwise the
+# "Attachments" section would announce files the email does not carry.
+if ($reportFileMissing -and $EmailTo) {
+    $markdownContent += "`n> **Note:** Not all report files could be created, so the attachment list of this email is incomplete. Please check the job log of this run.`n"
 }
 
 # Upload / Download Link (optional)
@@ -879,18 +919,37 @@ if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
 
     # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
     # transparently connects the managed identity if no Az context is active.
-    $uploadResults = Publish-RjRbFilesToStorageContainer `
-        -FilePaths $reportFiles `
-        -ContainerName $ContainerName `
-        -ResourceGroupName $ResourceGroupName `
-        -StorageAccountName $StorageAccountName `
-        -LinkExpiryDays $LinkExpiryDays `
-        -AddBlobNamePrefix $true
+    # The upload is an optional convenience: a missing role assignment on the storage account, a storage
+    # firewall or a transient ARM error must not cost the operator the report itself, so a failure here is
+    # reported and the run continues to the email delivery instead of terminating the job.
+    try {
+        $uploadResults = Publish-RjRbFilesToStorageContainer `
+            -FilePaths $reportFiles `
+            -ContainerName $ContainerName `
+            -ResourceGroupName $ResourceGroupName `
+            -StorageAccountName $StorageAccountName `
+            -LinkExpiryDays $LinkExpiryDays `
+            -AddBlobNamePrefix $true
 
-    foreach ($uploadResult in $uploadResults) {
+        foreach ($uploadResult in $uploadResults) {
+            Write-Output ""
+            Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
+            $uploadResult.SASLink | Out-String | Write-Output
+        }
+    }
+    catch {
+        $uploadResults = @()
         Write-Output ""
-        Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
-        $uploadResult.SASLink | Out-String | Write-Output
+        Write-Warning "Upload to the storage account failed - the report is delivered without a download link. Check that the managed identity has the 'Storage Account Contributor' role on '$($StorageAccountName)' and that the storage firewall allows the Automation account. Error: $($_.Exception.Message)"
+    }
+}
+elseif ($CreateDownloadLink) {
+    Write-Output ""
+    if ($flaggedDevices.Count -eq 0) {
+        Write-Output "No report file was created because no device was below the threshold - download link skipped."
+    }
+    else {
+        Write-Output "No report file is available for upload - download link skipped."
     }
 }
 
@@ -912,6 +971,28 @@ if ($EmailTo) {
 
     try {
         if ($reportFiles.Count -gt 0) {
+            # Send-RjRbReportEmail uses this body for the reduced attachment set and also as the safety net
+            # after a failed first send, so it must not name the size limit as the only possible cause.
+            # The download links already exist at this point and are offered instead of asking for an
+            # option that may well be enabled.
+            $fallbackDownloadSection = if ($uploadResults.Count -gt 0) {
+                $downloadLinkLines = foreach ($uploadResult in $uploadResults) {
+                    "- [$($uploadResult.BlobName)]($($uploadResult.SASLink)) (expires $($uploadResult.EndTime))"
+                }
+                @"
+
+## Download Links
+
+$($downloadLinkLines -join "`n")
+"@
+            }
+            elseif (-not $CreateDownloadLink) {
+                "`n> Enable the download link option (CreateDownloadLink) to receive all report files as download links."
+            }
+            else {
+                ""
+            }
+
             $markdownFallback = @"
 # Devices Low Disk Space Report
 
@@ -927,7 +1008,8 @@ This report shows managed devices that reported $($thresholdText).
 
 - **$($fileNameBase).xlsx**: Formatted Excel workbook with the complete list of devices with low disk space
 
-> **Note:** The CSV file was not attached because it exceeds the email attachment size limit. The Excel workbook contains the complete data. Enable the download link option (CreateDownloadLink) to obtain the raw CSV file.
+> **Note:** This email carries the Excel workbook only, which contains the complete data. The CSV file was left out because the full attachment set could not be delivered - either it exceeded the email attachment size limit or the first delivery attempt failed.
+$($fallbackDownloadSection)
 
 ---
 
@@ -953,9 +1035,11 @@ This report shows managed devices that reported $($thresholdText).
             Send-RjRbReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version @brandingMailParams
         }
 
-        Write-RjRbLog -Message "Email report sent successfully to: $($EmailTo)" -Verbose
-        Write-Output "Low disk space report generated and sent successfully"
-        Write-Output "Recipient: $($EmailTo)"
+        # Send-RjRbReportEmail sends one email per recipient and only throws when every single one failed,
+        # so a returning call proves delivery to at least one recipient, not to all of them.
+        Write-RjRbLog -Message "Email report send completed for: $($EmailTo)" -Verbose
+        Write-Output "Low disk space report generated and sent"
+        Write-Output "Recipient(s): $($EmailTo) - a recipient that could not be reached is reported as an error above"
         Write-Output "Devices below the threshold: $($flaggedDevices.Count)"
         Write-Output "Threshold: $($thresholdTextPlain)"
     }

@@ -1,9 +1,9 @@
 # Change Grouptag
 
-Assign a new AutoPilot GroupTag to this device.
+Assign a new Autopilot group tag to this device
 
 ## Detailed description
-This Runbook assigns a new AutoPilot GroupTag to the device. This can be used to trigger a new deployment with different policies and applications for the device.
+Sets a new Windows Autopilot group tag on this device. The group tag decides which Autopilot profile and, through dynamic groups, which policies and apps the device gets, so changing it prepares the device for a different deployment. Nothing else on the device is changed.
 
 ## Where to find
 Device \ General \ Change Grouptag
@@ -17,7 +17,7 @@ Device \ General \ Change Grouptag
 
 ## Parameters
 ### DeviceId
-The device ID of the target device.
+Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ The device ID of the target device.
 | Type | String |
 
 ### newGroupTag
-The new AutoPilot GroupTag to assign to the device.
+Group tag that decides which Autopilot profile and dynamic groups the device gets.
 
 | Property | Value |
 |----------|-------|

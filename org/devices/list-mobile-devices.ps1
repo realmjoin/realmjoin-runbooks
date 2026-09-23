@@ -1,138 +1,93 @@
 <#
     .SYNOPSIS
-    Lists all managed mobile devices (Android, iOS/iPadOS) with mobile-specific inventory, security and network details.
+    List managed mobile devices with inventory and network details
 
     .DESCRIPTION
-    Lists all Intune managed mobile devices with their mobile-specific inventory such as IMEI, serial number, phone number,
-    carrier, ownership, compliance and enrollment details.
-    Optionally the last reported IP address and subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health
-    and Shared iPad state are added per device, which helps to see in which (Wi-Fi) networks the devices were last active.
-    The result can be narrowed down by platform and by an Entra device group and/or a user group of the primary users.
-    Optionally the full inventory is sent as an email report with CSV and/or Excel (xlsx) attachments and/or uploaded to an
-    Azure Storage Account, returning time-limited download links. Without a recipient and without the download link option,
-    the runbook only prints the result to the job output.
-    The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
-    When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
-
-    .NOTES
-    Intune does not report the Wi-Fi SSID of a device. The last reported IP address and subnet are the closest network
-    indicator and should always be interpreted together with the Last Sync column, because they describe the state of the
-    last successful device check-in - which can also have happened over cellular.
-
-    Prerequisites:
-    - EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting) when an email report is requested
-    - RJReport.StorageAccount.* settings must be configured when a download link is requested
-
-    Data source and freshness:
-    All values are taken from the Intune inventory of each device, which is refreshed with the regular device check-in.
-    They therefore describe the state of the last successful check-in and not necessarily the current state.
-    The network and SIM details (IP address, subnet, ICCID, UDID, ...) are not part of the Graph device list response and
-    are retrieved with one additional Graph request per device, sent through the Graph batch endpoint in chunks of up to 20.
-
-    Performance:
-    The network/SIM details are disabled by default. When enabled, the runtime grows linearly with the number of mobile
-    devices. On tenants with many mobile devices, combine the option with the group scope filters.
-
-    Common Use Cases:
-    - Inventory of all mobile devices including IMEI, serial number, phone number and carrier
-    - Identifying in which (Wi-Fi) networks mobile devices were last active, e.g. handheld scanners across warehouse locations
-    - Reviewing compliance, supervision and encryption state of the mobile fleet
-    - SIM/eSIM inventory via ICCID and eSIM identifier
-    - Handing the full mobile inventory to asset management as an Excel workbook or CSV file
+    Lists all Intune managed Android, iOS and iPadOS devices with their inventory: IMEI, serial number, phone number, carrier, ownership, compliance and enrollment. Optionally the last reported IP address and subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health and Shared iPad state are added. That shows in which networks the devices were last active. The list can be limited by platform, a device group or a group of the primary users. The report can be sent by email or provided as a download link.
 
     .PARAMETER Android
-    Include Android devices in the results.
+    Includes Android devices.
 
     .PARAMETER iOS
-    Include iOS and iPadOS devices in the results.
+    Includes iOS and iPadOS devices.
 
     .PARAMETER IncludeNetworkDetails
-    Adds last reported IP address and subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health and Shared
-    iPad state to the output. Requires one additional Graph request per device (sent in batches of 20), so the runtime grows
-    with the number of devices. Disabled by default.
+    Adds IP address, subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health and Shared iPad state. Needs one extra request per device, so large tenants take longer.
 
     .PARAMETER IncludePhoneNumber
-    Controls whether the phone number is retrieved and shown. When disabled, the phone number column is omitted entirely.
-    Note that Intune partially masks the phone number of personally owned devices anyway.
+    Shows the phone number column. Intune masks part of the number on personally owned devices anyway.
 
     .PARAMETER IncludeDeviceGroup
-    Only include devices that are members of this Entra device group. Nested group memberships are resolved. Leave empty to include all mobile devices.
+    Only devices in this Entra ID group, nested groups included. Leave empty for all mobile devices.
 
     .PARAMETER IncludeUserGroup
-    Only include devices whose primary user is a member of this Entra user group. Nested group memberships are resolved. Leave empty to include all mobile devices.
+    Only devices whose primary user is in this group, nested groups included. Leave empty for all.
 
     .PARAMETER EmailTo
-    If specified, an email with the report will be sent to the provided address(es).
-    Can be a single address or multiple comma-separated addresses (string).
-    The function sends individual emails to each recipient for privacy reasons.
+    Send the report to these addresses, separated by commas. Leave empty to only show the result in the run output.
 
     .PARAMETER EmailFrom
-    The sender email address. This needs to be configured in the runbook customization
+    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
     .PARAMETER BrandingHeaderImageUrl
-    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
     .PARAMETER BrandingFooterImageUrl
-    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
     .PARAMETER BrandingFooterLink
-    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-    When empty, the default link (https://www.realmjoin.com) is used.
+    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
     .PARAMETER BrandingAccentColor
-    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER BrandingTextColor
-    Optional text color override (6-digit hex) for the report email template.
-    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER ReportFileFormat
-    Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" or "XLSX only" (default).
+    Deliver the report as CSV, as an Excel workbook, or both.
 
     .PARAMETER CreateDownloadLink
-    If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+    Also upload the report and return a download link that expires after a few days.
 
     .PARAMETER ContainerName
-    Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+    Storage container the report files are uploaded to. Set per runbook.
 
     .PARAMETER ResourceGroupName
-    Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
     .PARAMETER StorageAccountName
-    Storage account name used for the upload. Sourced from the RJReport tenant settings.
+    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
     .PARAMETER LinkExpiryDays
-    Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "Android": {
-                "DisplayName": "Include Android Devices"
+                "DisplayName": "Include Android devices?"
             },
             "iOS": {
-                "DisplayName": "Include iOS/iPadOS Devices"
+                "DisplayName": "Include iOS/iPadOS devices?"
             },
             "IncludeNetworkDetails": {
-                "DisplayName": "Include network/SIM details (one extra Graph call per device - slower on many devices)"
+                "DisplayName": "Include network and SIM details?"
             },
             "IncludePhoneNumber": {
-                "DisplayName": "Include phone numbers in the output"
+                "DisplayName": "Include phone numbers?"
             },
             "IncludeDeviceGroup": {
-                "DisplayName": "Limit to devices in group (optional)"
+                "DisplayName": "Limit to devices in group"
             },
             "IncludeUserGroup": {
-                "DisplayName": "Limit to primary users in group (optional)"
+                "DisplayName": "Limit to primary users in group"
             },
             "EmailTo": {
-                "DisplayName": "Recipient Email Address(es) (optional - leave empty for job output only)"
+                "DisplayName": "Recipient email address(es)"
             },
             "EmailFrom": {
                 "Hide": true
@@ -173,7 +128,7 @@
                 }
             },
             "CreateDownloadLink": {
-                "DisplayName": "Create a file download link (upload report to storage)?",
+                "DisplayName": "Create a download link?",
                 "SelectSimple": {
                     "Yes - upload report and return a download link": true,
                     "No - do not create a download link": false
@@ -207,9 +162,9 @@ param(
     [bool] $iOS = $true,
     [bool] $IncludeNetworkDetails = $false,
     [bool] $IncludePhoneNumber = $true,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Limit to devices in group (optional)" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Limit to devices in group" } )]
     [string] $IncludeDeviceGroup,
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Limit to primary users in group (optional)" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Limit to primary users in group" } )]
     [string] $IncludeUserGroup,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ } )]
     [string] $EmailFrom,

@@ -35,6 +35,7 @@
       "RoleManagement.Read.Directory",
       "ServiceHealth.Read.All",
       "Team.Create",
+      "Team.ReadBasic.All",
       "TeamMember.ReadWrite.All",
       "TeamSettings.ReadWrite.All",
       "User.ReadWrite.All",

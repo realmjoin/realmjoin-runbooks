@@ -1,23 +1,28 @@
 <#
 	.SYNOPSIS
-	Check last Azure AD Connect sync status
+	Check the last Entra Connect sync and alert when it is off
 
 	.DESCRIPTION
-	This runbook checks whether on-premises directory synchronization is enabled and when the last sync happened.
-	It can send an email alert if synchronization is not enabled.
+	Checks whether directory synchronization from on-premises Active Directory is enabled in the tenant. If it is not, an alert email is sent.
 
 	.PARAMETER CallerName
-	Caller name for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.PARAMETER sendAlertTo
-	Email address to send the report to.
+	Gets the alert email when directory synchronization is found disabled.
 
 	.PARAMETER sendAlertFrom
-	Sender mailbox used for sending the report.
+	User in the tenant the alert is sent as; needs a mailbox.
 
 	.INPUTS
 	RunbookCustomization: {
 		"Parameters": {
+			"sendAlertTo": {
+				"DisplayName": "Alert recipient"
+			},
+			"sendAlertFrom": {
+				"DisplayName": "Alert sender"
+			},
 			"CallerName": {
 				"Hide": true
 			}

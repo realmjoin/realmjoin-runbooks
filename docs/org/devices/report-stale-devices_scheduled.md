@@ -1,16 +1,25 @@
 # Report Stale Devices (Scheduled)
 
-Scheduled report of stale devices based on last activity date and platform.
+Report devices that have been inactive for too long
 
 ## Detailed description
-Identifies and lists devices that haven't been active for a specified number of days.
-Automatically sends a report via email with CSV and/or Excel (xlsx) attachments.
-The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
-The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
-When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+Lists Intune devices that have not checked in for a given number of days, optionally within a maximum age. The list can be filtered by platform and by the group membership of the primary user. Nothing is changed. The report can be sent by email or provided as a download link.
 
 ## Where to find
 Org \ Devices \ Report Stale Devices_Scheduled
+
+## Common use cases
+
+- Regular device inventory audits and compliance reporting
+- Identifying devices for retirement or decommissioning
+- Security reviews to find potentially lost devices
+- Monitoring device health across the organization
+- Staged reporting via the `MaxDays` parameter, for example 30 to 60 days and 60 to 90 days
+- User scope filtering to focus on specific departments or to exclude service accounts
+
+## User scope filtering
+
+The runbook supports optional user scope filtering to include or exclude devices based on the group membership of their primary user.
 
 ## Setup regarding email sending
 
@@ -33,23 +42,6 @@ When these settings are not configured, the default RealmJoin graphics and color
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
 
-## Notes
-This runbook generates a comprehensive report of stale devices and delivers it via email.
-The report includes device details, platform breakdowns, and exports report files (CSV/xlsx) for further analysis.
-
-Prerequisites:
-- EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting)
-
-Common Use Cases:
-- Regular device inventory audits and compliance reporting
-- Identifying devices for retirement or decommissioning
-- Security reviews to find potentially lost devices
-- Monitoring device health across the organization
-- Using MaxDays parameter for staged reporting (e.g., 30-60 days, 60-90 days)
-- User scope filtering to focus on specific departments or exclude service accounts
-
-The runbook supports optional user scope filtering to include or exclude devices based on primary user group membership.
-
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
@@ -60,7 +52,7 @@ The runbook supports optional user scope filtering to include or exclude devices
 
 ## Parameters
 ### Days
-Number of days without activity to be considered stale.
+Devices with no check-in for at least this many days count as stale.
 
 | Property | Value |
 |----------|-------|
@@ -69,7 +61,7 @@ Number of days without activity to be considered stale.
 | Type | Int32 |
 
 ### MaxDays
-Optional maximum number of days without activity. If set, only devices inactive between Days and MaxDays will be included.
+Only devices inactive for at most this many days are included. Leave empty for no upper limit.
 
 | Property | Value |
 |----------|-------|
@@ -78,7 +70,7 @@ Optional maximum number of days without activity. If set, only devices inactive 
 | Type | Int32 |
 
 ### Windows
-Include Windows devices in the results.
+Includes Windows devices.
 
 | Property | Value |
 |----------|-------|
@@ -87,7 +79,7 @@ Include Windows devices in the results.
 | Type | Boolean |
 
 ### MacOS
-Include macOS devices in the results.
+Includes macOS devices.
 
 | Property | Value |
 |----------|-------|
@@ -96,7 +88,7 @@ Include macOS devices in the results.
 | Type | Boolean |
 
 ### iOS
-Include iOS devices in the results.
+Includes iOS and iPadOS devices.
 
 | Property | Value |
 |----------|-------|
@@ -105,7 +97,7 @@ Include iOS devices in the results.
 | Type | Boolean |
 
 ### Android
-Include Android devices in the results.
+Includes Android devices.
 
 | Property | Value |
 |----------|-------|
@@ -114,7 +106,7 @@ Include Android devices in the results.
 | Type | Boolean |
 
 ### EmailFrom
-The sender email address. This needs to be configured in the runbook customization
+Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
 | Property | Value |
 |----------|-------|
@@ -123,8 +115,7 @@ The sender email address. This needs to be configured in the runbook customizati
 | Type | String |
 
 ### BrandingHeaderImageUrl
-Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -133,8 +124,7 @@ Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, th
 | Type | String |
 
 ### BrandingFooterImageUrl
-Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -143,8 +133,7 @@ Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, th
 | Type | String |
 
 ### BrandingFooterLink
-Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-When empty, the default link (https://www.realmjoin.com) is used.
+Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -153,8 +142,7 @@ When empty, the default link (https://www.realmjoin.com) is used.
 | Type | String |
 
 ### BrandingAccentColor
-Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -163,8 +151,7 @@ Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or inv
 | Type | String |
 
 ### BrandingTextColor
-Optional text color override (6-digit hex) for the report email template.
-Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -173,7 +160,7 @@ Sourced from the RJReport.Branding.TextColor tenant setting. When empty or inval
 | Type | String |
 
 ### ReportFileFormat
-Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+Deliver the report as CSV, as an Excel workbook, or both.
 
 | Property | Value |
 |----------|-------|
@@ -182,7 +169,7 @@ Controls which report file formats are generated and delivered: "CSV only", "CSV
 | Type | String |
 
 ### CreateDownloadLink
-If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+Also upload the report and return a download link that expires after a few days.
 
 | Property | Value |
 |----------|-------|
@@ -191,7 +178,7 @@ If enabled, the report files are uploaded to an Azure Storage Account and time-l
 | Type | Boolean |
 
 ### ContainerName
-Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+Storage container the report files are uploaded to. Set per runbook.
 
 | Property | Value |
 |----------|-------|
@@ -200,7 +187,7 @@ Storage container name used for the upload. Configured per runbook (not a global
 | Type | String |
 
 ### ResourceGroupName
-Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
 | Property | Value |
 |----------|-------|
@@ -209,7 +196,7 @@ Resource group that contains the storage account. Sourced from the RJReport tena
 | Type | String |
 
 ### StorageAccountName
-Storage account name used for the upload. Sourced from the RJReport tenant settings.
+Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
 | Property | Value |
 |----------|-------|
@@ -218,7 +205,7 @@ Storage account name used for the upload. Sourced from the RJReport tenant setti
 | Type | String |
 
 ### LinkExpiryDays
-Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
 | Property | Value |
 |----------|-------|
@@ -227,7 +214,7 @@ Number of days until the generated download link expires. Sourced from the RJRep
 | Type | Int32 |
 
 ### UseUserScope
-Enable user scope filtering to include or exclude devices based on primary user group membership.
+Whether devices are filtered by the group membership of their primary user. Set by the "Filter by primary user group?" choice.
 
 | Property | Value |
 |----------|-------|
@@ -236,7 +223,7 @@ Enable user scope filtering to include or exclude devices based on primary user 
 | Type | Boolean |
 
 ### IncludeUserGroup
-Only include devices whose primary users are members of this group. Requires UseUserScope to be enabled.
+Only devices whose primary user is in this group.
 
 | Property | Value |
 |----------|-------|
@@ -245,7 +232,7 @@ Only include devices whose primary users are members of this group. Requires Use
 | Type | String |
 
 ### ExcludeUserGroup
-Exclude devices whose primary users are members of this group. Requires UseUserScope to be enabled.
+Skips devices whose primary user is in this group.
 
 | Property | Value |
 |----------|-------|
@@ -254,9 +241,7 @@ Exclude devices whose primary users are members of this group. Requires UseUserS
 | Type | String |
 
 ### EmailTo
-If specified, an email with the report will be sent to the provided address(es).
-Can be a single address or multiple comma-separated addresses (string).
-The function sends individual emails to each recipient for privacy reasons.
+Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
 | Property | Value |
 |----------|-------|

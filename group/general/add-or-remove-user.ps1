@@ -1,32 +1,30 @@
 <#
     .SYNOPSIS
-    Add or remove a group member
+    Add a user to this group or remove one
 
     .DESCRIPTION
-    This runbook adds a user to a group or removes a user from a group.
-    It supports Microsoft Entra ID groups and Exchange Online distribution or mail-enabled security groups.
-    Use the Remove switch to remove the user instead of adding the user.
+    Adds a user as a member of this group or removes an existing member. Works for Microsoft Entra ID groups as well as Exchange Online distribution and mail-enabled security groups.
 
     .PARAMETER GroupID
-    Object ID of the target group.
+    Object ID of the group the runbook acts on. Set by the portal from the selected group.
 
     .PARAMETER UserId
-    Object ID of the user to add or remove.
+    User who is added to or removed from the group.
 
     .PARAMETER Remove
-    "Add User to Group" (final value: $false) or "Remove User from Group" (final value: $true) can be selected as action to perform. If set to true, the runbook will remove the user from the group. If set to false, it will add the user to the group.
+    Add makes the user a member. Remove takes the membership away.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "Remove": {
-                "DisplayName": "Add or Remove User",
+                "DisplayName": "Action",
                 "SelectSimple": {
-                    "Add User as member": false,
-                    "Remove User as member": true
+                    "Add user as member": false,
+                    "Remove user as member": true
                 }
             },
             "GroupId": {
@@ -55,7 +53,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.1"
+$Version = "1.0.3"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph
@@ -105,13 +103,24 @@ else {
         Connect-RjRbExchangeOnline
         $groupObj = Get-Group -Identity $groupID
 
-        # Get User mailbox
-        $targetMailbox = get-mailbox -Identity $targetUser.id
+        # Resolve the user as an Exchange Online recipient. A distribution group member does not need a
+        # cloud mailbox - a mail user (for example a hybrid user whose mailbox is hosted on-premises) is a
+        # valid member as well. The membership changes below address the member by its directory object
+        # id - the recipient Name is not unique in Exchange Online and can fail as an ambiguous identity.
+        $targetRecipient = Get-Recipient -Identity $targetUser.id -ErrorAction SilentlyContinue
+        if (-not $targetRecipient) {
+            throw "User '$($targetUser.UserPrincipalName)' is not an Exchange Online recipient (neither a mailbox nor a mail user). Only mail-enabled users can be members of a distribution or mail-enabled security group."
+        }
+
+        # Exchange Online returns the group members as directory object ids; module versions that
+        # return recipient names instead are covered as well, so the membership check holds in both
+        # cases. Comparing only the name misses every recipient whose name is not its object id.
+        $isMember = ($groupObj.Members -contains $targetUser.id) -or ($groupObj.Members -contains $targetRecipient.Name)
 
         if ($Remove) {
             # Remove user from EXO group
-            if ($groupObj.Members -contains $targetMailbox.name) {
-                Remove-DistributionGroupMember -Identity $GroupID -Member $targetMailbox.Name -BypassSecurityGroupManagerCheck -Confirm:$false
+            if ($isMember) {
+                Remove-DistributionGroupMember -Identity $GroupID -Member $targetUser.id -BypassSecurityGroupManagerCheck -Confirm:$false
                 "## '$($targetUser.UserPrincipalName)' is removed from '$($targetGroup.DisplayName)'."
             }
             else {
@@ -121,11 +130,11 @@ else {
         else {
             # Add user to EXO group
             if ($groupObj.RecipientType -in @("MailUniversalDistributionGroup", "MailUniversalSecurityGroup")) {
-                if ($groupObj.Members -contains $targetMailbox.name) {
+                if ($isMember) {
                     "## User '$($targetUser.UserPrincipalName)' is already a member of '$($targetGroup.DisplayName)'. No action taken."
                 }
                 else {
-                    Add-DistributionGroupMember -Identity $GroupID -member $targetMailbox.Name -BypassSecurityGroupManagerCheck -Confirm:$false
+                    Add-DistributionGroupMember -Identity $GroupID -member $targetUser.id -BypassSecurityGroupManagerCheck -Confirm:$false
                     "## '$($targetUser.UserPrincipalName)' is added to '$($targetGroup.DisplayName)'."
                 }
             }

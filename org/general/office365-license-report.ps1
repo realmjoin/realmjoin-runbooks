@@ -1,57 +1,42 @@
 <#
     .SYNOPSIS
-    Generate an Office 365 licensing report
+    Report Microsoft 365 license usage and availability
 
     .DESCRIPTION
-    This runbook creates a licensing report based on Microsoft 365 subscription SKUs and optionally includes Exchange Online related reports.
-    It can export the results to Azure Storage and generate SAS links for downloads.
+    Creates a report of the Microsoft 365 licenses in the tenant, how many are in use and how many are free. Exchange Online details such as shared mailbox licensing can be added. The report files can be uploaded to an Azure Storage account, as single files or as one ZIP, with download links. Nothing is changed unless real user data is requested, which briefly switches off the report privacy setting and restores it afterwards.
 
     .PARAMETER printOverview
-    If set to true, prints a short license usage overview.
+    Prints a table per license SKU with total, used, available and suspended counts in the run output.
 
     .PARAMETER includeExchange
-    If set to true, includes Exchange Online related reports (Shared Mailbox licensing).
+    Adds Exchange Online reports such as shared mailbox licensing.
 
     .PARAMETER includeUserData
-    If set to true, the Microsoft 365 report privacy setting is temporarily disabled (if currently active) to include real user data such as UPNs in Graph activity reports. The setting is always restored to its original state after the run. Note: Enabling this option will expose personally identifiable information (UPNs) in the exported reports - ensure compliance with your organization's data protection policies before use.
+    Shows real user names in the activity reports by switching off the report privacy setting for the run; it is restored afterwards. The reports then contain personal data, so check your data protection rules first.
 
     .PARAMETER exportToFile
-    If set to true, exports reports to Azure Storage when configured.
+    Uploads the report files to the Azure Storage account configured in the tenant settings.
 
     .PARAMETER exportAsZip
-    If set to true, exports reports as a single ZIP file.
+    Uploads one ZIP file instead of the single report files.
 
     .PARAMETER produceLinks
-    If set to true, creates SAS tokens/links for exported artifacts.
+    Returns time-limited download links for the uploaded files.
 
     .PARAMETER ContainerName
-    Storage container name used for uploads.
+    Storage container the report files are uploaded to. Taken from the tenant setting OfficeLicensingReport.Container.
 
     .PARAMETER ResourceGroupName
-    Resource group that contains the storage account.
+    Resource group of the storage account. Taken from the tenant setting OfficeLicensingReport.ResourceGroup.
 
     .PARAMETER StorageAccountName
-    Storage account name used for uploads. The account must exist before running this report.
+    Storage account for the export. Taken from the tenant setting OfficeLicensingReport.StorageAccount.Name.
 
     .PARAMETER SubscriptionId
-    Azure subscription ID used for storage operations.
+    Azure subscription that holds the storage account. Taken from the tenant setting OfficeLicensingReport.SubscriptionId.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
-
-	.EXAMPLE
-	Example of Azure Storage Account configuration for RJ central datastore
-	{
-		"Settings": {
-			"OfficeLicensingReport": {
-				"ResourceGroup": "rj-test-runbooks-01",
-				"SubscriptionId": "00000000-0000-0000-0000-000000000000",
-				"StorageAccount": {
-					"Name": "rbexports01"
-				}
-			}
-		}
-	}
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
@@ -87,17 +72,17 @@
 # Suppress false positive from PSScriptAnalyzer - printOverview is used in conditions and passed to Get-LicenseOverviewReport
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "printOverview")]
 param(
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Print a short license usage overview?" -Type Setting -Attribute "OfficeLicensingReport.PrintLicOverview" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Show a usage overview?" -Type Setting -Attribute "OfficeLicensingReport.PrintLicOverview" } )]
     [bool] $printOverview = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Include Exchange Reports?" -Type Setting -Attribute "OfficeLicensingReport.InlcudeEXOReport" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Include Exchange Online reports?" -Type Setting -Attribute "OfficeLicensingReport.InlcudeEXOReport" } )]
     [bool] $includeExchange = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Include real user data (UPNs) in reports?" -Type Setting -Attribute "OfficeLicensingReport.IncludeUserData" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Include real user data?" -Type Setting -Attribute "OfficeLicensingReport.IncludeUserData" } )]
     [bool] $includeUserData = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Export reports to Az Storage Account?" -Type Setting -Attribute "OfficeLicensingReport.ExportToFile" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Export to storage?" -Type Setting -Attribute "OfficeLicensingReport.ExportToFile" } )]
     [bool] $exportToFile = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Export reports as single ZIP file?" -Type Setting -Attribute "OfficeLicensingReport.ExportToZIPFile" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Export as one ZIP file?" -Type Setting -Attribute "OfficeLicensingReport.ExportToZIPFile" } )]
     [bool] $exportAsZip = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Create SAS Tokens / Links?" -Type Setting -Attribute "OfficeLicensingReport.CreateLinks" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Create download links?" -Type Setting -Attribute "OfficeLicensingReport.CreateLinks" } )]
     [bool] $produceLinks = $true,
     # Make a persistent container the default, so you can simply update PowerBI's report from the same source
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.Container" } )]

@@ -1,11 +1,9 @@
 # Update Application Registration
 
-Update an application registration in Azure AD
+Update redirect URIs, SAML and sign-in settings of an app registration
 
 ## Detailed description
-This runbook updates an existing application registration and its related configuration in Microsoft Entra ID.
-It compares the current settings with the requested parameters and applies only the necessary updates.
-Use it to manage redirect URIs, SAML settings, visibility, assignment requirements, and token issuance behavior.
+Changes the configuration of an existing application registration in Entra ID: redirect URIs, SAML sign-in, visibility in My Apps, user assignment and implicit grant. Only settings that differ from the current ones are written. The application is selected by its client ID.
 
 ## Where to find
 Org \ Applications \ Update Application Registration
@@ -22,7 +20,7 @@ Org \ Applications \ Update Application Registration
 
 ## Parameters
 ### ClientId
-The application client ID (appId) of the application registration to update.
+Client ID (appId) of the application registration to update.
 
 | Property | Value |
 |----------|-------|
@@ -31,7 +29,7 @@ The application client ID (appId) of the application registration to update.
 | Type | String |
 
 ### RedirectURI
-Used for UI selection only. Determines which redirect URI type to configure.
+Type of sign-in to set up: none, a web redirect URI, SAML, a public client (mobile and desktop) or a single-page application. The matching fields appear once you choose.
 
 | Property | Value |
 |----------|-------|
@@ -40,7 +38,7 @@ Used for UI selection only. Determines which redirect URI type to configure.
 | Type | String |
 
 ### webRedirectURI
-Redirect URI or URIs for web applications. Multiple values can be separated by semicolons.
+Redirect URI of a web application, for example https://myapp.com/auth. Separate several with semicolons.
 
 | Property | Value |
 |----------|-------|
@@ -49,7 +47,7 @@ Redirect URI or URIs for web applications. Multiple values can be separated by s
 | Type | String |
 
 ### publicClientRedirectURI
-Redirect URI or URIs for public client/native applications. Multiple values can be separated by semicolons.
+Redirect URI of a mobile or desktop client, for example myapp://auth. Separate several with semicolons.
 
 | Property | Value |
 |----------|-------|
@@ -58,7 +56,7 @@ Redirect URI or URIs for public client/native applications. Multiple values can 
 | Type | String |
 
 ### spaRedirectURI
-Redirect URI or URIs for single-page applications. Multiple values can be separated by semicolons.
+Redirect URI of a single-page application, for example https://myapp.com. Separate several with semicolons.
 
 | Property | Value |
 |----------|-------|
@@ -67,7 +65,7 @@ Redirect URI or URIs for single-page applications. Multiple values can be separa
 | Type | String |
 
 ### EnableSAML
-If set to true, SAML-based authentication is configured on the service principal.
+Whether SAML sign-in is configured. Set by the "Redirect URI" choice.
 
 | Property | Value |
 |----------|-------|
@@ -76,7 +74,7 @@ If set to true, SAML-based authentication is configured on the service principal
 | Type | Boolean |
 
 ### SAMLReplyURL
-The SAML reply URL.
+Where the SAML response is sent (assertion consumer service URL).
 
 | Property | Value |
 |----------|-------|
@@ -85,7 +83,7 @@ The SAML reply URL.
 | Type | String |
 
 ### SAMLSignOnURL
-The SAML sign-on URL.
+URL where users start the sign-in to the application.
 
 | Property | Value |
 |----------|-------|
@@ -94,7 +92,7 @@ The SAML sign-on URL.
 | Type | String |
 
 ### SAMLLogoutURL
-The SAML logout URL.
+URL the application uses to sign users out.
 
 | Property | Value |
 |----------|-------|
@@ -103,7 +101,7 @@ The SAML logout URL.
 | Type | String |
 
 ### SAMLIdentifier
-The SAML identifier (Entity ID).
+Identifier of the application in SAML (entity ID).
 
 | Property | Value |
 |----------|-------|
@@ -112,7 +110,7 @@ The SAML identifier (Entity ID).
 | Type | String |
 
 ### SAMLRelayState
-The SAML relay state parameter.
+Value the application receives back after sign-in, for example to return to a page.
 
 | Property | Value |
 |----------|-------|
@@ -121,7 +119,7 @@ The SAML relay state parameter.
 | Type | String |
 
 ### SAMLExpiryNotificationEmail
-Email address for SAML certificate expiry notifications.
+Email address that is notified before the SAML signing certificate expires.
 
 | Property | Value |
 |----------|-------|
@@ -130,7 +128,7 @@ Email address for SAML certificate expiry notifications.
 | Type | String |
 
 ### isApplicationVisible
-Determines whether the application is visible in the My Apps portal.
+Lists the application in the users' My Apps portal.
 
 | Property | Value |
 |----------|-------|
@@ -139,7 +137,7 @@ Determines whether the application is visible in the My Apps portal.
 | Type | Boolean |
 
 ### UserAssignmentRequired
-Determines whether user assignment is required for the application.
+Only assigned users can use the application. An access group is created for the assignment.
 
 | Property | Value |
 |----------|-------|
@@ -148,7 +146,7 @@ Determines whether user assignment is required for the application.
 | Type | Boolean |
 
 ### groupAssignmentPrefix
-Prefix for the automatically created assignment group.
+Text put in front of the access group name. Only used when user assignment is required.
 
 | Property | Value |
 |----------|-------|
@@ -157,7 +155,7 @@ Prefix for the automatically created assignment group.
 | Type | String |
 
 ### implicitGrantAccessTokens
-Enable implicit grant flow for access tokens.
+Lets the application receive access tokens through the implicit flow. Needed only for older single-page apps.
 
 | Property | Value |
 |----------|-------|
@@ -166,7 +164,7 @@ Enable implicit grant flow for access tokens.
 | Type | Boolean |
 
 ### implicitGrantIDTokens
-Enable implicit grant flow for ID tokens.
+Lets the application receive ID tokens through the implicit flow.
 
 | Property | Value |
 |----------|-------|
@@ -175,7 +173,7 @@ Enable implicit grant flow for ID tokens.
 | Type | Boolean |
 
 ### disableImplicitGrant
-If set to true, disables implicit grant issuance regardless of other settings.
+Switches implicit grant off for both token types, regardless of "Implicit grant for access tokens?" and "Implicit grant for ID tokens?".
 
 | Property | Value |
 |----------|-------|

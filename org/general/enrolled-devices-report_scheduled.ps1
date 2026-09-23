@@ -1,67 +1,49 @@
 <#
   .SYNOPSIS
-  Show recent first-time device enrollments
+  Report first-time device enrollments of the last weeks
 
   .DESCRIPTION
-  This runbook reports recent device enrollments based on a configurable time range.
-  It can group results by a selected attribute and can optionally export the report as a CSV file.
+  Lists devices that enrolled for the first time within the chosen number of weeks. They are grouped by an attribute of your choice, such as country or department, so you can see where new devices show up. The report can be exported as CSV to an Azure Storage account and downloaded from there.
 
   .PARAMETER Weeks
-  Time range in weeks to include in the report.
+  How many weeks back to look for first enrollments.
 
   .PARAMETER dataSource
-  Data source used to determine the first enrollment date.
+  Date of Autopilot profile assignment counts a device from the day its Autopilot profile was assigned, Date of Intune enrollment from the day it enrolled in Intune.
 
   .PARAMETER groupingSource
-  Data source used to resolve the grouping attribute.
+  Where the grouping attribute comes from: no grouping, Entra ID user or device properties, Intune device properties, or Autopilot device properties.
 
   .PARAMETER groupingAttribute
-  Attribute name used for grouping.
+  Name of the attribute the devices are grouped by, for example country or department.
 
   .PARAMETER exportCsv
-  Please configure an Azure Storage Account to use this feature.
+  Uploads the report as CSV to the storage account and returns a download link. Needs a configured storage account.
 
   .PARAMETER ContainerName
-  Storage container name used for upload.
+  Storage container the report is uploaded to. Taken from the tenant setting EnrolledDevicesReport.Container.
 
   .PARAMETER ResourceGroupName
-  Resource group that contains the storage account.
+  Resource group of the storage account. Taken from the tenant setting EnrolledDevicesReport.ResourceGroup.
 
   .PARAMETER StorageAccountName
-  Storage account name used for upload.
+  Storage account for the export. Taken from the tenant setting EnrolledDevicesReport.StorageAccount.Name.
 
   .PARAMETER StorageAccountLocation
-  Azure region for the storage account.
+  Azure region used when the storage account has to be created. Taken from the tenant setting EnrolledDevicesReport.StorageAccount.Location.
 
   .PARAMETER StorageAccountSku
-  Storage account SKU.
+  Performance tier used when the storage account has to be created. Taken from the tenant setting EnrolledDevicesReport.StorageAccount.Sku.
 
   .PARAMETER CallerName
-  Caller name for auditing purposes.
-
-  .NOTES
-
-  .EXAMPLE
-  Example of Azure Storage Account configuration for RJ central datastore
-  {
-    "Settings": {
-      "EnrolledDevicesReport": {
-        "ResourceGroup": "rj-test-runbooks-01",
-        "StorageAccount": {
-          "Name": "rjrbexports01",
-          "Location": "West Europe",
-          "Sku": "Standard_LRS"
-        }
-      }
-    }
-  }
+  Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
   .INPUTS
   RunbookCustomization: {
     "ParameterList": [
       {
         "Name": "Weeks",
-        "DisplayName": "Time range (in weeks)"
+        "DisplayName": "Time range (weeks)"
       },
       {
         "Name": "dataSource",
@@ -73,7 +55,7 @@
       },
       {
         "Name": "groupingSource",
-        "DisplayName": "Data source for the grouping attribute",
+        "DisplayName": "Group by data from",
         "Select": {
           "Options": [
             {
@@ -86,7 +68,7 @@
               }
             },
             {
-              "Display": "EntraID User properties",
+              "Display": "Entra ID user properties",
               "ParameterValue": 1,
               "Customization": {
                 "Default": {
@@ -95,7 +77,7 @@
               }
             },
             {
-              "Display": "EntraID Device properties",
+              "Display": "Entra ID device properties",
               "ParameterValue": 2,
               "Customization": {
                 "Default": {
@@ -104,7 +86,7 @@
               }
             },
             {
-              "Display": "Intune Device properties",
+              "Display": "Intune device properties",
               "ParameterValue": 3,
               "Customization": {
                 "Default": {
@@ -113,7 +95,7 @@
               }
             },
             {
-              "Display": "AutoPilot Device properties",
+              "Display": "Autopilot device properties",
               "ParameterValue": 4,
               "Customization": {
                 "Default": {
@@ -127,11 +109,11 @@
       },
       {
         "Name": "exportCsv",
-        "DisplayName": "Export report as downloadable CSV?"
+        "DisplayName": "Export as CSV?"
       },
       {
         "Name": "groupingAttribute",
-        "DisplayName": "Attribute/Category to group by"
+        "DisplayName": "Attribute to group by"
       },
       {
         "Name": "ContainerName",

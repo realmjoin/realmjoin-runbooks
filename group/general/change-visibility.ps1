@@ -1,26 +1,24 @@
 <#
     .SYNOPSIS
-    Change a group's visibility
+    Make this group public or private
 
     .DESCRIPTION
-    This runbook changes the visibility of a Microsoft 365 group between Private and Public.
-    Set the Public switch to make the group public; otherwise it will be set to private.
-    This does not change group membership, owners, or email addresses.
+    Switches this Microsoft 365 group between public and private. Public groups can be found and joined by anyone in the organization, private groups only by their members. Membership, owners and email addresses stay as they are.
 
     .PARAMETER GroupID
-    Object ID of the target group.
+    Object ID of the group the runbook acts on. Set by the portal from the selected group.
 
     .PARAMETER Public
-    "Make group private" (final value: $false) or "Make group public" (final value: $true) can be selected as action to perform.
+    Public groups can be found and joined by anyone in the organization, private groups only by their members.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "Public": {
-                "DisplayName": "Set Group visibility",
+                "DisplayName": "Visibility",
                 "SelectSimple": {
                     "Make group private": false,
                     "Make group public": true

@@ -1,12 +1,9 @@
 # Outphase Devices
 
-Remove or outphase multiple devices
+Wipe and clean up several devices at once
 
 ## Detailed description
-This runbook outphases multiple devices based on a comma-separated list of device IDs or serial numbers.
-It can optionally wipe devices in Intune and delete or disable the corresponding Entra ID device objects.
-Optionally, each device can be tagged in Microsoft Defender for Endpoint to mark it as excluded from remediation.
-NOTE: The Exclusion Tag is applied to the device, but it only appears in the Defender portal's "Tags" filter once it has been created once via the portal (Device > Manage tags > "Create new tag").
+Takes several devices out of service in one go, given as a list of device IDs or serial numbers. You choose whether the devices are wiped or only deleted from Intune, and whether their Autopilot registration is removed. Their Entra ID objects can be deleted, disabled or kept. Optionally the devices are tagged in Microsoft Defender for Endpoint so rules that use the tag can exclude them from automated remediation. A wipe removes all data and cannot be undone.
 
 ## Where to find
 Org \ Devices \ Outphase Devices
@@ -47,7 +44,7 @@ See [Create and manage device tags](https://learn.microsoft.com/defender-endpoin
 
 ## Parameters
 ### DeviceListChoice
-Determines whether the list contains device IDs or serial numbers.
+Whether the list holds Entra ID device IDs or serial numbers.
 
 | Property | Value |
 |----------|-------|
@@ -56,7 +53,7 @@ Determines whether the list contains device IDs or serial numbers.
 | Type | Int32 |
 
 ### DeviceList
-Comma-separated list of device IDs or serial numbers.
+Device IDs or serial numbers, separated by commas.
 
 | Property | Value |
 |----------|-------|
@@ -65,7 +62,7 @@ Comma-separated list of device IDs or serial numbers.
 | Type | String |
 
 ### intuneAction
-Determines whether to wipe the device, delete it from Intune, or skip Intune actions.
+Completely wipe erases all user and enrollment data on the devices. Delete from Intune only removes the device records, for devices that are already wiped or destroyed. Do not wipe or remove leaves Intune untouched.
 
 | Property | Value |
 |----------|-------|
@@ -74,7 +71,7 @@ Determines whether to wipe the device, delete it from Intune, or skip Intune act
 | Type | Int32 |
 
 ### aadAction
-Determines whether to delete the Entra ID device, disable it, or skip Entra ID actions.
+Delete removes the device objects from Entra ID, Disable keeps them but blocks sign-ins from the devices, and Keep leaves Entra ID untouched.
 
 | Property | Value |
 |----------|-------|
@@ -83,7 +80,7 @@ Determines whether to delete the Entra ID device, disable it, or skip Entra ID a
 | Type | Int32 |
 
 ### wipeDevice
-Internal flag derived from intuneAction.
+Legacy switch kept for compatibility. The choice under "Intune action" decides whether the devices are wiped.
 
 | Property | Value |
 |----------|-------|
@@ -92,7 +89,7 @@ Internal flag derived from intuneAction.
 | Type | Boolean |
 
 ### removeIntuneDevice
-Internal flag derived from intuneAction.
+Legacy switch kept for compatibility. The choice under "Intune action" decides whether the Intune records are deleted.
 
 | Property | Value |
 |----------|-------|
@@ -101,7 +98,7 @@ Internal flag derived from intuneAction.
 | Type | Boolean |
 
 ### removeAutopilotDevice
-"Remove the device from Autopilot" (final value: true) or "Keep device in Autopilot" (final value: false) handles whether to delete the device from the Autopilot database.
+Removing the devices from the Autopilot database lets them leave the tenant and be registered elsewhere. Keeping them allows a later redeployment in this tenant.
 
 | Property | Value |
 |----------|-------|
@@ -110,7 +107,7 @@ Internal flag derived from intuneAction.
 | Type | Boolean |
 
 ### removeAADDevice
-Internal flag derived from aadAction.
+Legacy switch kept for compatibility. The choice under "Entra ID object" decides whether the Entra ID objects are deleted.
 
 | Property | Value |
 |----------|-------|
@@ -119,7 +116,7 @@ Internal flag derived from aadAction.
 | Type | Boolean |
 
 ### disableAADDevice
-Internal flag derived from aadAction.
+Legacy switch kept for compatibility. The choice under "Entra ID object" decides whether the Entra ID objects are disabled.
 
 | Property | Value |
 |----------|-------|
@@ -128,7 +125,7 @@ Internal flag derived from aadAction.
 | Type | Boolean |
 
 ### excludeFromDefender
-If set to true, each device will be tagged in Microsoft Defender for Endpoint with the specified exclusion tag. If set to false, the Defender step will be skipped entirely.
+Tags the devices in Microsoft Defender for Endpoint with the exclusion tag so rules that use the tag can exclude them from automated remediation. Skip leaves Defender untouched.
 
 | Property | Value |
 |----------|-------|
@@ -137,7 +134,7 @@ If set to true, each device will be tagged in Microsoft Defender for Endpoint wi
 | Type | Boolean |
 
 ### defenderExclusionTag
-The tag that will be added to the device in Microsoft Defender for Endpoint to mark it as excluded. Defaults to "ExcludeFromRemediation".
+Tag name written to the devices in Defender for Endpoint, for use in your exclusion rules.
 
 | Property | Value |
 |----------|-------|

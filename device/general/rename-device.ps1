@@ -1,24 +1,27 @@
 <#
   .SYNOPSIS
-  Rename a device.
+  Rename this device in Intune and Autopilot
 
   .DESCRIPTION
-  Rename a device (in Intune and Autopilot).
+  Gives this device a new name in Intune and in its Windows Autopilot record. Before anything is changed, the name is checked against the Windows computer name rules. It may have up to 15 letters, digits and hyphens, must start and end with a letter or digit, and cannot be digits only.
 
   .PARAMETER DeviceId
-  The device ID of the target device.
+  Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
   .PARAMETER NewDeviceName
-  The new device name to set. This runbook validates the name against common Windows hostname constraints.
+  Up to 15 letters, digits and hyphens, starting and ending with a letter or digit, not digits only.
 
   .PARAMETER CallerName
-  Caller name for auditing purposes.
+  Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
   .INPUTS
   RunbookCustomization: {
     "Parameters": {
       "DeviceId": {
           "Hide": true
+      },
+      "NewDeviceName": {
+          "DisplayName": "New device name"
       },
       "CallerName": {
           "Hide": true

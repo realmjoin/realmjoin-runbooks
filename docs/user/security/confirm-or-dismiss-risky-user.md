@@ -1,9 +1,9 @@
 # Confirm Or Dismiss Risky User
 
-Confirm compromise or dismiss a risky user
+Confirm this user as compromised or dismiss the risk
 
 ## Detailed description
-Confirms a user compromise or dismisses a risky user entry using Microsoft Entra ID Identity Protection. This helps security teams remediate and track risky sign-in events.
+Tells Microsoft Entra ID Protection what to do with the risk flagged on this user. Confirm compromise marks the account as compromised, which sets the user risk to high. Dismiss risk clears the flag when the activity was legitimate.
 
 ## Where to find
 User \ Security \ Confirm Or Dismiss Risky User
@@ -16,7 +16,7 @@ User \ Security \ Confirm Or Dismiss Risky User
 
 ## Parameters
 ### UserName
-User principal name of the target user.
+User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|
@@ -25,7 +25,7 @@ User principal name of the target user.
 | Type | String |
 
 ### Dismiss
-"Confirm compromise" (final value: $false) or "Dismiss risk" (final value: $true) can be selected as action to perform. If set to true, the runbook will attempt to dismiss the risky user entry for the target user. If set to false, it will attempt to confirm a compromise for the target user.
+Confirm compromise marks the account as compromised. Dismiss risk clears the risk flag.
 
 | Property | Value |
 |----------|-------|

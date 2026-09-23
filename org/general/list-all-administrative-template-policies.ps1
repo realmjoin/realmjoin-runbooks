@@ -1,13 +1,12 @@
 <#
     .SYNOPSIS
-    List all Administrative Template policies and their assignments
+    List administrative template policies with their assignments
 
     .DESCRIPTION
-    This runbook retrieves all Administrative Template policies from Intune.
-    It lists each policy and shows its current assignments.
+    Lists every administrative template policy in Intune and shows the current assignments of each one. Nothing is changed.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {

@@ -1,19 +1,18 @@
 <#
     .SYNOPSIS
-    Check Intune assignments for one or more user principal names
+    Show which Intune policies and apps target given users
 
     .DESCRIPTION
-    This runbook queries Intune policies and optionally app assignments relevant to the specified user(s).
-    It resolves transitive group membership and reports matching assignments.
+    Lists the Intune policies, and optionally the apps, that apply to one or more users by resolving their group memberships, nested groups included, and matching them against the assignments. Nothing is changed.
 
     .PARAMETER UserPrincipalName
-    User Principal Names of the users to check assignments for.
+    Each picked user is checked separately through their group memberships, nested groups included.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .PARAMETER IncludeApps
-    If set to true, also evaluates application assignments.
+    Also lists the apps assigned to the users.
 
     .INPUTS
     RunbookCustomization: {
@@ -22,10 +21,10 @@
                 "Hide": true
             },
             "UserPrincipalName": {
-                "DisplayName": "One or more users to check assignments for"
+                "DisplayName": "Users"
             },
             "IncludeApps": {
-                "DisplayName": "Include app assignments"
+                "DisplayName": "Include app assignments?"
             }
         }
     }

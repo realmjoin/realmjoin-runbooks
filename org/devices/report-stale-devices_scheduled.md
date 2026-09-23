@@ -1,3 +1,16 @@
+## Common use cases
+
+- Regular device inventory audits and compliance reporting
+- Identifying devices for retirement or decommissioning
+- Security reviews to find potentially lost devices
+- Monitoring device health across the organization
+- Staged reporting via the `MaxDays` parameter, for example 30 to 60 days and 60 to 90 days
+- User scope filtering to focus on specific departments or to exclude service accounts
+
+## User scope filtering
+
+The runbook supports optional user scope filtering to include or exclude devices based on the group membership of their primary user.
+
 ## Setup regarding email sending
 
 Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.

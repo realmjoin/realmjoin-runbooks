@@ -1,10 +1,9 @@
 # Restart Host
 
-Reboots a specific AVD Session Host.
+Restart this AVD session host and return it to service
 
 ## Detailed description
-This Runbook reboots a specific AVD Session Host. If Users are signed in, they will be disconnected. In any case, Drain Mode will be enabled and the Session Host will be restarted.
-If the SessionHost is not running, it will be started. Once the Session Host is running, Drain Mode is disabled again.
+Restarts this Azure Virtual Desktop session host. Signed-in users are disconnected. Drain mode is switched on first so no new sessions land on the host. A stopped host is started instead of rebooted. Once the host runs again, drain mode is switched off.
 
 ## Where to find
 Device \ AVD \ Restart Host
@@ -16,7 +15,7 @@ Azure: Desktop Virtualization Host Pool Contributor and Virtual Machine Contribu
 
 ## Parameters
 ### DeviceName
-The name of the AVD Session Host device to restart. Hidden in UI
+Name of the AVD session host. Set by the portal from the selected device.
 
 | Property | Value |
 |----------|-------|
@@ -25,7 +24,7 @@ The name of the AVD Session Host device to restart. Hidden in UI
 | Type | String |
 
 ### SubscriptionIds
-Array of Azure subscription IDs where the AVD Session Host resources are located. Retrieved from AVD.SubscriptionIds setting (Customization). Hidden in UI
+Azure subscriptions that hold the AVD host pools. Taken from the tenant setting AVD.SubscriptionIds.
 
 | Property | Value |
 |----------|-------|

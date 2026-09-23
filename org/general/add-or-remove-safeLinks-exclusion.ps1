@@ -1,41 +1,41 @@
 <#
     .SYNOPSIS
-    Add or remove a SafeLinks URL exclusion from a policy
+    Allow a URL pattern in a Safe Links policy or remove it
 
     .DESCRIPTION
-    Adds or removes a SafeLinks URL pattern exclusion in a specified policy. The runbook can also list existing policies and can create a new policy and group if needed.
+    Adds a URL pattern to the exclusions of a Microsoft Defender Safe Links policy so links matching it are no longer rewritten, or removes such an exclusion. It can also list the existing policies with their settings, and create a policy with its assignment group when the requested one does not exist.
 
     .PARAMETER Action
-    "Add URL Pattern to Policy", "Remove URL Pattern from Policy" or "List all existing policies and settings" could be selected as action to perform.
+    Add puts the pattern on the exclusion list, Remove takes it off, List shows the policies and their settings.
 
     .PARAMETER LinkPattern
-    URL pattern to allow; it can contain '*' as a wildcard for host and paths.
+    Pattern to exclude; * works as a wildcard for host and path, for example https://*.microsoft.com/*.
 
     .PARAMETER DefaultPolicyName
-    Default SafeLinks policy name used when no explicit policy name is provided.
+    Policy used when no policy name is given.
 
     .PARAMETER PolicyName
-    Optional SafeLinks policy name; if provided, it overrides the default selection.
+    Policy to change. Leave empty to use the default policy.
 
     .PARAMETER CreateNewPolicyIfNeeded
-    If set to true, the runbook creates a new SafeLinks policy and assignment group when the requested policy does not exist.
+    Creates the Safe Links policy and its assignment group when it does not exist yet.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "Action": {
-                "DisplayName": "Add or Remove URL Pattern to/from Policy",
+                "DisplayName": "Action",
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Add URL Pattern to Policy",
+                            "Display": "Add URL pattern to policy",
                             "ParameterValue": 0
                         },
                         {
-                            "Display": "Remove URL Pattern from Policy",
+                            "Display": "Remove URL pattern from policy",
                             "ParameterValue": 1,
                             "Customization": {
                                 "Hide": [
@@ -71,7 +71,7 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 
 param(
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Action to execute" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Action" } )]
     [int] $Action = 2,
     # Not mandatory to allow an example value
     [String] $LinkPattern = "https://*.microsoft.com/*",

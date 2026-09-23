@@ -1,43 +1,45 @@
 <#
     .SYNOPSIS
-    Rename a user or mailbox
+    Change this user's sign-in name (UPN) and mailbox alias
 
     .DESCRIPTION
-    Renames a user by changing the user principal name in Microsoft Entra ID and optionally updates mailbox properties in Exchange Online. This does not update user metadata such as display name, given name, or surname.
+    Gives this user a new user principal name in Entra ID and, optionally, updates the mailbox alias and the primary email address in Exchange Online to match. Display name, given name and surname are not touched.
 
     .PARAMETER UserName
-    User principal name of the user or mailbox to rename.
+    User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER NewUpn
-    New user principal name to set.
+    New sign-in name, for example jane.doe@contoso.com.
 
     .PARAMETER ChangeMailnickname
-    If set to true, updates the mailbox alias and name based on the new UPN.
+    Sets the mailbox alias and name from the new user principal name.
 
     .PARAMETER UpdatePrimaryAddress
-    If set to true, updates the primary SMTP address and rewrites email addresses accordingly.
+    Makes the new user principal name the primary email address; the previous addresses stay as aliases.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
+            "UserName": {
+                "Hide": true
+            },
             "CallerName": {
                 "Hide": true
             },
             "NewUpn": {
-                "DisplayName": "New UserPrincipalName"
+                "DisplayName": "New user principal name"
             },
             "ChangeMailnickname": {
-                "DisplayName": "Change MailNickname based on new UPN"
+                "DisplayName": "Update the mailbox alias?"
             },
             "UpdatePrimaryAddress": {
-                "DisplayName": "Update primary eMail address"
+                "DisplayName": "Update the primary email address?"
             }
         }
     }
-
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }

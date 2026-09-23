@@ -1,3 +1,7 @@
+## Result without mismatches
+
+No email is sent when the two data sources are in sync. A run without mismatches completes normally and is not an error.
+
 ## Setup regarding email sending
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.

@@ -1,18 +1,18 @@
 <#
     .SYNOPSIS
-    Set a new primary user on a managed Intune device
+    Set a new primary user on this device
 
     .DESCRIPTION
-    This runbook assigns a new primary user to an Intune managed device. It resolves the Intune managed device from the Entra Object ID provided by the portal, retrieves the current primary user and device details, removes the existing user assignment, and then sets the specified user as the new primary user. The output shows the previous and new assignment for audit purposes.
+    Assigns the chosen user as the new primary user of this device in Intune and replaces the current one. The output shows the previous and the new assignment.
 
     .PARAMETER DeviceId
-    The Entra Object ID of the device. Pre-filled from the RealmJoin Portal and hidden in the UI.
+    Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
     .PARAMETER NewPrimaryUserId
-    The user to assign as the new primary user of the device.
+    User to assign. The current primary user is replaced; both are shown in the output.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -21,7 +21,7 @@
                 "Hide": true
             },
             "NewPrimaryUserId": {
-                "DisplayName": "New Primary User"
+                "DisplayName": "New primary user"
             },
             "CallerName": {
                 "Hide": true
@@ -38,7 +38,7 @@ param (
     [string]$DeviceId,
 
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "New Primary User" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "New primary user" } )]
     [string]$NewPrimaryUserId,
 
     # CallerName is tracked purely for auditing purposes

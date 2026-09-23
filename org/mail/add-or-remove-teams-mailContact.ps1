@@ -1,40 +1,46 @@
 <#
     .SYNOPSIS
-    Create/Remove a contact, to allow pretty email addresses for Teams channels.
+    Give a Teams channel a friendly email address or remove it
 
     .DESCRIPTION
-    Creates or updates a mail contact so a desired email address relays to the real Teams channel email address. The runbook can also remove the desired relay address again.
+    Creates a mail contact that forwards a friendly email address to the long address Teams generates for a channel. People can then email the channel with an address they can remember. The same runbook removes the friendly address again.
 
     .PARAMETER RealAddress
-    Enter the address created by MS Teams for a channel
+    Email address that Teams generated for the channel.
 
     .PARAMETER DesiredAddress
-    Desired email address that should relay to the real address.
+    Friendly address that should forward to the channel.
 
     .PARAMETER DisplayName
-    Optional display name for the contact in the address book.
+    Name shown for the contact in the address book. Leave empty to use the part of the friendly address before the @ sign.
 
     .PARAMETER Remove
-    "Relay the desired address to the real address" (final value: $false) or "Stop the relay and remove desired address" (final value: $true) can be selected as action to perform.
+    Set up the friendly address creates the mail contact; Remove the friendly address deletes it again.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
+            "RealAddress": {
+                "DisplayName": "Channel email address"
+            },
+            "DesiredAddress": {
+                "DisplayName": "Friendly email address"
+            },
             "Remove": {
                 "DisplayName": "Action",
                 "SelectSimple": {
-                    "Relay the desired address to the real address": false,
-                    "Stop the relay and remove desired address": true
+                    "Set up the friendly address": false,
+                    "Remove the friendly address": true
                 }
             },
             "CallerName": {
                 "Hide": true
             },
             "DisplayName": {
-                "DisplayName": "Name in Address Book"
+                "DisplayName": "Name in the address book"
             }
         }
     }

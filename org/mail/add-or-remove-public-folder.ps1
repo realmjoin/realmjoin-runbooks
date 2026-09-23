@@ -1,24 +1,21 @@
 <#
     .SYNOPSIS
-    Add or remove a public folder
+    Create or remove an Exchange Online public folder
 
     .DESCRIPTION
-    Creates or removes an Exchange Online public folder. The runbook assumes that at least one public folder mailbox already exists and does not provision public folder mailboxes.
+    Creates a public folder in Exchange Online, optionally in a chosen public folder mailbox, or removes an existing one. At least one public folder mailbox must already exist; the runbook does not create any.
 
     .PARAMETER PublicFolderName
     Name of the public folder to create or remove.
 
     .PARAMETER MailboxName
-    Optional target public folder mailbox to create the folder in.
+    Public folder mailbox the new folder is created in. Leave empty to let Exchange choose.
 
     .PARAMETER AddPublicFolder
-    If set to true, the public folder is created; if set to false, it is removed.
-
-    .PARAMETER Action
-    "Add a Public Folder" or "Remove a Public Folder" can be selected as action.
+    Whether the folder is created or removed. Set by the action selected in the portal.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -29,7 +26,7 @@
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Add a Public Folder",
+                            "Display": "Create a public folder",
                             "Customization": {
                                 "Default": {
                                     "AddPublicFolder": true
@@ -37,7 +34,7 @@
                             }
                         },
                         {
-                            "Display": "Remove a Public Folder",
+                            "Display": "Remove a public folder",
                             "Customization": {
                                 "Default": {
                                     "AddPublicFolder": false
@@ -49,7 +46,7 @@
                         }
                     ]
                 },
-                "Default": "Add a Public Folder"
+                "Default": "Create a public folder"
             },
             {
                 "Name": "CallerName",
@@ -58,15 +55,15 @@
             {
                 "Name": "AddPublicFolder",
                 "Hide": true,
-                "DisplayName": "Add a Public Folder"
+                "DisplayName": "Create the folder?"
             },
             {
                 "Name": "PublicFolderName",
-                "DisplayName": "Name of the Public Folder"
+                "DisplayName": "Public folder name"
             },
             {
                 "Name": "MailboxName",
-                "DisplayName": "Target Public Folder Mailbox (optional)"
+                "DisplayName": "Public folder mailbox"
             }
         ]
     }

@@ -1,23 +1,21 @@
 <#
     .SYNOPSIS
-    List devices owned by group members.
+    List the devices registered to this group's members
 
     .DESCRIPTION
-    This runbook enumerates the users in a group and lists their registered devices.
-    Optionally, it can add the discovered devices to a specified device group.
-    Use this to create or maintain a device group based on group member ownership.
+    Lists the devices registered to the users in this group. Optionally the found devices are added to a device group of your choice. Devices are only added to that group, never removed.
 
     .PARAMETER GroupID
-    Object ID of the group whose members will be evaluated.
+    Object ID of the group the runbook acts on. Set by the portal from the selected group.
 
     .PARAMETER moveGroup
-    If set to true, the discovered devices are added to the target device group.
+    Whether the found devices are added to the chosen device group. Set by the "Action" choice.
 
     .PARAMETER targetgroup
-    Object ID of the target device group that receives the devices when moveGroup is enabled.
+    Group the found devices are added to. Only used when "Action" adds the devices.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -28,7 +26,7 @@
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Put devices owned by group members in specified AAD (device) Group",
+                            "Display": "Add the members' devices to a device group",
                             "Customization": {
                                 "Default": {
                                     "moveGroup": true
@@ -36,7 +34,7 @@
                             }
                         },
                         {
-                            "Display": "list devices owned by group members",
+                            "Display": "List the members' devices only",
                             "Customization": {
                                 "Default": {
                                     "moveGroup": false
@@ -48,7 +46,7 @@
                         }
                     ]
                 },
-                "Default": "Put devices owned by group members in specified AAD (device) Group"
+                "Default": "Add the members' devices to a device group"
             },
             {
                 "Name": "CallerName",
@@ -56,8 +54,7 @@
             },
             {
                 "Name": "moveGroup",
-                "Hide": true,
-                "DisplayName": "Put devices owned by group members in specified AAD (device) Group"
+                "Hide": true
             },
             {
                 "Name": "GroupID",

@@ -1,15 +1,15 @@
 <#
     .SYNOPSIS
-    List room mailbox configuration
+    Show the booking configuration of this room mailbox
 
     .DESCRIPTION
-    Reads room metadata and lists calendar processing settings. This helps validate room resource configuration and booking behavior.
+    Shows the room details and the calendar processing settings of this room mailbox, such as how booking requests are handled. Nothing is changed.
 
     .PARAMETER UserName
-    User principal name of the room mailbox.
+    User principal name of the room mailbox the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -37,7 +37,7 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.1"
+$Version = "1.0.2"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph
@@ -59,7 +59,7 @@ catch {
 "## Calendar Processing:"
 Connect-RjRbExchangeOnline
 try {
-    Get-CalendarProcessing -Identity $User.mailNickname | Select-Object -Property AllBookInPolicy, AutomateProcessing, AllowConflicts, BookingWindowInDays, MaximumDurationInMinutes, ForwardRequetsToDelegates, DeleteSubject, AddOrganizertoSubject, OrganizerInfo
+    Get-CalendarProcessing -Identity $UserName | Select-Object -Property AllBookInPolicy, AutomateProcessing, AllowConflicts, BookingWindowInDays, MaximumDurationInMinutes, ForwardRequetsToDelegates, DeleteSubject, AddOrganizertoSubject, OrganizerInfo
 }
 catch {
     "## Fetching Room Configuration for '$UserName' failed."

@@ -1,13 +1,122 @@
 # Add User
 
-Create a new user account
+Create a new user account in Entra ID
 
 ## Detailed description
-This runbook creates a new cloud user in Microsoft Entra ID and applies standard user properties.
-It can optionally assign a license group, add the user to additional groups, and create an Exchange Online archive mailbox.
+Creates a cloud user in Entra ID with the usual profile details such as name, company, job title, manager, sponsors and address. Sign-in name, alias and display name are derived from the name when left empty, and a start password is generated when none is given. Optionally the user gets a license group, further groups and an Exchange Online archive mailbox.
 
 ## Where to find
 Org \ General \ Add User
+
+## Offer locations and companies as templates
+
+Address fields and company are free text by default. With runbook customization templates the operator picks an office location, which fills in and locks the address block, and a company from a list. The example below defines such templates and binds them to the runbook's fields:
+
+```json
+{
+    "Templates": {
+        "Options": [
+            {
+                "$id": "LocationOptions",
+                "$values": [
+                    {
+                        "Display": "DE-OF",
+                        "Customization": {
+                            "Default": {
+                                "StreetAddress": "Kaiserstraße 39",
+                                "PostalCode": "63065",
+                                "City": "Offenbach",
+                                "Country": "Germany"
+                            }
+                        }
+                    },
+                    {
+                        "Display": "DE-DEG",
+                        "Customization": {
+                            "Default": {
+                                "StreetAddress": "Lateinschulgassse 24-26",
+                                "PostalCode": "94469",
+                                "City": "Deggendorf",
+                                "Country": "Germany"
+                            }
+                        }
+                    },
+                    {
+                        "Display": "DE-HH",
+                        "Customization": {
+                            "Default": {
+                                "StreetAddress": "Hans-Henny-Jahnn-Weg 53",
+                                "PostalCode": "22085",
+                                "City": "Hamburg",
+                                "Country": "Germany"
+                            }
+                        }
+                    },
+                    {
+                        "Display": "FI-HS",
+                        "Customization": {
+                            "Default": {
+                                "StreetAddress": "Somewhere 42",
+                                "PostalCode": "12345",
+                                "City": "Helsinki",
+                                "Country": "Finland"
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "$id": "CompanyOptions",
+                "$values": [
+                    {
+                        "Id": "gkg",
+                        "Display": "glueckkanja-gab",
+                        "Value": "glueckkanja-gab AG"
+                    },
+                    {
+                        "Id": "pp",
+                        "Display": "PrimePulse",
+                        "Value": "PrimePulse AG"
+                    }
+                ]
+            }
+        ]
+    },
+    "Runbooks": {
+        "rjgit-org_general_add-user": {
+            "ParameterList": [
+                {
+                    "DisplayName": "Office Location",
+                    "DisplayAfter": "CompanyName",
+                    "Select": {
+                        "Options": {
+                            "$ref": "LocationOptions"
+                        }
+                    }
+                },
+                {
+                    "Name": "CompanyName",
+                    "Select": {
+                        "Options": {
+                            "$ref": "CompanyOptions"
+                        },
+                        "AllowEdit": false
+                    }
+                }
+            ],
+            "ReadOnly": [
+                "StreetAddress",
+                "PostalCode",
+                "City",
+                "Country"
+            ]
+        }
+    }
+}
+```
+
+For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
 
 ## Permissions
 ### Application permissions
@@ -39,7 +148,7 @@ Last name of the user.
 | Type | String |
 
 ### UserPrincipalName
-User principal name (UPN). If empty, the runbook generates a UPN from the provided name.
+Sign-in name of the user. Derived from the name when empty.
 
 | Property | Value |
 |----------|-------|
@@ -48,7 +157,7 @@ User principal name (UPN). If empty, the runbook generates a UPN from the provid
 | Type | String |
 
 ### MailNickname
-Mail nickname (alias) used for the user. If empty, the runbook derives it from the UPN.
+Alias of the mailbox. Derived from the sign-in name when empty.
 
 | Property | Value |
 |----------|-------|
@@ -57,7 +166,7 @@ Mail nickname (alias) used for the user. If empty, the runbook derives it from t
 | Type | String |
 
 ### DisplayName
-Display name of the user. If empty, the runbook derives it from the provided name.
+Derived from first and last name when empty.
 
 | Property | Value |
 |----------|-------|
@@ -66,7 +175,7 @@ Display name of the user. If empty, the runbook derives it from the provided nam
 | Type | String |
 
 ### CompanyName
-Company name of the user.
+Company the user belongs to.
 
 | Property | Value |
 |----------|-------|
@@ -75,7 +184,7 @@ Company name of the user.
 | Type | String |
 
 ### JobTitle
-Job title of the user.
+Shown in the profile and in the address book.
 
 | Property | Value |
 |----------|-------|
@@ -84,7 +193,7 @@ Job title of the user.
 | Type | String |
 
 ### Department
-Department of the user.
+Department the user works in.
 
 | Property | Value |
 |----------|-------|
@@ -93,7 +202,7 @@ Department of the user.
 | Type | String |
 
 ### ManagerId
-Optional manager user ID to set for the user.
+User who becomes the manager.
 
 | Property | Value |
 |----------|-------|
@@ -102,7 +211,7 @@ Optional manager user ID to set for the user.
 | Type | String |
 
 ### SponsorIds
-Optional sponsor user IDs to set for the user. Multiple sponsors supported.
+Users recorded as sponsors of the new user. Several can be picked.
 
 | Property | Value |
 |----------|-------|
@@ -111,7 +220,7 @@ Optional sponsor user IDs to set for the user. Multiple sponsors supported.
 | Type | String Array |
 
 ### MobilePhone
-Mobile phone number of the user.
+Shown in the profile and in the address book.
 
 | Property | Value |
 |----------|-------|
@@ -120,7 +229,7 @@ Mobile phone number of the user.
 | Type | String |
 
 ### LocationName
-Office location name used for portal customization.
+Office location shown in the profile. With templates from the runbook customization, picking one also fills in the address fields.
 
 | Property | Value |
 |----------|-------|
@@ -129,7 +238,7 @@ Office location name used for portal customization.
 | Type | String |
 
 ### StreetAddress
-Street address of the user.
+Part of the postal address shown in the profile. Filled in by the office location template when one is picked.
 
 | Property | Value |
 |----------|-------|
@@ -138,7 +247,7 @@ Street address of the user.
 | Type | String |
 
 ### PostalCode
-Postal code of the user.
+Part of the postal address shown in the profile. Filled in by the office location template when one is picked.
 
 | Property | Value |
 |----------|-------|
@@ -147,7 +256,7 @@ Postal code of the user.
 | Type | String |
 
 ### City
-City of the user.
+Part of the postal address shown in the profile. Filled in by the office location template when one is picked.
 
 | Property | Value |
 |----------|-------|
@@ -156,7 +265,7 @@ City of the user.
 | Type | String |
 
 ### State
-State or region of the user.
+Part of the postal address shown in the profile.
 
 | Property | Value |
 |----------|-------|
@@ -165,7 +274,7 @@ State or region of the user.
 | Type | String |
 
 ### Country
-Country of the user.
+Part of the postal address shown in the profile. Filled in by the office location template when one is picked.
 
 | Property | Value |
 |----------|-------|
@@ -174,7 +283,7 @@ Country of the user.
 | Type | String |
 
 ### UsageLocation
-Usage location used for licensing.
+Two-letter country code that decides which licenses the user may get, for example DE.
 
 | Property | Value |
 |----------|-------|
@@ -183,7 +292,7 @@ Usage location used for licensing.
 | Type | String |
 
 ### DefaultLicense
-Optional license group to assign to the user.
+Display name of the group that assigns the license; the user is added to it. Leave empty for none.
 
 | Property | Value |
 |----------|-------|
@@ -192,7 +301,7 @@ Optional license group to assign to the user.
 | Type | String |
 
 ### DefaultGroups
-Comma-separated list of groups to assign to the user.
+Display names of further groups the user is added to, separated by commas.
 
 | Property | Value |
 |----------|-------|
@@ -201,7 +310,7 @@ Comma-separated list of groups to assign to the user.
 | Type | String |
 
 ### InitialPassword
-Initial password. If empty, the runbook generates a random password.
+Start password for the user. Leave empty to have one generated and shown in the output.
 
 | Property | Value |
 |----------|-------|
@@ -210,7 +319,7 @@ Initial password. If empty, the runbook generates a random password.
 | Type | String |
 
 ### EnableEXOArchive
-If set to true, creates an Exchange Online archive mailbox for the user.
+Turns on the Exchange Online archive mailbox for the new user.
 
 | Property | Value |
 |----------|-------|

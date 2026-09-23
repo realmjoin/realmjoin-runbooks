@@ -1,115 +1,78 @@
 <#
 	.SYNOPSIS
-	Clean up orphaned and stale Windows Autopilot device registrations
+	Remove orphaned and never-enrolled Autopilot registrations
 
 	.DESCRIPTION
-	This scheduled runbook performs regular maintenance of Windows Autopilot device registrations by identifying and removing orphaned devices whose serial numbers no longer match any Intune managed device, and optionally removing never-enrolled Autopilot devices that exceed a configurable age threshold. The runbook operates in WhatIf mode by default for safe reporting, and can optionally send an email summary with CSV and/or Excel (xlsx) attachments listing the devices that would be or were deleted.
-	The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
-	The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
-	When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
-
-	.NOTES
-	Prerequisites:
-	- The Azure Automation managed identity must hold these Microsoft Graph application
-	  permissions: DeviceManagementManagedDevices.Read.All,
-	  DeviceManagementServiceConfig.ReadWrite.All, Organization.Read.All, Device.ReadWrite.All
-	  (Device.ReadWrite.All only when the "Delete Autopilot and Entra device" mode is used), and
-	  Mail.Send (Mail.Send only when email reporting is enabled).
-	- Grant the permissions before the first scheduled run.
-
-	Warning - deletion is irreversible:
-	- Removing an Autopilot device identity permanently deletes it from Windows Autopilot.
-	- The physical device cannot re-enter Autopilot until its hardware hash is re-uploaded.
-	- There is no soft-delete or recycle bin for Autopilot records.
-	- Deleting the Entra (Azure AD) device object is likewise permanent; only do so for records
-	  that are genuinely dead (the device will never enroll again).
-
-	Recommended first-run procedure:
-	- Run with Delete mode = "WhatIf (report only)" (the default) and review the output or emailed CSV.
-	- Confirm the identified devices are genuinely orphaned or never-enrolled.
-	- Switch to a deletion mode only after the candidate list has been reviewed.
-
-	Parameter interactions:
-	- DeleteMode defaults to "WhatIf (report only)"; no deletions occur in that mode.
-	- "Delete Autopilot device" removes only the Autopilot identity. "Delete Autopilot and Entra
-	  device" additionally removes the matching Entra (Azure AD) device object, which would
-	  otherwise be left behind as a stale/dead record once the Autopilot identity is gone.
-	- CleanupOrphanedDevices and CleanupNeverEnrolledDevices are independent; either or both
-	  can be enabled. NeverEnrolledAgeDays applies only to the never-enrolled check.
-	- GroupTagFilter, ManufacturerFilter and ModelFilter are all optional; leave a filter empty to
-	  evaluate all values for that dimension. When more than one filter is set they are combined with
-	  AND - a device must match every populated filter to remain in scope. GroupTagFilter matches the
-	  group tag exactly (case-insensitive); ManufacturerFilter and ModelFilter match as case-insensitive
-	  substrings, so "Dell" matches "Dell Inc." and "Surface" matches "Surface Laptop 3".
-	- ExcludeSerialNumbers is applied after the AND filters as an exclusion: any device whose serial
-	  number is in the list (exact, case-insensitive) is removed from scope regardless of the other
-	  filters. Leave empty to exclude nothing.
+	Cleans up Windows Autopilot registrations: devices whose serial number no longer matches any Intune device (orphaned) and, optionally, devices that never enrolled and are older than a given age. By default it only reports what it would delete; deletion has to be switched on explicitly and can include the matching Entra ID device objects. The report can be sent by email or provided as a download link.
 
 	.PARAMETER DeleteMode
-	Controls what the runbook does with the identified cleanup candidates. "WhatIf (report only)" performs no deletion and only reports the candidates (default, safe). "Delete Autopilot device" removes the Autopilot device identities. "Delete Autopilot and Entra device" removes the Autopilot identities and the matching Entra (Azure AD) device objects, which would otherwise remain as stale records.
+	WhatIf only reports the candidates. Delete Autopilot device removes the Autopilot registrations. Delete Autopilot and Entra device also removes the matching Entra ID device objects.
 
 	.PARAMETER GroupTagFilter
-	Comma-separated Autopilot group tags to limit the cleanup scope. Matched exactly (case-insensitive). Leave empty to process all Autopilot devices regardless of group tag.
+	Only devices with one of these Autopilot group tags, separated by commas and matched exactly. Leave empty for all.
 
 	.PARAMETER ManufacturerFilter
-	Comma-separated device manufacturers to limit the cleanup scope. Matched as case-insensitive substrings, so "Dell" matches "Dell Inc.". Combined with the other filters using AND. Leave empty to process all manufacturers.
+	Only these manufacturers, separated by commas; Dell also matches Dell Inc. Leave empty for all.
 
 	.PARAMETER ModelFilter
-	Comma-separated device models to limit the cleanup scope. Matched as case-insensitive substrings, so "Surface" matches "Surface Laptop 3". Combined with the other filters using AND. Leave empty to process all models.
+	Only these models, separated by commas; Surface also matches Surface Laptop 3. Leave empty for all.
 
 	.PARAMETER ExcludeSerialNumbers
-	Comma-separated serial numbers to exclude from the cleanup. Matched exactly (case-insensitive). Any device whose serial number is in this list is removed from scope regardless of the other filters. Leave empty to exclude nothing.
+	Serial numbers that are never touched, separated by commas. Leave empty to exclude nothing.
 
 	.PARAMETER CleanupOrphanedDevices
-	When enabled, removes Autopilot devices that have contacted Intune in the past but whose serial number is no longer found among Intune managed devices (the managed device record was deleted).
+	Removes registrations of devices that once contacted Intune but no longer exist there.
 
 	.PARAMETER OrphanedLastContactedDays
-	Age threshold in days for orphaned devices. An Autopilot device is only treated as orphaned when its last contact with Intune was more than this number of days ago and its serial is no longer present in Intune. This prevents removing devices that contacted Intune recently.
+	A device counts as orphaned only when its last contact with Intune is older than this many days, so recently active devices are safe.
 
 	.PARAMETER CleanupNeverEnrolledDevices
-	When enabled, removes never-enrolled Autopilot devices (devices that never contacted Intune).
+	Removes registrations of devices that never contacted Intune and are older than "Never-enrolled after (days)".
 
 	.PARAMETER NeverEnrolledAgeDays
-	Age threshold in days for never-enrolled devices. Measured on the Device creation date.
+	Never-enrolled registrations older than this many days, counted from their creation date, are removed.
 
 	.PARAMETER EmailTo
-	Optional email recipient address for the cleanup summary report. Leave empty to only write results to the runbook log.
+	Send the cleanup report to these addresses, separated by commas. Leave empty to send no email.
 
 	.PARAMETER EmailFrom
-	The sender email address for the summary report. This is configured via Runbook Customizations.
+	Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
 	.PARAMETER BrandingHeaderImageUrl
-	Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-	Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+	Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
 	.PARAMETER BrandingFooterImageUrl
-	Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-	Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+	Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
 	.PARAMETER BrandingFooterLink
-	Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-	When empty, the default link (https://www.realmjoin.com) is used.
+	Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
+
+	.PARAMETER BrandingAccentColor
+	Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
+
+	.PARAMETER BrandingTextColor
+	Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
 	.PARAMETER ReportFileFormat
-	Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+	Deliver the report as CSV, as an Excel workbook, or both.
 
 	.PARAMETER CreateDownloadLink
-	If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+	Also upload the report and return a download link that expires after a few days.
 
 	.PARAMETER ContainerName
-	Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+	Storage container the report files are uploaded to. Set per runbook.
 
 	.PARAMETER ResourceGroupName
-	Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+	Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
 	.PARAMETER StorageAccountName
-	Storage account name used for the upload. Sourced from the RJReport tenant settings.
+	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
 	.PARAMETER LinkExpiryDays
-	Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
 	.PARAMETER CallerName
-	Caller name for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
@@ -118,29 +81,29 @@
 				"DisplayName": "Deletion mode"
 			},
 			"GroupTagFilter": {
-				"DisplayName": "Autopilot Group Tag Filter (comma-separated exact match, leave empty for all)"
+				"DisplayName": "Group tag filter"
 			},
 			"ManufacturerFilter": {
-				"DisplayName": "Manufacturer Filter (comma-separated, substring match, leave empty for all)"
+				"DisplayName": "Manufacturer filter"
 			},
 			"ModelFilter": {
-				"DisplayName": "Model Filter (comma-separated, substring match, leave empty for all)"
+				"DisplayName": "Model filter"
 			},
 			"ExcludeSerialNumbers": {
-				"DisplayName": "Exclude Serial Numbers (comma-separated exact match, leave empty for none)"
+				"DisplayName": "Exclude serial numbers"
 			},
 			"CleanupOrphanedDevices": {
-				"DisplayName": "Clean up orphaned Autopilot devices"
+				"DisplayName": "Clean up orphaned devices?"
 			},
 			"OrphanedLastContactedDays": {
-				"DisplayName": "Orphaned device last-contacted threshold (days)"
+				"DisplayName": "Orphaned after (days)"
 			},
 			"CleanupNeverEnrolledDevices": {
-				"DisplayName": "Clean up never-enrolled Autopilot devices",
+				"DisplayName": "Clean up never-enrolled devices?",
 				"Select": {
 					"Options": [
 						{
-							"Display": "Yes - remove aged never-enrolled devices",
+							"Display": "Yes, remove aged never-enrolled devices",
 							"Customization": {
 								"Show": [
 									"NeverEnrolledAgeDays"
@@ -161,11 +124,11 @@
 				}
 			},
 			"NeverEnrolledAgeDays": {
-				"DisplayName": "Never-enrolled device age threshold (days)",
+				"DisplayName": "Never-enrolled after (days)",
 				"Hide": true
 			},
 			"EmailTo": {
-				"DisplayName": "Email recipient for cleanup summary (optional)"
+				"DisplayName": "Recipient email address(es)"
 			},
 			"EmailFrom": {
 				"Hide": true
@@ -206,7 +169,7 @@
 				}
 			},
 			"CreateDownloadLink": {
-				"DisplayName": "Create a file download link (upload report to storage)?",
+				"DisplayName": "Create a download link?",
 				"SelectSimple": {
 					"Yes - upload report and return a download link": true,
 					"No - do not create a download link": false

@@ -1,33 +1,36 @@
 <#
     .SYNOPSIS
-    List role-assignable groups with eligible role assignments but without owners
+    Alert on PIM role groups that have no owner
 
     .DESCRIPTION
-    Finds role-assignable groups that have PIM eligible role assignments but no owners assigned. Optionally sends an email alert containing the group names.
+    Finds role-assignable groups that hold eligible PIM role assignments but have no owner, so nobody is responsible for their membership. The group names are listed and can be sent by email. Nothing is changed.
 
     .PARAMETER SendEmailIfFound
-    If set to true, sends an email when matching groups are found.
+    Sends an email with the group names when such groups are found.
 
     .PARAMETER From
-    Sender email address used to send the alert.
+    User in the tenant the alert is sent as; needs a mailbox.
 
     .PARAMETER To
-    Recipient email address for the alert.
+    Gets the email with the group names.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
+            "SendEmailIfFound": {
+                "DisplayName": "Send an email when groups are found?"
+            },
             "CallerName": {
                 "Hide": true
             },
             "From": {
-                "DisplayName": "Sender mail address"
+                "DisplayName": "Alert sender"
             },
             "To": {
-                "DisplayName": "Send mail to"
+                "DisplayName": "Alert recipient"
             }
         }
     }

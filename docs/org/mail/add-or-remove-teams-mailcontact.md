@@ -1,9 +1,9 @@
 # Add Or Remove Teams Mailcontact
 
-Create/Remove a contact, to allow pretty email addresses for Teams channels.
+Give a Teams channel a friendly email address or remove it
 
 ## Detailed description
-Creates or updates a mail contact so a desired email address relays to the real Teams channel email address. The runbook can also remove the desired relay address again.
+Creates a mail contact that forwards a friendly email address to the long address Teams generates for a channel. People can then email the channel with an address they can remember. The same runbook removes the friendly address again.
 
 ## Where to find
 Org \ Mail \ Add Or Remove Teams Mailcontact
@@ -19,7 +19,7 @@ Org \ Mail \ Add Or Remove Teams Mailcontact
 
 ## Parameters
 ### RealAddress
-Enter the address created by MS Teams for a channel
+Email address that Teams generated for the channel.
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +28,7 @@ Enter the address created by MS Teams for a channel
 | Type | String |
 
 ### DesiredAddress
-Desired email address that should relay to the real address.
+Friendly address that should forward to the channel.
 
 | Property | Value |
 |----------|-------|
@@ -37,7 +37,7 @@ Desired email address that should relay to the real address.
 | Type | String |
 
 ### DisplayName
-Optional display name for the contact in the address book.
+Name shown for the contact in the address book. Leave empty to use the part of the friendly address before the @ sign.
 
 | Property | Value |
 |----------|-------|
@@ -46,7 +46,7 @@ Optional display name for the contact in the address book.
 | Type | String |
 
 ### Remove
-"Relay the desired address to the real address" (final value: $false) or "Stop the relay and remove desired address" (final value: $true) can be selected as action to perform.
+Set up the friendly address creates the mail contact; Remove the friendly address deletes it again.
 
 | Property | Value |
 |----------|-------|

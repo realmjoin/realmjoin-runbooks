@@ -1,47 +1,46 @@
 <#
     .SYNOPSIS
-    Import a Windows device into Windows Autopilot
+    Register a Windows device in Windows Autopilot
 
     .DESCRIPTION
-    This runbook imports a Windows device into Windows Autopilot using the device serial number and hardware hash.
-    It can optionally wait for the import job to finish and supports tagging during import.
+    Registers a Windows device in Windows Autopilot from its serial number and hardware hash, as collected with Get-WindowsAutopilotInfo. Optionally a group tag is set during the import and the runbook waits until the import has finished.
 
     .PARAMETER SerialNumber
-    Device serial number as returned by Get-WindowsAutopilotInfo.
+    Serial number of the device as reported by Get-WindowsAutopilotInfo.
 
     .PARAMETER HardwareIdentifier
-    Device hardware hash as returned by Get-WindowsAutopilotInfo.
+    Hardware hash of the device as reported by Get-WindowsAutopilotInfo.
 
     .PARAMETER AssignedUser
-    Optional user to assign to the Autopilot device.
+    User to assign during the import. Microsoft no longer accepts this, so leave it empty.
 
     .PARAMETER Wait
-    If set to true, the runbook waits until the import job completes.
+    Keeps the runbook running until Autopilot has processed the import, so the result shows in the output.
 
     .PARAMETER GroupTag
-    Optional group tag to apply to the imported device.
+    Group tag to set on the device, for example to steer it into an Autopilot profile. Leave empty for none.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "SerialNumber": {
-                "DisplayName": "'Device Serial Number' from Get-WindowsAutopilotInfo"
+                "DisplayName": "Serial number"
             },
             "HardwareIdentifier": {
-                "DisplayName": "'Hardware Hash' from Get-WindowsAutopilotInfo"
+                "DisplayName": "Hardware hash"
             },
             "AssignedUser": {
                 "DisplayName": "Assign device to this user (optional)",
-                "Hide": true // MS removed the ability to assign users directly via Autopilot
+                "Hide": true
             },
             "Wait": {
-                "DisplayName": "Wait for job to finish"
+                "DisplayName": "Wait for the import to finish?"
             },
             "GroupTag": {
-                "DisplayName": "Group tag (optional)"
+                "DisplayName": "Group tag"
             },
             "CallerName": {
                 "Hide": true

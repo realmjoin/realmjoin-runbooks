@@ -1,10 +1,9 @@
 # Sync Device Serialnumbers To Entraid (Scheduled)
 
-Sync Intune serial numbers to Entra ID extension attributes
+Copy Intune serial numbers into an Entra ID extension attribute
 
 ## Detailed description
-This runbook retrieves Intune managed devices and syncs their serial numbers into an Entra ID device extension attribute.
-It can process all devices or only devices with missing or mismatched values and can optionally send an email report.
+Writes the serial number of each Intune managed device into one of the extension attributes of its Entra ID device object. That makes the serial number usable in dynamic groups and filters. By default only devices with a missing or different value are updated. A report can be sent by email.
 
 ## Where to find
 Org \ Devices \ Sync Device Serialnumbers To Entraid_Scheduled
@@ -20,7 +19,7 @@ Org \ Devices \ Sync Device Serialnumbers To Entraid_Scheduled
 
 ## Parameters
 ### ExtensionAttributeNumber
-Extension attribute number to update
+Which of the Entra ID extension attributes (1 to 15) receives the serial number.
 
 | Property | Value |
 |----------|-------|
@@ -29,7 +28,7 @@ Extension attribute number to update
 | Type | Int32 |
 
 ### ProcessAllDevices
-If set to true, processes all devices; otherwise only devices with missing or mismatched values are processed.
+Writes the attribute on every device, not only where it is missing or differs.
 
 | Property | Value |
 |----------|-------|
@@ -38,7 +37,7 @@ If set to true, processes all devices; otherwise only devices with missing or mi
 | Type | Boolean |
 
 ### MaxDevicesToProcess
-Maximum number of devices to process in a single run. Use 0 for unlimited.
+Stops after this many devices; 0 means no limit.
 
 | Property | Value |
 |----------|-------|
@@ -47,7 +46,7 @@ Maximum number of devices to process in a single run. Use 0 for unlimited.
 | Type | Int32 |
 
 ### sendReportTo
-Email address to send the report to. If empty, no email will be sent.
+Address the report is sent to. Leave empty to send none.
 
 | Property | Value |
 |----------|-------|
@@ -56,7 +55,7 @@ Email address to send the report to. If empty, no email will be sent.
 | Type | String |
 
 ### sendReportFrom
-Email address to send the report from.
+Sender address of the report email. Use a mailbox that exists in the tenant.
 
 | Property | Value |
 |----------|-------|

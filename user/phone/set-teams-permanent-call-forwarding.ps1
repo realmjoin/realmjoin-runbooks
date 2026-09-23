@@ -1,48 +1,48 @@
 <#
     .SYNOPSIS
-    Set immediate call forwarding for a Teams user
+    Forward this user's calls immediately or turn forwarding off
 
     .DESCRIPTION
-    Configures immediate call forwarding for a Teams Enterprise Voice user to a Teams user, a phone number, voicemail, or the user's delegates. The runbook can also disable immediate forwarding.
+    Sets up immediate call forwarding for this Teams Enterprise Voice user to another Teams user, a phone number, voicemail or the user's own delegates. It can also switch immediate forwarding off again. Unanswered-call handling is turned off at the same time.
 
     .PARAMETER UserName
-    User principal name of the target user.
+    User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER ForwardTargetPhoneNumber
-    Phone number to which calls should be forwarded. Must be in E.164 format (e.g. +49123456789)
+    Number that receives the calls, in E.164 format such as +49123456789.
 
     .PARAMETER ForwardTargetTeamsUser
-    User principal name of the Teams user to forward calls to.
+    Colleague whose Teams account rings instead of this user's.
 
     .PARAMETER ForwardToVoicemail
-    If set to true, forwards calls to voicemail.
+    Sends the calls to voicemail. Set by the "Forward calls to" choice.
 
     .PARAMETER ForwardToDelegates
-    If set to true, forwards calls to the delegates defined by the user.
+    Sends the calls to the delegates the user has defined in Teams. Set by the "Forward calls to" choice.
 
     .PARAMETER TurnOffForward
-    If set to true, disables immediate call forwarding.
+    Switches immediate forwarding off. Set by the "Forward calls to" choice.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
 	"ParameterList": [
         {
 			"Name": "UserName",
-			"DisplayName": "UPN of the current user"
+			"Hide": true
 		},
 		{
 			"Name": "ForwardTargetPhoneNumber",
-			"DisplayName": "To which phone number should calls be forwarded?"
+			"DisplayName": "Phone number"
 		},
 		{
 			"Name": "ForwardTargetTeamsUser",
-			"DisplayName": "To which Teams user should calls be forwarded?"
+			"DisplayName": "Teams user"
 		},
 		{
-			"DisplayName": "To which destination should calls be forwarded?",
+			"DisplayName": "Forward calls to",
 			"DisplayAfter": "UserName",
 			"Select": {
 				"Options": [{
@@ -96,7 +96,7 @@
 						}
 					},
 					{
-						"Display": "Delegates which are defined by the user",
+						"Display": "The user's delegates",
 						"Customization": {
 							"Hide": [
 								"ForwardTargetTeamsUser",
@@ -112,7 +112,7 @@
 						}
 					},
 					{
-						"Display": "Nowhere - Turn off immediate forwarding",
+						"Display": "Nowhere (turn immediate forwarding off)",
 						"Customization": {
 							"Hide": [
 								"ForwardTargetTeamsUser",
@@ -158,12 +158,12 @@
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "tmp")]
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Current User" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User } )]
     [String] $UserName,
 
     [String] $ForwardTargetPhoneNumber,
 
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Forward Target Teams user" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Teams user" } )]
     [String] $ForwardTargetTeamsUser,
 
     [bool] $ForwardToVoicemail,

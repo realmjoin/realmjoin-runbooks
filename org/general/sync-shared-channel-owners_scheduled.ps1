@@ -1,100 +1,63 @@
 <#
     .SYNOPSIS
-    Ensure a security group's members are owners of mapped Teams and their shared channels.
+    Make a group's members owners of mapped teams and shared channels
 
     .DESCRIPTION
-    Teams Shared Channels do not inherit ownership from their parent team. This scheduled runbook closes
-    that gap: for each team named in a mapping, it ensures the members of a mapped security group are owners
-    of the team and of every shared channel the team hosts. The team-name-to-owner-group mapping is
-    maintained centrally as a RealmJoin org setting. The runbook is add-only - existing owners and members
-    are never removed - so newly created shared channels are simply picked up on the next run. It can
-    optionally email a report and/or upload the report files as a download link. The ReportFileFormat
-    parameter controls which report file formats are generated and delivered (CSV only, CSV & XLSX, or
-    XLSX only). When the CSV attachments exceed the email size limit and "CSV & XLSX" is selected, the
-    email falls back to the Excel workbook alone. See the accompanying documentation for the mapping
-    rules and configuration.
+    Shared channels do not inherit the owners of their team. For every team named in the mapping, the members of the mapped security group are made owners of the team and of each shared channel it hosts. It only adds, never removes; new shared channels are picked up on the next run. A dry run shows the changes without applying them, and the report can be sent by email or provided as a download link. Details on the options are in the runbook documentation (docs.realmjoin.com).
 
     .PARAMETER TeamOwnerGroupMapping
-    Mapping of an exact team display name to an owner security group object id, e.g.
-    [{ "TeamName": "EXT Service A", "OwnerGroupId": "00000000-0000-0000-0000-000000000000" }].
-    Hidden parameter, bound to the org Setting "SharedChannelOwners.Mapping". The RealmJoin portal injects
-    that value; the runbook accepts it either as the deserialized object/array (structured sub-settings) or
-    as a JSON string and normalizes both.
+    List of team names with the security group whose members become owners. Taken from the tenant setting SharedChannelOwners.Mapping.
 
     .PARAMETER IncludeTeamOwners
-    When enabled (default), the owner-group members are also ensured as owners and members of the parent
-    team itself (M365 group owners/members). Team membership is also the prerequisite for channel ownership.
+    Also makes the group members owners and members of the team itself, which is required for owning its channels.
 
     .PARAMETER WhatIfMode
-    When enabled, the runbook only logs the changes it would make without writing anything.
+    Only logs what would change without writing anything.
 
     .PARAMETER SendEmailReport
-    When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run. The body
-    contains run statistics; the report files (per-team summary and per-change detail) are attached in the
-    selected report file format(s).
+    Send the report by email after the run.
 
     .PARAMETER EmailTo
-    Recipient email address(es) for the report (comma-separated). Only used when SendEmailReport is enabled.
+    Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
     .PARAMETER EmailFrom
-    Sender mailbox for the report. Bound to the org Setting "RJReport.EmailSender".
+    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
     .PARAMETER BrandingHeaderImageUrl
-    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
     .PARAMETER BrandingFooterImageUrl
-    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
     .PARAMETER BrandingFooterLink
-    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-    When empty, the default link (https://www.realmjoin.com) is used.
+    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
     .PARAMETER BrandingAccentColor
-    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER BrandingTextColor
-    Optional text color override (6-digit hex) for the report email template.
-    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER ReportFileFormat
-    Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+    Deliver the report as CSV, as an Excel workbook, or both.
 
     .PARAMETER CreateDownloadLink
-    When enabled, the report file(s) are uploaded to a storage account and time-limited download links are
-    returned (and included in the email report if that is also enabled). Default off.
+    Also upload the report and return a download link that expires after a few days.
 
     .PARAMETER ContainerName
-    Storage container used for the upload. Configured per runbook (not a global RJReport setting).
+    Storage container the report files are uploaded to. Set per runbook.
 
     .PARAMETER ResourceGroupName
-    Resource group that contains the storage account. Bound to "RJReport.StorageAccount.ResourceGroup".
+    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
     .PARAMETER StorageAccountName
-    Storage account used for the upload. Bound to "RJReport.StorageAccount.StorageAccountName".
+    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
     .PARAMETER LinkExpiryDays
-    Days until the generated download link expires. Bound to "RJReport.StorageAccount.LinkExpiryDays".
+    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
-
-    .NOTES
-    Configure the mapping once centrally (Runbook Customization -> Settings) as a structured sub-setting under
-    "SharedChannelOwners.Mapping". Each entry names a team by its exact display name. The hidden
-    TeamOwnerGroupMapping parameter is injected from it at runtime.
-    {
-        "Settings": {
-            "SharedChannelOwners": {
-                "Mapping": [
-                    { "TeamName": "EXT Service A", "OwnerGroupId": "11111111-1111-1111-1111-111111111111" },
-                    { "TeamName": "EXT Service B", "OwnerGroupId": "22222222-2222-2222-2222-222222222222" }
-                ]
-            }
-        }
-    }
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -105,11 +68,11 @@
             },
             {
                 "Name": "IncludeTeamOwners",
-                "DisplayName": "Also make them owners of the parent team"
+                "DisplayName": "Also make them team owners?"
             },
             {
                 "Name": "WhatIfMode",
-                "DisplayName": "Dry run (log only, no changes)"
+                "DisplayName": "Dry run?"
             },
             {
                 "DisplayName": "Report delivery",
@@ -186,7 +149,7 @@
             },
             {
                 "Name": "EmailTo",
-                "DisplayName": "Send report to (email address(es))",
+                "DisplayName": "Recipient email address(es)",
                 "Hide": true
             },
             {

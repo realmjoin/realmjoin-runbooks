@@ -1,77 +1,63 @@
 <#
     .SYNOPSIS
-    List expiry date of all Application Registration credentials
+    Report expiring client secrets and certificates of app registrations
 
     .DESCRIPTION
-    This runbook lists the expiry dates of application registration credentials, including client secrets and certificates.
-    It can optionally filter by application IDs and can limit output to credentials that are about to expire.
-
-    Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments.
-    The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
-    The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
-    When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+    Lists the client secrets and certificates of application registrations with their expiry dates. You can limit the list to credentials that expire within a chosen number of days and to certain applications. The credential list also appears as a sortable table in the portal's output. Nothing is changed. The report can be sent by email or provided as a download link.
 
     .PARAMETER listOnlyExpiring
-    If only credentials that are about to expire within the specified number of days should be listed, select "List only credentials about to expire" (final value: true).
-    If you want to list all credentials regardless of their expiry date, select "List all credentials" (final value: false).
+    Only credentials that expire within the given number of days, or all credentials.
 
     .PARAMETER Days
-    The number of days before a credential expires to consider it "about to expire".
+    Credentials that expire within this many days count as about to expire.
 
     .PARAMETER CredentialType
-    Filter by credential type: "Both" (default), "ClientSecrets", or "Certificates".
+    Client secrets, certificates, or both.
 
     .PARAMETER ApplicationIds
-    Optional - comma-separated list of Application IDs to filter the credentials.
+    Limits the report to these application (client) IDs, separated by commas. Leave empty for all applications.
 
     .PARAMETER ReportFileFormat
-    Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+    Deliver the report as CSV, as an Excel workbook, or both.
 
     .PARAMETER CreateDownloadLink
-    If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+    Also upload the report and return a download link that expires after a few days.
 
     .PARAMETER ContainerName
-    Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+    Storage container the report files are uploaded to. Set per runbook.
 
     .PARAMETER ResourceGroupName
-    Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
     .PARAMETER StorageAccountName
-    Storage account name used for the upload. Sourced from the RJReport tenant settings.
+    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
     .PARAMETER LinkExpiryDays
-    Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
     .PARAMETER EmailTo
-    If specified, an email with the report will be sent to the provided address(es).
-    Can be a single address or multiple comma-separated addresses (string).
-    The function sends individual emails to each recipient for privacy reasons.
+    Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
     .PARAMETER EmailFrom
-    The sender email address. This needs to be configured in the runbook customization.
+    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
     .PARAMETER BrandingHeaderImageUrl
-    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
     .PARAMETER BrandingFooterImageUrl
-    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
     .PARAMETER BrandingFooterLink
-    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-    When empty, the default link (https://www.realmjoin.com) is used.
+    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
     .PARAMETER BrandingAccentColor
-    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER BrandingTextColor
-    Optional text color override (6-digit hex) for the report email template.
-    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -80,6 +66,7 @@
                 "Hide": true
             },
             "listOnlyExpiring": {
+                "DisplayName": "Which credentials?",
                 "Select": {
                     "Options": [
                         {
@@ -99,22 +86,22 @@
                 }
             },
             "Days": {
-                "DisplayName": "Days before credential expiry"
+                "DisplayName": "Days before expiry"
             },
             "CredentialType": {
-                "DisplayName": "Credential Type Filter",
+                "DisplayName": "Credential type",
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Client Secrets and Certificates",
+                            "Display": "Client secrets and certificates",
                             "Value": "Both"
                         },
                         {
-                            "Display": "Only Client Secrets",
+                            "Display": "Client secrets only",
                             "Value": "ClientSecrets"
                         },
                         {
-                            "Display": "Only Certificates",
+                            "Display": "Certificates only",
                             "Value": "Certificates"
                         }
                     ]
@@ -144,7 +131,7 @@
                 }
             },
             "CreateDownloadLink": {
-                "DisplayName": "Create a file download link (upload report to storage)?",
+                "DisplayName": "Create a download link?",
                 "SelectSimple": {
                     "Yes - upload report and return a download link": true,
                     "No - do not create a download link": false
@@ -163,7 +150,7 @@
                 "Hide": true
             },
             "EmailTo": {
-                "DisplayName": "Recipient Email Address(es)"
+                "DisplayName": "Recipient email address(es)"
             },
             "BrandingHeaderImageUrl": {
                 "Hide": true
@@ -256,7 +243,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.3.0"
+$Version = "1.4.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "List Only Expiring: $listOnlyExpiring" -Verbose
 Write-RjRbLog -Message "Days before expiry: $Days" -Verbose
@@ -911,6 +898,29 @@ if ($EmailTo) {
         Write-Error "Failed to send email report: $($_.Exception.Message)" -ErrorAction Continue
         throw "Failed to send email report: $($_.Exception.Message)"
     }
+}
+
+#endregion
+
+########################################################
+#region     Structured Output (Output Data)
+########################################################
+
+# Emitted last on purpose: email sending and the storage upload can take a while with many credentials.
+Write-Output ""
+if ($totalCreds -gt 0) {
+    $tableTitle = if ($listOnlyExpiring) {
+        "Application credentials expiring within $Days days"
+    }
+    else {
+        "All application credentials"
+    }
+    Write-Output "Listing $totalCreds credential(s):"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = $tableTitle })
+    Write-Output $credentialResults
+}
+else {
+    Write-Output "No credentials found matching the filter criteria."
 }
 
 #endregion

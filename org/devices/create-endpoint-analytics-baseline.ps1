@@ -1,28 +1,28 @@
 <#
-.SYNOPSIS
-Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema.
+    .SYNOPSIS
+    Create an Endpoint Analytics baseline with a naming schema
 
-.DESCRIPTION
-This runbook creates new Endpoint Analytics baselines in Intune using a customizable naming schema. Endpoint Analytics baselines allow organizations to measure and track device performance metrics over time. The naming schema can include placeholders that will be replaced with contextual values during baseline creation.
+    .DESCRIPTION
+    Creates a new Endpoint Analytics baseline in Intune, named after a schema with placeholders such as the current date, so baselines can be created regularly and compared over time. Intune allows at most 20 baselines; the oldest can be removed automatically when the limit is reached.
 
-.PARAMETER BaselineNamingSchema
-The naming schema to use for the Endpoint Analytics baseline. Can include placeholders like {Date}, {DateTime}, {Month}, {Year}, or other tokens that will be replaced during creation. Example: "EA-Baseline-{Year}-{Month}" or "Analytics-{Date}".
+    .PARAMETER BaselineNamingSchema
+    Name pattern with placeholders such as {Year}, {Month}, {Date} or {DateTime}, for example EA-Baseline-{Year}-{Month}.
 
-.PARAMETER RemoveOldestBaseline
-When enabled (default), automatically removes the oldest baseline if the maximum limit of 20 baselines is reached. Set to false to prevent automatic deletion and fail the runbook when the limit is reached.
+    .PARAMETER RemoveOldestBaseline
+    Deletes the oldest baseline when 20 already exist. Turn off to stop with an error instead.
 
-.PARAMETER CallerName
-The name of the user or service principal initiating the baseline creation. This parameter is automatically populated by the RealmJoin platform and is used for audit logging purposes.
+    .PARAMETER CallerName
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 .INPUTS
 RunbookCustomization: {
     "Parameters": {
         "BaselineNamingSchema": {
-            "DisplayName": "Baseline Naming Schema",
+            "DisplayName": "Baseline naming schema",
             "DisplayBefore": "RemoveOldestBaseline"
         },
         "RemoveOldestBaseline": {
-            "DisplayName": "Remove Oldest Baseline When Limit Reached",
+            "DisplayName": "Remove the oldest baseline at the limit?",
             "DisplayBefore": "CallerName"
         },
         "CallerName": {

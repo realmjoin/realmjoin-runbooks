@@ -3,7 +3,7 @@
 Check whether a phone number is assigned in Microsoft Teams
 
 ## Detailed description
-Looks up whether a given phone number is assigned to a user in Microsoft Teams. If the phone number is assigned, information about the user and relevant voice policies is returned.
+Looks up whether a phone number is assigned to a user in Microsoft Teams. If it is, the user and their voice policies are shown. Nothing is changed.
 
 ## Where to find
 Org \ Phone \ Get Teams Phone Number Assignment
@@ -30,7 +30,7 @@ If a Teams user is found for the phone number, the following details are display
 
 ## Parameters
 ### PhoneNumber
-The phone number must be in E.164 format. Example: +49321987654 or +49321987654;ext=123. It must start with a '+' followed by the country code and subscriber number, with an optional ';ext=' followed by the extension number, without spaces or special characters.
+Number in international format without spaces, for example +49321987654, optionally with an extension as +49321987654;ext=123.
 
 | Property | Value |
 |----------|-------|

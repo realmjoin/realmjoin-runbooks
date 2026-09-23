@@ -1,34 +1,33 @@
 <#
 	.SYNOPSIS
-	Create a Microsoft Entra ID security group
+	Create a security group in Entra ID
 
 	.DESCRIPTION
-	This runbook creates a Microsoft Entra ID security group with membership type Assigned.
-	It validates the group name and optionally sets an owner during creation.
+	Creates a security group in Entra ID with assigned membership, so it can be used for permissions and access assignments. Names that contain a blocked word or are already in use are rejected. An owner can be set right away.
 
 	.PARAMETER GroupName
-	Display name of the security group to create.
+	Name shown in Entra ID. Must be unique and must not contain a blocked word.
 
 	.PARAMETER GroupDescription
-	Optional description for the security group.
+	Short text that explains what the group is for. Leave empty for none.
 
 	.PARAMETER Owner
-	Optional owner to assign to the group.
+	User who becomes owner of the group. Leave empty for no owner.
 
 	.PARAMETER CallerName
-	Caller name for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
 		"Parameters": {
 			"GroupName": {
-				"DisplayName": "Name of the security group"
+				"DisplayName": "Group name"
 			},
 			"GroupDescription": {
-				"DisplayName": "Description of this security group"
+				"DisplayName": "Description"
 			},
 			"Owner": {
-				"DisplayName": "Owner (optional)"
+				"DisplayName": "Owner"
 			},
 			"CallerName": {
 				"Hide": true

@@ -12,14 +12,14 @@
                 {
                     "Value": "Organization.Read.All",
                     "Optional": true,
-                    "Feature": "Email report",
+                    "Feature": "Email report / download link",
                     "Reason": "Reads /organization for the tenant name used in the report file names, the email subject and the email footer; without it the runbook falls back to 'Unknown Tenant'"
                 },
                 {
                     "Value": "Mail.Send",
                     "Optional": true,
                     "Feature": "Email report",
-                    "Reason": "Sends the report email via Send-RjReportEmail when EmailTo is configured"
+                    "Reason": "Sends the report email via Send-RjRbReportEmail when EmailTo is configured"
                 }
             ]
         }

@@ -1,134 +1,105 @@
 <#
 	.SYNOPSIS
-	Auto-approve new driver updates in Intune driver update policies
+	Approve pending driver updates in Intune driver update policies
 
 	.DESCRIPTION
-	This scheduled runbook automatically approves pending driver updates in one or more Intune driver update policies. It can filter driver updates by display name pattern, driver class, or manufacturer. Optional email notifications can be sent after approval operations complete.
-	The notification email includes CSV and/or Excel (xlsx) report files listing every driver approval action (policy, driver, version, manufacturer, driver class, release date and outcome).
-	The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
-	The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
-	When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
-
-	.NOTES
-	Prerequisites:
-	- Microsoft Graph BETA API access (driver update endpoints are in beta)
-	- RJReport.EmailSender setting configured (if email notifications are used)
-
-	Common Use Cases:
-	- Test filters first: Use WhatIf parameter to preview which drivers would be approved
-	- Auto-approve all drivers: Run without any filter parameters
-	- Approve specific manufacturers: Use DriverManufacturer to target vendors like "Intel" or "AMD"
-	- Target specific policies: Use PolicyNames or PolicyIds to scope to test policies first
-	- Monitor approvals: Configure EmailTo to receive detailed reports after each run
-
-	Parameter Interactions:
-	- If no policy filter is specified, ALL driver update policies are processed
-	- If no driver filter is specified, ALL pending drivers in selected policies are approved
-	- PolicyNames and PolicyIds can be combined - both filters apply independently
-	- Email notifications require RJReport.EmailSender setting and Connect-RjRbGraph
-	- WhatIf mode simulates approvals without making changes - useful for testing filters
+	Approves driver updates that are waiting for review in Intune driver update policies, so drivers roll out without manual approval. The scope can be narrowed to certain policies, driver names, classes, manufacturers or a maximum driver age, and a dry run shows what would be approved. The report of all approvals can be sent by email or provided as a download link.
 
 	.PARAMETER PolicyNames
-	(Optional) Comma-separated list of driver update policy names to scope the approval (e.g., "Policy1, Policy2, Policy3"). If not specified, all policies are processed.
+	Only these driver update policies, separated by commas. Leave empty for all policies.
 
 	.PARAMETER PolicyIds
-	(Optional) Comma-separated list of driver update policy IDs to scope the approval (e.g., "id1, id2, id3"). If not specified, all policies are processed.
+	Only these policy IDs, separated by commas. Leave empty for all policies.
 
 	.PARAMETER DriverDisplayNamePattern
-	(Optional) Filter driver updates by display name pattern (supports wildcards). Only matching drivers will be approved.
+	Only drivers whose name matches this pattern; wildcards such as * are allowed.
 
 	.PARAMETER DriverClass
-	(Optional) Filter by driver class IDs (comma-separated). Example: "Bluetooth,Networking,Firmware" for specific driver classes.
+	Only these driver classes, separated by commas, for example Bluetooth,Networking,Firmware.
 
 	.PARAMETER DriverManufacturer
-	(Optional) Filter by driver manufacturer name. Only drivers from the specified manufacturer will be approved.
+	Only drivers from this manufacturer.
 
 	.PARAMETER MaximumDriverAge
-	(Optional) Maximum age in days for drivers to be approved. Only drivers released within the last X days will be approved. Example: 30 to only approve drivers released in the last 30 days.
-
-	.PARAMETER ReportFileFormat
-	Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
-
-	.PARAMETER CreateDownloadLink
-	If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
-
-	.PARAMETER ContainerName
-	Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
-
-	.PARAMETER ResourceGroupName
-	Resource group that contains the storage account. Sourced from the RJReport tenant settings.
-
-	.PARAMETER StorageAccountName
-	Storage account name used for the upload. Sourced from the RJReport tenant settings.
-
-	.PARAMETER LinkExpiryDays
-	Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
-
-	.PARAMETER EmailFrom
-	Sender email address for notifications. This parameter is backed by a setting and should not be modified directly.
-
-	.PARAMETER BrandingHeaderImageUrl
-	Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-	Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
-
-	.PARAMETER BrandingFooterImageUrl
-	Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-	Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
-
-	.PARAMETER BrandingFooterLink
-	Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-	When empty, the default link (https://www.realmjoin.com) is used.
-
-	.PARAMETER EmailTo
-	(Optional) Recipient email address for approval notifications. If not specified, no email is sent.
+	Only drivers released within this many days, for example 30. Leave empty for any age.
 
 	.PARAMETER OnlyNeedsReview
-	When enabled (default), only drivers with status "needsReview" are approved. Drivers with status "suspended" or "declined" are skipped. Disable to also re-approve suspended or declined drivers.
+	Approves only drivers with the status "needs review". Turn off to also re-approve suspended or declined drivers.
 
 	.PARAMETER WhatIf
-	(Optional) When enabled, simulates driver approvals without making actual changes. Shows which drivers would be approved and sends a report to EmailTo if configured.
+	Only shows which drivers would be approved and sends the report; nothing is approved.
+
+	.PARAMETER ReportFileFormat
+	Deliver the report as CSV, as an Excel workbook, or both.
+
+	.PARAMETER CreateDownloadLink
+	Also upload the report and return a download link that expires after a few days.
+
+	.PARAMETER ContainerName
+	Storage container the report files are uploaded to. Set per runbook.
+
+	.PARAMETER ResourceGroupName
+	Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
+
+	.PARAMETER StorageAccountName
+	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
+
+	.PARAMETER LinkExpiryDays
+	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
+
+	.PARAMETER EmailFrom
+	Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
+
+	.PARAMETER EmailTo
+	Send the approval report to these addresses, separated by commas. Leave empty to send no email.
+
+	.PARAMETER BrandingHeaderImageUrl
+	Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
+
+	.PARAMETER BrandingFooterImageUrl
+	Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
+
+	.PARAMETER BrandingFooterLink
+	Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
+
+	.PARAMETER BrandingAccentColor
+	Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
+
+	.PARAMETER BrandingTextColor
+	Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
 	.PARAMETER CallerName
-	Name of the user or system initiating the runbook. Used for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
 		"Parameters": {
 			"PolicyNames": {
-				"DisplayName": "Driver Update Policy Names",
-				"Description": "(Optional) Comma-separated policy names to process (e.g., 'Policy1, Policy2'), leave empty for all policies"
+				"DisplayName": "Policy names"
 			},
 			"PolicyIds": {
-				"DisplayName": "Driver Update Policy IDs",
-				"Description": "(Optional) Comma-separated policy IDs to process (e.g., 'id1, id2'), leave empty for all policies"
+				"DisplayName": "Policy IDs"
 			},
 			"DriverDisplayNamePattern": {
-				"DisplayName": "Driver Name Filter",
-				"Description": "(Optional) Filter drivers by display name (supports wildcards)"
+				"DisplayName": "Driver name filter"
 			},
 			"DriverClass": {
-				"DisplayName": "Driver Class Filter",
-				"Description": "(Optional) Comma-separated driver class IDs (e.g., 'Bluetooth,Networking,Firmware')"
+				"DisplayName": "Driver class filter"
 			},
 			"DriverManufacturer": {
-				"DisplayName": "Manufacturer Filter",
-				"Description": "(Optional) Filter drivers by manufacturer name"
+				"DisplayName": "Manufacturer filter"
 			},
 			"MaximumDriverAge": {
-				"DisplayName": "Maximum Driver Age (Days)",
-				"Description": "(Optional) Only approve drivers released within the last X days (e.g., 30 = only drivers from the last 30 days)"
+				"DisplayName": "Maximum driver age (days)"
 			},
 			"EmailTo": {
-				"DisplayName": "Notification Recipient",
-				"Description": "(Optional) Email address to receive approval notifications"
+				"DisplayName": "Recipient email address(es)"
 			},
 			"OnlyNeedsReview": {
-				"DisplayName": "Only approve 'Needs Review' drivers",
-				"Description": "When enabled (default), skip suspended and declined drivers - only approve drivers in 'needsReview' status"
+				"DisplayName": "Only approve drivers needing review?"
 			},
 			"WhatIf": {
-				"DisplayName": "What-If Mode (Dry Run)",
-				"Description": "(Optional) Simulate approvals without making changes - useful for testing filters"
+				"DisplayName": "Dry run?"
 			},
 			"ReportFileFormat": {
 				"DisplayName": "Report file format",
@@ -151,7 +122,7 @@
 				}
 			},
 			"CreateDownloadLink": {
-				"DisplayName": "Create a file download link (upload report to storage)?",
+				"DisplayName": "Create a download link?",
 				"SelectSimple": {
 					"Yes - upload report and return a download link": true,
 					"No - do not create a download link": false

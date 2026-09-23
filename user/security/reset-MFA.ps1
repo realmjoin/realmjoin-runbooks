@@ -1,59 +1,54 @@
 <#
     .SYNOPSIS
-    Remove all App- and Mobilephone auth methods for a user
+    Remove this user's app, phone, OATH and FIDO2 MFA methods
 
     .DESCRIPTION
-    Removes authenticator app and phone-based authentication methods for a user. This forces the user to re-enroll MFA methods after the reset. Optionally a notification email can be sent to the user informing them that their MFA methods have been reset through this runbook.
+    Removes the authenticator app, phone, software OATH token and FIDO2 security key methods of this user, so they have to register MFA again at the next sign-in. Optionally the user gets an email about the reset.
 
     .PARAMETER UserName
-    User principal name of the target user.
+    User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER NotifyUser
-    When enabled, sends a notification email to the target user informing them that their MFA methods were reset by an administrator. Default is disabled.
+    Whether the user is emailed about the reset. Preset in the runbook customization.
 
     .PARAMETER EmailFrom
-    Sender email address for the optional notification mail. Sourced from the RealmJoin tenant setting RJReport.EmailSender.
+    Sender address of the notification email. Taken from the tenant setting RJReport.EmailSender.
 
     .PARAMETER BrandingHeaderImageUrl
-    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
     .PARAMETER BrandingFooterImageUrl
-    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
     .PARAMETER BrandingFooterLink
-    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-    When empty, the default link (https://www.realmjoin.com) is used.
+    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
     .PARAMETER BrandingAccentColor
-    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER BrandingTextColor
-    Optional text color override (6-digit hex) for the report email template.
-    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER ServiceDeskDisplayName
-    Service Desk display name for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_DisplayName.
+    Service desk name shown in the email. Taken from the tenant setting RJReport.ServiceDesk_DisplayName.
 
     .PARAMETER ServiceDeskEmail
-    Service Desk email address for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_EMail.
+    Service desk email address shown in the email. Taken from the tenant setting RJReport.ServiceDesk_EMail.
 
     .PARAMETER ServiceDeskPhone
-    Service Desk phone number for user contact information (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_Phone.
+    Service desk phone number shown in the email. Taken from the tenant setting RJReport.ServiceDesk_Phone.
 
     .PARAMETER ServiceDeskPortalUrl
-    Service Desk portal URL for user contact information, rendered as a clickable link (optional). Sourced from the RealmJoin tenant setting RJReport.ServiceDesk_PortalUrl.
+    Link to the service desk portal shown in the email. Taken from the tenant setting RJReport.ServiceDesk_PortalUrl.
 
     .PARAMETER ServiceDeskTicketUrl
-    Direct link to the Service Desk ticket related to this request, rendered as a clickable link (optional). Empty by default, so no ticket link is added.
+    Link to the ticket for this request, shown in the email. Preset per run or in the runbook customization; empty means no link.
 
     .PARAMETER LanguageOverride
-    Overrides the language used for the notification email. Accepted values are 'DE' (German) or 'EN' (English). If left empty, the language is determined automatically based on the target user's usage location.
+    Forces the email language, DE or EN. Empty picks the language from the user's usage location. Preset in the runbook customization.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -62,7 +57,6 @@
                 "Hide": true
             },
             "NotifyUser": {
-                "DisplayName": "Notify user via email",
                 "Hide": true
             },
             "EmailFrom": {

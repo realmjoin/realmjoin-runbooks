@@ -1,15 +1,15 @@
 <#
     .SYNOPSIS
-    List mailbox permissions for a mailbox
+    List who has access to this user's mailbox
 
     .DESCRIPTION
-    Lists different types of permissions like mailbox access, SendAs, and SendOnBehalf permissions for a mailbox. Outputs each permission type as formatted tables. This also works for shared mailboxes.
+    Shows who has permissions on the mailbox of this user: full access, Send As and Send on Behalf, each as a table. Works for shared mailboxes as well. Nothing is changed.
 
     .PARAMETER UserName
-    User principal name of the mailbox.
+    User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -38,7 +38,7 @@ param
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.1"
+$Version = "1.0.2"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 "## Trying to list all mailbox access / send permissions granted on mailbox '$UserName'."
@@ -62,7 +62,16 @@ try {
     ""
     "## SendOnBehalf Permissions"
     (Get-Mailbox -Identity $UserName).GrantSendOnBehalfTo | ForEach-Object {
-        $sobTrustee = Get-Recipient -Identity $_ | Where-Object { $_.RecipientType -eq "UserMailbox" }
+        # The entries are recipient names, which are not unique in Exchange Online - list the raw name
+        # when it cannot be resolved to exactly one recipient.
+        $sobEntry = $_
+        $sobRecipient = Get-Recipient -Identity $sobEntry -ErrorAction SilentlyContinue
+        if ($sobRecipient) {
+            $sobTrustee = $sobRecipient | Where-Object { $_.RecipientType -eq "UserMailbox" }
+        }
+        else {
+            $sobTrustee = [PSCustomObject]@{ PrimarySmtpAddress = "$sobEntry" }
+        }
         foreach ($trustee in [array]$sobTrustee) {
             $result = @{}
             $result.Identity = $user.Identity

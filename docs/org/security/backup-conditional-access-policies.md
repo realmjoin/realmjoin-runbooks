@@ -1,9 +1,9 @@
 # Backup Conditional Access Policies
 
-Export Conditional Access policies to an Azure Storage account
+Back up all Conditional Access policies to Azure Storage
 
 ## Detailed description
-Exports the current set of Conditional Access policies via Microsoft Graph and uploads them as a ZIP archive to Azure Storage. If no container name is provided, a date-based name is generated.
+Exports every Conditional Access policy of the tenant as JSON and uploads them as one ZIP archive to an Azure Storage account. The backup lets you compare or restore policies later. Without a container name, a container named after the current date is used. Nothing is changed in the tenant.
 
 ## Where to find
 Org \ Security \ Backup Conditional Access Policies
@@ -19,7 +19,7 @@ Azure IaaS: Access to the given Azure Storage Account / Resource Group
 
 ## Parameters
 ### ContainerName
-Name of the Azure Storage container; if omitted, a default name is generated.
+Storage container the archive is uploaded to. Taken from the tenant setting CaPoliciesExport.Container; empty means a container named after the current date.
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +28,7 @@ Name of the Azure Storage container; if omitted, a default name is generated.
 | Type | String |
 
 ### ResourceGroupName
-Name of the Azure Resource Group containing the Storage Account.
+Resource group of the storage account. Taken from the tenant setting CaPoliciesExport.ResourceGroup.
 
 | Property | Value |
 |----------|-------|
@@ -37,7 +37,7 @@ Name of the Azure Resource Group containing the Storage Account.
 | Type | String |
 
 ### StorageAccountName
-Name of the Azure Storage Account used for upload.
+Storage account for the backup. Taken from the tenant setting CaPoliciesExport.StorageAccount.Name.
 
 | Property | Value |
 |----------|-------|
@@ -46,7 +46,7 @@ Name of the Azure Storage Account used for upload.
 | Type | String |
 
 ### StorageAccountLocation
-Azure region for the Storage Account if it needs to be created.
+Azure region used when the storage account has to be created. Taken from the tenant setting CaPoliciesExport.StorageAccount.Location.
 
 | Property | Value |
 |----------|-------|
@@ -55,7 +55,7 @@ Azure region for the Storage Account if it needs to be created.
 | Type | String |
 
 ### StorageAccountSku
-SKU name for the Storage Account if it needs to be created.
+Performance tier used when the storage account has to be created. Taken from the tenant setting CaPoliciesExport.StorageAccount.Sku.
 
 | Property | Value |
 |----------|-------|

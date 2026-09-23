@@ -1,223 +1,72 @@
 <#
 	.SYNOPSIS
-	Update user metadata and memberships
+	Update profile details, groups and mailbox settings of this user
 
 	.DESCRIPTION
-	Updates user profile properties in Microsoft Entra ID and applies optional group memberships and Exchange Online settings. This runbook is typically used to finalize onboarding or to correct user metadata.
+	Updates the profile of this user in Entra ID, such as name, company, address, job title and manager. It can also add the user to a license group and further groups, enable the Exchange Online archive and reset the password. Only the fields you fill in are changed; a missing display name or company is filled in automatically.
 
 	.PARAMETER UserName
-	User principal name of the target user.
+	User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 	.PARAMETER GivenName
-	Given name to set for the user.
+	New first name.
 
 	.PARAMETER Surname
-	Surname to set for the user.
+	New last name.
 
 	.PARAMETER DisplayName
-	Display name to set for the user.
+	New display name as shown in Microsoft 365.
 
 	.PARAMETER CompanyName
-	Company name to set for the user.
+	Company the user belongs to.
 
 	.PARAMETER City
-	City to set for the user.
+	City of the user's address.
 
 	.PARAMETER Country
-	Country to set for the user.
+	Country of the user's address.
 
 	.PARAMETER JobTitle
-	Job title to set for the user.
+	Job title shown in the profile.
 
 	.PARAMETER Department
-	Department to set for the user.
+	Department the user works in.
 
 	.PARAMETER OfficeLocation
-	Office location to set for the user.
+	Office or building the user works at.
 
 	.PARAMETER PostalCode
-	Postal code to set for the user.
+	Postal code of the user's address.
 
 	.PARAMETER PreferredLanguage
-	Preferred language to set for the user. Examples: "en-US" or "de-DE".
+	Language code such as en-US or de-DE.
 
 	.PARAMETER State
-	State to set for the user.
+	State or region of the user's address.
 
 	.PARAMETER StreetAddress
-	Street address to set for the user.
+	Street and house number of the user's address.
 
 	.PARAMETER UsageLocation
-	Usage location to set for the user.
+	Two-letter country code that decides which licenses the user may get, for example DE.
 
 	.PARAMETER ManagerId
-	Optional manager user ID to set for the user.
+	User who becomes the manager of this user.
 
 	.PARAMETER DefaultLicense
-	Display name of a license group to assign.
+	Display name of the group that assigns the license; the user is added to it.
 
 	.PARAMETER DefaultGroups
-	Comma-separated list of group display names to assign.
+	Display names of groups the user is added to, separated by commas.
 
 	.PARAMETER EnableEXOArchive
-	If set to true, enables the Exchange Online archive mailbox.
+	Turns on the Exchange Online archive mailbox for the user.
 
 	.PARAMETER ResetPassword
-	If set to true, resets the user's password.
+	Sets a generated start password, shown in the output, that must be changed at the next sign-in. Skipped when the user already has MFA methods.
 
 	.PARAMETER CallerName
-	Caller name is tracked purely for auditing purposes.
-
-    .EXAMPLE
-    // Full Runbook Customizing Example
-    "Templates": {
-        "Options": [
-            {
-                "$id": "LocationOptions",
-                "$values": [
-                    {
-                        "Display": "Contoso DE",
-                        "Value": "ContosoDe",
-                        "Customization": {
-                            "Default": {
-                                "StreetAddress": "Demostr. 22",
-                                "PostalCode": "80333",
-                                "City": "München",
-                                "State": "Bayern",
-                                "Country": "Germany",
-                                "UsageLocation": "DE"
-                            },
-                            "ReadOnly": [
-                                "StreetAddress",
-                                "PostalCode",
-                                "City",
-                                "Country",
-                                "UsageLocation"
-                            ]
-                        }
-                    }
-                ]
-            },
-            {
-                "$id": "CompanyOptions",
-                "$values": [
-                    {
-                        "Display": "CONTOSO",
-                        "Value": "Contoso"
-                    }
-                ]
-            },
-            {
-                "$id": "LicenseOptions",
-                "$values": [
-                    {
-                        "Display": "M365 E3 + E5 Security + Audio Conferencing",
-                        "Value": "LIC_M365_E3&E5_SecurityPlan&AudioConf"
-                    },
-                    {
-                        "Display": "none",
-                        "Value": ""
-                    }
-                ]
-            },
-            {
-                "$id": "DepartmentOptions",
-                "$values": [
-                    {
-                        "Display": "M&A",
-                        "Value": "M&A"
-                    },
-                    {
-                        "Display": "Tax & Legal",
-                        "Value": "Tax & Legal"
-                    },
-                    {
-                        "Display": "Controlling & Operations",
-                        "Value": "Controlling & Operations"
-                    },
-                    {
-                        "Display": "IT",
-                        "Value": "IT"
-                    },
-                    {
-                        "Display": "Communications",
-                        "Value": "Communications"
-                    },
-                    {
-                        "Display": "Strategy & Management",
-                        "Value": "Strategy & Management"
-                    },
-                    {
-                        "Display": "Accounting",
-                        "Value": "Accounting"
-                    },
-                    {
-                        "Display": "Insurance",
-                        "Value": "Insurance"
-                    },
-                    {
-                        "Display": "Treasury",
-                        "Value": "Treasury"
-                    }
-                ]
-            }
-        ]
-    },
-    "Runbooks": {
-        "rjgit-user_userinfo_update-user": {
-            "ParameterList": [
-                {
-                    "Name": "LocationName",
-                    "DisplayName": "Office Location",
-                    "DisplayBefore": "StreetAddress",
-                    "Select": {
-                        "Options": {
-                            "$ref": "LocationOptions"
-                        }
-                    },
-                    "Default": "ContosoDe"
-                },
-                {
-                    "Name": "CompanyName",
-                    "Select": {
-                        "Options": {
-                            "$ref": "CompanyOptions"
-                        },
-                        "AllowEdit": false,
-                    },
-                    "Default": "Contoso"
-                },
-                {
-                    "Name": "DefaultLicense",
-                    "DisplayName": "License",
-                    "Select": {
-                        "Options": {
-                            "$ref": "LicenseOptions"
-                        },
-                        "AllowEdit": true
-                    },
-                    "Default": "LIC_M365_E3&E5_SecurityPlan&AudioConf"
-                },
-                {
-                    "Name": "Department",
-                    "Select": {
-                        "Options": {
-                            "$ref": "DepartmentOptions"
-                        },
-                        "AllowEdit": true
-                    }
-                },
-                {
-                    "Name": "ResetPassword",
-                    "Hide": true
-                },
-                {
-                    "Name": "DefaultGroups",
-                    "Default": "app - 7-Zip,app - Adobe Reader DC Continuous Track,app - glueckkanja-gab KONNEKT"
-                }
-            ]
-        }
-    }
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
@@ -228,18 +77,53 @@
 			"CallerName": {
 				"Hide": true
 			},
+			"GivenName": {
+				"DisplayName": "First name"
+			},
+			"Surname": {
+				"DisplayName": "Last name"
+			},
 			"DisplayName": {
-				"DisplayName": "DisplayName"
+				"DisplayName": "Display name"
+			},
+			"CompanyName": {
+				"DisplayName": "Company"
+			},
+			"JobTitle": {
+				"DisplayName": "Job title"
+			},
+			"OfficeLocation": {
+				"DisplayName": "Office location"
+			},
+			"PostalCode": {
+				"DisplayName": "Postal code"
+			},
+			"PreferredLanguage": {
+				"DisplayName": "Preferred language"
+			},
+			"StreetAddress": {
+				"DisplayName": "Street address"
+			},
+			"UsageLocation": {
+				"DisplayName": "Usage location"
 			},
 			"DefaultLicense": {
 				"DisplayName": "License group to assign"
 			},
+			"DefaultGroups": {
+				"DisplayName": "Groups to add"
+			},
 			"ManagerId": {
 				"DisplayName": "Manager"
+			},
+			"EnableEXOArchive": {
+				"DisplayName": "Enable the archive mailbox?"
+			},
+			"ResetPassword": {
+				"DisplayName": "Reset the password?"
 			}
 		}
 	}
-
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }

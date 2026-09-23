@@ -1,37 +1,36 @@
 <#
     .SYNOPSIS
-    Sync devices of users in a specific group to another device group
+    Add the devices of a user group's members to a device group
 
     .DESCRIPTION
-    This runbook reads accounts from a specified users group and adds their devices to a specified device group.
-    It can filter devices by operating system and keeps the target group in sync.
+    Adds the devices of all users in a user group to a device group on every run, so device-based policies can follow user membership. Devices already in the group are skipped, and nothing is removed.
 
     .PARAMETER UserGroup
-    Name or object ID of the users group, to which the target users belong.
+    Name or object ID of the group whose members' devices are collected.
 
     .PARAMETER DeviceGroup
-    Name or object ID of the device group, to which the devices should be added.
+    Name or object ID of the group the devices are added to.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .PARAMETER IncludeWindowsDevice
-    If set to true, includes Windows devices in the target device group.
+    Includes Windows devices.
 
     .PARAMETER IncludeMacOSDevice
-    If set to true, includes macOS devices in the target device group.
+    Includes macOS devices.
 
     .PARAMETER IncludeLinuxDevice
-    If set to true, includes Linux devices in the target device group.
+    Includes Linux devices.
 
     .PARAMETER IncludeAndroidDevice
-    If set to true, includes Android devices in the target device group.
+    Includes Android devices.
 
     .PARAMETER IncludeIOSDevice
-    If set to true, includes iOS devices in the target device group.
+    Includes iOS devices.
 
     .PARAMETER IncludeIPadOSDevice
-    If set to true, includes iPadOS devices.
+    Includes iPadOS devices.
 
     .INPUTS
     RunbookCustomization: {
@@ -40,28 +39,28 @@
                 "Hide": true
             },
             "UserGroup": {
-                "DisplayName": "Name or Object ID of the Users Group"
+                "DisplayName": "User group"
             },
             "DeviceGroup": {
-                "DisplayName": "Name or Object ID of the Devices Group"
+                "DisplayName": "Device group"
             },
             "IncludeWindowsDevice": {
-                "DisplayName": "Include Windows Devices (Default: False)"
+                "DisplayName": "Include Windows devices?"
             },
             "IncludeMacOSDevice": {
-                "DisplayName": "Include MacOS-Devices (Default: False)"
+                "DisplayName": "Include macOS devices?"
             },
             "IncludeLinuxDevice": {
-                "DisplayName": "Include Linux Devices (Default: False)"
+                "DisplayName": "Include Linux devices?"
             },
             "IncludeAndroidDevice": {
-                "DisplayName": "Include Android Devices (Default: False)"
+                "DisplayName": "Include Android devices?"
             },
             "IncludeIOSDevice": {
-                "DisplayName": "Include iOS-Devices (Default: False)"
+                "DisplayName": "Include iOS devices?"
             },
             "IncludeIPadOSDevice": {
-                "DisplayName": "Include iPadOS-Devices (Default: False)"
+                "DisplayName": "Include iPadOS devices?"
             }
         }
     }

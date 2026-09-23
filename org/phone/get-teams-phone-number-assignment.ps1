@@ -3,16 +3,19 @@
     Check whether a phone number is assigned in Microsoft Teams
 
     .DESCRIPTION
-    Looks up whether a given phone number is assigned to a user in Microsoft Teams. If the phone number is assigned, information about the user and relevant voice policies is returned.
+    Looks up whether a phone number is assigned to a user in Microsoft Teams. If it is, the user and their voice policies are shown. Nothing is changed.
 
     .PARAMETER PhoneNumber
-    The phone number must be in E.164 format. Example: +49321987654 or +49321987654;ext=123. It must start with a '+' followed by the country code and subscriber number, with an optional ';ext=' followed by the extension number, without spaces or special characters.
+    Number in international format without spaces, for example +49321987654, optionally with an extension as +49321987654;ext=123.
+
+    .PARAMETER CallerName
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "PhoneNumber": {
-                "DisplayName": "Phone number to check"
+                "DisplayName": "Phone number"
             },
             "CallerName": {
                 "Hide": true

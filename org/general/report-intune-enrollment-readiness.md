@@ -1,3 +1,15 @@
+## Interpretation notes
+
+- Checks performed per user: account state, Intune license and service plan, tenant MDM authority, device enrollment limit, platform restrictions, registered authentication methods, Conditional Access policies and, optionally, pilot group membership.
+- Conditional Access is evaluated as a static "What If" against the enrollment sign-in for each user's `EnrollmentPlatform`; Entra's own What If tool remains the authority.
+- Compliant-device requirements on "All resources" policies do not block enrollment (a documented Entra exemption); only policies targeting device registration or the Intune enrollment apps are treated as strict gates.
+- Not evaluated statically: named locations, device filters, sign-in frequency and terms of use.
+- Expired or already used Temporary Access Passes are not counted as usable methods.
+
+## Prerequisites
+
+At least one of `UserName` or `GroupName` is required; group memberships are resolved transitively.
+
 ## Setup regarding email sending
 
 Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.

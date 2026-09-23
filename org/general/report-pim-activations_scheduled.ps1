@@ -1,23 +1,28 @@
 <#
     .SYNOPSIS
-    Scheduled report on PIM activations
+    Report the PIM role activations of the last month by email
 
     .DESCRIPTION
-    This runbook queries Microsoft Entra ID audit logs for recent PIM activations.
-    It builds an report and sends it via email.
+    Reads the Entra ID audit log for Privileged Identity Management role activations of the last month and sends them as an email report, so privileged access can be reviewed regularly. Nothing is changed.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .PARAMETER sendAlertTo
-    Recipient email address for the report.
+    Gets the monthly PIM activation report.
 
     .PARAMETER sendAlertFrom
-    Sender mailbox UPN used to send the report email.
+    User in the tenant the report is sent as; needs a mailbox.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
+            "sendAlertTo": {
+                "DisplayName": "Report recipient"
+            },
+            "sendAlertFrom": {
+                "DisplayName": "Report sender"
+            },
             "CallerName": {
                 "Hide": true
             }

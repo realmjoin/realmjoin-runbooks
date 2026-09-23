@@ -1,16 +1,15 @@
 <#
     .SYNOPSIS
-    Get the BitLocker recovery key
+    Look up a BitLocker recovery key by its key ID
 
     .DESCRIPTION
-    This runbook retrieves a BitLocker recovery key using the recovery key ID from the BitLocker recovery screen.
-    It returns key details and related device information.
-
-    .PARAMETER bitlockeryRecoveryKeyId
-    Recovery key ID of the desired key.
+    Finds the BitLocker recovery key that belongs to the key ID shown on a device's recovery screen and returns the key together with the device it belongs to. Use it when a user is locked out at the BitLocker prompt.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
+
+    .PARAMETER bitlockeryRecoveryKeyId
+    The key ID displayed on the BitLocker recovery screen of the device.
 
     .INPUTS
     RunbookCustomization: {

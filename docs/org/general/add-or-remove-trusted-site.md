@@ -1,15 +1,17 @@
 # Add Or Remove Trusted Site
 
-Add or remove a URL entry in the Intune Trusted Sites policy
+Add a URL to the Intune trusted sites list or remove it
 
 ## Detailed description
-Adds or removes a URL to the Site-to-Zone Assignment List in a Windows custom configuration policy. The runbook can also list all existing Trusted Sites policies and their mappings.
+Adds a URL to the site-to-zone assignment list of a Windows configuration policy in Intune, or removes it again. That list puts a URL into an Internet Explorer security zone such as Trusted sites. It can also list all trusted sites policies with their entries.
 
 ## Where to find
 Org \ General \ Add Or Remove Trusted Site
 
-## Notes
-This runbook uses calls as described in https://call4cloud.nl/2021/09/the-isencrypted-with-steve-zissou/ to decrypt omaSettings. It currently needs to use the Microsoft Graph beta endpoint for this.
+## Implementation notes
+
+The runbook decrypts the `omaSettings` of the custom configuration policy using the approach described in [this call4cloud article](https://call4cloud.nl/2021/09/the-isencrypted-with-steve-zissou/). This currently requires the Microsoft Graph beta endpoint.
+
 
 ## Permissions
 ### Application permissions
@@ -19,7 +21,7 @@ This runbook uses calls as described in https://call4cloud.nl/2021/09/the-isencr
 
 ## Parameters
 ### Action
-Action to execute: add, remove, or list policies.
+Add puts the URL into the policy, Remove takes it out, List shows the policies and their entries.
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +30,7 @@ Action to execute: add, remove, or list policies.
 | Type | Int32 |
 
 ### Url
-URL to add or remove; it must be prefixed with "http://" or "https://".
+Address to add or remove, starting with http:// or https://.
 
 | Property | Value |
 |----------|-------|
@@ -37,7 +39,7 @@ URL to add or remove; it must be prefixed with "http://" or "https://".
 | Type | String |
 
 ### Zone
-Internet Explorer zone id to assign the URL to.
+Security zone the URL is assigned to: My computer (0), Local intranet (1), Trusted sites (2), Internet (3) or Restricted sites (4).
 
 | Property | Value |
 |----------|-------|
@@ -46,7 +48,7 @@ Internet Explorer zone id to assign the URL to.
 | Type | Int32 |
 
 ### DefaultPolicyName
-Default policy name used when multiple Trusted Sites policies exist and no specific policy name is provided.
+Policy used when several trusted sites policies exist and none is named.
 
 | Property | Value |
 |----------|-------|
@@ -55,7 +57,7 @@ Default policy name used when multiple Trusted Sites policies exist and no speci
 | Type | String |
 
 ### IntunePolicyName
-Optional policy name; if provided, the runbook targets this policy instead of auto-selecting one.
+Policy to change. Leave empty to pick one automatically.
 
 | Property | Value |
 |----------|-------|

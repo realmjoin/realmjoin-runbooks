@@ -1,112 +1,72 @@
 <#
     .SYNOPSIS
-    Generate report for Endpoint Privilege Management (EPM) elevation requests
+    Report EPM elevation requests by status and age
 
     .DESCRIPTION
-    Queries Microsoft Intune for EPM elevation requests with flexible filtering options.
-    Supports filtering by multiple status types and time range.
-    Sends an email report with summary statistics and detailed report file attachments.
-    The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
-    The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
-    When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
-
-    .NOTES
-    Runbook Type: Scheduled (recommended: monthly)
-
-    Purpose & Use Cases:
-    - Regular reporting of EPM activities
-    - Audit trail for approved/denied elevation requests
-    - Analysis of expired requests to identify process bottlenecks
-    - Identification of frequently requested applications for automatic elevation rules
-
-    Status Types Explained:
-    - Pending: Awaits admin decision (use monitor-pending-EPM-requests for time-critical alerting)
-    - Approved: Admin approved the request, user can proceed with elevation
-    - Denied: Admin rejected the request due to security/policy concerns
-    - Expired: Request expired before admin review (may indicate slow response times)
-    - Revoked: Previously approved elevation was later revoked by admin
-    - Completed: User successfully executed the elevated application after approval
-
-    Data Retention & Time Ranges:
-    - Intune retains EPM request details for 30 days after creation
-    - For long-term analysis, archive CSV exports outside of Intune
-    - Default filter (Approved/Denied/Expired/Revoked, 30 days)
-
-    Email & Export Details:
-    - Generates CSV and/or Excel (xlsx) report files with complete request details (see ReportFileFormat)
-    - Emails sent individually to each recipient for privacy
-    - No email sent when zero requests match the filter criteria
-    - Report files include: timestamps, users, devices, applications, justifications, file hashes
+    Collects the Endpoint Privilege Management elevation requests from Intune, filtered by status and by how long ago they were created. An email report carries the counts and the full list as report files. Intune keeps request details for 30 days, so older requests cannot be reported. The report can be sent by email or provided as a download link.
 
     .PARAMETER EmailTo
-    Can be a single address or multiple comma-separated addresses (string).
-    The function sends individual emails to each recipient for privacy reasons.
+    Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
     .PARAMETER EmailFrom
-    The sender email address. This needs to be configured in the runbook customization.
+    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
     .PARAMETER BrandingHeaderImageUrl
-    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
     .PARAMETER BrandingFooterImageUrl
-    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
     .PARAMETER BrandingFooterLink
-    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-    When empty, the default link (https://www.realmjoin.com) is used.
+    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
     .PARAMETER BrandingAccentColor
-    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER BrandingTextColor
-    Optional text color override (6-digit hex) for the report email template.
-    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
-
-    .PARAMETER IncludePending
-    Include requests with status "Pending" - Awaiting approval decision.
+    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER IncludeApproved
-    Include requests with status "Approved" - Request has been approved by an administrator.
+    Includes requests an administrator approved.
 
     .PARAMETER IncludeDenied
-    Include requests with status "Denied" - Request was rejected by an administrator.
+    Includes requests an administrator rejected.
 
     .PARAMETER IncludeExpired
-    Include requests with status "Expired" - Request expired before approval/denial.
+    Includes requests that expired before a decision was made.
 
     .PARAMETER IncludeRevoked
-    Include requests with status "Revoked" - Previously approved request was revoked.
+    Includes requests whose approval was withdrawn later.
+
+    .PARAMETER IncludePending
+    Includes requests that are still waiting for a decision.
 
     .PARAMETER IncludeCompleted
-    Include requests with status "Completed" - Request was approved and executed successfully.
+    Includes requests that were approved and used.
 
     .PARAMETER MaxAgeInDays
-    Filter requests created within the last X days (default: 30).
-    Note: Request details are retained in Intune for 30 days after creation.
+    Only requests created within this many days are reported. Intune keeps request details for 30 days.
 
     .PARAMETER ReportFileFormat
-    Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+    Deliver the report as CSV, as an Excel workbook, or both.
 
     .PARAMETER CreateDownloadLink
-    If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+    Also upload the report and return a download link that expires after a few days.
 
     .PARAMETER ContainerName
-    Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+    Storage container the report files are uploaded to. Set per runbook.
 
     .PARAMETER ResourceGroupName
-    Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
     .PARAMETER StorageAccountName
-    Storage account name used for the upload. Sourced from the RJReport tenant settings.
+    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
     .PARAMETER LinkExpiryDays
-    Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
     .PARAMETER CallerName
-    Internal parameter for tracking purposes
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
@@ -115,7 +75,7 @@
 				"Hide": true
 			},
 			"EmailTo": {
-				"DisplayName": "Recipient Email Address(es)"
+				"DisplayName": "Recipient email address(es)"
 			},
 			"BrandingHeaderImageUrl": {
 				"Hide": true
@@ -136,25 +96,25 @@
 				"Hide": true
 			},
 			"IncludePending": {
-				"DisplayName": "Pending Requests (awaiting approval)"
+				"DisplayName": "Include pending requests?"
 			},
 			"IncludeApproved": {
-				"DisplayName": "Approved Requests (approved by admin)"
+				"DisplayName": "Include approved requests?"
 			},
 			"IncludeDenied": {
-				"DisplayName": "Denied Requests (rejected by admin)"
+				"DisplayName": "Include denied requests?"
 			},
 			"IncludeExpired": {
-				"DisplayName": "Expired Requests (expired before decision)"
+				"DisplayName": "Include expired requests?"
 			},
 			"IncludeRevoked": {
-				"DisplayName": "Revoked Requests (approval revoked)"
+				"DisplayName": "Include revoked requests?"
 			},
 			"IncludeCompleted": {
-				"DisplayName": "Completed Requests (approved and executed)"
+				"DisplayName": "Include completed requests?"
 			},
 			"MaxAgeInDays": {
-				"DisplayName": "Filter requests created within last X days (retention: 30 days)"
+				"DisplayName": "Created within (days)"
 			},
 			"ReportFileFormat": {
 				"DisplayName": "Report file format",
@@ -177,7 +137,7 @@
 				}
 			},
 			"CreateDownloadLink": {
-				"DisplayName": "Create a file download link (upload report to storage)?",
+				"DisplayName": "Create a download link?",
 				"SelectSimple": {
 					"Yes - upload report and return a download link": true,
 					"No - do not create a download link": false

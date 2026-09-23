@@ -110,6 +110,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Notify Users About Low Diskspace (Scheduled)](docs/org/devices/notify-users-about-low-diskspace_scheduled.md)
     - [Notify Users About Stale Devices (Scheduled)](docs/org/devices/notify-users-about-stale-devices_scheduled.md)
     - [Outphase Devices](docs/org/devices/outphase-devices.md)
+    - [Rename Devices By Group Tag (Scheduled)](docs/org/devices/rename-devices-by-group-tag_scheduled.md)
     - [Report Devices Low Diskspace (Scheduled)](docs/org/devices/report-devices-low-diskspace_scheduled.md)
     - [Report Devices Without Primary User (Scheduled)](docs/org/devices/report-devices-without-primary-user_scheduled.md)
     - [Report Primary User Mismatch (Scheduled)](docs/org/devices/report-primary-user-mismatch_scheduled.md)
@@ -172,6 +173,8 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Set Booking Config](docs/org/mail/set-booking-config.md)
   - [Phone](docs/org/README.md#org-phone)
 
+    - [Add Or Remove Call Queue Agents](docs/org/phone/add-or-remove-call-queue-agents.md)
+    - [Add Or Remove Call Queue Authorized Users](docs/org/phone/add-or-remove-call-queue-authorized-users.md)
     - [Get Teams Phone Number Assignment](docs/org/phone/get-teams-phone-number-assignment.md)
   - [Security](docs/org/README.md#org-security)
 

@@ -1,9 +1,9 @@
 # List Manager
 
-List manager information for this user
+Show the manager of this user
 
 ## Detailed description
-Retrieves the manager object for a specified user. Outputs common manager attributes such as display name, email, and phone numbers.
+Shows who is set as the manager of this user in Entra ID, with the manager's display name, email address and phone numbers. Nothing is changed.
 
 ## Where to find
 User \ General \ List Manager
@@ -16,7 +16,7 @@ User \ General \ List Manager
 
 ## Parameters
 ### UserName
-User principal name of the target user.
+User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|

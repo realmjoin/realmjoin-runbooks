@@ -1,42 +1,60 @@
 <#
     .SYNOPSIS
-    Export a list of all Intune devices and where they are registered
+    Export all Intune devices with their primary users' usage location
 
     .DESCRIPTION
-    Exports all Intune managed devices and enriches them with selected owner metadata such as usage location. The report is uploaded as a CSV file to an Azure Storage container.
+    Exports every Intune managed device together with details of its primary user, such as the usage location, as a CSV file to an Azure Storage account. Optionally only devices whose primary user is in a given group are exported. Nothing is changed.
 
     .PARAMETER ContainerName
-    Name of the Azure Storage container to upload the CSV report to.
+    Storage container the CSV file is uploaded to. Taken from the tenant setting IntuneDevicesReport.Container.
 
     .PARAMETER ResourceGroupName
-    Name of the Azure Resource Group containing the Storage Account.
+    Resource group of the storage account. Taken from the tenant setting IntuneDevicesReport.ResourceGroup.
 
     .PARAMETER StorageAccountName
-    Name of the Azure Storage Account used for upload.
+    Storage account for the export. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Name.
 
     .PARAMETER StorageAccountLocation
-    Azure region for the Storage Account if it needs to be created.
+    Azure region used when the storage account has to be created. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Location.
 
     .PARAMETER StorageAccountSku
-    SKU name for the Storage Account if it needs to be created.
+    Performance tier used when the storage account has to be created. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Sku.
 
     .PARAMETER SubscriptionId
-    Optional Azure Subscription Id to set the context for Storage Account operations.
+    Azure subscription that holds the storage account. Taken from the tenant setting IntuneDevicesReport.SubscriptionId.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .PARAMETER FilterGroupID
-    Group filter. When specified, only devices whose primary owner is a member of this group are exported.
+    Only devices whose primary user is in this group. Leave empty for all devices.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
+            "ContainerName": {
+                "Hide": true
+            },
+            "ResourceGroupName": {
+                "Hide": true
+            },
+            "StorageAccountName": {
+                "Hide": true
+            },
+            "StorageAccountLocation": {
+                "Hide": true
+            },
+            "StorageAccountSku": {
+                "Hide": true
+            },
+            "SubscriptionId": {
+                "Hide": true
+            },
             "CallerName": {
                 "Hide": true
             },
             "FilterGroupID": {
-                "DisplayName": "Optional - Group Filter",
+                "DisplayName": "Limit to primary users in group"
             }
         }
     }

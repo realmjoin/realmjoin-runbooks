@@ -1,41 +1,55 @@
 <#
     .SYNOPSIS
-    Create a report of tenant policies from Intune and Entra ID.
+    Export Intune and Entra ID policies as a Markdown report
 
     .DESCRIPTION
-    This runbook exports configuration policies from Intune and Entra ID and writes the results to a Markdown report.
-    It can optionally export raw JSON and create downloadable links for exported artifacts.
+    Collects the configuration policies from Intune and Entra ID and writes them into one Markdown report, for documentation or review. The raw policy definitions can be exported as JSON as well. The files can be uploaded to an Azure Storage account with time-limited download links. Nothing is changed.
 
     .PARAMETER produceLinks
-    If set to true, creates links for exported artifacts based on settings.
+    Uploads the report files to the storage account configured in the tenant settings and returns download links.
 
     .PARAMETER exportJson
-    If set to true, also exports raw JSON policy payloads.
+    Also exports the raw policy definitions as JSON files.
 
     .PARAMETER renderLatexPagebreaks
-    If set to true, adds LaTeX page breaks to the generated Markdown.
+    Adds LaTeX page breaks to the Markdown, so each policy starts on a new page when the Markdown is converted to PDF.
 
     .PARAMETER ContainerName
-    Storage container name used for uploads.
+    Storage container the report files are uploaded to. Taken from the tenant setting TenantPolicyReport.Container.
 
     .PARAMETER ResourceGroupName
-    Resource group that contains the storage account.
+    Resource group of the storage account. Taken from the tenant setting TenantPolicyReport.ResourceGroup.
 
     .PARAMETER StorageAccountName
-    Storage account name used for uploads.
+    Storage account for the export. Taken from the tenant setting TenantPolicyReport.StorageAccount.Name.
 
     .PARAMETER StorageAccountLocation
-    Azure region for the storage account.
+    Azure region used when the storage account has to be created. Taken from the tenant setting TenantPolicyReport.StorageAccount.Location.
 
     .PARAMETER StorageAccountSku
-    Storage account SKU.
+    Performance tier used when the storage account has to be created. Taken from the tenant setting TenantPolicyReport.StorageAccount.Sku.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
+            "ContainerName": {
+                "Hide": true
+            },
+            "ResourceGroupName": {
+                "Hide": true
+            },
+            "StorageAccountName": {
+                "Hide": true
+            },
+            "StorageAccountLocation": {
+                "Hide": true
+            },
+            "StorageAccountSku": {
+                "Hide": true
+            },
             "CallerName": {
                 "Hide": true
             }
@@ -49,11 +63,11 @@
 # Suppress false positive from PSScriptAnalyzer - $blob is used to suppress unwanted output from Set-AzStorageBlobContent
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "blob")]
 param(
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Create SAS Tokens / Links?" -Type Setting -Attribute "TenantPolicyReport.CreateLinks" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Create download links?" -Type Setting -Attribute "TenantPolicyReport.CreateLinks" } )]
     [bool] $produceLinks = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Also export raw JSON policies?" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Also export raw JSON?" } )]
     [bool] $exportJson = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Render Latex Pagebreaks?" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Add page breaks for PDF?" } )]
     [bool] $renderLatexPagebreaks = $true,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.Container" } )]
     [string] $ContainerName = "rjrb-licensing-report-v2",

@@ -1,68 +1,66 @@
 <#
     .SYNOPSIS
-    Update an application registration in Azure AD
+    Update redirect URIs, SAML and sign-in settings of an app registration
 
     .DESCRIPTION
-    This runbook updates an existing application registration and its related configuration in Microsoft Entra ID.
-    It compares the current settings with the requested parameters and applies only the necessary updates.
-    Use it to manage redirect URIs, SAML settings, visibility, assignment requirements, and token issuance behavior.
+    Changes the configuration of an existing application registration in Entra ID: redirect URIs, SAML sign-in, visibility in My Apps, user assignment and implicit grant. Only settings that differ from the current ones are written. The application is selected by its client ID.
 
     .PARAMETER ClientId
-    The application client ID (appId) of the application registration to update.
+    Client ID (appId) of the application registration to update.
 
     .PARAMETER RedirectURI
-    Used for UI selection only. Determines which redirect URI type to configure.
+    Type of sign-in to set up: none, a web redirect URI, SAML, a public client (mobile and desktop) or a single-page application. The matching fields appear once you choose.
 
     .PARAMETER webRedirectURI
-    Redirect URI or URIs for web applications. Multiple values can be separated by semicolons.
+    Redirect URI of a web application, for example https://myapp.com/auth. Separate several with semicolons.
 
     .PARAMETER publicClientRedirectURI
-    Redirect URI or URIs for public client/native applications. Multiple values can be separated by semicolons.
+    Redirect URI of a mobile or desktop client, for example myapp://auth. Separate several with semicolons.
 
     .PARAMETER spaRedirectURI
-    Redirect URI or URIs for single-page applications. Multiple values can be separated by semicolons.
+    Redirect URI of a single-page application, for example https://myapp.com. Separate several with semicolons.
 
     .PARAMETER EnableSAML
-    If set to true, SAML-based authentication is configured on the service principal.
+    Whether SAML sign-in is configured. Set by the "Redirect URI" choice.
 
     .PARAMETER SAMLReplyURL
-    The SAML reply URL.
+    Where the SAML response is sent (assertion consumer service URL).
 
     .PARAMETER SAMLSignOnURL
-    The SAML sign-on URL.
+    URL where users start the sign-in to the application.
 
     .PARAMETER SAMLLogoutURL
-    The SAML logout URL.
+    URL the application uses to sign users out.
 
     .PARAMETER SAMLIdentifier
-    The SAML identifier (Entity ID).
+    Identifier of the application in SAML (entity ID).
 
     .PARAMETER SAMLRelayState
-    The SAML relay state parameter.
+    Value the application receives back after sign-in, for example to return to a page.
 
     .PARAMETER SAMLExpiryNotificationEmail
-    Email address for SAML certificate expiry notifications.
+    Email address that is notified before the SAML signing certificate expires.
 
     .PARAMETER isApplicationVisible
-    Determines whether the application is visible in the My Apps portal.
+    Lists the application in the users' My Apps portal.
 
     .PARAMETER UserAssignmentRequired
-    Determines whether user assignment is required for the application.
+    Only assigned users can use the application. An access group is created for the assignment.
 
     .PARAMETER groupAssignmentPrefix
-    Prefix for the automatically created assignment group.
+    Text put in front of the access group name. Only used when user assignment is required.
 
     .PARAMETER implicitGrantAccessTokens
-    Enable implicit grant flow for access tokens.
+    Lets the application receive access tokens through the implicit flow. Needed only for older single-page apps.
 
     .PARAMETER implicitGrantIDTokens
-    Enable implicit grant flow for ID tokens.
+    Lets the application receive ID tokens through the implicit flow.
 
     .PARAMETER disableImplicitGrant
-    If set to true, disables implicit grant issuance regardless of other settings.
+    Switches implicit grant off for both token types, regardless of "Implicit grant for access tokens?" and "Implicit grant for ID tokens?".
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -74,7 +72,7 @@
             "Hide": true
         },
         "RedirectURI": {
-            "DisplayName": "Redirect URI (Optional)",
+            "DisplayName": "Sign-in type",
             "Default": "None",
             "Select": {
                 "Options": [
@@ -175,56 +173,62 @@
             }
         },
         "webRedirectURI": {
-            "DisplayName": "Web Redirect URI e.g. https://myapp.com/auth (semicolon-separated for multiple)",
+            "DisplayName": "Web redirect URI",
             "Hide": false
         },
         "publicClientRedirectURI": {
-            "DisplayName": "Public client/native Redirect URI e.g. myapp://auth (semicolon-separated for multiple)",
+            "DisplayName": "Public client redirect URI",
             "Hide": false
         },
         "spaRedirectURI": {
-            "DisplayName": "Single-page application (SPA) Redirect URI e.g. https://myapp.com (semicolon-separated for multiple)",
+            "DisplayName": "SPA redirect URI",
             "Hide": false
         },
         "EnableSAML":{
             "Hide": false
         },
         "SAMLReplyURL":{
+            "DisplayName": "SAML reply URL",
             "Hide": false
         },
         "SAMLSignOnURL":{
+            "DisplayName": "SAML sign-on URL",
             "Hide": false
         },
         "SAMLLogoutURL":{
+            "DisplayName": "SAML logout URL",
             "Hide": false
         },
         "SAMLIdentifier":{
+            "DisplayName": "SAML identifier (entity ID)",
             "Hide": false
         },
         "SAMLRelayState":{
+            "DisplayName": "SAML relay state",
             "Hide": false
         },
         "SAMLExpiryNotificationEmail":{
+            "DisplayName": "Certificate expiry notification email",
             "Hide": false
         },
         "isApplicationVisible":{
-            "DisplayName": "Application visible in My Apps portal",
+            "DisplayName": "Show in My Apps?",
             "Hide": false
         },
         "UserAssignmentRequired":{
-            "DisplayName": "User assignment required",
+            "DisplayName": "Require user assignment?",
             "Hide": false
         },
         "groupAssignmentPrefix":{
-            "DisplayName": "Group assignment prefix (Only necessary when User assignment required)",
+            "DisplayName": "Access group prefix",
             "Hide": false
         },
         "implicitGrantAccessTokens":{
-            "DisplayName": "Enable implicit grant for access tokens",
+            "DisplayName": "Implicit grant for access tokens?",
             "Hide": false
         },
         "implicitGrantIDTokens":{
-            "DisplayName": "Enable implicit grant for ID tokens",
+            "DisplayName": "Implicit grant for ID tokens?",
             "Hide": false
         }
     }

@@ -1,115 +1,92 @@
-﻿<#
+<#
     .SYNOPSIS
-    Sync members between a Teams Shared Channel or a group and an Entra security group
+    Mirror members between a Teams shared channel and a group
 
     .DESCRIPTION
-    This scheduled runbook mirrors the membership of a source object into a target object in one
-    direction per run. It supports syncing Teams Shared Channel members into a security group, syncing
-    the members of one group into another group (for example a Microsoft 365 group into a security group
-    or vice versa) and syncing group members into a Teams Shared Channel. Adding missing members is always
-    performed, while removing members that only exist in the target is optional and controlled by a
-    parameter. Guest handling and whether channel removals also remove the host team membership are
-    configurable, and the runbook can optionally send an email report and upload the results as a
-    time-limited download link. The ReportFileFormat parameter controls which report file formats are
-    generated and delivered (CSV only, CSV & XLSX, or XLSX only). When the CSV attachment exceeds the
-    email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+    Copies the members of a source into a target on every run. The source and target can be a shared channel and a security group, two groups, or a group and a shared channel. Missing members are always added; members that exist only in the target are removed only when asked. A dry run shows the changes without applying them, and the report can be sent by email or provided as a download link. Details on the options are in the runbook documentation (docs.realmjoin.com).
 
     .PARAMETER Direction
-    Selects what is synced into what. SharedChannelToGroup copies shared channel members into the target
-    group, GroupToGroup copies the source group members into the target group, and GroupToSharedChannel
-    copies the source group members into the shared channel.
+    What is copied where: shared channel members into the target group, source group members into the target group, or source group members into the shared channel.
 
     .PARAMETER TeamId
-    Object id of the team that hosts the shared channel. Only used for the shared channel directions.
+    Team that hosts the shared channel. Needed for the shared channel directions only.
 
     .PARAMETER ChannelName
-    Exact display name of the shared channel inside the selected team. Only used for the shared channel
-    directions.
+    Exact name of the shared channel in that team. Needed for the shared channel directions only.
 
     .PARAMETER SourceGroupId
-    Object id of the source group whose members are copied. Used for the group source directions.
+    Group whose members are copied. Needed when the source is a group.
 
     .PARAMETER TargetGroupId
-    Object id of the target security group that receives the members. Used for the group target directions.
+    Security group that receives the members. Needed when the target is a group.
 
     .PARAMETER RemoveExtraMembers
-    When enabled, members that exist only in the target and not in the source are removed so the target
-    mirrors the source. When disabled (default), the runbook only adds missing members.
+    Also removes members that exist only in the target, so it mirrors the source exactly. Otherwise members are only added.
 
     .PARAMETER IncludeGuests
-    When enabled, guest users are included in the sync and may be added or removed. When disabled (default),
-    guests are skipped and are never added or removed.
+    Also adds and removes guest users. Otherwise guests are left untouched on both sides.
 
     .PARAMETER RemoveFromTeam
-    Only relevant for GroupToSharedChannel. When enabled, removing a member from the shared channel also
-    removes that user from the host team membership. When disabled (default), only the channel membership
-    is removed.
+    When a member is removed from the shared channel, also removes them from the host team. Only applies when a group is copied into a shared channel.
 
     .PARAMETER WhatIfMode
-    When enabled, the runbook only logs the changes it would make without writing anything.
+    Only logs what would change without writing anything.
 
     .PARAMETER SendEmailReport
-    When enabled, a RealmJoin-branded email report is sent via Send-RjReportEmail after the run. Toggling
-    this on reveals the recipient address and report file format fields.
+    Send the report to the recipient email address.
 
     .PARAMETER EmailTo
-    Recipient email address(es) for the report (comma-separated). Only used when SendEmailReport is enabled.
+    Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
     .PARAMETER EmailFrom
-    Sender mailbox for the report. Bound to the org Setting RJReport.EmailSender.
+    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
     .PARAMETER BrandingHeaderImageUrl
-    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
     .PARAMETER BrandingFooterImageUrl
-    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
     .PARAMETER BrandingFooterLink
-    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-    When empty, the default link (https://www.realmjoin.com) is used.
+    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
     .PARAMETER BrandingAccentColor
-    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER BrandingTextColor
-    Optional text color override (6-digit hex) for the report email template.
-    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER ReportFileFormat
-    Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+    Deliver the report as CSV, as an Excel workbook, or both.
 
     .PARAMETER CreateDownloadLink
-    When enabled, the report file(s) are uploaded to a storage account and time-limited download links are
-    returned (and included in the email report if that is also enabled).
+    Also upload the report and return a download link that expires after a few days.
 
     .PARAMETER ContainerName
-    Storage container used for the upload. Configured per runbook.
+    Storage container the report files are uploaded to. Set per runbook.
 
     .PARAMETER ResourceGroupName
-    Resource group that contains the storage account. Bound to RJReport.StorageAccount.ResourceGroup.
+    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
     .PARAMETER StorageAccountName
-    Storage account used for the upload. Bound to RJReport.StorageAccount.StorageAccountName.
+    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
     .PARAMETER LinkExpiryDays
-    Days until the generated download link expires. Bound to RJReport.StorageAccount.LinkExpiryDays.
+    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "Direction": {
-                "DisplayName": "What should be synced",
+                "DisplayName": "Direction",
                 "Default": "SharedChannelToGroup",
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Shared Channel members -> security group",
+                            "Display": "Shared channel members to security group",
                             "ParameterValue": "SharedChannelToGroup",
                             "Customization": {
                                 "Show": [
@@ -129,7 +106,7 @@
                             }
                         },
                         {
-                            "Display": "Group members -> group",
+                            "Display": "Group members to group",
                             "ParameterValue": "GroupToGroup",
                             "Customization": {
                                 "Show": [
@@ -148,7 +125,7 @@
                             }
                         },
                         {
-                            "Display": "Group members -> Shared Channel",
+                            "Display": "Group members to shared channel",
                             "ParameterValue": "GroupToSharedChannel",
                             "Customization": {
                                 "Show": [
@@ -175,7 +152,7 @@
                 "Hide": false
             },
             "ChannelName": {
-                "DisplayName": "Shared channel display name",
+                "DisplayName": "Shared channel name",
                 "Hide": false
             },
             "SourceGroupId": {
@@ -187,20 +164,20 @@
                 "Hide": false
             },
             "RemoveExtraMembers": {
-                "DisplayName": "Remove members that only exist in the target (mirror source)"
+                "DisplayName": "Remove members missing in the source?"
             },
             "IncludeGuests": {
-                "DisplayName": "Include guest users"
+                "DisplayName": "Include guest users?"
             },
             "RemoveFromTeam": {
-                "DisplayName": "On channel removal, also remove the user from the host team",
+                "DisplayName": "Also remove from the host team?",
                 "Hide": true
             },
             "WhatIfMode": {
-                "DisplayName": "Dry run (log only, no changes)"
+                "DisplayName": "Dry run?"
             },
             "SendEmailReport": {
-                "DisplayName": "Send email report",
+                "DisplayName": "Send email report?",
                 "Select": {
                     "Options": [
                         {
@@ -227,7 +204,7 @@
                 }
             },
             "EmailTo": {
-                "DisplayName": "Send report to (email address(es))",
+                "DisplayName": "Recipient email address(es)",
                 "Hide": true
             },
             "EmailFrom": {
@@ -249,7 +226,7 @@
                 "Hide": true
             },
             "CreateDownloadLink": {
-                "DisplayName": "Create a report download link (upload report to storage)",
+                "DisplayName": "Create a download link?",
                 "Select": {
                     "Options": [
                         {
