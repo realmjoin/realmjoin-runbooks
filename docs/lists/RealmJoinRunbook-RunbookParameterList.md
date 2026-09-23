@@ -1208,7 +1208,8 @@ Name Autopilot devices after their group tag and serial number
 |-----------|----------|------|-------------|
 | NameTemplate |  | String | Pattern of the computer name. %GROUPTAG% is replaced by the Autopilot group tag and %SERIAL% by the serial number; other characters stay as typed. Letters, digits and hyphens only, 15 characters at most after replacement. |
 | SerialTruncation |  | String | Which end of the serial number is kept when the assembled name would exceed 15 characters; only the serial number is shortened. Keeping the end matches what Autopilot itself does with %SERIAL%. |
-| GroupTagFilter |  | String | Only devices with one of these Autopilot group tags, separated by commas; DE* matches every tag that starts with DE. Leave empty for all devices that have a group tag. |
+| GroupTagFilter |  | String | Only devices with one of these Autopilot group tags, separated by commas; SITE1* matches every tag that starts with SITE1. Leave empty for all devices that have a group tag. |
+| GroupTagExcludeFilter |  | String | Devices with one of these Autopilot group tags are left alone, separated by commas; KIOSK* matches every tag that starts with KIOSK. Applied after the group tag filter. Leave empty to exclude nothing. |
 | RenameEnrolledDevices |  | Boolean | Also rename devices that are already enrolled in Intune. When off, only the Autopilot record is updated and the name is applied at the next Autopilot deployment. |
 | MaxChangesPerRun |  | Int32 | Stops after this many devices have been changed; 0 means no limit. Useful for a staged first run. |
 | WhatIfMode |  | Boolean | Only logs what would change without writing anything. |
