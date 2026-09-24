@@ -1,0 +1,37 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "Channel.ReadBasic.All",
+                    "Reason": "Lists the private and shared channels of every team via /teams/{id}/channels"
+                },
+                {
+                    "Value": "ChannelMember.Read.All",
+                    "Reason": "Reads the members of every listed channel to tell owners, members and external members apart"
+                },
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Lists the Microsoft 365 groups that are provisioned as teams with their name and visibility"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the report email via Send-RjRbReportEmail when email delivery is selected"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Reads the tenant display name for the email subject, the email body and the report file names"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": []
+}

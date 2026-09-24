@@ -1,5 +1,12 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-09-24
+
+- New **Report Teams Channels (Scheduled)** Runbook in Org/Collab
+  - Lists the private and shared channels of every team with their owners and, optionally, their members; members from other tenants are marked as external and channels without an owner are listed separately
+  - Reads channels and members through Graph batch requests so large tenants complete in reasonable time; teams that cannot be read are reported instead of aborting the run
+  - Results as separate named tables in the portal's Output Data tab; the report can be sent by email or provided as a download link
+
 ## 2026-09-21
 
 - Update **Delegate Full Access** Runbook in User/Mail
