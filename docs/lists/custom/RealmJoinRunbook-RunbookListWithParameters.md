@@ -28,11 +28,11 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 |  |  |  |  |  |  | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  | Check Updatable Assets | Check whether this device is enrolled in Windows Update for Business | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br>&emsp;- Device.Read.All<br> |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  |  |  |  |  | DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
-|  |  | Enroll Updatable Assets | Enroll this device in Windows Update for Business | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  |  |  |  |  | DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
+|  |  | Check Updatable Assets | Check whether this device is enrolled in Windows Update for Business | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br>&emsp;- Device.Read.All<br> |  | DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+|  |  | Enroll Updatable Assets | Enroll this device in Windows Update for Business | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
 |  |  |  |  |  |  | UpdateCategory | ✓ | String | Update category to enroll the device in. All enrolls it in driver, feature and quality updates. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  |  | Outphase Device | Wipe this Windows device and clean up Intune, Autopilot and Entra ID | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br>&emsp;- Device.Read.All<br>- **Type**: WindowsDefenderATP<br>&emsp;- Machine.Read.All<br>&emsp;- Machine.ReadWrite.All<br> | - Cloud Device Administrator<br> | DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
 |  |  |  |  |  |  | intuneAction |  | Int32 | Completely wipe erases all user and enrollment data on the device. Delete from Intune only removes the device record, for devices that are already wiped or destroyed. Do not wipe or remove leaves Intune untouched. |
 |  |  |  |  |  |  | aadAction |  | Int32 | Delete removes the device object from Entra ID, Disable keeps it but blocks sign-ins from the device, and Keep leaves Entra ID untouched. |
@@ -52,9 +52,9 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Set Primary User | Set a new primary user on this device | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- User.Read.All<br> |  | DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
 |  |  |  |  |  |  | NewPrimaryUserId | ✓ | String | User to assign. The current primary user is replaced; both are shown in the output. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  | Unenroll Updatable Assets | Unenroll this device from Windows Update for Business | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  |  |  |  |  | DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
+|  |  | Unenroll Updatable Assets | Unenroll this device from Windows Update for Business | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
 |  |  |  |  |  |  | UpdateCategory | ✓ | String | Update category to unenroll the device from. Choosing all removes the device from Windows Update for Business entirely. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  |  | Wipe Device | Wipe this Windows or macOS device and clean up its records | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br>&emsp;- Device.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br>- **Type**: WindowsDefenderATP<br>&emsp;- Machine.Read.All *(optional: Defender risk check)*<br> | - Cloud Device Administrator<br> | DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
 |  |  |  |  |  |  | wipeDevice |  | Boolean | Completely wipe erases all user and enrollment data on the device. Do not wipe leaves the device untouched and only runs the selected cleanup steps. |
 |  |  |  |  |  |  | useProtectedWipe |  | Boolean | Keeps trying to wipe even if the device is switched off in between, so the wipe cannot be dodged by powering off. Windows only. |
@@ -95,12 +95,12 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  |  | Show LAPS Password | Show the local admin password of this device | - **Type**: Microsoft Graph<br>&emsp;- DeviceLocalCredential.Read.All<br> |  | DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-| Group | Devices | Check Updatable Assets | Check Windows Update for Business enrollment of this group's devices | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- WindowsUpdates.ReadWrite.All<br>Azure: Contributor on Storage Account<br> |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  |  |  |  |  | GroupId | ✓ | String | Object ID of the group the runbook acts on. Set by the portal from the selected group. |
-|  |  | Unenroll Updatable Assets (Scheduled) | Unenroll this group's devices from Windows Update for Business | - **Type**: Microsoft Graph<br>&emsp;- Group.Read.All<br>&emsp;- WindowsUpdates.ReadWrite.All<br>&emsp;- User.Read.All *(optional: User-owned devices)*<br> |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  |  |  |  |  | GroupId | ✓ | String | Object ID of the group the runbook acts on. Set by the portal from the selected group. |
+| Group | Devices | Check Updatable Assets | Check Windows Update for Business enrollment of this group's devices | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- WindowsUpdates.ReadWrite.All<br>Azure: Contributor on Storage Account<br> |  | GroupId | ✓ | String | Object ID of the group the runbook acts on. Set by the portal from the selected group. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+|  |  | Unenroll Updatable Assets (Scheduled) | Unenroll this group's devices from Windows Update for Business | - **Type**: Microsoft Graph<br>&emsp;- Group.Read.All<br>&emsp;- WindowsUpdates.ReadWrite.All<br>&emsp;- User.Read.All *(optional: User-owned devices)*<br> |  | GroupId | ✓ | String | Object ID of the group the runbook acts on. Set by the portal from the selected group. |
 |  |  |  |  |  |  | UpdateCategory | ✓ | String | Update category (driver, feature or quality) to unenroll the devices from. Choose all to delete the updatable asset registration entirely. |
 |  |  |  |  |  |  | IncludeUserOwnedDevices |  | Boolean | Also unenrolls every device owned by the users in this group, nested groups included. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  | General | Add Or Remove Nested Group | Add a nested group to this group or remove it | - **Type**: Microsoft Graph<br>&emsp;- Group.ReadWrite.All<br>&emsp;- GroupMember.ReadWrite.All<br>- **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp *(optional: Mail-enabled groups)*<br> | - Exchange Administrator *(optional: Mail-enabled groups)*<br> | GroupID | ✓ | String | Object ID of the group the runbook acts on. Set by the portal from the selected group. |
 |  |  |  |  |  |  | NestedGroupID | ✓ | String | Group that becomes a member of this group, or stops being one. |
 |  |  |  |  |  |  | Remove |  | Boolean | Add makes the chosen group a member of this group. Remove takes an existing nesting away. |
@@ -275,6 +275,25 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | AlertEmailTo | ✓ | String | Address the alert goes to when a limit is exceeded. |
 |  |  |  |  |  |  | AlertEmailSubject | ✓ | String | Subject line of the alert email. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+|  |  | Report Teams Channels (Scheduled) | List private and shared channels of all teams with their owners | - **Type**: Microsoft Graph<br>&emsp;- Channel.ReadBasic.All<br>&emsp;- ChannelMember.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br>&emsp;- Organization.Read.All *(optional: Email report)*<br> |  | IncludePrivateChannels |  | Boolean | Lists the private channels hosted by each team. |
+|  |  |  |  |  |  | IncludeSharedChannels |  | Boolean | Lists the shared channels hosted by each team. Members from other tenants are marked as external. |
+|  |  |  |  |  |  | IncludeMembers |  | Boolean | Also lists the members of each channel by name. Off lists the owners only, which keeps the report short in large tenants. |
+|  |  |  |  |  |  | TeamNamePrefix |  | String | Only teams whose name starts with this text. Leave empty for all teams. |
+|  |  |  |  |  |  | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
+|  |  |  |  |  |  | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
+|  |  |  |  |  |  | BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
+|  |  |  |  |  |  | BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
+|  |  |  |  |  |  | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
+|  |  |  |  |  |  | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
+|  |  |  |  |  |  | SendEmailReport |  | Boolean | Send the report to the recipient email address. |
+|  |  |  |  |  |  | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
+|  |  |  |  |  |  | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
+|  |  |  |  |  |  | CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+|  |  |  |  |  |  | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
+|  |  |  |  |  |  | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
+|  |  |  |  |  |  | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+|  |  |  |  |  |  | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  | Devices | Add Autopilot Device | Register a Windows device in Windows Autopilot | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br>&emsp;- User.Read.All *(optional: User assignment)*<br> |  | SerialNumber | ✓ | String | Serial number of the device as reported by Get-WindowsAutopilotInfo. |
 |  |  |  |  |  |  | HardwareIdentifier | ✓ | String | Hardware hash of the device as reported by Get-WindowsAutopilotInfo. |
 |  |  |  |  |  |  | AssignedUser |  | String | User to assign during the import. Microsoft no longer accepts this, so leave it empty. |
@@ -361,8 +380,8 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | ExcludeUserGroup |  | String | Skips devices whose primary user is in this group. |
 |  |  |  |  |  |  | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  | Get Bitlocker Recovery Key | Look up a BitLocker recovery key by its key ID | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- BitlockerKey.Read.All<br> |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  |  |  |  |  | bitlockeryRecoveryKeyId | ✓ | String | The key ID displayed on the BitLocker recovery screen of the device. |
+|  |  | Get Bitlocker Recovery Key | Look up a BitLocker recovery key by its key ID | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- BitlockerKey.Read.All<br> |  | bitlockeryRecoveryKeyId | ✓ | String | The key ID displayed on the BitLocker recovery screen of the device. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  |  | List Mobile Devices | List managed mobile devices with inventory and network details | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Directory.Read.All *(optional: Group scope filtering)*<br>&emsp;- Organization.Read.All *(optional: Email report / download link)*<br>&emsp;- Mail.Send *(optional: Email report)*<br>Azure Storage Account: 'Storage Account Contributor' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required when CreateDownloadLink is used)<br> |  | Android |  | Boolean | Includes Android devices. |
 |  |  |  |  |  |  | iOS |  | Boolean | Includes iOS and iPadOS devices. |
 |  |  |  |  |  |  | IncludeNetworkDetails |  | Boolean | Adds IP address, subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health and Shared iPad state. Needs one extra request per device, so large tenants take longer. |
@@ -588,13 +607,13 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  | General | Add Devices Of Users To Group (Scheduled) | Add the devices of a user group's members to a device group | - **Type**: Microsoft Graph<br>&emsp;- Group.ReadWrite.All<br>&emsp;- User.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br> |  | UserGroup | ✓ | String | Name or object ID of the group whose members' devices are collected. |
 |  |  |  |  |  |  | DeviceGroup | ✓ | String | Name or object ID of the group the devices are added to. |
-|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  |  |  |  |  |  | IncludeWindowsDevice |  | Boolean | Includes Windows devices. |
 |  |  |  |  |  |  | IncludeMacOSDevice |  | Boolean | Includes macOS devices. |
 |  |  |  |  |  |  | IncludeLinuxDevice |  | Boolean | Includes Linux devices. |
 |  |  |  |  |  |  | IncludeAndroidDevice |  | Boolean | Includes Android devices. |
 |  |  |  |  |  |  | IncludeIOSDevice |  | Boolean | Includes iOS devices. |
 |  |  |  |  |  |  | IncludeIPadOSDevice |  | Boolean | Includes iPadOS devices. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  |  | Add Management Partner | List or add a Partner Admin Link (PAL) for the tenant | Owner or Contributor role on the Azure Subscription<br> |  | Action | ✓ | Int32 | List shows the current links, Add creates one for the "Partner ID". |
 |  |  |  |  |  |  | PartnerId |  | Int32 | Microsoft Partner Network ID of the partner to link. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
@@ -688,18 +707,18 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  |  | Bulk Retire Devices From Intune | Retire several Intune devices by serial number | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br> |  | SerialNumbers | ✓ | String | Serial numbers of the devices to retire, separated by commas. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  | Check AAD Sync Status (Scheduled) | Check the last Entra Connect sync and alert when it is off | - **Type**: Microsoft Graph<br>&emsp;- Directory.Read.All<br>&emsp;- Mail.Send<br> |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  |  |  |  |  | sendAlertTo |  | String | Gets the alert email when directory synchronization is found disabled. |
+|  |  | Check AAD Sync Status (Scheduled) | Check the last Entra Connect sync and alert when it is off | - **Type**: Microsoft Graph<br>&emsp;- Directory.Read.All<br>&emsp;- Mail.Send<br> |  | sendAlertTo |  | String | Gets the alert email when directory synchronization is found disabled. |
 |  |  |  |  |  |  | sendAlertFrom |  | String | User in the tenant the alert is sent as; needs a mailbox. |
-|  |  | Check Assignments Of Devices | Show which Intune policies and apps target given devices | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- DeviceManagementApps.Read.All<br> |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  |  |  |  |  | DeviceNames | ✓ | String | Names of the devices to check, separated by commas. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+|  |  | Check Assignments Of Devices | Show which Intune policies and apps target given devices | - **Type**: Microsoft Graph<br>&emsp;- Device.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- DeviceManagementApps.Read.All<br> |  | DeviceNames | ✓ | String | Names of the devices to check, separated by commas. |
 |  |  |  |  |  |  | IncludeApps |  | Boolean | Also lists the apps assigned to the devices. |
-|  |  | Check Assignments Of Groups | Show which Intune policies and apps target given groups | - **Type**: Microsoft Graph<br>&emsp;- Group.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- DeviceManagementApps.Read.All<br> |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  |  |  |  |  | GroupIDs | ✓ | String Array | Assignments are matched against each picked group directly; assignments to parent groups are not included. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+|  |  | Check Assignments Of Groups | Show which Intune policies and apps target given groups | - **Type**: Microsoft Graph<br>&emsp;- Group.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- DeviceManagementApps.Read.All<br> |  | GroupIDs | ✓ | String Array | Assignments are matched against each picked group directly; assignments to parent groups are not included. |
 |  |  |  |  |  |  | IncludeApps |  | Boolean | Also lists the apps assigned to the groups. |
-|  |  | Check Assignments Of Users | Show which Intune policies and apps target given users | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- DeviceManagementApps.Read.All<br> |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  |  |  |  |  | UserPrincipalName | ✓ | String Array | Each picked user is checked separately through their group memberships, nested groups included. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+|  |  | Check Assignments Of Users | Show which Intune policies and apps target given users | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- DeviceManagementApps.Read.All<br> |  | UserPrincipalName | ✓ | String Array | Each picked user is checked separately through their group memberships, nested groups included. |
 |  |  |  |  |  |  | IncludeApps |  | Boolean | Also lists the apps assigned to the users. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  |  | Check Autopilot Serialnumbers | Check which serial numbers are registered in Autopilot | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementServiceConfig.Read.All<br> |  | SerialNumbers | ✓ | String | Serial numbers to check, separated by commas. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  |  | Check Device Onboarding Exclusion (Scheduled) | Keep unenrolled Autopilot devices in a compliance exclusion group | - **Type**: Microsoft Graph<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Device.Read.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- DeviceManagementServiceConfig.Read.All<br> |  | exclusionGroupName |  | String | Display name of the group that holds the excluded devices. |
@@ -791,8 +810,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | StorageAccountName |  | String | Storage account for the export. Taken from the tenant setting OfficeLicensingReport.StorageAccount.Name. |
 |  |  |  |  |  |  | SubscriptionId |  | String | Azure subscription that holds the storage account. Taken from the tenant setting OfficeLicensingReport.SubscriptionId. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  | Report Apple MDM Cert Expiry (Scheduled) | Alert before Apple MDM certificates and tokens expire | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementServiceConfig.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br> |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  |  |  |  |  | Days |  | Int32 | Certificates and tokens that expire within this many days are flagged. |
+|  |  | Report Apple MDM Cert Expiry (Scheduled) | Alert before Apple MDM certificates and tokens expire | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementServiceConfig.Read.All<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br> |  | Days |  | Int32 | Certificates and tokens that expire within this many days are flagged. |
 |  |  |  |  |  |  | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 |  |  |  |  |  |  | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 |  |  |  |  |  |  | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -800,6 +818,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
 |  |  |  |  |  |  | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 |  |  |  |  |  |  | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  |  | Report Intune Enrollment Readiness | Report which users can enroll devices in Intune | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementServiceConfig.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- GroupMember.Read.All<br>&emsp;- Organization.Read.All<br>&emsp;- Policy.Read.All<br>&emsp;- RoleManagement.Read.Directory<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br> |  | UserName |  | String Array | Each picked user is checked on its own. Leave empty to check only the members of the group. |
 |  |  |  |  |  |  | GroupName |  | String | Group whose members are checked, nested groups included. Can be combined with individual users. |
 |  |  |  |  |  |  | EnrollmentPlatform |  | String | Platform of the device the users want to enroll. Conditional Access policies scoped to other platforms are ignored; All platforms checks every platform and reports each one. |
@@ -830,9 +849,9 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 |  |  |  |  |  |  | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  | Report PIM Activations (Scheduled) | Report the PIM role activations of the last month by email | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- Mail.Send<br> |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  |  |  |  |  | sendAlertTo |  | String | Gets the monthly PIM activation report. |
+|  |  | Report PIM Activations (Scheduled) | Report the PIM role activations of the last month by email | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- Mail.Send<br> |  | sendAlertTo |  | String | Gets the monthly PIM activation report. |
 |  |  |  |  |  |  | sendAlertFrom |  | String | User in the tenant the report is sent as; needs a mailbox. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  |  | Sync All Devices | Trigger an Intune sync on all Windows devices | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br> |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  |  | Sync Apple Tokens | Sync Apple enrollment and VPP tokens with Intune | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementApps.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  | SyncType | ✓ | String | Sync the Enrollment Program tokens, the VPP tokens, or both. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
@@ -1026,8 +1045,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | StorageAccountLocation |  | String | Azure region used when the storage account has to be created. Taken from the tenant setting VulnAppRegExport.StorageAccount.Location. |
 |  |  |  |  |  |  | StorageAccountSku |  | String | Performance tier used when the storage account has to be created. Taken from the tenant setting VulnAppRegExport.StorageAccount.Sku. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  | Monitor Pending EPM Requests (Scheduled) | Alert by email about pending EPM elevation requests | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br> |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  |  |  |  |  | DetailedReport |  | Boolean | Adds a table with every pending request and attaches the report files. Otherwise the email only states how many requests are pending. |
+|  |  | Monitor Pending EPM Requests (Scheduled) | Alert by email about pending EPM elevation requests | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br> |  | DetailedReport |  | Boolean | Adds a table with every pending request and attaches the report files. Otherwise the email only states how many requests are pending. |
 |  |  |  |  |  |  | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 |  |  |  |  |  |  | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 |  |  |  |  |  |  | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -1041,11 +1059,11 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 |  |  |  |  |  |  | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
 |  |  |  |  |  |  | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  |  | Notify Changed CA Policies | Alert by email about Conditional Access policy changes | - **Type**: Microsoft Graph<br>&emsp;- Policy.Read.All<br>&emsp;- Mail.Send<br>&emsp;- User.Read.All<br> |  | From | ✓ | String | User in the tenant the alert is sent as; needs a mailbox. |
 |  |  |  |  |  |  | To | ✓ | String | Gets the email with the list of changed policies. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  | Report EPM Elevation Requests (Scheduled) | Report EPM elevation requests by status and age | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br> |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  |  |  |  |  | IncludeApproved |  | Boolean | Includes requests an administrator approved. |
+|  |  | Report EPM Elevation Requests (Scheduled) | Report EPM elevation requests by status and age | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementConfiguration.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br> |  | IncludeApproved |  | Boolean | Includes requests an administrator approved. |
 |  |  |  |  |  |  | IncludeDenied |  | Boolean | Includes requests an administrator rejected. |
 |  |  |  |  |  |  | IncludeExpired |  | Boolean | Includes requests that expired before a decision was made. |
 |  |  |  |  |  |  | IncludeRevoked |  | Boolean | Includes requests whose approval was withdrawn later. |
@@ -1065,6 +1083,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 |  |  |  |  |  |  | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
 |  |  |  |  |  |  | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  |  | Sync MFA Secure Users To Group (Scheduled) | Keep a group filled with users who registered a secure MFA method | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- RoleManagement.Read.Directory<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- User.Read.All<br>&emsp;- Organization.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br> |  | TargetGroupId | ✓ | String | Group whose members are managed by this runbook. Members that no longer qualify are removed. |
 |  |  |  |  |  |  | IncludePasskeys |  | Boolean | Passkeys and FIDO2 security keys, which are phishing-resistant, count as secure. |
 |  |  |  |  |  |  | IncludePlatformCredentials |  | Boolean | Windows Hello for Business and macOS platform credentials count as secure. |

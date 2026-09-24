@@ -71,6 +71,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Check Onedrive Status
     - List Sharepoint Sitecollection Permission
     - Report Sharepoint Tenant Storage (Scheduled)
+    - Report Teams Channels (Scheduled)
   - [Devices](#organization-devices)
     - Add Autopilot Device
     - Add Device Via Corporate Identifier
@@ -328,6 +329,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Check Onedrive Status | Check whether a user's OneDrive is active, locked or deleted |
 | List Sharepoint Sitecollection Permission | List the administrators and members of a SharePoint site |
 | Report Sharepoint Tenant Storage (Scheduled) | Monitor SharePoint storage and alert when limits are exceeded |
+| Report Teams Channels (Scheduled) | List private and shared channels of all teams with their owners |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 
