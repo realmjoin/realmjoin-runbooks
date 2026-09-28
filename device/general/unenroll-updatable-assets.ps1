@@ -5,14 +5,14 @@
     .DESCRIPTION
     Removes this device from Windows Update for Business for the chosen update category. Choosing all removes the device as an updatable asset altogether, so Intune no longer manages driver, feature or quality updates for it through the deployment service.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
-
     .PARAMETER DeviceId
     Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
     .PARAMETER UpdateCategory
     Update category to unenroll the device from. Choosing all removes the device from Windows Update for Business entirely.
+
+    .PARAMETER CallerName
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -34,12 +34,12 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [string] $CallerName,
-    [Parameter(Mandatory = $true)]
     [string] $DeviceId,
     [Parameter(Mandatory = $true)]
     [ValidateSet("driver", "feature", "quality", "all")]
-    [string] $UpdateCategory = "all"
+    [string] $UpdateCategory = "all",
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose

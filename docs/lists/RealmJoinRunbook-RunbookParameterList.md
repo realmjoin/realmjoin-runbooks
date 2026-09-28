@@ -71,6 +71,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Check Onedrive Status](#organization-collab-check-onedrive-status)
     - [List Sharepoint Sitecollection Permission](#organization-collab-list-sharepoint-sitecollection-permission)
     - [Report Sharepoint Tenant Storage (Scheduled)](#organization-collab-report-sharepoint-tenant-storage-scheduled)
+    - [Report Teams Channels (Scheduled)](#organization-collab-report-teams-channels-scheduled)
   - [Devices](#organization-devices)
     - [Add Autopilot Device](#organization-devices-add-autopilot-device)
     - [Add Device Via Corporate Identifier](#organization-devices-add-device-via-corporate-identifier)
@@ -296,8 +297,8 @@ Check whether this device is enrolled in Windows Update for Business
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 | DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='device-general-enroll-updatable-assets'></a>
 
@@ -306,9 +307,9 @@ Enroll this device in Windows Update for Business
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 | DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
 | UpdateCategory | ✓ | String | Update category to enroll the device in. All enrolls it in driver, feature and quality updates. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='device-general-outphase-device'></a>
 
@@ -368,9 +369,9 @@ Unenroll this device from Windows Update for Business
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 | DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
 | UpdateCategory | ✓ | String | Update category to unenroll the device from. Choosing all removes the device from Windows Update for Business entirely. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='device-general-wipe-device'></a>
 
@@ -511,8 +512,8 @@ Check Windows Update for Business enrollment of this group's devices
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 | GroupId | ✓ | String | Object ID of the group the runbook acts on. Set by the portal from the selected group. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='group-devices-unenroll-updatable-assets-scheduled'></a>
 
@@ -521,10 +522,10 @@ Unenroll this group's devices from Windows Update for Business
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 | GroupId | ✓ | String | Object ID of the group the runbook acts on. Set by the portal from the selected group. |
 | UpdateCategory | ✓ | String | Update category (driver, feature or quality) to unenroll the devices from. Choose all to delete the updatable asset registration entirely. |
 | IncludeUserOwnedDevices |  | Boolean | Also unenrolls every device owned by the users in this group, nested groups included. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
 
@@ -919,6 +920,33 @@ Monitor SharePoint storage and alert when limits are exceeded
 | AlertEmailSubject | ✓ | String | Subject line of the alert email. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
+<a name='organization-collab-report-teams-channels-scheduled'></a>
+
+### Report Teams Channels (Scheduled)
+List private and shared channels of all teams with their owners
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| IncludePrivateChannels |  | Boolean | Lists the private channels hosted by each team. |
+| IncludeSharedChannels |  | Boolean | Lists the shared channels hosted by each team. Members from other tenants are marked as external. |
+| IncludeMembers |  | Boolean | Also lists the members of each channel by name. Off lists the owners only, which keeps the report short in large tenants. |
+| TeamNamePrefix |  | String | Only teams whose name starts with this text. Leave empty for all teams. |
+| EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
+| BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
+| BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
+| BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
+| BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
+| BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
+| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
+| ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
+| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+| ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
+| ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
+| StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
 
 <a name='organization-devices'></a>
@@ -1073,8 +1101,8 @@ Look up a BitLocker recovery key by its key ID
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 | bitlockeryRecoveryKeyId | ✓ | String | The key ID displayed on the BitLocker recovery screen of the device. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-devices-list-mobile-devices'></a>
 
@@ -1409,13 +1437,13 @@ Add the devices of a user group's members to a device group
 |-----------|----------|------|-------------|
 | UserGroup | ✓ | String | Name or object ID of the group whose members' devices are collected. |
 | DeviceGroup | ✓ | String | Name or object ID of the group the devices are added to. |
-| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 | IncludeWindowsDevice |  | Boolean | Includes Windows devices. |
 | IncludeMacOSDevice |  | Boolean | Includes macOS devices. |
 | IncludeLinuxDevice |  | Boolean | Includes Linux devices. |
 | IncludeAndroidDevice |  | Boolean | Includes Android devices. |
 | IncludeIOSDevice |  | Boolean | Includes iOS devices. |
 | IncludeIPadOSDevice |  | Boolean | Includes iPadOS devices. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-general-add-management-partner'></a>
 
@@ -1621,9 +1649,9 @@ Check the last Entra Connect sync and alert when it is off
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 | sendAlertTo |  | String | Gets the alert email when directory synchronization is found disabled. |
 | sendAlertFrom |  | String | User in the tenant the alert is sent as; needs a mailbox. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-general-check-assignments-of-devices'></a>
 
@@ -1632,9 +1660,9 @@ Show which Intune policies and apps target given devices
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 | DeviceNames | ✓ | String | Names of the devices to check, separated by commas. |
 | IncludeApps |  | Boolean | Also lists the apps assigned to the devices. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-general-check-assignments-of-groups'></a>
 
@@ -1643,9 +1671,9 @@ Show which Intune policies and apps target given groups
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 | GroupIDs | ✓ | String Array | Assignments are matched against each picked group directly; assignments to parent groups are not included. |
 | IncludeApps |  | Boolean | Also lists the apps assigned to the groups. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-general-check-assignments-of-users'></a>
 
@@ -1654,9 +1682,9 @@ Show which Intune policies and apps target given users
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 | UserPrincipalName | ✓ | String Array | Each picked user is checked separately through their group memberships, nested groups included. |
 | IncludeApps |  | Boolean | Also lists the apps assigned to the users. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-general-check-autopilot-serialnumbers'></a>
 
@@ -1860,7 +1888,6 @@ Alert before Apple MDM certificates and tokens expire
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 | Days |  | Int32 | Certificates and tokens that expire within this many days are flagged. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
@@ -1869,6 +1896,7 @@ Alert before Apple MDM certificates and tokens expire
 | BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
 | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-general-report-intune-enrollment-readiness'></a>
 
@@ -1923,9 +1951,9 @@ Report the PIM role activations of the last month by email
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 | sendAlertTo |  | String | Gets the monthly PIM activation report. |
 | sendAlertFrom |  | String | User in the tenant the report is sent as; needs a mailbox. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-general-sync-all-devices'></a>
 
@@ -2366,7 +2394,6 @@ Alert by email about pending EPM elevation requests
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 | DetailedReport |  | Boolean | Adds a table with every pending request and attaches the report files. Otherwise the email only states how many requests are pending. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
@@ -2381,6 +2408,7 @@ Alert by email about pending EPM elevation requests
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-security-notify-changed-ca-policies'></a>
 
@@ -2400,7 +2428,6 @@ Report EPM elevation requests by status and age
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 | IncludeApproved |  | Boolean | Includes requests an administrator approved. |
 | IncludeDenied |  | Boolean | Includes requests an administrator rejected. |
 | IncludeExpired |  | Boolean | Includes requests that expired before a decision was made. |
@@ -2421,6 +2448,7 @@ Report EPM elevation requests by status and age
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-security-sync-mfa-secure-users-to-group-scheduled'></a>
 

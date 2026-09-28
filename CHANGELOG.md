@@ -15,6 +15,13 @@
   - Optional license check (`CheckSharePointLicense`, enabled by default) aborts when the user has no enabled SharePoint service plan, regardless of the license source (e.g. Microsoft 365 E3/E5, F3, SharePoint Online Plan 1/2, group-based licensing).
   - Idempotent: no request is sent if the OneDrive already exists; a warning is shown if a deleted OneDrive of the user is found in the tenant recycle bin. Provisioning is asynchronous, the runbook only queues the request and points to **Check OneDrive Status** for verification.
 
+## 2026-09-24
+
+- New **Report Teams Channels (Scheduled)** Runbook in Org/Collab
+  - Lists the private and shared channels of every team with their owners and, optionally, their members; members from other tenants are marked as external and channels without an owner are listed separately
+  - Reads channels and members through Graph batch requests so large tenants complete in reasonable time; teams that cannot be read are reported instead of aborting the run
+  - Results as separate named tables in the portal's Output Data tab; the report can be sent by email or provided as a download link
+
 ## 2026-09-21
 
 - Update **Delegate Full Access** Runbook in User/Mail

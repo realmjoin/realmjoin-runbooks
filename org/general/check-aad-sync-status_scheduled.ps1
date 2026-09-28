@@ -5,14 +5,14 @@
 	.DESCRIPTION
 	Checks whether directory synchronization from on-premises Active Directory is enabled in the tenant. If it is not, an alert email is sent.
 
-	.PARAMETER CallerName
-	Name of the user who started the runbook. Set by the portal and recorded for auditing.
-
 	.PARAMETER sendAlertTo
 	Gets the alert email when directory synchronization is found disabled.
 
 	.PARAMETER sendAlertFrom
 	User in the tenant the alert is sent as; needs a mailbox.
+
+	.PARAMETER CallerName
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
@@ -33,11 +33,11 @@
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 param(
+    [string] $sendAlertTo = "support@glueckkanja.com",
+    [string] $sendAlertFrom = "runbooks@glueckkanja.com",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
-    [string] $CallerName,
-    [string] $sendAlertTo = "support@glueckkanja.com",
-    [string] $sendAlertFrom = "runbooks@glueckkanja.com"
+    [string] $CallerName
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose

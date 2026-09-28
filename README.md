@@ -96,6 +96,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Check Onedrive Status](docs/org/collab/check-onedrive-status.md)
     - [List Sharepoint Sitecollection Permission](docs/org/collab/list-sharepoint-sitecollection-permission.md)
     - [Report Sharepoint Tenant Storage (Scheduled)](docs/org/collab/report-sharepoint-tenant-storage_scheduled.md)
+    - [Report Teams Channels (Scheduled)](docs/org/collab/report-teams-channels_scheduled.md)
   - [Devices](docs/org/README.md#org-devices)
 
     - [Add Autopilot Device](docs/org/devices/add-autopilot-device.md)

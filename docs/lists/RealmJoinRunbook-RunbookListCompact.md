@@ -51,6 +51,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  | Collab | Check Onedrive Status | Check whether a user's OneDrive is active, locked or deleted |
 |  |  | List Sharepoint Sitecollection Permission | List the administrators and members of a SharePoint site |
 |  |  | Report Sharepoint Tenant Storage (Scheduled) | Monitor SharePoint storage and alert when limits are exceeded |
+|  |  | Report Teams Channels (Scheduled) | List private and shared channels of all teams with their owners |
 |  | Devices | Add Autopilot Device | Register a Windows device in Windows Autopilot |
 |  |  | Add Device Via Corporate Identifier | Register a device in Intune by its corporate identifier |
 |  |  | Auto Approve Driver Updates (Scheduled) | Approve pending driver updates in Intune driver update policies |

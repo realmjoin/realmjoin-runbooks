@@ -584,7 +584,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "1",
+        "position": "2",
         "required": "true",
         "type": {
           "name": "String"
@@ -601,7 +601,7 @@
         "name": "DeviceId",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "1",
         "required": "true",
         "type": {
           "name": "String"
@@ -648,7 +648,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "1",
+        "position": "3",
         "required": "true",
         "type": {
           "name": "String"
@@ -665,7 +665,7 @@
         "name": "DeviceId",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "1",
         "required": "true",
         "type": {
           "name": "String"
@@ -682,7 +682,7 @@
         "name": "UpdateCategory",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "2",
         "required": "true",
         "type": {
           "name": "String"
@@ -1183,7 +1183,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "1",
+        "position": "3",
         "required": "true",
         "type": {
           "name": "String"
@@ -1200,7 +1200,7 @@
         "name": "DeviceId",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "1",
         "required": "true",
         "type": {
           "name": "String"
@@ -1217,7 +1217,7 @@
         "name": "UpdateCategory",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "2",
         "required": "true",
         "type": {
           "name": "String"
@@ -2277,7 +2277,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "1",
+        "position": "2",
         "required": "true",
         "type": {
           "name": "String"
@@ -2294,7 +2294,7 @@
         "name": "GroupId",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "1",
         "required": "true",
         "type": {
           "name": "String"
@@ -2344,7 +2344,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "1",
+        "position": "4",
         "required": "true",
         "type": {
           "name": "String"
@@ -2361,7 +2361,7 @@
         "name": "GroupId",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "1",
         "required": "true",
         "type": {
           "name": "String"
@@ -2378,7 +2378,7 @@
         "name": "IncludeUserOwnedDevices",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "4",
+        "position": "3",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -2395,7 +2395,7 @@
         "name": "UpdateCategory",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "2",
         "required": "true",
         "type": {
           "name": "String"
@@ -6156,6 +6156,362 @@
     }
   },
   {
+    "RunbookDisplayName": "Report Teams Channels_Scheduled",
+    "RunbookDisplayPath": "Org \\ Collab \\ Report Teams Channels_Scheduled",
+    "RelativeRunbookPath": "org/collab/report-teams-channels_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/collab",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Collab",
+    "Synopsis": "List private and shared channels of all teams with their owners",
+    "Description": "Walks through every team in the tenant and lists its private and shared channels with the team they belong to, their owners and, if wanted, their members. Private channels are not visible in the group view of the RealmJoin Portal, so this report shows who owns and who can access them. Channels without any owner are listed separately. The report can be sent by email or provided as a download link.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingAccentColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterLink",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingHeaderImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingTextColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user who started the runbook. Set by the portal and recorded for auditing."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "19",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "report-teams-channels",
+        "description": [
+          {
+            "Text": "Storage container the report files are uploaded to. Set per runbook."
+          }
+        ],
+        "globbing": "false",
+        "name": "ContainerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "15",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Also upload the report and return a download link that expires after a few days."
+          }
+        ],
+        "globbing": "false",
+        "name": "CreateDownloadLink",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "14",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sender address of the report email. Taken from the tenant setting RJReport.EmailSender."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Send the report to these addresses. Separate several with commas; each recipient gets a separate email."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "12",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Also lists the members of each channel by name. Off lists the owners only, which keeps the report short in large tenants."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeMembers",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Lists the private channels hosted by each team."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludePrivateChannels",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Lists the shared channels hosted by each team. Members from other tenants are marked as external."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeSharedChannels",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "18",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "CSV & XLSX",
+        "description": [
+          {
+            "Text": "Deliver the report as CSV, as an Excel workbook, or both."
+          }
+        ],
+        "globbing": "false",
+        "name": "ReportFileFormat",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "13",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup."
+          }
+        ],
+        "globbing": "false",
+        "name": "ResourceGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "16",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Send the report to the recipient email address."
+          }
+        ],
+        "globbing": "false",
+        "name": "SendEmailReport",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName."
+          }
+        ],
+        "globbing": "false",
+        "name": "StorageAccountName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "17",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Only teams whose name starts with this text. Leave empty for all teams."
+          }
+        ],
+        "globbing": "false",
+        "name": "TeamNamePrefix",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": "## How it works\n\nThe runbook lists every Microsoft 365 group that is provisioned as a team, optionally narrowed by *Team name prefix*. For each team it reads the channels of the selected types and, for each channel, the member list.\n\n- **Private channels** belong to one team; only their members see them, and they do not appear in the group view of the RealmJoin Portal or in the group membership of the team. This report is the way to see them at a glance.\n- **Shared channels** are hosted by one team and can be shared with other teams and with people from other tenants. The report lists the shared channels a team hosts; channels shared into a team from elsewhere are not repeated under that team.\n\nEvery row names the team and its visibility, the channel, its type, whether it is archived, the creation date, the number of owners, members and external members, and the owners by name and email. With *List the members too?* set to yes, the members are listed by name as well; leave it off in large tenants to keep the report short.\n\nChannels without any owner are listed in their own table and worksheet. A private or shared channel keeps working without an owner, but nobody can manage its membership from inside Teams, so such channels are the first candidates for cleanup.\n\n### External members\n\nA member whose tenant differs from the home tenant is marked *(external)* and counted in the *ExternalCount* column. Guest accounts of the home tenant are not marked, as they are members of the tenant directory.\n\n### Teams and channels that cannot be read\n\nA team whose channels cannot be read, for example because it was deleted while the report ran or because the team is archived and inaccessible, is listed in the *Teams not readable* table with the reason and does not stop the run. A channel whose member list cannot be read keeps its row with the reason in the *Note* column and is not counted as a channel without owner.\n\n### Runtime\n\nChannels and members are read through Graph batch requests, twenty at a time. A tenant with several thousand teams still takes a while; the job log shows the progress. Use *Team name prefix* to report on a subset.\n\n## Report delivery\n\nReport files are only generated when a delivery method is selected via the **Report delivery** option (email and/or download link). With *No report* selected, the results are read directly in the RealmJoin portal output. Email delivery and download link generation are independent and can be combined.\n\nFor the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).\n\n## Setup regarding email sending\n\nSending an email report is optional and only happens when the *Email report* delivery option is selected; a recipient (`EmailTo`) is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.\n\n### Email branding\n\nThe report email honors the optional `RJReport.Branding.*` tenant settings:\n\n- **Header and footer image** - public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each\n- **Footer link** - target of the footer image\n- **Accent and text color** - 6-digit hex values, e.g. `#0052cc`\n\nWhen these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email - the corresponding default is used instead.\n\nSetup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).\n\n## Notes and limitations\n\n- The report is read-only. Owners and members of private and shared channels are changed in the Teams admin center or in Teams itself; the runbooks **Sync Channel Or Group Members (Scheduled)** and **Sync Shared Channel Owners (Scheduled)** cover the automated cases for shared channels.\n- Standard channels are not listed; their membership equals the team membership, which the RealmJoin Portal shows.\n- The member list of a shared channel contains its direct members. People who reach a shared channel through another team that the channel is shared with are not listed.\n",
+    "DocsContentEncoded": "IyMgSG93IGl0IHdvcmtzCgpUaGUgcnVuYm9vayBsaXN0cyBldmVyeSBNaWNyb3NvZnQgMzY1IGdyb3VwIHRoYXQgaXMgcHJvdmlzaW9uZWQgYXMgYSB0ZWFtLCBvcHRpb25hbGx5IG5hcnJvd2VkIGJ5ICpUZWFtIG5hbWUgcHJlZml4Ki4gRm9yIGVhY2ggdGVhbSBpdCByZWFkcyB0aGUgY2hhbm5lbHMgb2YgdGhlIHNlbGVjdGVkIHR5cGVzIGFuZCwgZm9yIGVhY2ggY2hhbm5lbCwgdGhlIG1lbWJlciBsaXN0LgoKLSAqKlByaXZhdGUgY2hhbm5lbHMqKiBiZWxvbmcgdG8gb25lIHRlYW07IG9ubHkgdGhlaXIgbWVtYmVycyBzZWUgdGhlbSwgYW5kIHRoZXkgZG8gbm90IGFwcGVhciBpbiB0aGUgZ3JvdXAgdmlldyBvZiB0aGUgUmVhbG1Kb2luIFBvcnRhbCBvciBpbiB0aGUgZ3JvdXAgbWVtYmVyc2hpcCBvZiB0aGUgdGVhbS4gVGhpcyByZXBvcnQgaXMgdGhlIHdheSB0byBzZWUgdGhlbSBhdCBhIGdsYW5jZS4KLSAqKlNoYXJlZCBjaGFubmVscyoqIGFyZSBob3N0ZWQgYnkgb25lIHRlYW0gYW5kIGNhbiBiZSBzaGFyZWQgd2l0aCBvdGhlciB0ZWFtcyBhbmQgd2l0aCBwZW9wbGUgZnJvbSBvdGhlciB0ZW5hbnRzLiBUaGUgcmVwb3J0IGxpc3RzIHRoZSBzaGFyZWQgY2hhbm5lbHMgYSB0ZWFtIGhvc3RzOyBjaGFubmVscyBzaGFyZWQgaW50byBhIHRlYW0gZnJvbSBlbHNld2hlcmUgYXJlIG5vdCByZXBlYXRlZCB1bmRlciB0aGF0IHRlYW0uCgpFdmVyeSByb3cgbmFtZXMgdGhlIHRlYW0gYW5kIGl0cyB2aXNpYmlsaXR5LCB0aGUgY2hhbm5lbCwgaXRzIHR5cGUsIHdoZXRoZXIgaXQgaXMgYXJjaGl2ZWQsIHRoZSBjcmVhdGlvbiBkYXRlLCB0aGUgbnVtYmVyIG9mIG93bmVycywgbWVtYmVycyBhbmQgZXh0ZXJuYWwgbWVtYmVycywgYW5kIHRoZSBvd25lcnMgYnkgbmFtZSBhbmQgZW1haWwuIFdpdGggKkxpc3QgdGhlIG1lbWJlcnMgdG9vPyogc2V0IHRvIHllcywgdGhlIG1lbWJlcnMgYXJlIGxpc3RlZCBieSBuYW1lIGFzIHdlbGw7IGxlYXZlIGl0IG9mZiBpbiBsYXJnZSB0ZW5hbnRzIHRvIGtlZXAgdGhlIHJlcG9ydCBzaG9ydC4KCkNoYW5uZWxzIHdpdGhvdXQgYW55IG93bmVyIGFyZSBsaXN0ZWQgaW4gdGhlaXIgb3duIHRhYmxlIGFuZCB3b3Jrc2hlZXQuIEEgcHJpdmF0ZSBvciBzaGFyZWQgY2hhbm5lbCBrZWVwcyB3b3JraW5nIHdpdGhvdXQgYW4gb3duZXIsIGJ1dCBub2JvZHkgY2FuIG1hbmFnZSBpdHMgbWVtYmVyc2hpcCBmcm9tIGluc2lkZSBUZWFtcywgc28gc3VjaCBjaGFubmVscyBhcmUgdGhlIGZpcnN0IGNhbmRpZGF0ZXMgZm9yIGNsZWFudXAuCgojIyMgRXh0ZXJuYWwgbWVtYmVycwoKQSBtZW1iZXIgd2hvc2UgdGVuYW50IGRpZmZlcnMgZnJvbSB0aGUgaG9tZSB0ZW5hbnQgaXMgbWFya2VkICooZXh0ZXJuYWwpKiBhbmQgY291bnRlZCBpbiB0aGUgKkV4dGVybmFsQ291bnQqIGNvbHVtbi4gR3Vlc3QgYWNjb3VudHMgb2YgdGhlIGhvbWUgdGVuYW50IGFyZSBub3QgbWFya2VkLCBhcyB0aGV5IGFyZSBtZW1iZXJzIG9mIHRoZSB0ZW5hbnQgZGlyZWN0b3J5LgoKIyMjIFRlYW1zIGFuZCBjaGFubmVscyB0aGF0IGNhbm5vdCBiZSByZWFkCgpBIHRlYW0gd2hvc2UgY2hhbm5lbHMgY2Fubm90IGJlIHJlYWQsIGZvciBleGFtcGxlIGJlY2F1c2UgaXQgd2FzIGRlbGV0ZWQgd2hpbGUgdGhlIHJlcG9ydCByYW4gb3IgYmVjYXVzZSB0aGUgdGVhbSBpcyBhcmNoaXZlZCBhbmQgaW5hY2Nlc3NpYmxlLCBpcyBsaXN0ZWQgaW4gdGhlICpUZWFtcyBub3QgcmVhZGFibGUqIHRhYmxlIHdpdGggdGhlIHJlYXNvbiBhbmQgZG9lcyBub3Qgc3RvcCB0aGUgcnVuLiBBIGNoYW5uZWwgd2hvc2UgbWVtYmVyIGxpc3QgY2Fubm90IGJlIHJlYWQga2VlcHMgaXRzIHJvdyB3aXRoIHRoZSByZWFzb24gaW4gdGhlICpOb3RlKiBjb2x1bW4gYW5kIGlzIG5vdCBjb3VudGVkIGFzIGEgY2hhbm5lbCB3aXRob3V0IG93bmVyLgoKIyMjIFJ1bnRpbWUKCkNoYW5uZWxzIGFuZCBtZW1iZXJzIGFyZSByZWFkIHRocm91Z2ggR3JhcGggYmF0Y2ggcmVxdWVzdHMsIHR3ZW50eSBhdCBhIHRpbWUuIEEgdGVuYW50IHdpdGggc2V2ZXJhbCB0aG91c2FuZCB0ZWFtcyBzdGlsbCB0YWtlcyBhIHdoaWxlOyB0aGUgam9iIGxvZyBzaG93cyB0aGUgcHJvZ3Jlc3MuIFVzZSAqVGVhbSBuYW1lIHByZWZpeCogdG8gcmVwb3J0IG9uIGEgc3Vic2V0LgoKIyMgUmVwb3J0IGRlbGl2ZXJ5CgpSZXBvcnQgZmlsZXMgYXJlIG9ubHkgZ2VuZXJhdGVkIHdoZW4gYSBkZWxpdmVyeSBtZXRob2QgaXMgc2VsZWN0ZWQgdmlhIHRoZSAqKlJlcG9ydCBkZWxpdmVyeSoqIG9wdGlvbiAoZW1haWwgYW5kL29yIGRvd25sb2FkIGxpbmspLiBXaXRoICpObyByZXBvcnQqIHNlbGVjdGVkLCB0aGUgcmVzdWx0cyBhcmUgcmVhZCBkaXJlY3RseSBpbiB0aGUgUmVhbG1Kb2luIHBvcnRhbCBvdXRwdXQuIEVtYWlsIGRlbGl2ZXJ5IGFuZCBkb3dubG9hZCBsaW5rIGdlbmVyYXRpb24gYXJlIGluZGVwZW5kZW50IGFuZCBjYW4gYmUgY29tYmluZWQuCgpGb3IgdGhlIGRvd25sb2FkIGxpbmssIHRoZSByZXBvcnQgZmlsZXMgYXJlIHVwbG9hZGVkIHRvIHRoZSBBenVyZSBzdG9yYWdlIGFjY291bnQgY29uZmlndXJlZCBpbiB0aGUgYFJKUmVwb3J0LlN0b3JhZ2VBY2NvdW50LipgIHRlbmFudCBzZXR0aW5ncywgYW5kIHRpbWUtbGltaXRlZCBTQVMgZG93bmxvYWQgbGlua3MgYXJlIHJldHVybmVkLiBUaGUgc3RvcmFnZSB1cGxvYWQgYXV0aGVudGljYXRlcyB3aXRoIHRoZSBBdXRvbWF0aW9uIGFjY291bnQncyBtYW5hZ2VkIGlkZW50aXR5OyB0aGF0IGlkZW50aXR5IG5lZWRzIHRoZSAqKlN0b3JhZ2UgQWNjb3VudCBDb250cmlidXRvcioqIFJCQUMgcm9sZSBvbiB0aGUgdGFyZ2V0IHN0b3JhZ2UgYWNjb3VudCAodGhpcyBpcyBhbiBBenVyZSBSQkFDIGFzc2lnbm1lbnQsIG5vdCBhIEdyYXBoIGFwcGxpY2F0aW9uIHBlcm1pc3Npb24pLgoKIyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiB0aGUgKkVtYWlsIHJlcG9ydCogZGVsaXZlcnkgb3B0aW9uIGlzIHNlbGVjdGVkOyBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyB0aGVuIHJlcXVpcmVkLiBUaGUgc2VuZGVyIGFkZHJlc3MgaXMgdGFrZW4gZnJvbSB0aGUgYFJKUmVwb3J0LkVtYWlsU2VuZGVyYCB0ZW5hbnQgc2V0dGluZy4KClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpTZWUgdGhlIFtSZWFsbUpvaW4gUmVwb3J0IFNldHRpbmdzIGRvY3VtZW50YXRpb25dKGh0dHBzOi8vZG9jcy5yZWFsbWpvaW4uY29tL2F1dG9tYXRpb24vcnVuYm9va3MvcnVuYm9vay1yZXBvcnQtc2V0dGluZ3MpIGZvciBkZXRhaWxzIG9uIGFsbCBhdmFpbGFibGUgc2V0dGluZ3MuCgojIyMgRW1haWwgYnJhbmRpbmcKClRoZSByZXBvcnQgZW1haWwgaG9ub3JzIHRoZSBvcHRpb25hbCBgUkpSZXBvcnQuQnJhbmRpbmcuKmAgdGVuYW50IHNldHRpbmdzOgoKLSAqKkhlYWRlciBhbmQgZm9vdGVyIGltYWdlKiogLSBwdWJsaWMgSFRUUFMgVVJMcywgUE5HL0pQRUcvR0lGLCBtYXguIDIwMCBLQiBlYWNoCi0gKipGb290ZXIgbGluayoqIC0gdGFyZ2V0IG9mIHRoZSBmb290ZXIgaW1hZ2UKLSAqKkFjY2VudCBhbmQgdGV4dCBjb2xvcioqIC0gNi1kaWdpdCBoZXggdmFsdWVzLCBlLmcuIGAjMDA1MmNjYAoKV2hlbiB0aGVzZSBzZXR0aW5ncyBhcmUgbm90IGNvbmZpZ3VyZWQsIHRoZSBkZWZhdWx0IFJlYWxtSm9pbiBncmFwaGljcyBhbmQgY29sb3JzIGFyZSB1c2VkLiBBbiBpbWFnZSB0aGF0IGNhbm5vdCBiZSBkb3dubG9hZGVkIG9yIHZhbGlkYXRlZCwgb3IgYW4gaW52YWxpZCBjb2xvciB2YWx1ZSwgbmV2ZXIgcHJldmVudHMgdGhlIHJlcG9ydCBlbWFpbCAtIHRoZSBjb3JyZXNwb25kaW5nIGRlZmF1bHQgaXMgdXNlZCBpbnN0ZWFkLgoKU2V0dXAgaW5zdHJ1Y3Rpb25zIGFuZCBpbWFnZSByZXF1aXJlbWVudHM6IFtFbWFpbCBicmFuZGluZ10oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vYXV0b21hdGlvbi9ydW5ib29rcy9ydW5ib29rLXJlcG9ydC1zZXR0aW5ncyNlbWFpbC1icmFuZGluZy1vcHRpb25hbCkuCgojIyBOb3RlcyBhbmQgbGltaXRhdGlvbnMKCi0gVGhlIHJlcG9ydCBpcyByZWFkLW9ubHkuIE93bmVycyBhbmQgbWVtYmVycyBvZiBwcml2YXRlIGFuZCBzaGFyZWQgY2hhbm5lbHMgYXJlIGNoYW5nZWQgaW4gdGhlIFRlYW1zIGFkbWluIGNlbnRlciBvciBpbiBUZWFtcyBpdHNlbGY7IHRoZSBydW5ib29rcyAqKlN5bmMgQ2hhbm5lbCBPciBHcm91cCBNZW1iZXJzIChTY2hlZHVsZWQpKiogYW5kICoqU3luYyBTaGFyZWQgQ2hhbm5lbCBPd25lcnMgKFNjaGVkdWxlZCkqKiBjb3ZlciB0aGUgYXV0b21hdGVkIGNhc2VzIGZvciBzaGFyZWQgY2hhbm5lbHMuCi0gU3RhbmRhcmQgY2hhbm5lbHMgYXJlIG5vdCBsaXN0ZWQ7IHRoZWlyIG1lbWJlcnNoaXAgZXF1YWxzIHRoZSB0ZWFtIG1lbWJlcnNoaXAsIHdoaWNoIHRoZSBSZWFsbUpvaW4gUG9ydGFsIHNob3dzLgotIFRoZSBtZW1iZXIgbGlzdCBvZiBhIHNoYXJlZCBjaGFubmVsIGNvbnRhaW5zIGl0cyBkaXJlY3QgbWVtYmVycy4gUGVvcGxlIHdobyByZWFjaCBhIHNoYXJlZCBjaGFubmVsIHRocm91Z2ggYW5vdGhlciB0ZWFtIHRoYXQgdGhlIGNoYW5uZWwgaXMgc2hhcmVkIHdpdGggYXJlIG5vdCBsaXN0ZWQuCg==",
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"Channel.ReadBasic.All\",\n                    \"Reason\": \"Lists the private and shared channels of every team via /teams/{id}/channels\"\n                },\n                {\n                    \"Value\": \"ChannelMember.Read.All\",\n                    \"Reason\": \"Reads the members of every listed channel to tell owners, members and external members apart\"\n                },\n                {\n                    \"Value\": \"Group.Read.All\",\n                    \"Reason\": \"Lists the Microsoft 365 groups that are provisioned as teams with their name and visibility\"\n                },\n                {\n                    \"Value\": \"Mail.Send\",\n                    \"Optional\": true,\n                    \"Feature\": \"Email report\",\n                    \"Reason\": \"Sends the report email via Send-RjRbReportEmail when email delivery is selected\"\n                },\n                {\n                    \"Value\": \"Organization.Read.All\",\n                    \"Optional\": true,\n                    \"Feature\": \"Email report\",\n                    \"Reason\": \"Reads the tenant display name for the email subject, the email body and the report file names\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Channel.ReadBasic.All",
+            "ChannelMember.Read.All",
+            "Group.Read.All",
+            "Mail.Send",
+            "Organization.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Add Autopilot Device",
     "RunbookDisplayPath": "Org \\ Devices \\ Add Autopilot Device",
     "RelativeRunbookPath": "org/devices/add-autopilot-device.ps1",
@@ -7853,7 +8209,7 @@
         "name": "bitlockeryRecoveryKeyId",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "1",
         "required": "true",
         "type": {
           "name": "String"
@@ -7870,7 +8226,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "1",
+        "position": "2",
         "required": "true",
         "type": {
           "name": "String"
@@ -12102,7 +12458,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "9",
         "required": "true",
         "type": {
           "name": "String"
@@ -12136,7 +12492,7 @@
         "name": "IncludeAndroidDevice",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "7",
+        "position": "6",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -12153,7 +12509,7 @@
         "name": "IncludeIOSDevice",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "7",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -12170,7 +12526,7 @@
         "name": "IncludeIPadOSDevice",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "8",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -12187,7 +12543,7 @@
         "name": "IncludeLinuxDevice",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "6",
+        "position": "5",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -12204,7 +12560,7 @@
         "name": "IncludeMacOSDevice",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "5",
+        "position": "4",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -12221,7 +12577,7 @@
         "name": "IncludeWindowsDevice",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "4",
+        "position": "3",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -14251,7 +14607,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "1",
+        "position": "3",
         "required": "true",
         "type": {
           "name": "String"
@@ -14268,7 +14624,7 @@
         "name": "sendAlertFrom",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "2",
         "required": "false",
         "type": {
           "name": "String"
@@ -14285,7 +14641,7 @@
         "name": "sendAlertTo",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "1",
         "required": "false",
         "type": {
           "name": "String"
@@ -14332,7 +14688,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "1",
+        "position": "3",
         "required": "true",
         "type": {
           "name": "String"
@@ -14349,7 +14705,7 @@
         "name": "DeviceNames",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "1",
         "required": "true",
         "type": {
           "name": "String"
@@ -14366,7 +14722,7 @@
         "name": "IncludeApps",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "2",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -14415,7 +14771,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "1",
+        "position": "3",
         "required": "true",
         "type": {
           "name": "String"
@@ -14432,7 +14788,7 @@
         "name": "GroupIDs",
         "parameterValue": "String[]",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "1",
         "required": "true",
         "type": {
           "name": "String[]"
@@ -14449,7 +14805,7 @@
         "name": "IncludeApps",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "2",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -14497,7 +14853,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "1",
+        "position": "3",
         "required": "true",
         "type": {
           "name": "String"
@@ -14514,7 +14870,7 @@
         "name": "IncludeApps",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "2",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -14531,7 +14887,7 @@
         "name": "UserPrincipalName",
         "parameterValue": "String[]",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "1",
         "required": "true",
         "type": {
           "name": "String[]"
@@ -16540,7 +16896,7 @@
         "name": "BrandingAccentColor",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "7",
         "required": "false",
         "type": {
           "name": "String"
@@ -16557,7 +16913,7 @@
         "name": "BrandingFooterImageUrl",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "6",
+        "position": "5",
         "required": "false",
         "type": {
           "name": "String"
@@ -16574,7 +16930,7 @@
         "name": "BrandingFooterLink",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "7",
+        "position": "6",
         "required": "false",
         "type": {
           "name": "String"
@@ -16591,7 +16947,7 @@
         "name": "BrandingHeaderImageUrl",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "5",
+        "position": "4",
         "required": "false",
         "type": {
           "name": "String"
@@ -16608,7 +16964,7 @@
         "name": "BrandingTextColor",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "8",
         "required": "false",
         "type": {
           "name": "String"
@@ -16625,7 +16981,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "1",
+        "position": "9",
         "required": "true",
         "type": {
           "name": "String"
@@ -16642,7 +16998,7 @@
         "name": "Days",
         "parameterValue": "Int32",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "1",
         "required": "false",
         "type": {
           "name": "Int32"
@@ -16659,7 +17015,7 @@
         "name": "EmailFrom",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "4",
+        "position": "3",
         "required": "false",
         "type": {
           "name": "String"
@@ -16676,7 +17032,7 @@
         "name": "EmailTo",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "2",
         "required": "false",
         "type": {
           "name": "String"
@@ -17301,7 +17657,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "1",
+        "position": "3",
         "required": "true",
         "type": {
           "name": "String"
@@ -17318,7 +17674,7 @@
         "name": "sendAlertFrom",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "2",
         "required": "false",
         "type": {
           "name": "String"
@@ -17335,7 +17691,7 @@
         "name": "sendAlertTo",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "1",
         "required": "false",
         "type": {
           "name": "String"
@@ -21560,7 +21916,7 @@
         "name": "BrandingAccentColor",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "7",
         "required": "false",
         "type": {
           "name": "String"
@@ -21577,7 +21933,7 @@
         "name": "BrandingFooterImageUrl",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "6",
+        "position": "5",
         "required": "false",
         "type": {
           "name": "String"
@@ -21594,7 +21950,7 @@
         "name": "BrandingFooterLink",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "7",
+        "position": "6",
         "required": "false",
         "type": {
           "name": "String"
@@ -21611,7 +21967,7 @@
         "name": "BrandingHeaderImageUrl",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "5",
+        "position": "4",
         "required": "false",
         "type": {
           "name": "String"
@@ -21628,7 +21984,7 @@
         "name": "BrandingTextColor",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "8",
         "required": "false",
         "type": {
           "name": "String"
@@ -21645,7 +22001,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "1",
+        "position": "15",
         "required": "true",
         "type": {
           "name": "String"
@@ -21662,7 +22018,7 @@
         "name": "ContainerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "12",
+        "position": "11",
         "required": "false",
         "type": {
           "name": "String"
@@ -21679,7 +22035,7 @@
         "name": "CreateDownloadLink",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "11",
+        "position": "10",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -21696,7 +22052,7 @@
         "name": "DetailedReport",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "1",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -21713,7 +22069,7 @@
         "name": "EmailFrom",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "4",
+        "position": "3",
         "required": "false",
         "type": {
           "name": "String"
@@ -21730,7 +22086,7 @@
         "name": "EmailTo",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "2",
         "required": "false",
         "type": {
           "name": "String"
@@ -21747,7 +22103,7 @@
         "name": "LinkExpiryDays",
         "parameterValue": "Int32",
         "pipelineInput": "false",
-        "position": "15",
+        "position": "14",
         "required": "false",
         "type": {
           "name": "Int32"
@@ -21764,7 +22120,7 @@
         "name": "ReportFileFormat",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "9",
         "required": "false",
         "type": {
           "name": "String"
@@ -21781,7 +22137,7 @@
         "name": "ResourceGroupName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "13",
+        "position": "12",
         "required": "false",
         "type": {
           "name": "String"
@@ -21798,7 +22154,7 @@
         "name": "StorageAccountName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "14",
+        "position": "13",
         "required": "false",
         "type": {
           "name": "String"
@@ -21927,7 +22283,7 @@
         "name": "BrandingAccentColor",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "14",
+        "position": "13",
         "required": "false",
         "type": {
           "name": "String"
@@ -21944,7 +22300,7 @@
         "name": "BrandingFooterImageUrl",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "12",
+        "position": "11",
         "required": "false",
         "type": {
           "name": "String"
@@ -21961,7 +22317,7 @@
         "name": "BrandingFooterLink",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "13",
+        "position": "12",
         "required": "false",
         "type": {
           "name": "String"
@@ -21978,7 +22334,7 @@
         "name": "BrandingHeaderImageUrl",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "11",
+        "position": "10",
         "required": "false",
         "type": {
           "name": "String"
@@ -21995,7 +22351,7 @@
         "name": "BrandingTextColor",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "15",
+        "position": "14",
         "required": "false",
         "type": {
           "name": "String"
@@ -22012,7 +22368,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "1",
+        "position": "21",
         "required": "true",
         "type": {
           "name": "String"
@@ -22029,7 +22385,7 @@
         "name": "ContainerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "18",
+        "position": "17",
         "required": "false",
         "type": {
           "name": "String"
@@ -22046,7 +22402,7 @@
         "name": "CreateDownloadLink",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "17",
+        "position": "16",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -22063,7 +22419,7 @@
         "name": "EmailFrom",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "9",
         "required": "false",
         "type": {
           "name": "String"
@@ -22080,7 +22436,7 @@
         "name": "EmailTo",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "8",
         "required": "false",
         "type": {
           "name": "String"
@@ -22097,7 +22453,7 @@
         "name": "IncludeApproved",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "2",
+        "position": "1",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -22114,7 +22470,7 @@
         "name": "IncludeCompleted",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "7",
+        "position": "6",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -22131,7 +22487,7 @@
         "name": "IncludeDenied",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "2",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -22148,7 +22504,7 @@
         "name": "IncludeExpired",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "4",
+        "position": "3",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -22165,7 +22521,7 @@
         "name": "IncludePending",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "6",
+        "position": "5",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -22182,7 +22538,7 @@
         "name": "IncludeRevoked",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "5",
+        "position": "4",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -22199,7 +22555,7 @@
         "name": "LinkExpiryDays",
         "parameterValue": "Int32",
         "pipelineInput": "false",
-        "position": "21",
+        "position": "20",
         "required": "false",
         "type": {
           "name": "Int32"
@@ -22216,7 +22572,7 @@
         "name": "MaxAgeInDays",
         "parameterValue": "Int32",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "7",
         "required": "false",
         "type": {
           "name": "Int32"
@@ -22233,7 +22589,7 @@
         "name": "ReportFileFormat",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "16",
+        "position": "15",
         "required": "false",
         "type": {
           "name": "String"
@@ -22250,7 +22606,7 @@
         "name": "ResourceGroupName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "19",
+        "position": "18",
         "required": "false",
         "type": {
           "name": "String"
@@ -22267,7 +22623,7 @@
         "name": "StorageAccountName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "20",
+        "position": "19",
         "required": "false",
         "type": {
           "name": "String"

@@ -5,14 +5,14 @@
     .DESCRIPTION
     Registers this device as an updatable asset in Windows Update for Business for the chosen update category, so Intune can manage driver, feature or quality updates for it. All enrolls it in driver, feature and quality updates.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
-
     .PARAMETER DeviceId
     Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
     .PARAMETER UpdateCategory
     Update category to enroll the device in. All enrolls it in driver, feature and quality updates.
+
+    .PARAMETER CallerName
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -34,12 +34,12 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [string] $CallerName,
-    [Parameter(Mandatory = $true)]
     [string] $DeviceId,
     [Parameter(Mandatory = $true)]
     [ValidateSet("Driver", "Feature", "Quality", "All")]
-    [string] $UpdateCategory = "Feature"
+    [string] $UpdateCategory = "Feature",
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 ########################################################

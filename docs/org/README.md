@@ -16,6 +16,7 @@
   - [Check Onedrive Status](collab/check-onedrive-status.md)
   - [List Sharepoint Sitecollection Permission](collab/list-sharepoint-sitecollection-permission.md)
   - [Report Sharepoint Tenant Storage (Scheduled)](collab/report-sharepoint-tenant-storage_scheduled.md)
+  - [Report Teams Channels (Scheduled)](collab/report-teams-channels_scheduled.md)
 <a name='org-devices'></a>
 ## Devices
   - [Add Autopilot Device](devices/add-autopilot-device.md)

@@ -5,14 +5,14 @@
     .DESCRIPTION
     Lists the Intune policies, and optionally the apps, that apply to one or more devices by resolving the devices' group memberships and matching them against the assignments. Nothing is changed.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
-
     .PARAMETER DeviceNames
     Names of the devices to check, separated by commas.
 
     .PARAMETER IncludeApps
     Also lists the apps assigned to the devices.
+
+    .PARAMETER CallerName
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -34,10 +34,10 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [string] $CallerName,
-    [Parameter(Mandatory = $true)]
     [string] $DeviceNames,
-    [bool] $IncludeApps = $false
+    [bool] $IncludeApps = $false,
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose

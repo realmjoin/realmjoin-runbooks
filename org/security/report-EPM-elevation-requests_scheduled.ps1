@@ -164,8 +164,6 @@
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
-    [Parameter(Mandatory = $true)]
-    [string] $CallerName,
     [bool] $IncludeApproved = $true,
     [bool] $IncludeDenied = $true,
     [bool] $IncludeExpired = $true,
@@ -207,7 +205,9 @@ param(
 
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" -Value $_ } )]
     [ValidateRange(1, 3650)]
-    [int] $LinkExpiryDays = 6
+    [int] $LinkExpiryDays = 6,
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 ########################################################
