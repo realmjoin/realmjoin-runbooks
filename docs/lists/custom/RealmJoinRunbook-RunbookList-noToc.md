@@ -230,6 +230,12 @@ Each category contains multiple runbooks that are further divided into subcatego
 |--------------|----------|
 | User Signout | Sign this user out of their AVD sessions |
 
+<a name='user-collab'></a>
+### Collab
+| Runbook Name | Synopsis |
+|--------------|----------|
+| Pre Provision Onedrive | Pre-provision the OneDrive of a user |
+
 <a name='user-general'></a>
 ### General
 | Runbook Name | Synopsis |

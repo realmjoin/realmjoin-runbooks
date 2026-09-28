@@ -198,6 +198,9 @@ Apart from the following runbook descriptions, further content such as runbook o
   - [AVD](docs/user/README.md#user-avd)
 
     - [User Signout](docs/user/avd/user-signout.md)
+  - [Collab](docs/user/README.md#user-collab)
+
+    - [Pre Provision Onedrive](docs/user/collab/pre-provision-onedrive.md)
   - [General](docs/user/README.md#user-general)
 
     - [Assign Groups By Template](docs/user/general/assign-groups-by-template.md)

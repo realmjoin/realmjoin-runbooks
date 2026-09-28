@@ -167,6 +167,8 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [User](#user)
   - [AVD](#user-avd)
     - User Signout
+  - [Collab](#user-collab)
+    - Pre Provision Onedrive
   - [General](#user-general)
     - Assign Groups By Template
     - Assign Or Unassign License
@@ -462,6 +464,14 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Runbook Name | Synopsis |
 |--------------|----------|
 | User Signout | Sign this user out of their AVD sessions |
+
+[Back to the RealmJoin runbook overview](#table-of-contents)
+
+<a name='user-collab'></a>
+### Collab
+| Runbook Name | Synopsis |
+|--------------|----------|
+| Pre Provision Onedrive | Pre-provision the OneDrive of a user |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 

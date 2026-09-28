@@ -23251,6 +23251,97 @@
     }
   },
   {
+    "RunbookDisplayName": "Pre Provision Onedrive",
+    "RunbookDisplayPath": "User \\ Collab \\ Pre Provision Onedrive",
+    "RelativeRunbookPath": "user/collab/pre-provision-onedrive.ps1",
+    "RelativeRunbookPath_PathOnly": "user/collab",
+    "PrimaryFolder": "User",
+    "SubFolder": "Collab",
+    "Synopsis": "Pre-provision the OneDrive of a user",
+    "Description": "Requests the creation (pre-provisioning) of the OneDrive personal site for the selected user in SharePoint Online, so the OneDrive is available before the user signs in for the first time. The runbook verifies via Microsoft Graph that the user account is enabled and, optionally, that a SharePoint license is assigned. If the OneDrive already exists, no action is taken. The request is queued by SharePoint and processed asynchronously; the runbook does not wait for the OneDrive to be created.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user or system that started the runbook. Tracked for auditing purposes."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "If set to true (default), the runbook aborts when the user has no enabled SharePoint service plan assigned. Any license source counts (e.g. Microsoft 365 E3/E5, F3, SharePoint Online Plan 1/2, OneDrive plans, direct or group-based assignment)."
+          }
+        ],
+        "globbing": "false",
+        "name": "CheckSharePointLicense",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "User principal name of the user whose OneDrive should be pre-provisioned. Auto-filled by the RealmJoin portal in the user context."
+          }
+        ],
+        "globbing": "false",
+        "name": "UserName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": "## How it works\n\nOn each run the runbook:\n\n1. Connects to Microsoft Graph and SharePoint Online (PnP PowerShell) with the Automation account's managed identity. The SharePoint admin center URL is derived automatically from the tenant root site.\n2. Reads the selected user (`UserName`) from Microsoft Entra ID and stops if the account does not exist or is **disabled**.\n3. Optionally verifies that the user has an enabled **SharePoint** service plan (see [License check](#license-check)).\n4. Checks whether the user's OneDrive already exists as an active site collection - if so, the run ends without sending a request.\n5. Looks for a deleted OneDrive of the user in the tenant recycle bin and shows a warning if one is found.\n6. Queues the OneDrive creation via `New-PnPPersonalSite` and prints the result.\n\nThe runbook is started from the user object in the RealmJoin portal, so the user is always preselected - there is no free-text input.\n\n### Account must be enabled\n\nSharePoint only creates a OneDrive for users who are allowed to sign in. Requests for blocked users are accepted but silently ignored, which would result in a misleading \"queued\" message. The runbook therefore aborts with an error when `accountEnabled` is `false`. Enable the account first and run the runbook again.\n\nA sign-in block enforced by **Conditional Access** cannot be detected by the runbook.\n\n### License check\n\nWith **Verify SharePoint license before provisioning** (`CheckSharePointLicense`, enabled by default) the runbook aborts when the user has no enabled SharePoint service plan. The check evaluates the user's `assignedPlans`, so every license source counts:\n\n- Microsoft 365 / Office 365 suites (e.g. E3, E5, F3, Business Standard)\n- SharePoint Online Plan 1 / Plan 2 and OneDrive standalone plans\n- Direct and group-based license assignments\n\nIf the check is disabled, the request is queued anyway - but SharePoint will not create the OneDrive as long as no SharePoint license is assigned. After assigning a license, allow some time for the assignment to take effect before running the runbook.\n\n### Idempotent by design\n\n- If the OneDrive already exists as an active site collection, the runbook reports `AlreadyProvisioned` and sends no request.\n- Sending a request for a user who already has a OneDrive is harmless - SharePoint ignores it.\n\n### Deleted OneDrive in the recycle bin\n\nIf a deleted OneDrive of the user (matched by the site owner) is found in the tenant recycle bin, the runbook shows a warning with the URL and deletion time. Restoring the existing OneDrive may be preferable to creating a new, empty one. The warning does not stop the run.\n\n### Asynchronous provisioning\n\nThe runbook only **queues** the request; the OneDrive is created later by a SharePoint timer job. This usually takes a few minutes but can take up to 24 hours or longer. The runbook does not wait for completion - use the runbook **Check OneDrive Status** (Org \\ Collab) to verify the result.\n\nThe runbook returns an object with `UserPrincipalName`, `Status` (`AlreadyProvisioned` or `ProvisioningRequested`), `OneDriveUrl` and `RequestedAt` (UTC).\n\n### Prerequisites\n\nThe Automation account's system-assigned managed identity needs:\n\n- **Microsoft Graph**: `User.Read.All` (user state and licenses) and `Sites.Read.All` (tenant root site to derive the SharePoint admin center URL).\n- **Office 365 SharePoint Online**: `Sites.FullControl.All` and `User.ReadWrite.All`. These SharePoint app-only permissions must be granted manually per tenant.\n- The **PnP.PowerShell** module (version 3.x) imported into the Automation account.\n",
+    "DocsContentEncoded": "IyMgSG93IGl0IHdvcmtzCgpPbiBlYWNoIHJ1biB0aGUgcnVuYm9vazoKCjEuIENvbm5lY3RzIHRvIE1pY3Jvc29mdCBHcmFwaCBhbmQgU2hhcmVQb2ludCBPbmxpbmUgKFBuUCBQb3dlclNoZWxsKSB3aXRoIHRoZSBBdXRvbWF0aW9uIGFjY291bnQncyBtYW5hZ2VkIGlkZW50aXR5LiBUaGUgU2hhcmVQb2ludCBhZG1pbiBjZW50ZXIgVVJMIGlzIGRlcml2ZWQgYXV0b21hdGljYWxseSBmcm9tIHRoZSB0ZW5hbnQgcm9vdCBzaXRlLgoyLiBSZWFkcyB0aGUgc2VsZWN0ZWQgdXNlciAoYFVzZXJOYW1lYCkgZnJvbSBNaWNyb3NvZnQgRW50cmEgSUQgYW5kIHN0b3BzIGlmIHRoZSBhY2NvdW50IGRvZXMgbm90IGV4aXN0IG9yIGlzICoqZGlzYWJsZWQqKi4KMy4gT3B0aW9uYWxseSB2ZXJpZmllcyB0aGF0IHRoZSB1c2VyIGhhcyBhbiBlbmFibGVkICoqU2hhcmVQb2ludCoqIHNlcnZpY2UgcGxhbiAoc2VlIFtMaWNlbnNlIGNoZWNrXSgjbGljZW5zZS1jaGVjaykpLgo0LiBDaGVja3Mgd2hldGhlciB0aGUgdXNlcidzIE9uZURyaXZlIGFscmVhZHkgZXhpc3RzIGFzIGFuIGFjdGl2ZSBzaXRlIGNvbGxlY3Rpb24gLSBpZiBzbywgdGhlIHJ1biBlbmRzIHdpdGhvdXQgc2VuZGluZyBhIHJlcXVlc3QuCjUuIExvb2tzIGZvciBhIGRlbGV0ZWQgT25lRHJpdmUgb2YgdGhlIHVzZXIgaW4gdGhlIHRlbmFudCByZWN5Y2xlIGJpbiBhbmQgc2hvd3MgYSB3YXJuaW5nIGlmIG9uZSBpcyBmb3VuZC4KNi4gUXVldWVzIHRoZSBPbmVEcml2ZSBjcmVhdGlvbiB2aWEgYE5ldy1QblBQZXJzb25hbFNpdGVgIGFuZCBwcmludHMgdGhlIHJlc3VsdC4KClRoZSBydW5ib29rIGlzIHN0YXJ0ZWQgZnJvbSB0aGUgdXNlciBvYmplY3QgaW4gdGhlIFJlYWxtSm9pbiBwb3J0YWwsIHNvIHRoZSB1c2VyIGlzIGFsd2F5cyBwcmVzZWxlY3RlZCAtIHRoZXJlIGlzIG5vIGZyZWUtdGV4dCBpbnB1dC4KCiMjIyBBY2NvdW50IG11c3QgYmUgZW5hYmxlZAoKU2hhcmVQb2ludCBvbmx5IGNyZWF0ZXMgYSBPbmVEcml2ZSBmb3IgdXNlcnMgd2hvIGFyZSBhbGxvd2VkIHRvIHNpZ24gaW4uIFJlcXVlc3RzIGZvciBibG9ja2VkIHVzZXJzIGFyZSBhY2NlcHRlZCBidXQgc2lsZW50bHkgaWdub3JlZCwgd2hpY2ggd291bGQgcmVzdWx0IGluIGEgbWlzbGVhZGluZyAicXVldWVkIiBtZXNzYWdlLiBUaGUgcnVuYm9vayB0aGVyZWZvcmUgYWJvcnRzIHdpdGggYW4gZXJyb3Igd2hlbiBgYWNjb3VudEVuYWJsZWRgIGlzIGBmYWxzZWAuIEVuYWJsZSB0aGUgYWNjb3VudCBmaXJzdCBhbmQgcnVuIHRoZSBydW5ib29rIGFnYWluLgoKQSBzaWduLWluIGJsb2NrIGVuZm9yY2VkIGJ5ICoqQ29uZGl0aW9uYWwgQWNjZXNzKiogY2Fubm90IGJlIGRldGVjdGVkIGJ5IHRoZSBydW5ib29rLgoKIyMjIExpY2Vuc2UgY2hlY2sKCldpdGggKipWZXJpZnkgU2hhcmVQb2ludCBsaWNlbnNlIGJlZm9yZSBwcm92aXNpb25pbmcqKiAoYENoZWNrU2hhcmVQb2ludExpY2Vuc2VgLCBlbmFibGVkIGJ5IGRlZmF1bHQpIHRoZSBydW5ib29rIGFib3J0cyB3aGVuIHRoZSB1c2VyIGhhcyBubyBlbmFibGVkIFNoYXJlUG9pbnQgc2VydmljZSBwbGFuLiBUaGUgY2hlY2sgZXZhbHVhdGVzIHRoZSB1c2VyJ3MgYGFzc2lnbmVkUGxhbnNgLCBzbyBldmVyeSBsaWNlbnNlIHNvdXJjZSBjb3VudHM6CgotIE1pY3Jvc29mdCAzNjUgLyBPZmZpY2UgMzY1IHN1aXRlcyAoZS5nLiBFMywgRTUsIEYzLCBCdXNpbmVzcyBTdGFuZGFyZCkKLSBTaGFyZVBvaW50IE9ubGluZSBQbGFuIDEgLyBQbGFuIDIgYW5kIE9uZURyaXZlIHN0YW5kYWxvbmUgcGxhbnMKLSBEaXJlY3QgYW5kIGdyb3VwLWJhc2VkIGxpY2Vuc2UgYXNzaWdubWVudHMKCklmIHRoZSBjaGVjayBpcyBkaXNhYmxlZCwgdGhlIHJlcXVlc3QgaXMgcXVldWVkIGFueXdheSAtIGJ1dCBTaGFyZVBvaW50IHdpbGwgbm90IGNyZWF0ZSB0aGUgT25lRHJpdmUgYXMgbG9uZyBhcyBubyBTaGFyZVBvaW50IGxpY2Vuc2UgaXMgYXNzaWduZWQuIEFmdGVyIGFzc2lnbmluZyBhIGxpY2Vuc2UsIGFsbG93IHNvbWUgdGltZSBmb3IgdGhlIGFzc2lnbm1lbnQgdG8gdGFrZSBlZmZlY3QgYmVmb3JlIHJ1bm5pbmcgdGhlIHJ1bmJvb2suCgojIyMgSWRlbXBvdGVudCBieSBkZXNpZ24KCi0gSWYgdGhlIE9uZURyaXZlIGFscmVhZHkgZXhpc3RzIGFzIGFuIGFjdGl2ZSBzaXRlIGNvbGxlY3Rpb24sIHRoZSBydW5ib29rIHJlcG9ydHMgYEFscmVhZHlQcm92aXNpb25lZGAgYW5kIHNlbmRzIG5vIHJlcXVlc3QuCi0gU2VuZGluZyBhIHJlcXVlc3QgZm9yIGEgdXNlciB3aG8gYWxyZWFkeSBoYXMgYSBPbmVEcml2ZSBpcyBoYXJtbGVzcyAtIFNoYXJlUG9pbnQgaWdub3JlcyBpdC4KCiMjIyBEZWxldGVkIE9uZURyaXZlIGluIHRoZSByZWN5Y2xlIGJpbgoKSWYgYSBkZWxldGVkIE9uZURyaXZlIG9mIHRoZSB1c2VyIChtYXRjaGVkIGJ5IHRoZSBzaXRlIG93bmVyKSBpcyBmb3VuZCBpbiB0aGUgdGVuYW50IHJlY3ljbGUgYmluLCB0aGUgcnVuYm9vayBzaG93cyBhIHdhcm5pbmcgd2l0aCB0aGUgVVJMIGFuZCBkZWxldGlvbiB0aW1lLiBSZXN0b3JpbmcgdGhlIGV4aXN0aW5nIE9uZURyaXZlIG1heSBiZSBwcmVmZXJhYmxlIHRvIGNyZWF0aW5nIGEgbmV3LCBlbXB0eSBvbmUuIFRoZSB3YXJuaW5nIGRvZXMgbm90IHN0b3AgdGhlIHJ1bi4KCiMjIyBBc3luY2hyb25vdXMgcHJvdmlzaW9uaW5nCgpUaGUgcnVuYm9vayBvbmx5ICoqcXVldWVzKiogdGhlIHJlcXVlc3Q7IHRoZSBPbmVEcml2ZSBpcyBjcmVhdGVkIGxhdGVyIGJ5IGEgU2hhcmVQb2ludCB0aW1lciBqb2IuIFRoaXMgdXN1YWxseSB0YWtlcyBhIGZldyBtaW51dGVzIGJ1dCBjYW4gdGFrZSB1cCB0byAyNCBob3VycyBvciBsb25nZXIuIFRoZSBydW5ib29rIGRvZXMgbm90IHdhaXQgZm9yIGNvbXBsZXRpb24gLSB1c2UgdGhlIHJ1bmJvb2sgKipDaGVjayBPbmVEcml2ZSBTdGF0dXMqKiAoT3JnIFwgQ29sbGFiKSB0byB2ZXJpZnkgdGhlIHJlc3VsdC4KClRoZSBydW5ib29rIHJldHVybnMgYW4gb2JqZWN0IHdpdGggYFVzZXJQcmluY2lwYWxOYW1lYCwgYFN0YXR1c2AgKGBBbHJlYWR5UHJvdmlzaW9uZWRgIG9yIGBQcm92aXNpb25pbmdSZXF1ZXN0ZWRgKSwgYE9uZURyaXZlVXJsYCBhbmQgYFJlcXVlc3RlZEF0YCAoVVRDKS4KCiMjIyBQcmVyZXF1aXNpdGVzCgpUaGUgQXV0b21hdGlvbiBhY2NvdW50J3Mgc3lzdGVtLWFzc2lnbmVkIG1hbmFnZWQgaWRlbnRpdHkgbmVlZHM6CgotICoqTWljcm9zb2Z0IEdyYXBoKio6IGBVc2VyLlJlYWQuQWxsYCAodXNlciBzdGF0ZSBhbmQgbGljZW5zZXMpIGFuZCBgU2l0ZXMuUmVhZC5BbGxgICh0ZW5hbnQgcm9vdCBzaXRlIHRvIGRlcml2ZSB0aGUgU2hhcmVQb2ludCBhZG1pbiBjZW50ZXIgVVJMKS4KLSAqKk9mZmljZSAzNjUgU2hhcmVQb2ludCBPbmxpbmUqKjogYFNpdGVzLkZ1bGxDb250cm9sLkFsbGAgYW5kIGBVc2VyLlJlYWRXcml0ZS5BbGxgLiBUaGVzZSBTaGFyZVBvaW50IGFwcC1vbmx5IHBlcm1pc3Npb25zIG11c3QgYmUgZ3JhbnRlZCBtYW51YWxseSBwZXIgdGVuYW50LgotIFRoZSAqKlBuUC5Qb3dlclNoZWxsKiogbW9kdWxlICh2ZXJzaW9uIDMueCkgaW1wb3J0ZWQgaW50byB0aGUgQXV0b21hdGlvbiBhY2NvdW50Lgo=",
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"User.Read.All\",\n                    \"Reason\": \"Reads the selected user (accountEnabled, userPrincipalName, assignedPlans) to verify that the account is enabled and, optionally, that an enabled SharePoint service plan is assigned before the provisioning request is sent.\"\n                },\n                {\n                    \"Value\": \"Sites.Read.All\",\n                    \"Reason\": \"Reads the tenant root site (/sites/root) to derive the SharePoint admin center URL used by Connect-PnPOnline.\"\n                }\n            ]\n        },\n        {\n            \"Name\": \"Office 365 SharePoint Online\",\n            \"Id\": \"00000003-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"Sites.FullControl.All\",\n                    \"Reason\": \"Required by Connect-PnPOnline against the SharePoint admin center and by the tenant-admin cmdlets Get-PnPTenantSite, Get-PnPTenantDeletedSite and New-PnPPersonalSite, which inspect OneDrive personal sites, the tenant recycle bin and enqueue the OneDrive creation; lower site scopes are not sufficient for the tenant-admin endpoint.\"\n                },\n                {\n                    \"Value\": \"User.ReadWrite.All\",\n                    \"Reason\": \"Documented by PnP PowerShell as required for New-PnPPersonalSite with application permissions (user profile service); also covers reading the PersonalUrl via Get-PnPUserProfileProperty.\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": [\n        \"SharePoint Online: grant the 'Sites.FullControl.All' and 'User.ReadWrite.All' application permissions on the Office 365 SharePoint Online API (AppId 00000003-0000-0ff1-ce00-000000000000) to the Automation account's system-assigned managed identity. This SharePoint app-only grant cannot be made through the standard Entra app-role-assignment automation used for Microsoft Graph and must be assigned manually per tenant.\"\n    ]\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Sites.Read.All",
+            "User.Read.All"
+          ]
+        },
+        {
+          "Name": "Office 365 SharePoint Online",
+          "Id": "00000003-0000-0ff1-ce00-000000000000",
+          "AppRoleAssignments": [
+            "Sites.FullControl.All",
+            "User.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": [
+        "SharePoint Online: grant the 'Sites.FullControl.All' and 'User.ReadWrite.All' application permissions on the Office 365 SharePoint Online API (AppId 00000003-0000-0ff1-ce00-000000000000) to the Automation account's system-assigned managed identity. This SharePoint app-only grant cannot be made through the standard Entra app-role-assignment automation used for Microsoft Graph and must be assigned manually per tenant."
+      ]
+    }
+  },
+  {
     "RunbookDisplayName": "Assign Groups By Template",
     "RunbookDisplayPath": "User \\ General \\ Assign Groups By Template",
     "RelativeRunbookPath": "user/general/assign-groups-by-template.ps1",

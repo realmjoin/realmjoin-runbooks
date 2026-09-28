@@ -167,6 +167,8 @@ Each category contains multiple runbooks that are further divided into subcatego
 - [User](#user)
   - [AVD](#user-avd)
     - [User Signout](#user-avd-user-signout)
+  - [Collab](#user-collab)
+    - [Pre Provision Onedrive](#user-collab-pre-provision-onedrive)
   - [General](#user-general)
     - [Assign Groups By Template](#user-general-assign-groups-by-template)
     - [Assign Or Unassign License](#user-general-assign-or-unassign-license)
@@ -2504,6 +2506,22 @@ Sign this user out of their AVD sessions
 | UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
 | SubscriptionIds | ✓ | String Array | Azure subscriptions that hold the AVD host pools. Taken from the tenant setting AVD.SubscriptionIds. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+
+[Back to the RealmJoin runbook parameter overview](#table-of-contents)
+
+<a name='user-collab'></a>
+## Collab
+
+<a name='user-collab-pre-provision-onedrive'></a>
+
+### Pre Provision Onedrive
+Pre-provision the OneDrive of a user
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| UserName | ✓ | String | User principal name of the user whose OneDrive should be pre-provisioned. Auto-filled by the RealmJoin portal in the user context. |
+| CheckSharePointLicense |  | Boolean | If set to true (default), the runbook aborts when the user has no enabled SharePoint service plan assigned. Any license source counts (e.g. Microsoft 365 E3/E5, F3, SharePoint Online Plan 1/2, OneDrive plans, direct or group-based assignment). |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Tracked for auditing purposes. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
 
