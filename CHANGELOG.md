@@ -1,6 +1,13 @@
 # RealmJoin Runbooks Changelog
 
-## 2026-09-23
+## 2026-09-28
+
+- Update **Check OneDrive Status** Runbook in Org/Collab
+  - Find the active OneDrive by its site owner instead of the user profile, so the status is also reported reliably when the profile cannot be read
+  - Search up to 100,000 deleted OneDrive sites in the tenant recycle bin and report the used storage in GB
+
+- Update **Report SharePoint Tenant Storage (Scheduled)** Runbook in Org/Collab
+  - Report the used tenant storage in GB in the run output and the alert email
 
 - Add **Pre-Provision OneDrive** Runbook in User/Collab
   - Requests the creation of the selected user's OneDrive in SharePoint Online via PnP PowerShell (`New-PnPPersonalSite`), connecting with the Automation account's system-assigned managed identity, so the OneDrive is available before the first sign-in (e.g. onboarding or migration).
