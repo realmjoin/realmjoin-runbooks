@@ -1,5 +1,20 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-09-28
+
+- Update **Check OneDrive Status** Runbook in Org/Collab
+  - Find the active OneDrive by its site owner instead of the user profile, so the status is also reported reliably when the profile cannot be read
+  - Search up to 100,000 deleted OneDrive sites in the tenant recycle bin and report the used storage in GB
+
+- Update **Report SharePoint Tenant Storage (Scheduled)** Runbook in Org/Collab
+  - Report the used tenant storage in GB in the run output and the alert email
+
+- Add **Pre-Provision OneDrive** Runbook in User/Collab
+  - Requests the creation of the selected user's OneDrive in SharePoint Online via PnP PowerShell (`New-PnPPersonalSite`), connecting with the Automation account's system-assigned managed identity, so the OneDrive is available before the first sign-in (e.g. onboarding or migration).
+  - Verifies via Microsoft Graph that the user account is enabled and aborts otherwise, as SharePoint silently ignores requests for users who are blocked from signing in.
+  - Optional license check (`CheckSharePointLicense`, enabled by default) aborts when the user has no enabled SharePoint service plan, regardless of the license source (e.g. Microsoft 365 E3/E5, F3, SharePoint Online Plan 1/2, group-based licensing).
+  - Idempotent: no request is sent if the OneDrive already exists; a warning is shown if a deleted OneDrive of the user is found in the tenant recycle bin. Provisioning is asynchronous, the runbook only queues the request and points to **Check OneDrive Status** for verification.
+
 ## 2026-09-24
 
 - New **Report Teams Channels (Scheduled)** Runbook in Org/Collab
