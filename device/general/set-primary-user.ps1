@@ -21,7 +21,6 @@
                 "Hide": true
             },
             "NewPrimaryUserId": {
-                "DisplayName": "New primary user"
             },
             "CallerName": {
                 "Hide": true
