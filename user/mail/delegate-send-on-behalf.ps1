@@ -37,6 +37,7 @@
                     "Options": [
                         {
                             "Display": "Grant Send on Behalf",
+                            "ParameterValue": "Grant Send on Behalf",
                             "Customization": {
                                 "Default": {
                                     "Remove": false
@@ -45,6 +46,7 @@
                         },
                         {
                             "Display": "Remove Send on Behalf",
+                            "ParameterValue": "Remove Send on Behalf",
                             "Customization": {
                                 "Default": {
                                     "Remove": true

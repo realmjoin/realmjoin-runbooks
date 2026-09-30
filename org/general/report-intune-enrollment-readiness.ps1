@@ -119,6 +119,7 @@
 					"Options": [
 						{
 							"Display": "No email report",
+							"ParameterValue": "No email report",
 							"Customization": {
 								"Default": { "SendEmailReport": false },
 								"Hide": [ "EmailTo", "ReportFileFormat" ]
@@ -126,6 +127,7 @@
 						},
 						{
 							"Display": "Email report",
+							"ParameterValue": "Email report",
 							"Customization": {
 								"Default": { "SendEmailReport": true },
 								"Show": [ "EmailTo", "ReportFileFormat" ],

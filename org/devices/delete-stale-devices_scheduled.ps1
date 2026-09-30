@@ -182,6 +182,7 @@
                     "Options": [
                         {
                             "Display": "Yes, filter by group membership",
+                            "ParameterValue": true,
                             "Customization": {
                                 "Hide": [],
                                 "Show": ["IncludeUserGroup", "ExcludeUserGroup"],

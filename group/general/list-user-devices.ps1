@@ -27,6 +27,7 @@
                     "Options": [
                         {
                             "Display": "Add the members' devices to a device group",
+                            "ParameterValue": "Add the members' devices to a device group",
                             "Customization": {
                                 "Default": {
                                     "moveGroup": true
@@ -35,6 +36,7 @@
                         },
                         {
                             "Display": "List the members' devices only",
+                            "ParameterValue": "List the members' devices only",
                             "Customization": {
                                 "Default": {
                                     "moveGroup": false

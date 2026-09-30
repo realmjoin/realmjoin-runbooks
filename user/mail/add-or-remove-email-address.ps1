@@ -30,6 +30,7 @@
                     "Options": [
                         {
                             "Display": "Add or update the address",
+                            "ParameterValue": "Add or update the address",
                             "Customization": {
                                 "Default": {
                                     "Remove": false
@@ -38,6 +39,7 @@
                         },
                         {
                             "Display": "Remove the address",
+                            "ParameterValue": "Remove the address",
                             "Customization": {
                                 "Default": {
                                     "Remove": true

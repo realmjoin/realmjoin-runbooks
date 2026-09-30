@@ -81,6 +81,7 @@
                     "Options": [
                         {
                             "Display": "No report",
+                            "ParameterValue": "No report",
                             "Customization": {
                                 "Default": {
                                     "SendEmailReport": false,
@@ -94,6 +95,7 @@
                         },
                         {
                             "Display": "Email report",
+                            "ParameterValue": "Email report",
                             "Customization": {
                                 "Default": {
                                     "SendEmailReport": true,
@@ -110,6 +112,7 @@
                         },
                         {
                             "Display": "Report download link",
+                            "ParameterValue": "Report download link",
                             "Customization": {
                                 "Default": {
                                     "SendEmailReport": false,
@@ -125,6 +128,7 @@
                         },
                         {
                             "Display": "Email report & download link",
+                            "ParameterValue": "Email report & download link",
                             "Customization": {
                                 "Default": {
                                     "SendEmailReport": true,

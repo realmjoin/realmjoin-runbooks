@@ -35,6 +35,7 @@
                     "Options": [
                         {
                             "Display": "Hide the mailbox in the address book",
+                            "ParameterValue": "Hide the mailbox in the address book",
                             "Customization": {
                                 "Default": {
                                     "HideMailbox": true
@@ -43,6 +44,7 @@
                         },
                         {
                             "Display": "Show the mailbox in the address book",
+                            "ParameterValue": "Show the mailbox in the address book",
                             "Customization": {
                                 "Default": {
                                     "HideMailbox": false

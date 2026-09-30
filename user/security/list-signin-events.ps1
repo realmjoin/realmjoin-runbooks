@@ -147,6 +147,7 @@
                     "Options": [
                         {
                             "Display": "No report",
+                            "ParameterValue": "No report",
                             "Customization": {
                                 "Default": { "SendEmailReport": false, "CreateDownloadLink": false },
                                 "Hide": [ "EmailTo", "ReportFileFormat" ]
@@ -154,6 +155,7 @@
                         },
                         {
                             "Display": "Email report",
+                            "ParameterValue": "Email report",
                             "Customization": {
                                 "Default": { "SendEmailReport": true, "CreateDownloadLink": false },
                                 "Show": [ "EmailTo", "ReportFileFormat" ],
@@ -162,6 +164,7 @@
                         },
                         {
                             "Display": "Report download link",
+                            "ParameterValue": "Report download link",
                             "Customization": {
                                 "Default": { "SendEmailReport": false, "CreateDownloadLink": true },
                                 "Show": [ "ReportFileFormat" ],
@@ -170,6 +173,7 @@
                         },
                         {
                             "Display": "Email report & download link",
+                            "ParameterValue": "Email report & download link",
                             "Customization": {
                                 "Default": { "SendEmailReport": true, "CreateDownloadLink": true },
                                 "Show": [ "EmailTo", "ReportFileFormat" ],

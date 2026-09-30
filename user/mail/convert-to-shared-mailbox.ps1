@@ -50,6 +50,7 @@
                     "Options": [
                         {
                             "Display": "Turn mailbox into shared mailbox",
+                            "ParameterValue": "Turn mailbox into shared mailbox",
                             "Customization": {
                                 "Default": {
                                     "Remove": false
@@ -61,6 +62,7 @@
                         },
                         {
                             "Display": "Turn shared mailbox back into regular mailbox",
+                            "ParameterValue": "Turn shared mailbox back into regular mailbox",
                             "Customization": {
                                 "Default": {
                                     "Remove": true,

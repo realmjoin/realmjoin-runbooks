@@ -47,6 +47,7 @@
 			"Select": {
 				"Options": [{
 						"Display": "Teams user",
+						"ParameterValue": "Teams user",
 						"Customization": {
 							"Hide": [
 								"ForwardTargetPhoneNumber"
@@ -64,6 +65,7 @@
 					},
 					{
 						"Display": "Phone number",
+						"ParameterValue": "Phone number",
 						"Customization": {
 							"Hide": [
 								"ForwardTargetTeamsUser"
@@ -81,6 +83,7 @@
 					},
 					{
 						"Display": "Voicemail",
+						"ParameterValue": "Voicemail",
 						"Customization": {
 							"Hide": [
 								"ForwardTargetTeamsUser",
@@ -97,6 +100,7 @@
 					},
 					{
 						"Display": "The user's delegates",
+						"ParameterValue": "The user's delegates",
 						"Customization": {
 							"Hide": [
 								"ForwardTargetTeamsUser",
@@ -113,6 +117,7 @@
 					},
 					{
 						"Display": "Nowhere (turn immediate forwarding off)",
+						"ParameterValue": "Nowhere (turn immediate forwarding off)",
 						"Customization": {
 							"Hide": [
 								"ForwardTargetTeamsUser",

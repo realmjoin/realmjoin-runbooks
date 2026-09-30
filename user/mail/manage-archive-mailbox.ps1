@@ -34,6 +34,7 @@
                     "Options": [
                         {
                             "Display": "Enable archive mailbox",
+                            "ParameterValue": "Enable archive mailbox",
                             "Customization": {
                                 "Default": {
                                     "Action": "Enable"
@@ -42,6 +43,7 @@
                         },
                         {
                             "Display": "Disable archive mailbox",
+                            "ParameterValue": "Disable archive mailbox",
                             "Customization": {
                                 "Default": {
                                     "Action": "Disable"
@@ -50,6 +52,7 @@
                         },
                         {
                             "Display": "Get current status",
+                            "ParameterValue": "Get current status",
                             "Customization": {
                                 "Default": {
                                     "Action": "GetStatus"

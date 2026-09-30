@@ -205,6 +205,7 @@
                     "Options": [
                         {
                             "Display": "Yes, filter by group membership",
+                            "ParameterValue": true,
                             "Customization": {
                                 "Hide": [],
                                 "Show": ["IncludeUserGroup", "ExcludeUserGroup"],
@@ -234,6 +235,7 @@
                     "Options": [
                         {
                             "Display": "Yes, send one combined email",
+                            "ParameterValue": true,
                             "Customization": {
                                 "Hide": [],
                                 "Show": ["NoPrimaryUserEmailRecipient"],

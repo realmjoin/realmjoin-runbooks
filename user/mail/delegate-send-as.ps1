@@ -37,6 +37,7 @@
                     "Options": [
                         {
                             "Display": "Grant Send As",
+                            "ParameterValue": "Grant Send As",
                             "Customization": {
                                 "Default": {
                                     "Remove": false
@@ -45,6 +46,7 @@
                         },
                         {
                             "Display": "Remove Send As",
+                            "ParameterValue": "Remove Send As",
                             "Customization": {
                                 "Default": {
                                     "Remove": true

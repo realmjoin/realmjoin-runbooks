@@ -27,6 +27,7 @@
                     "Options": [
                         {
                             "Display": "Create a public folder",
+                            "ParameterValue": "Create a public folder",
                             "Customization": {
                                 "Default": {
                                     "AddPublicFolder": true
@@ -35,6 +36,7 @@
                         },
                         {
                             "Display": "Remove a public folder",
+                            "ParameterValue": "Remove a public folder",
                             "Customization": {
                                 "Default": {
                                     "AddPublicFolder": false
