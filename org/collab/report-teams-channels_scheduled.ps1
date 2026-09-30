@@ -153,6 +153,7 @@
 					"Options": [
 						{
 							"Display": "No report",
+							"ParameterValue": "No report",
 							"Customization": {
 								"Default": { "SendEmailReport": false, "CreateDownloadLink": false },
 								"Hide": [ "EmailTo", "ReportFileFormat" ]
@@ -160,6 +161,7 @@
 						},
 						{
 							"Display": "Email report",
+							"ParameterValue": "Email report",
 							"Customization": {
 								"Default": { "SendEmailReport": true, "CreateDownloadLink": false },
 								"Show": [ "EmailTo", "ReportFileFormat" ],
@@ -168,6 +170,7 @@
 						},
 						{
 							"Display": "Report download link",
+							"ParameterValue": "Report download link",
 							"Customization": {
 								"Default": { "SendEmailReport": false, "CreateDownloadLink": true },
 								"Show": [ "ReportFileFormat" ],
@@ -176,6 +179,7 @@
 						},
 						{
 							"Display": "Email report & download link",
+							"ParameterValue": "Email report & download link",
 							"Customization": {
 								"Default": { "SendEmailReport": true, "CreateDownloadLink": true },
 								"Show": [ "EmailTo", "ReportFileFormat" ],
@@ -200,17 +204,17 @@ param(
     [bool]$IncludeMembers = $false,
     [string]$TeamNamePrefix = "",
     # Standard report-delivery parameter set (report-files mode)
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
     [string]$EmailFrom,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" } )]
     [string]$BrandingHeaderImageUrl,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" } )]
     [string]$BrandingFooterImageUrl,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" } )]
     [string]$BrandingFooterLink,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" } )]
     [string]$BrandingAccentColor,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" } )]
     [string]$BrandingTextColor,
     [bool]$SendEmailReport = $false,
     [string]$EmailTo,
@@ -218,11 +222,11 @@ param(
     [string]$ReportFileFormat = 'CSV & XLSX',
     [bool]$CreateDownloadLink = $false,
     [string]$ContainerName = "report-teams-channels",
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" } )]
     [string]$ResourceGroupName,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" } )]
     [string]$StorageAccountName,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" } )]
     [ValidateRange(1, 3650)]
     [int]$LinkExpiryDays = 6,
     # CallerName is tracked purely for auditing purposes
