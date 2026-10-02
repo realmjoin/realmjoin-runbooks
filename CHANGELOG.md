@@ -16,6 +16,15 @@
   - Companion documentation explains the booking modes and the difference between a booking delegate and full access
   - Connect to Microsoft Graph with the managed identity (`Connect-MgGraph`, `Invoke-MgGraphRequest`)
 
+- Set the booking delegates of new room and equipment mailboxes through the calendar processing, like the Exchange admin center does
+  - Several booking delegates can be selected and every booking request waits for their approval; without delegates the mailbox accepts requests automatically when it is free
+  - The delegates get no full access and no Send on Behalf from the runbook; the options "Accept meeting requests automatically?" and "Open automatically in the delegate's Outlook?" are removed
+  - Check the alias and the booking delegates before the mailbox is created and wait for the new mailbox with a time limit; a failed step ends the run with a clear error
+  - Connect to Microsoft Graph with the managed identity (`Connect-MgGraph`, `Invoke-MgGraphRequest`) to block the sign-in of the mailbox account
+  - Affected runbooks:
+    - **Add Equipment Mailbox** - Org/Mail (v2.0.0)
+    - **Add Room Mailbox** - Org/Mail (v2.0.0)
+
 - Update **Report Primary User Mismatch (Scheduled)** Runbook in Org/Devices (v1.8.0)
   - Check who actually logs on to each device, using the logons Intune records and the users the RealmJoin agent saw signed in, and list devices whose primary user has not logged on within a configurable number of days while someone else has (new category, off by default)
   - Show the last logged-on user of both sources, the primary user's last logon and the Intune last sync per device; user ids from the Intune logon records are resolved to user principal names, deleted accounts are marked as such
