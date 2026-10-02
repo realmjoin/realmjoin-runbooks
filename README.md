@@ -50,6 +50,7 @@ Apart from the following runbook descriptions, further content such as runbook o
 
     - [Check Defender Status](docs/device/security/check-defender-status.md)
     - [Enable Or Disable Device](docs/device/security/enable-or-disable-device.md)
+    - [Enable Or Disable Lost Mode](docs/device/security/enable-or-disable-lost-mode.md)
     - [Isolate Or Release Device](docs/device/security/isolate-or-release-device.md)
     - [Reset Mobile Device Pin](docs/device/security/reset-mobile-device-pin.md)
     - [Restrict Or Release Code Execution](docs/device/security/restrict-or-release-code-execution.md)

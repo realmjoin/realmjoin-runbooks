@@ -31,6 +31,7 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Security](#device-security)
     - [Check Defender Status](#device-security-check-defender-status)
     - [Enable Or Disable Device](#device-security-enable-or-disable-device)
+    - [Enable Or Disable Lost Mode](#device-security-enable-or-disable-lost-mode)
     - [Isolate Or Release Device](#device-security-isolate-or-release-device)
     - [Reset Mobile Device Pin](#device-security-reset-mobile-device-pin)
     - [Restrict Or Release Code Execution](#device-security-restrict-or-release-code-execution)
@@ -432,6 +433,21 @@ Enable or disable this device in Entra ID
 |-----------|----------|------|-------------|
 | DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
 | Enable |  | Boolean | Disable blocks sign-ins from the device. Enable again lifts an earlier block. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+
+<a name='device-security-enable-or-disable-lost-mode'></a>
+
+### Enable Or Disable Lost Mode
+Enable or disable Lost Mode on this supervised iOS or iPadOS device
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
+| LostModeAction |  | String | Enable Lost Mode locks the device and shows the lock screen texts. Disable Lost Mode lifts the lock again so the device can be used as usual. |
+| Message |  | String | Text shown on the lock screen while the device is locked, for example who the device belongs to. Anyone who finds the device can read it. At least one of "Lock screen message" and "Callback phone number" is needed. |
+| PhoneNumber |  | String | Phone number shown on the lock screen. The finder can call it from the locked device without unlocking it. Leave empty to show the message only. |
+| Footer |  | String | Additional line at the bottom of the lock screen, for example an asset tag or a reward note. Leave empty for no footer. |
+| LocateDevice |  | Boolean | Also asks the locked device for its current position and shows the coordinates when they arrive within a minute. A device that is offline answers later; its position is then shown in the Intune admin center. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='device-security-isolate-or-release-device'></a>

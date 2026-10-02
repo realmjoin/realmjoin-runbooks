@@ -1741,6 +1741,155 @@
     }
   },
   {
+    "RunbookDisplayName": "Enable Or Disable Lost Mode",
+    "RunbookDisplayPath": "Device \\ Security \\ Enable Or Disable Lost Mode",
+    "RelativeRunbookPath": "device/security/enable-or-disable-lost-mode.ps1",
+    "RelativeRunbookPath_PathOnly": "device/security",
+    "PrimaryFolder": "Device",
+    "SubFolder": "Security",
+    "Synopsis": "Enable or disable Lost Mode on this supervised iOS or iPadOS device",
+    "Description": "Locks this supervised iPhone or iPad with Apple Lost Mode, showing a message and callback number on the lock screen, or lifts Lost Mode once the device is back. Optionally the device is asked for its position after it is locked. Only supervised iOS and iPadOS devices are accepted. The command reaches the device with its next check-in; if it is offline, it is locked as soon as it connects again.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user who started the runbook. Set by the portal and recorded for auditing."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device."
+          }
+        ],
+        "globbing": "false",
+        "name": "DeviceId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Additional line at the bottom of the lock screen, for example an asset tag or a reward note. Leave empty for no footer."
+          }
+        ],
+        "globbing": "false",
+        "name": "Footer",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Also asks the locked device for its current position and shows the coordinates when they arrive within a minute. A device that is offline answers later; its position is then shown in the Intune admin center."
+          }
+        ],
+        "globbing": "false",
+        "name": "LocateDevice",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "Enable",
+        "description": [
+          {
+            "Text": "Enable Lost Mode locks the device and shows the lock screen texts. Disable Lost Mode lifts the lock again so the device can be used as usual."
+          }
+        ],
+        "globbing": "false",
+        "name": "LostModeAction",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Text shown on the lock screen while the device is locked, for example who the device belongs to. Anyone who finds the device can read it. At least one of \"Lock screen message\" and \"Callback phone number\" is needed."
+          }
+        ],
+        "globbing": "false",
+        "name": "Message",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Phone number shown on the lock screen. The finder can call it from the locked device without unlocking it. Leave empty to show the message only."
+          }
+        ],
+        "globbing": "false",
+        "name": "PhoneNumber",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": "## Prerequisites\n\nLost Mode is an Apple feature for **supervised** iOS and iPadOS devices. A device is supervised when it was enrolled through Apple Business Manager or Apple School Manager (Automated Device Enrollment) or prepared with Apple Configurator. Devices enrolled by the user themselves, personal devices and devices managed by app protection only are not supervised and cannot be locked this way.\n\nBefore anything is changed, the runbook checks that the device is enrolled in Intune, runs iOS or iPadOS and is reported as supervised. If one of these checks fails, the run stops with a message that names the reason instead of the raw Intune error.\n\n## What the finder sees\n\nWhile Lost Mode is active the device is locked and shows the lock screen message, the callback phone number and the footer. The phone number can be called from the lock screen without unlocking the device. Nothing else on the device is usable. The texts are visible to anyone who holds the device, so they should name a contact but no internal details.\n\nAt least one of the message and the phone number has to be filled in. A device locked without either gives the finder no way to return it, so the runbook refuses that combination.\n\nEnabling Lost Mode again on a device that is already locked updates the lock screen texts.\n\n## Lifting Lost Mode\n\nChoose *Disable Lost Mode* once the device is back. The device unlocks with its usual passcode after the command has arrived. The request is sent even when Intune already reports Lost Mode as disabled, because the reported state can lag behind the device. If Intune then rejects it because Lost Mode is not active, the run ends without a change.\n\n## Locating the device\n\nWith *Locate the device after locking?* set to yes, the runbook asks the device for its position right after Lost Mode was requested. The device answers with its next check-in. The runbook waits for about a minute and shows latitude, longitude, the horizontal accuracy in meters and a map link when the position arrives in time. A device that is offline reports its position later; it is then shown in the Intune admin center on the device's page under **Hardware** and in the device action results.\n\nThe location request needs the optional permission listed for the *Locate device* feature. Without it Lost Mode is still enabled and the runbook only warns that the position could not be requested.\n\n## Delays and offline devices\n\nLost Mode and the location request are device actions that Intune queues. A device that is online receives them within seconds; a device that is switched off or has no network receives them as soon as it connects again. The **Current Lost Mode state** shown at the start of the run and the state in the Intune admin center can lag behind by a few minutes.\n\n## Preset the lock screen texts\n\nTo give the helpdesk a tenant-wide default, preset the message and the footer in the runbook customization. The phone number is best left to the person running the runbook, unless one central number is used.\n\n```json\n\"rjgit-device_security_enable-or-disable-lost-mode\": {\n    \"parameters\": {\n        \"Message\": {\n            \"Default\": \"This device belongs to Contoso and has been reported lost. Please call the number below to return it.\"\n        },\n        \"Footer\": {\n            \"Default\": \"Thank you for your help.\"\n        }\n    }\n}\n```\n\nTo always request the position after locking, add `\"LocateDevice\": { \"Default\": true, \"Hide\": true }` to the same block.\n\n## Related runbooks\n\n- **Enable Or Disable Device** (Device/Security) blocks sign-ins with the device in Entra ID. For a lost or stolen device, run it in addition to Lost Mode so tokens on the device cannot be used any more.\n- **Reset Mobile Device Pin** (Device/Security) resets the passcode of a corporate iOS device.\n- **Wipe Managed App Data** (Device/General) removes company data from devices that are managed by app protection only and cannot be locked with Lost Mode.\n- **Wipe Device** (Device/General) is the last resort when the device is not expected to come back.\n\n## Android\n\nIntune also offers a lost mode for Android Enterprise devices that are corporate-owned and fully managed or dedicated. This runbook does not cover Android; the operating system check stops the run for Android devices. Support can be added later without changing the parameters.\n",
+    "DocsContentEncoded": "IyMgUHJlcmVxdWlzaXRlcwoKTG9zdCBNb2RlIGlzIGFuIEFwcGxlIGZlYXR1cmUgZm9yICoqc3VwZXJ2aXNlZCoqIGlPUyBhbmQgaVBhZE9TIGRldmljZXMuIEEgZGV2aWNlIGlzIHN1cGVydmlzZWQgd2hlbiBpdCB3YXMgZW5yb2xsZWQgdGhyb3VnaCBBcHBsZSBCdXNpbmVzcyBNYW5hZ2VyIG9yIEFwcGxlIFNjaG9vbCBNYW5hZ2VyIChBdXRvbWF0ZWQgRGV2aWNlIEVucm9sbG1lbnQpIG9yIHByZXBhcmVkIHdpdGggQXBwbGUgQ29uZmlndXJhdG9yLiBEZXZpY2VzIGVucm9sbGVkIGJ5IHRoZSB1c2VyIHRoZW1zZWx2ZXMsIHBlcnNvbmFsIGRldmljZXMgYW5kIGRldmljZXMgbWFuYWdlZCBieSBhcHAgcHJvdGVjdGlvbiBvbmx5IGFyZSBub3Qgc3VwZXJ2aXNlZCBhbmQgY2Fubm90IGJlIGxvY2tlZCB0aGlzIHdheS4KCkJlZm9yZSBhbnl0aGluZyBpcyBjaGFuZ2VkLCB0aGUgcnVuYm9vayBjaGVja3MgdGhhdCB0aGUgZGV2aWNlIGlzIGVucm9sbGVkIGluIEludHVuZSwgcnVucyBpT1Mgb3IgaVBhZE9TIGFuZCBpcyByZXBvcnRlZCBhcyBzdXBlcnZpc2VkLiBJZiBvbmUgb2YgdGhlc2UgY2hlY2tzIGZhaWxzLCB0aGUgcnVuIHN0b3BzIHdpdGggYSBtZXNzYWdlIHRoYXQgbmFtZXMgdGhlIHJlYXNvbiBpbnN0ZWFkIG9mIHRoZSByYXcgSW50dW5lIGVycm9yLgoKIyMgV2hhdCB0aGUgZmluZGVyIHNlZXMKCldoaWxlIExvc3QgTW9kZSBpcyBhY3RpdmUgdGhlIGRldmljZSBpcyBsb2NrZWQgYW5kIHNob3dzIHRoZSBsb2NrIHNjcmVlbiBtZXNzYWdlLCB0aGUgY2FsbGJhY2sgcGhvbmUgbnVtYmVyIGFuZCB0aGUgZm9vdGVyLiBUaGUgcGhvbmUgbnVtYmVyIGNhbiBiZSBjYWxsZWQgZnJvbSB0aGUgbG9jayBzY3JlZW4gd2l0aG91dCB1bmxvY2tpbmcgdGhlIGRldmljZS4gTm90aGluZyBlbHNlIG9uIHRoZSBkZXZpY2UgaXMgdXNhYmxlLiBUaGUgdGV4dHMgYXJlIHZpc2libGUgdG8gYW55b25lIHdobyBob2xkcyB0aGUgZGV2aWNlLCBzbyB0aGV5IHNob3VsZCBuYW1lIGEgY29udGFjdCBidXQgbm8gaW50ZXJuYWwgZGV0YWlscy4KCkF0IGxlYXN0IG9uZSBvZiB0aGUgbWVzc2FnZSBhbmQgdGhlIHBob25lIG51bWJlciBoYXMgdG8gYmUgZmlsbGVkIGluLiBBIGRldmljZSBsb2NrZWQgd2l0aG91dCBlaXRoZXIgZ2l2ZXMgdGhlIGZpbmRlciBubyB3YXkgdG8gcmV0dXJuIGl0LCBzbyB0aGUgcnVuYm9vayByZWZ1c2VzIHRoYXQgY29tYmluYXRpb24uCgpFbmFibGluZyBMb3N0IE1vZGUgYWdhaW4gb24gYSBkZXZpY2UgdGhhdCBpcyBhbHJlYWR5IGxvY2tlZCB1cGRhdGVzIHRoZSBsb2NrIHNjcmVlbiB0ZXh0cy4KCiMjIExpZnRpbmcgTG9zdCBNb2RlCgpDaG9vc2UgKkRpc2FibGUgTG9zdCBNb2RlKiBvbmNlIHRoZSBkZXZpY2UgaXMgYmFjay4gVGhlIGRldmljZSB1bmxvY2tzIHdpdGggaXRzIHVzdWFsIHBhc3Njb2RlIGFmdGVyIHRoZSBjb21tYW5kIGhhcyBhcnJpdmVkLiBUaGUgcmVxdWVzdCBpcyBzZW50IGV2ZW4gd2hlbiBJbnR1bmUgYWxyZWFkeSByZXBvcnRzIExvc3QgTW9kZSBhcyBkaXNhYmxlZCwgYmVjYXVzZSB0aGUgcmVwb3J0ZWQgc3RhdGUgY2FuIGxhZyBiZWhpbmQgdGhlIGRldmljZS4gSWYgSW50dW5lIHRoZW4gcmVqZWN0cyBpdCBiZWNhdXNlIExvc3QgTW9kZSBpcyBub3QgYWN0aXZlLCB0aGUgcnVuIGVuZHMgd2l0aG91dCBhIGNoYW5nZS4KCiMjIExvY2F0aW5nIHRoZSBkZXZpY2UKCldpdGggKkxvY2F0ZSB0aGUgZGV2aWNlIGFmdGVyIGxvY2tpbmc/KiBzZXQgdG8geWVzLCB0aGUgcnVuYm9vayBhc2tzIHRoZSBkZXZpY2UgZm9yIGl0cyBwb3NpdGlvbiByaWdodCBhZnRlciBMb3N0IE1vZGUgd2FzIHJlcXVlc3RlZC4gVGhlIGRldmljZSBhbnN3ZXJzIHdpdGggaXRzIG5leHQgY2hlY2staW4uIFRoZSBydW5ib29rIHdhaXRzIGZvciBhYm91dCBhIG1pbnV0ZSBhbmQgc2hvd3MgbGF0aXR1ZGUsIGxvbmdpdHVkZSwgdGhlIGhvcml6b250YWwgYWNjdXJhY3kgaW4gbWV0ZXJzIGFuZCBhIG1hcCBsaW5rIHdoZW4gdGhlIHBvc2l0aW9uIGFycml2ZXMgaW4gdGltZS4gQSBkZXZpY2UgdGhhdCBpcyBvZmZsaW5lIHJlcG9ydHMgaXRzIHBvc2l0aW9uIGxhdGVyOyBpdCBpcyB0aGVuIHNob3duIGluIHRoZSBJbnR1bmUgYWRtaW4gY2VudGVyIG9uIHRoZSBkZXZpY2UncyBwYWdlIHVuZGVyICoqSGFyZHdhcmUqKiBhbmQgaW4gdGhlIGRldmljZSBhY3Rpb24gcmVzdWx0cy4KClRoZSBsb2NhdGlvbiByZXF1ZXN0IG5lZWRzIHRoZSBvcHRpb25hbCBwZXJtaXNzaW9uIGxpc3RlZCBmb3IgdGhlICpMb2NhdGUgZGV2aWNlKiBmZWF0dXJlLiBXaXRob3V0IGl0IExvc3QgTW9kZSBpcyBzdGlsbCBlbmFibGVkIGFuZCB0aGUgcnVuYm9vayBvbmx5IHdhcm5zIHRoYXQgdGhlIHBvc2l0aW9uIGNvdWxkIG5vdCBiZSByZXF1ZXN0ZWQuCgojIyBEZWxheXMgYW5kIG9mZmxpbmUgZGV2aWNlcwoKTG9zdCBNb2RlIGFuZCB0aGUgbG9jYXRpb24gcmVxdWVzdCBhcmUgZGV2aWNlIGFjdGlvbnMgdGhhdCBJbnR1bmUgcXVldWVzLiBBIGRldmljZSB0aGF0IGlzIG9ubGluZSByZWNlaXZlcyB0aGVtIHdpdGhpbiBzZWNvbmRzOyBhIGRldmljZSB0aGF0IGlzIHN3aXRjaGVkIG9mZiBvciBoYXMgbm8gbmV0d29yayByZWNlaXZlcyB0aGVtIGFzIHNvb24gYXMgaXQgY29ubmVjdHMgYWdhaW4uIFRoZSAqKkN1cnJlbnQgTG9zdCBNb2RlIHN0YXRlKiogc2hvd24gYXQgdGhlIHN0YXJ0IG9mIHRoZSBydW4gYW5kIHRoZSBzdGF0ZSBpbiB0aGUgSW50dW5lIGFkbWluIGNlbnRlciBjYW4gbGFnIGJlaGluZCBieSBhIGZldyBtaW51dGVzLgoKIyMgUHJlc2V0IHRoZSBsb2NrIHNjcmVlbiB0ZXh0cwoKVG8gZ2l2ZSB0aGUgaGVscGRlc2sgYSB0ZW5hbnQtd2lkZSBkZWZhdWx0LCBwcmVzZXQgdGhlIG1lc3NhZ2UgYW5kIHRoZSBmb290ZXIgaW4gdGhlIHJ1bmJvb2sgY3VzdG9taXphdGlvbi4gVGhlIHBob25lIG51bWJlciBpcyBiZXN0IGxlZnQgdG8gdGhlIHBlcnNvbiBydW5uaW5nIHRoZSBydW5ib29rLCB1bmxlc3Mgb25lIGNlbnRyYWwgbnVtYmVyIGlzIHVzZWQuCgpgYGBqc29uCiJyamdpdC1kZXZpY2Vfc2VjdXJpdHlfZW5hYmxlLW9yLWRpc2FibGUtbG9zdC1tb2RlIjogewogICAgInBhcmFtZXRlcnMiOiB7CiAgICAgICAgIk1lc3NhZ2UiOiB7CiAgICAgICAgICAgICJEZWZhdWx0IjogIlRoaXMgZGV2aWNlIGJlbG9uZ3MgdG8gQ29udG9zbyBhbmQgaGFzIGJlZW4gcmVwb3J0ZWQgbG9zdC4gUGxlYXNlIGNhbGwgdGhlIG51bWJlciBiZWxvdyB0byByZXR1cm4gaXQuIgogICAgICAgIH0sCiAgICAgICAgIkZvb3RlciI6IHsKICAgICAgICAgICAgIkRlZmF1bHQiOiAiVGhhbmsgeW91IGZvciB5b3VyIGhlbHAuIgogICAgICAgIH0KICAgIH0KfQpgYGAKClRvIGFsd2F5cyByZXF1ZXN0IHRoZSBwb3NpdGlvbiBhZnRlciBsb2NraW5nLCBhZGQgYCJMb2NhdGVEZXZpY2UiOiB7ICJEZWZhdWx0IjogdHJ1ZSwgIkhpZGUiOiB0cnVlIH1gIHRvIHRoZSBzYW1lIGJsb2NrLgoKIyMgUmVsYXRlZCBydW5ib29rcwoKLSAqKkVuYWJsZSBPciBEaXNhYmxlIERldmljZSoqIChEZXZpY2UvU2VjdXJpdHkpIGJsb2NrcyBzaWduLWlucyB3aXRoIHRoZSBkZXZpY2UgaW4gRW50cmEgSUQuIEZvciBhIGxvc3Qgb3Igc3RvbGVuIGRldmljZSwgcnVuIGl0IGluIGFkZGl0aW9uIHRvIExvc3QgTW9kZSBzbyB0b2tlbnMgb24gdGhlIGRldmljZSBjYW5ub3QgYmUgdXNlZCBhbnkgbW9yZS4KLSAqKlJlc2V0IE1vYmlsZSBEZXZpY2UgUGluKiogKERldmljZS9TZWN1cml0eSkgcmVzZXRzIHRoZSBwYXNzY29kZSBvZiBhIGNvcnBvcmF0ZSBpT1MgZGV2aWNlLgotICoqV2lwZSBNYW5hZ2VkIEFwcCBEYXRhKiogKERldmljZS9HZW5lcmFsKSByZW1vdmVzIGNvbXBhbnkgZGF0YSBmcm9tIGRldmljZXMgdGhhdCBhcmUgbWFuYWdlZCBieSBhcHAgcHJvdGVjdGlvbiBvbmx5IGFuZCBjYW5ub3QgYmUgbG9ja2VkIHdpdGggTG9zdCBNb2RlLgotICoqV2lwZSBEZXZpY2UqKiAoRGV2aWNlL0dlbmVyYWwpIGlzIHRoZSBsYXN0IHJlc29ydCB3aGVuIHRoZSBkZXZpY2UgaXMgbm90IGV4cGVjdGVkIHRvIGNvbWUgYmFjay4KCiMjIEFuZHJvaWQKCkludHVuZSBhbHNvIG9mZmVycyBhIGxvc3QgbW9kZSBmb3IgQW5kcm9pZCBFbnRlcnByaXNlIGRldmljZXMgdGhhdCBhcmUgY29ycG9yYXRlLW93bmVkIGFuZCBmdWxseSBtYW5hZ2VkIG9yIGRlZGljYXRlZC4gVGhpcyBydW5ib29rIGRvZXMgbm90IGNvdmVyIEFuZHJvaWQ7IHRoZSBvcGVyYXRpbmcgc3lzdGVtIGNoZWNrIHN0b3BzIHRoZSBydW4gZm9yIEFuZHJvaWQgZGV2aWNlcy4gU3VwcG9ydCBjYW4gYmUgYWRkZWQgbGF0ZXIgd2l0aG91dCBjaGFuZ2luZyB0aGUgcGFyYW1ldGVycy4K",
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n                    \"Reason\": \"Runs the enableLostMode and disableLostMode device actions\"\n                },\n                {\n                    \"Value\": \"DeviceManagementManagedDevices.Read.All\",\n                    \"Reason\": \"Looks up the Intune device by its Entra device ID and reads its operating system, supervision and Lost Mode state; also reads the location result after a locate request\"\n                },\n                {\n                    \"Value\": \"DeviceManagementManagedDevices.ReadWrite.All\",\n                    \"Optional\": true,\n                    \"Feature\": \"Locate device\",\n                    \"Reason\": \"Runs the locateDevice action when the position is requested after locking\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementManagedDevices.PrivilegedOperations.All",
+            "DeviceManagementManagedDevices.ReadWrite.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Isolate Or Release Device",
     "RunbookDisplayPath": "Device \\ Security \\ Isolate Or Release Device",
     "RelativeRunbookPath": "device/security/isolate-or-release-device.ps1",

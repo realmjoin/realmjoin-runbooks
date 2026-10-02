@@ -19,6 +19,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Wipe Managed App Data | Remove company app data from this MAM-managed device |
 |  | Security | Check Defender Status | Check this device in Entra ID and Defender for Endpoint |
 |  |  | Enable Or Disable Device | Enable or disable this device in Entra ID |
+|  |  | Enable Or Disable Lost Mode | Enable or disable Lost Mode on this supervised iOS or iPadOS device |
 |  |  | Isolate Or Release Device | Isolate this device from the network or release it |
 |  |  | Reset Mobile Device Pin | Reset the passcode of this mobile device |
 |  |  | Restrict Or Release Code Execution | Restrict this device to Microsoft-signed code or lift the restriction |
