@@ -129,7 +129,8 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Rename Devices By Group Tag (Scheduled) | Name Autopilot devices after their group tag and serial number |
 | Report Devices Low Diskspace (Scheduled) | Report devices that are running out of disk space |
 | Report Devices Without Primary User (Scheduled) | Report Intune devices without a primary user |
-| Report Primary User Mismatch (Scheduled) | Compare primary users between Intune and RealmJoin |
+| Report Primary User Mismatch (Scheduled) | Compare primary users and logons between Intune and RealmJoin |
+| Report Realmjoin Agent Contact (Scheduled) | Report devices whose RealmJoin agent stopped reporting |
 | Report Stale Devices (Scheduled) | Report devices that have been inactive for too long |
 | Report Users With More Than 5-Devices (Scheduled) | Report users with more than five registered devices |
 | Report Windows Devices Without Autopilot (Scheduled) | Report Windows devices in Entra ID without an Autopilot record |

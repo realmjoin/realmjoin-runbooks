@@ -115,6 +115,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Report Devices Low Diskspace (Scheduled)](docs/org/devices/report-devices-low-diskspace_scheduled.md)
     - [Report Devices Without Primary User (Scheduled)](docs/org/devices/report-devices-without-primary-user_scheduled.md)
     - [Report Primary User Mismatch (Scheduled)](docs/org/devices/report-primary-user-mismatch_scheduled.md)
+    - [Report Realmjoin Agent Contact (Scheduled)](docs/org/devices/report-realmjoin-agent-contact_scheduled.md)
     - [Report Stale Devices (Scheduled)](docs/org/devices/report-stale-devices_scheduled.md)
     - [Report Users With More Than 5-Devices (Scheduled)](docs/org/devices/report-users-with-more-than-5-devices_scheduled.md)
     - [Report Windows Devices Without Autopilot (Scheduled)](docs/org/devices/report-windows-devices-without-autopilot_scheduled.md)

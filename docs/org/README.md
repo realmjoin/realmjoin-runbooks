@@ -35,6 +35,7 @@
   - [Report Devices Low Diskspace (Scheduled)](devices/report-devices-low-diskspace_scheduled.md)
   - [Report Devices Without Primary User (Scheduled)](devices/report-devices-without-primary-user_scheduled.md)
   - [Report Primary User Mismatch (Scheduled)](devices/report-primary-user-mismatch_scheduled.md)
+  - [Report Realmjoin Agent Contact (Scheduled)](devices/report-realmjoin-agent-contact_scheduled.md)
   - [Report Stale Devices (Scheduled)](devices/report-stale-devices_scheduled.md)
   - [Report Users With More Than 5-Devices (Scheduled)](devices/report-users-with-more-than-5-devices_scheduled.md)
   - [Report Windows Devices Without Autopilot (Scheduled)](devices/report-windows-devices-without-autopilot_scheduled.md)

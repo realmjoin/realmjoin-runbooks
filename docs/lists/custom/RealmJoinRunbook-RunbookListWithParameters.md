@@ -523,15 +523,17 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
 |  |  |  |  |  |  | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  | Report Primary User Mismatch (Scheduled) | Compare primary users between Intune and RealmJoin | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br>&emsp;- Organization.Read.All<br> |  | SyncThresholdDays |  | Int32 | Only devices that synced with Intune within this many days are compared. |
+|  |  | Report Primary User Mismatch (Scheduled) | Compare primary users and logons between Intune and RealmJoin | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br>&emsp;- Organization.Read.All *(optional: Email report)*<br>RealmJoin customer API: an Automation Account credential named 'RJAPI' with the tenant's API username (t-<tenant id>) and secret, issued by RealmJoin support<br>RealmJoin customer API: the device users feature of the API has to be enabled for the tenant by RealmJoin support (the device list answers with HTTP 403 otherwise)<br> |  | SyncThresholdDays |  | Int32 | Only devices that synced with Intune within this many days are compared. Devices that stopped syncing altogether belong in the stale device report instead. |
 |  |  |  |  |  |  | DeviceNamePrefix |  | String | Only devices whose name starts with this text. Leave empty for all. |
+|  |  |  |  |  |  | PrimaryUserLogonDays |  | Int32 | The primary user counts as not logging on when someone else logged on to the device and the primary user did not within this many days. |
 |  |  |  |  |  |  | IncludeMismatches |  | Boolean | Lists devices whose primary user differs between Intune and RealmJoin. |
-|  |  |  |  |  |  | IncludeMissingInRealmJoin |  | Boolean | Lists devices that exist in Intune but not in RealmJoin. |
-|  |  |  |  |  |  | IncludeMissingInIntune |  | Boolean | Lists devices that exist in RealmJoin but not in Intune. |
+|  |  |  |  |  |  | IncludeMissingInRealmJoin |  | Boolean | Lists devices that exist in Intune but not in RealmJoin, or that RealmJoin knows without a primary user. |
+|  |  |  |  |  |  | IncludeMissingInIntune |  | Boolean | Lists devices that exist in RealmJoin but did not sync with Intune within the sync window. |
 |  |  |  |  |  |  | IncludePrimaryUserDeleted |  | Boolean | Lists devices whose Intune primary user was deleted from Entra ID. Without this they would look like mismatches, because Intune rewrites the name of a deleted user. |
-|  |  |  |  |  |  | UseDeviceScope |  | Boolean | Whether devices are filtered by group membership. Set by the "Filter by device group?" choice. |
-|  |  |  |  |  |  | IncludeDeviceGroup |  | String | Only devices in this Entra ID group. |
-|  |  |  |  |  |  | ExcludeDeviceGroup |  | String | Skips devices in this Entra ID group. |
+|  |  |  |  |  |  | IncludePrimaryUserNotLoggingOn |  | Boolean | Lists devices where other users log on but the primary user has not within "Primary user must have logged on within (days)". Uses the logons Intune and the RealmJoin agent recorded. |
+|  |  |  |  |  |  | IncludeDeviceGroup |  | String | Only devices in this Entra ID group. Leave empty for all devices. |
+|  |  |  |  |  |  | ExcludeDeviceGroup |  | String | Skips devices in this Entra ID group, for example shared devices where several people log on by design. Leave empty to skip none. |
+|  |  |  |  |  |  | SendEmailReport |  | Boolean | Send the report to the recipient email address. |
 |  |  |  |  |  |  | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 |  |  |  |  |  |  | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 |  |  |  |  |  |  | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -539,6 +541,30 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
 |  |  |  |  |  |  | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 |  |  |  |  |  |  | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
+|  |  |  |  |  |  | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
+|  |  |  |  |  |  | CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+|  |  |  |  |  |  | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
+|  |  |  |  |  |  | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
+|  |  |  |  |  |  | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+|  |  |  |  |  |  | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+|  |  | Report Realmjoin Agent Contact (Scheduled) | Report devices whose RealmJoin agent stopped reporting | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.Read.All<br>&emsp;- GroupMember.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br>&emsp;- Organization.Read.All *(optional: Email report)*<br>RealmJoin customer API: an Automation Account credential named 'RJAPI' with the tenant's API username (t-<tenant id>) and secret, issued by RealmJoin support<br>RealmJoin customer API: the device users feature of the API has to be enabled for the tenant by RealmJoin support (the device list answers with HTTP 403 otherwise)<br> |  | SyncThresholdDays |  | Int32 | Only devices that synced with Intune within this many days are compared. Devices that stopped syncing altogether belong in the stale device report instead. |
+|  |  |  |  |  |  | AgentContactThresholdDays |  | Int32 | A device counts as agent stale when Intune saw it at least this many days after RealmJoin last did. Short gaps are normal, as the agent only reports while a user is signed in. |
+|  |  |  |  |  |  | DeviceNamePrefix |  | String | Only devices whose name starts with this text. Leave empty for all. |
+|  |  |  |  |  |  | IncludeAgentStale |  | Boolean | Lists devices that Intune saw well after RealmJoin last did, the sign of an agent that no longer reports. |
+|  |  |  |  |  |  | IncludeNeverSeen |  | Boolean | Lists devices RealmJoin knows but has never seen a signed-in user on, for example devices that were enrolled but not used yet. |
+|  |  |  |  |  |  | IncludeMissingInRealmJoin |  | Boolean | Lists devices that exist in Intune but not in RealmJoin. |
+|  |  |  |  |  |  | IncludeMissingInIntune |  | Boolean | Lists devices that exist in RealmJoin but did not sync with Intune within the sync window. Not available together with a device name prefix. |
+|  |  |  |  |  |  | IncludeDeviceGroup |  | String | Only devices in this Entra ID group. Leave empty for all devices. |
+|  |  |  |  |  |  | ExcludeDeviceGroup |  | String | Skips devices in this Entra ID group, for example kiosk or shared devices that rarely have a signed-in user. Leave empty to skip none. |
+|  |  |  |  |  |  | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
+|  |  |  |  |  |  | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
+|  |  |  |  |  |  | BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
+|  |  |  |  |  |  | BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
+|  |  |  |  |  |  | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
+|  |  |  |  |  |  | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
+|  |  |  |  |  |  | SendEmailReport |  | Boolean | Send the report to the recipient email address. |
+|  |  |  |  |  |  | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 |  |  |  |  |  |  | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
 |  |  |  |  |  |  | CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
 |  |  |  |  |  |  | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |

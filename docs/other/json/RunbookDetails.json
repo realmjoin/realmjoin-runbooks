@@ -10890,8 +10890,8 @@
     "RelativeRunbookPath_PathOnly": "org/devices",
     "PrimaryFolder": "Org",
     "SubFolder": "Devices",
-    "Synopsis": "Compare primary users between Intune and RealmJoin",
-    "Description": "Compares, for Windows devices, the primary user recorded in Intune with the one recorded in RealmJoin and lists every device where they differ. Whether mismatches, devices missing on one side and deleted primary users are listed is set in the runbook customization. Only devices that synced with Intune recently are considered. The report can be sent by email or provided as a download link.",
+    "Synopsis": "Compare primary users and logons between Intune and RealmJoin",
+    "Description": "Compares, for Windows devices, the primary user recorded in Intune with the one recorded in RealmJoin and lists every device where they differ. It also checks who actually logs on to each device, using the logons Intune and the RealmJoin agent recorded, and lists devices whose primary user no longer does. Which categories are listed is set in the runbook customization. Only devices that synced with Intune recently are considered. The report can be sent by email or provided as a download link.",
     "Notes": null,
     "Parameters": [
       {
@@ -10905,7 +10905,7 @@
         "name": "BrandingAccentColor",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "15",
+        "position": "17",
         "required": "false",
         "type": {
           "name": "String"
@@ -10922,7 +10922,7 @@
         "name": "BrandingFooterImageUrl",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "13",
+        "position": "15",
         "required": "false",
         "type": {
           "name": "String"
@@ -10939,7 +10939,7 @@
         "name": "BrandingFooterLink",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "14",
+        "position": "16",
         "required": "false",
         "type": {
           "name": "String"
@@ -10956,7 +10956,7 @@
         "name": "BrandingHeaderImageUrl",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "12",
+        "position": "14",
         "required": "false",
         "type": {
           "name": "String"
@@ -10973,7 +10973,7 @@
         "name": "BrandingTextColor",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "16",
+        "position": "18",
         "required": "false",
         "type": {
           "name": "String"
@@ -10990,7 +10990,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "23",
+        "position": "25",
         "required": "true",
         "type": {
           "name": "String"
@@ -11007,7 +11007,7 @@
         "name": "ContainerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "19",
+        "position": "21",
         "required": "false",
         "type": {
           "name": "String"
@@ -11024,7 +11024,7 @@
         "name": "CreateDownloadLink",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "18",
+        "position": "20",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -11058,7 +11058,7 @@
         "name": "EmailFrom",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "11",
+        "position": "13",
         "required": "false",
         "type": {
           "name": "String"
@@ -11075,6 +11075,23 @@
         "name": "EmailTo",
         "parameterValue": "String",
         "pipelineInput": "false",
+        "position": "12",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Skips devices in this Entra ID group, for example shared devices where several people log on by design. Leave empty to skip none."
+          }
+        ],
+        "globbing": "false",
+        "name": "ExcludeDeviceGroup",
+        "parameterValue": "String",
+        "pipelineInput": "false",
         "position": "10",
         "required": "false",
         "type": {
@@ -11085,31 +11102,14 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "Skips devices in this Entra ID group."
-          }
-        ],
-        "globbing": "false",
-        "name": "ExcludeDeviceGroup",
-        "parameterValue": "String",
-        "pipelineInput": "false",
-        "position": "9",
-        "required": "false",
-        "type": {
-          "name": "String"
-        }
-      },
-      {
-        "defaultValue": "",
-        "description": [
-          {
-            "Text": "Only devices in this Entra ID group."
+            "Text": "Only devices in this Entra ID group. Leave empty for all devices."
           }
         ],
         "globbing": "false",
         "name": "IncludeDeviceGroup",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "9",
         "required": "false",
         "type": {
           "name": "String"
@@ -11126,7 +11126,7 @@
         "name": "IncludeMismatches",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "4",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -11136,14 +11136,14 @@
         "defaultValue": "False",
         "description": [
           {
-            "Text": "Lists devices that exist in RealmJoin but not in Intune."
+            "Text": "Lists devices that exist in RealmJoin but did not sync with Intune within the sync window."
           }
         ],
         "globbing": "false",
         "name": "IncludeMissingInIntune",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "5",
+        "position": "6",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -11153,14 +11153,14 @@
         "defaultValue": "False",
         "description": [
           {
-            "Text": "Lists devices that exist in Intune but not in RealmJoin."
+            "Text": "Lists devices that exist in Intune but not in RealmJoin, or that RealmJoin knows without a primary user."
           }
         ],
         "globbing": "false",
         "name": "IncludeMissingInRealmJoin",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "4",
+        "position": "5",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -11177,7 +11177,24 @@
         "name": "IncludePrimaryUserDeleted",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "6",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Lists devices where other users log on but the primary user has not within \"Primary user must have logged on within (days)\". Uses the logons Intune and the RealmJoin agent recorded."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludePrimaryUserNotLoggingOn",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "8",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -11194,7 +11211,24 @@
         "name": "LinkExpiryDays",
         "parameterValue": "Int32",
         "pipelineInput": "false",
-        "position": "22",
+        "position": "24",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "30",
+        "description": [
+          {
+            "Text": "The primary user counts as not logging on when someone else logged on to the device and the primary user did not within this many days."
+          }
+        ],
+        "globbing": "false",
+        "name": "PrimaryUserLogonDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "3",
         "required": "false",
         "type": {
           "name": "Int32"
@@ -11211,7 +11245,7 @@
         "name": "ReportFileFormat",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "17",
+        "position": "19",
         "required": "false",
         "type": {
           "name": "String"
@@ -11228,10 +11262,27 @@
         "name": "ResourceGroupName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "20",
+        "position": "22",
         "required": "false",
         "type": {
           "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Send the report to the recipient email address."
+          }
+        ],
+        "globbing": "false",
+        "name": "SendEmailReport",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
         }
       },
       {
@@ -11245,7 +11296,7 @@
         "name": "StorageAccountName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "21",
+        "position": "23",
         "required": "false",
         "type": {
           "name": "String"
@@ -11255,7 +11306,7 @@
         "defaultValue": "30",
         "description": [
           {
-            "Text": "Only devices that synced with Intune within this many days are compared."
+            "Text": "Only devices that synced with Intune within this many days are compared. Devices that stopped syncing altogether belong in the stale device report instead."
           }
         ],
         "globbing": "false",
@@ -11267,28 +11318,11 @@
         "type": {
           "name": "Int32"
         }
-      },
-      {
-        "defaultValue": "False",
-        "description": [
-          {
-            "Text": "Whether devices are filtered by group membership. Set by the \"Filter by device group?\" choice."
-          }
-        ],
-        "globbing": "false",
-        "name": "UseDeviceScope",
-        "parameterValue": "Boolean",
-        "pipelineInput": "false",
-        "position": "7",
-        "required": "false",
-        "type": {
-          "name": "Boolean"
-        }
       }
     ],
-    "DocsContent": "## Result without mismatches\n\nNo email is sent when the two data sources are in sync. A run without mismatches completes normally and is not an error.\n\n## Setup regarding email sending\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings).\n\n### Email branding\n\nThe report email honors the optional `RJReport.Branding.*` tenant settings:\n\n- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each\n- **Footer link** – target of the footer image\n- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`\n\nWhen these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.\n\nSetup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).\n\n## Setup regarding RealmJoin API credentials\n\nThis runbook queries the RealmJoin customer API and requires a dedicated credential stored in the Azure Automation Account.\n\n**Step-by-step setup:**\n\n1. **Get API credentials** — If you do not yet have RealmJoin API credentials, request them at support@realmjoin.com\n2. **Open the Automation Account** — In the Azure portal, navigate to the Automation Account used for runbooks\n3. **Go to Shared Resources > Credentials** — In the left menu under *Shared Resources*, click *Credentials*\n4. **Add a new credential** — Click *Add a credential*\n5. **Name it exactly `RJAPI`** — The runbook looks up this name; any deviation will cause the credential lookup to fail\n6. **Enter the RealmJoin API username and password** — Use the credentials from step 1\n7. **Save** — Click *Create* and re-run the runbook\n",
-    "DocsContentEncoded": "IyMgUmVzdWx0IHdpdGhvdXQgbWlzbWF0Y2hlcwoKTm8gZW1haWwgaXMgc2VudCB3aGVuIHRoZSB0d28gZGF0YSBzb3VyY2VzIGFyZSBpbiBzeW5jLiBBIHJ1biB3aXRob3V0IG1pc21hdGNoZXMgY29tcGxldGVzIG5vcm1hbGx5IGFuZCBpcyBub3QgYW4gZXJyb3IuCgojIyBTZXR1cCByZWdhcmRpbmcgZW1haWwgc2VuZGluZwoKVGhpcyBydW5ib29rIHNlbmRzIGVtYWlscyB1c2luZyB0aGUgTWljcm9zb2Z0IEdyYXBoIEFQSS4gVG8gc2VuZCBlbWFpbHMgdmlhIEdyYXBoIEFQSSwgeW91IG5lZWQgdG8gY29uZmlndXJlIGFuIGV4aXN0aW5nIGVtYWlsIGFkZHJlc3MgaW4gdGhlIHJ1bmJvb2sgY3VzdG9taXphdGlvbi4KClRoaXMgcHJvY2VzcyBpcyBkZXNjcmliZWQgaW4gZGV0YWlsIGluIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKS4KCiMjIyBFbWFpbCBicmFuZGluZwoKVGhlIHJlcG9ydCBlbWFpbCBob25vcnMgdGhlIG9wdGlvbmFsIGBSSlJlcG9ydC5CcmFuZGluZy4qYCB0ZW5hbnQgc2V0dGluZ3M6CgotICoqSGVhZGVyIGFuZCBmb290ZXIgaW1hZ2UqKiDigJMgcHVibGljIEhUVFBTIFVSTHMsIFBORy9KUEVHL0dJRiwgbWF4LiAyMDAgS0IgZWFjaAotICoqRm9vdGVyIGxpbmsqKiDigJMgdGFyZ2V0IG9mIHRoZSBmb290ZXIgaW1hZ2UKLSAqKkFjY2VudCBhbmQgdGV4dCBjb2xvcioqIOKAkyA2LWRpZ2l0IGhleCB2YWx1ZXMsIGUuZy4gYCMwMDUyY2NgCgpXaGVuIHRoZXNlIHNldHRpbmdzIGFyZSBub3QgY29uZmlndXJlZCwgdGhlIGRlZmF1bHQgUmVhbG1Kb2luIGdyYXBoaWNzIGFuZCBjb2xvcnMgYXJlIHVzZWQuIEFuIGltYWdlIHRoYXQgY2Fubm90IGJlIGRvd25sb2FkZWQgb3IgdmFsaWRhdGVkLCBvciBhbiBpbnZhbGlkIGNvbG9yIHZhbHVlLCBuZXZlciBwcmV2ZW50cyB0aGUgcmVwb3J0IGVtYWlsIOKAkyB0aGUgY29ycmVzcG9uZGluZyBkZWZhdWx0IGlzIHVzZWQgaW5zdGVhZC4KClNldHVwIGluc3RydWN0aW9ucyBhbmQgaW1hZ2UgcmVxdWlyZW1lbnRzOiBbRW1haWwgYnJhbmRpbmddKGh0dHBzOi8vZG9jcy5yZWFsbWpvaW4uY29tL2F1dG9tYXRpb24vcnVuYm9va3MvcnVuYm9vay1yZXBvcnQtc2V0dGluZ3MjZW1haWwtYnJhbmRpbmctb3B0aW9uYWwpLgoKIyMgU2V0dXAgcmVnYXJkaW5nIFJlYWxtSm9pbiBBUEkgY3JlZGVudGlhbHMKClRoaXMgcnVuYm9vayBxdWVyaWVzIHRoZSBSZWFsbUpvaW4gY3VzdG9tZXIgQVBJIGFuZCByZXF1aXJlcyBhIGRlZGljYXRlZCBjcmVkZW50aWFsIHN0b3JlZCBpbiB0aGUgQXp1cmUgQXV0b21hdGlvbiBBY2NvdW50LgoKKipTdGVwLWJ5LXN0ZXAgc2V0dXA6KioKCjEuICoqR2V0IEFQSSBjcmVkZW50aWFscyoqIOKAlCBJZiB5b3UgZG8gbm90IHlldCBoYXZlIFJlYWxtSm9pbiBBUEkgY3JlZGVudGlhbHMsIHJlcXVlc3QgdGhlbSBhdCBzdXBwb3J0QHJlYWxtam9pbi5jb20KMi4gKipPcGVuIHRoZSBBdXRvbWF0aW9uIEFjY291bnQqKiDigJQgSW4gdGhlIEF6dXJlIHBvcnRhbCwgbmF2aWdhdGUgdG8gdGhlIEF1dG9tYXRpb24gQWNjb3VudCB1c2VkIGZvciBydW5ib29rcwozLiAqKkdvIHRvIFNoYXJlZCBSZXNvdXJjZXMgPiBDcmVkZW50aWFscyoqIOKAlCBJbiB0aGUgbGVmdCBtZW51IHVuZGVyICpTaGFyZWQgUmVzb3VyY2VzKiwgY2xpY2sgKkNyZWRlbnRpYWxzKgo0LiAqKkFkZCBhIG5ldyBjcmVkZW50aWFsKiog4oCUIENsaWNrICpBZGQgYSBjcmVkZW50aWFsKgo1LiAqKk5hbWUgaXQgZXhhY3RseSBgUkpBUElgKiog4oCUIFRoZSBydW5ib29rIGxvb2tzIHVwIHRoaXMgbmFtZTsgYW55IGRldmlhdGlvbiB3aWxsIGNhdXNlIHRoZSBjcmVkZW50aWFsIGxvb2t1cCB0byBmYWlsCjYuICoqRW50ZXIgdGhlIFJlYWxtSm9pbiBBUEkgdXNlcm5hbWUgYW5kIHBhc3N3b3JkKiog4oCUIFVzZSB0aGUgY3JlZGVudGlhbHMgZnJvbSBzdGVwIDEKNy4gKipTYXZlKiog4oCUIENsaWNrICpDcmVhdGUqIGFuZCByZS1ydW4gdGhlIHJ1bmJvb2sK",
-    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"DeviceManagementManagedDevices.Read.All\",\n                    \"Reason\": \"Reads Intune managed devices to get each Windows device's primary user for comparison\"\n                },\n                {\n                    \"Value\": \"Directory.Read.All\",\n                    \"Reason\": \"Reads group members to resolve the optional include/exclude device group scope filters\"\n                },\n                {\n                    \"Value\": \"Mail.Send\",\n                    \"Optional\": true,\n                    \"Feature\": \"Email report\",\n                    \"Reason\": \"Delivers the mismatch report via Send-RjReportEmail to the configured EmailTo recipient\"\n                },\n                {\n                    \"Value\": \"Organization.Read.All\",\n                    \"Reason\": \"Reads /organization for the tenant name shown in the report\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "DocsContent": "## How it works\n\nThe runbook reads two lists and matches them by the Entra device ID (with the Intune device ID as fallback):\n\n- **Intune**: all Windows devices that completed a sync within the last *Intune last sync within (days)*, with their primary user and the logons Intune recorded on the device. Devices that stopped syncing with Intune are left out on purpose; they belong in the **Report Stale Devices (Scheduled)** runbook.\n- **RealmJoin**: the device list of the RealmJoin customer API. For every device it carries the users the RealmJoin agent has reported as signed in, each with a *last seen* timestamp, and which of them RealmJoin treats as the primary user.\n\nFor every device the runbook answers two questions: do the primary users agree, and does the primary user still log on? Each answer is a category; a device can be in several. Whether the RealmJoin agent itself still reports is a different question and answered by the **Report RealmJoin Agent Contact (Scheduled)** runbook.\n\n## Categories\n\n| Category | Meaning |\n| --- | --- |\n| `Mismatch` | The Intune primary user and the RealmJoin primary user differ. |\n| `PrimaryUserDeleted` | The Intune primary user was deleted from Entra ID. Intune then writes the user's object id in front of the user principal name; the runbook recognizes this and does not count it as a mismatch. |\n| `PrimaryUserNotLoggingOn` | Someone else logged on to the device, and the primary user did not within *Primary user must have logged on within (days)*. The device is probably used by a different person than the one recorded. |\n| `MissingInRealmJoin` | The device exists in Intune but RealmJoin does not know it, or knows it without a primary user. |\n| `MissingInIntune` | RealmJoin knows the device but it did not sync with Intune within the sync window. |\n\nWhich categories are listed is set in the runbook customization; by default only `Mismatch` is on. Every category has its own table in the Output Data tab of the run, with the columns that explain the finding. The report files hold one row per device in the enabled categories with all columns, including a `Findings` column that names every category the device is in.\n\n### Where the logons come from\n\nTwo sources are combined:\n\n- **Intune** records the most recent logons on a device with the user's object id and a timestamp. The runbook resolves the ids to user principal names; a user that no longer exists is shown as deleted.\n- **The RealmJoin agent** runs in the context of the signed-in user and reports to RealmJoin every 15 minutes while someone is signed in. Every report updates the *last seen* of that user on that device, so the RealmJoin users of a device are the people the agent saw signed in, each with their last time.\n\nThe primary user counts as logging on when either source saw them within the logon window. `PrimaryUserNotLoggingOn` needs both: someone else was seen, and the primary user was not within the window. A device on which nobody was seen at all is shown as `Unknown` in the `PrimaryUserLogon` column and is never counted as not logging on.\n\nShared devices where several people log on by design produce this finding for their primary user; exclude them with *Exclude devices from group*.\n\n### Device scope\n\n*Include devices from group* limits the comparison to the devices in that Entra ID group, *Exclude devices from group* skips the devices of a group. Both are optional and can be combined; a filter applies as soon as its group is selected.\n\n## Enabling categories\n\nThe category switches are hidden in the portal and set in the runbook customization, so a schedule always reports the same set. A customization that enables the logon check in addition to the mismatches:\n\n```json\n\"rjgit-org_devices_report-primary-user-mismatch_scheduled\": {\n    \"parameters\": {\n        \"IncludeMismatches\": {\n            \"Default\": true\n        },\n        \"IncludePrimaryUserDeleted\": {\n            \"Default\": true\n        },\n        \"IncludePrimaryUserNotLoggingOn\": {\n            \"Default\": true\n        },\n        \"PrimaryUserLogonDays\": {\n            \"Default\": 30\n        }\n    }\n}\n```\n\nSee the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization) for the syntax.\n\n## Report delivery\n\nReport files are only generated when a delivery method is selected via the **Report delivery** option (email and/or download link). With *Output Data only* selected, the results are read directly in the Output Data tab of the RealmJoin portal, where each table can also be exported to Excel. Email delivery and download link generation are independent and can be combined.\n\nFor the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).\n\nSchedules that were created before the **Report delivery** option existed keep sending their email: a stored recipient alone still enables the email for them. When such a schedule is opened for editing, the option shows *Output Data only*; select the delivery again before saving, otherwise the schedule stops sending the report.\n\n## Result without findings\n\nNo email is sent and no file is created when no device falls into an enabled category. A run without findings completes normally and is not an error; the Output Data tab still shows the summary.\n\n## Setup regarding RealmJoin API credentials\n\nThe runbook queries the RealmJoin customer API and needs a dedicated credential stored in the Azure Automation Account. The same credential serves every runbook that uses the API, so this is a one-time setup per Automation Account.\n\n1. **Get API credentials** - If you do not yet have RealmJoin API credentials, request them at support@realmjoin.com. The username has the form `t-<tenant id>`, the password is the API secret. A portal login does not work here.\n2. **Ask for the device users feature** - The device list of the customer API is a feature RealmJoin enables per tenant. Ask support to enable it together with the credentials; without it the API answers with HTTP 403 and the runbook stops with that message.\n3. **Open the Automation Account** - In the Azure portal, open the Automation Account used for runbooks.\n4. **Go to Shared Resources > Credentials** - In the left menu under *Shared Resources*, click *Credentials*.\n5. **Add a new credential** - Click *Add a credential*.\n6. **Name it exactly `RJAPI`** - The runbook looks up this name; any other name fails the credential lookup.\n7. **Enter the API username and secret** - Use the values from step 1.\n8. **Save** - Click *Create* and run the runbook again.\n\nThe API allows 30 requests per minute per tenant and answers with HTTP 429 beyond that. The runbook needs one request per run and repeats a throttled request after a short delay, up to five times, before it gives up.\n\n## Setup regarding email sending\n\nSending an email report is optional and only happens when the *Email report* delivery option is selected; a recipient (`EmailTo`) is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThis process is described in detail in the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings).\n\n### Email branding\n\nThe report email honors the optional `RJReport.Branding.*` tenant settings:\n\n- **Header and footer image** - public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each\n- **Footer link** - target of the footer image\n- **Accent and text color** - 6-digit hex values, e.g. `#0052cc`\n\nWhen these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email - the corresponding default is used instead.\n\nSetup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).\n\n## Notes and limitations\n\n- Only Windows devices are compared: the RealmJoin agent runs on Windows, so RealmJoin has no primary user or logon data for other platforms.\n- The report is a snapshot per run. It does not keep the previous run and therefore does not report that a primary user *changed* between two runs; compare two report files for that.\n- The logons Intune records cover the most recent logons only, and the RealmJoin agent only sees users who were signed in while it ran. A user who logs on rarely can therefore show up as not logging on.\n- The primary user shown for RealmJoin is the one RealmJoin determined from the agent reports; it is not the Entra ID registered owner of the device.\n",
+    "DocsContentEncoded": "IyMgSG93IGl0IHdvcmtzCgpUaGUgcnVuYm9vayByZWFkcyB0d28gbGlzdHMgYW5kIG1hdGNoZXMgdGhlbSBieSB0aGUgRW50cmEgZGV2aWNlIElEICh3aXRoIHRoZSBJbnR1bmUgZGV2aWNlIElEIGFzIGZhbGxiYWNrKToKCi0gKipJbnR1bmUqKjogYWxsIFdpbmRvd3MgZGV2aWNlcyB0aGF0IGNvbXBsZXRlZCBhIHN5bmMgd2l0aGluIHRoZSBsYXN0ICpJbnR1bmUgbGFzdCBzeW5jIHdpdGhpbiAoZGF5cykqLCB3aXRoIHRoZWlyIHByaW1hcnkgdXNlciBhbmQgdGhlIGxvZ29ucyBJbnR1bmUgcmVjb3JkZWQgb24gdGhlIGRldmljZS4gRGV2aWNlcyB0aGF0IHN0b3BwZWQgc3luY2luZyB3aXRoIEludHVuZSBhcmUgbGVmdCBvdXQgb24gcHVycG9zZTsgdGhleSBiZWxvbmcgaW4gdGhlICoqUmVwb3J0IFN0YWxlIERldmljZXMgKFNjaGVkdWxlZCkqKiBydW5ib29rLgotICoqUmVhbG1Kb2luKio6IHRoZSBkZXZpY2UgbGlzdCBvZiB0aGUgUmVhbG1Kb2luIGN1c3RvbWVyIEFQSS4gRm9yIGV2ZXJ5IGRldmljZSBpdCBjYXJyaWVzIHRoZSB1c2VycyB0aGUgUmVhbG1Kb2luIGFnZW50IGhhcyByZXBvcnRlZCBhcyBzaWduZWQgaW4sIGVhY2ggd2l0aCBhICpsYXN0IHNlZW4qIHRpbWVzdGFtcCwgYW5kIHdoaWNoIG9mIHRoZW0gUmVhbG1Kb2luIHRyZWF0cyBhcyB0aGUgcHJpbWFyeSB1c2VyLgoKRm9yIGV2ZXJ5IGRldmljZSB0aGUgcnVuYm9vayBhbnN3ZXJzIHR3byBxdWVzdGlvbnM6IGRvIHRoZSBwcmltYXJ5IHVzZXJzIGFncmVlLCBhbmQgZG9lcyB0aGUgcHJpbWFyeSB1c2VyIHN0aWxsIGxvZyBvbj8gRWFjaCBhbnN3ZXIgaXMgYSBjYXRlZ29yeTsgYSBkZXZpY2UgY2FuIGJlIGluIHNldmVyYWwuIFdoZXRoZXIgdGhlIFJlYWxtSm9pbiBhZ2VudCBpdHNlbGYgc3RpbGwgcmVwb3J0cyBpcyBhIGRpZmZlcmVudCBxdWVzdGlvbiBhbmQgYW5zd2VyZWQgYnkgdGhlICoqUmVwb3J0IFJlYWxtSm9pbiBBZ2VudCBDb250YWN0IChTY2hlZHVsZWQpKiogcnVuYm9vay4KCiMjIENhdGVnb3JpZXMKCnwgQ2F0ZWdvcnkgfCBNZWFuaW5nIHwKfCAtLS0gfCAtLS0gfAp8IGBNaXNtYXRjaGAgfCBUaGUgSW50dW5lIHByaW1hcnkgdXNlciBhbmQgdGhlIFJlYWxtSm9pbiBwcmltYXJ5IHVzZXIgZGlmZmVyLiB8CnwgYFByaW1hcnlVc2VyRGVsZXRlZGAgfCBUaGUgSW50dW5lIHByaW1hcnkgdXNlciB3YXMgZGVsZXRlZCBmcm9tIEVudHJhIElELiBJbnR1bmUgdGhlbiB3cml0ZXMgdGhlIHVzZXIncyBvYmplY3QgaWQgaW4gZnJvbnQgb2YgdGhlIHVzZXIgcHJpbmNpcGFsIG5hbWU7IHRoZSBydW5ib29rIHJlY29nbml6ZXMgdGhpcyBhbmQgZG9lcyBub3QgY291bnQgaXQgYXMgYSBtaXNtYXRjaC4gfAp8IGBQcmltYXJ5VXNlck5vdExvZ2dpbmdPbmAgfCBTb21lb25lIGVsc2UgbG9nZ2VkIG9uIHRvIHRoZSBkZXZpY2UsIGFuZCB0aGUgcHJpbWFyeSB1c2VyIGRpZCBub3Qgd2l0aGluICpQcmltYXJ5IHVzZXIgbXVzdCBoYXZlIGxvZ2dlZCBvbiB3aXRoaW4gKGRheXMpKi4gVGhlIGRldmljZSBpcyBwcm9iYWJseSB1c2VkIGJ5IGEgZGlmZmVyZW50IHBlcnNvbiB0aGFuIHRoZSBvbmUgcmVjb3JkZWQuIHwKfCBgTWlzc2luZ0luUmVhbG1Kb2luYCB8IFRoZSBkZXZpY2UgZXhpc3RzIGluIEludHVuZSBidXQgUmVhbG1Kb2luIGRvZXMgbm90IGtub3cgaXQsIG9yIGtub3dzIGl0IHdpdGhvdXQgYSBwcmltYXJ5IHVzZXIuIHwKfCBgTWlzc2luZ0luSW50dW5lYCB8IFJlYWxtSm9pbiBrbm93cyB0aGUgZGV2aWNlIGJ1dCBpdCBkaWQgbm90IHN5bmMgd2l0aCBJbnR1bmUgd2l0aGluIHRoZSBzeW5jIHdpbmRvdy4gfAoKV2hpY2ggY2F0ZWdvcmllcyBhcmUgbGlzdGVkIGlzIHNldCBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uOyBieSBkZWZhdWx0IG9ubHkgYE1pc21hdGNoYCBpcyBvbi4gRXZlcnkgY2F0ZWdvcnkgaGFzIGl0cyBvd24gdGFibGUgaW4gdGhlIE91dHB1dCBEYXRhIHRhYiBvZiB0aGUgcnVuLCB3aXRoIHRoZSBjb2x1bW5zIHRoYXQgZXhwbGFpbiB0aGUgZmluZGluZy4gVGhlIHJlcG9ydCBmaWxlcyBob2xkIG9uZSByb3cgcGVyIGRldmljZSBpbiB0aGUgZW5hYmxlZCBjYXRlZ29yaWVzIHdpdGggYWxsIGNvbHVtbnMsIGluY2x1ZGluZyBhIGBGaW5kaW5nc2AgY29sdW1uIHRoYXQgbmFtZXMgZXZlcnkgY2F0ZWdvcnkgdGhlIGRldmljZSBpcyBpbi4KCiMjIyBXaGVyZSB0aGUgbG9nb25zIGNvbWUgZnJvbQoKVHdvIHNvdXJjZXMgYXJlIGNvbWJpbmVkOgoKLSAqKkludHVuZSoqIHJlY29yZHMgdGhlIG1vc3QgcmVjZW50IGxvZ29ucyBvbiBhIGRldmljZSB3aXRoIHRoZSB1c2VyJ3Mgb2JqZWN0IGlkIGFuZCBhIHRpbWVzdGFtcC4gVGhlIHJ1bmJvb2sgcmVzb2x2ZXMgdGhlIGlkcyB0byB1c2VyIHByaW5jaXBhbCBuYW1lczsgYSB1c2VyIHRoYXQgbm8gbG9uZ2VyIGV4aXN0cyBpcyBzaG93biBhcyBkZWxldGVkLgotICoqVGhlIFJlYWxtSm9pbiBhZ2VudCoqIHJ1bnMgaW4gdGhlIGNvbnRleHQgb2YgdGhlIHNpZ25lZC1pbiB1c2VyIGFuZCByZXBvcnRzIHRvIFJlYWxtSm9pbiBldmVyeSAxNSBtaW51dGVzIHdoaWxlIHNvbWVvbmUgaXMgc2lnbmVkIGluLiBFdmVyeSByZXBvcnQgdXBkYXRlcyB0aGUgKmxhc3Qgc2Vlbiogb2YgdGhhdCB1c2VyIG9uIHRoYXQgZGV2aWNlLCBzbyB0aGUgUmVhbG1Kb2luIHVzZXJzIG9mIGEgZGV2aWNlIGFyZSB0aGUgcGVvcGxlIHRoZSBhZ2VudCBzYXcgc2lnbmVkIGluLCBlYWNoIHdpdGggdGhlaXIgbGFzdCB0aW1lLgoKVGhlIHByaW1hcnkgdXNlciBjb3VudHMgYXMgbG9nZ2luZyBvbiB3aGVuIGVpdGhlciBzb3VyY2Ugc2F3IHRoZW0gd2l0aGluIHRoZSBsb2dvbiB3aW5kb3cuIGBQcmltYXJ5VXNlck5vdExvZ2dpbmdPbmAgbmVlZHMgYm90aDogc29tZW9uZSBlbHNlIHdhcyBzZWVuLCBhbmQgdGhlIHByaW1hcnkgdXNlciB3YXMgbm90IHdpdGhpbiB0aGUgd2luZG93LiBBIGRldmljZSBvbiB3aGljaCBub2JvZHkgd2FzIHNlZW4gYXQgYWxsIGlzIHNob3duIGFzIGBVbmtub3duYCBpbiB0aGUgYFByaW1hcnlVc2VyTG9nb25gIGNvbHVtbiBhbmQgaXMgbmV2ZXIgY291bnRlZCBhcyBub3QgbG9nZ2luZyBvbi4KClNoYXJlZCBkZXZpY2VzIHdoZXJlIHNldmVyYWwgcGVvcGxlIGxvZyBvbiBieSBkZXNpZ24gcHJvZHVjZSB0aGlzIGZpbmRpbmcgZm9yIHRoZWlyIHByaW1hcnkgdXNlcjsgZXhjbHVkZSB0aGVtIHdpdGggKkV4Y2x1ZGUgZGV2aWNlcyBmcm9tIGdyb3VwKi4KCiMjIyBEZXZpY2Ugc2NvcGUKCipJbmNsdWRlIGRldmljZXMgZnJvbSBncm91cCogbGltaXRzIHRoZSBjb21wYXJpc29uIHRvIHRoZSBkZXZpY2VzIGluIHRoYXQgRW50cmEgSUQgZ3JvdXAsICpFeGNsdWRlIGRldmljZXMgZnJvbSBncm91cCogc2tpcHMgdGhlIGRldmljZXMgb2YgYSBncm91cC4gQm90aCBhcmUgb3B0aW9uYWwgYW5kIGNhbiBiZSBjb21iaW5lZDsgYSBmaWx0ZXIgYXBwbGllcyBhcyBzb29uIGFzIGl0cyBncm91cCBpcyBzZWxlY3RlZC4KCiMjIEVuYWJsaW5nIGNhdGVnb3JpZXMKClRoZSBjYXRlZ29yeSBzd2l0Y2hlcyBhcmUgaGlkZGVuIGluIHRoZSBwb3J0YWwgYW5kIHNldCBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLCBzbyBhIHNjaGVkdWxlIGFsd2F5cyByZXBvcnRzIHRoZSBzYW1lIHNldC4gQSBjdXN0b21pemF0aW9uIHRoYXQgZW5hYmxlcyB0aGUgbG9nb24gY2hlY2sgaW4gYWRkaXRpb24gdG8gdGhlIG1pc21hdGNoZXM6CgpgYGBqc29uCiJyamdpdC1vcmdfZGV2aWNlc19yZXBvcnQtcHJpbWFyeS11c2VyLW1pc21hdGNoX3NjaGVkdWxlZCI6IHsKICAgICJwYXJhbWV0ZXJzIjogewogICAgICAgICJJbmNsdWRlTWlzbWF0Y2hlcyI6IHsKICAgICAgICAgICAgIkRlZmF1bHQiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiSW5jbHVkZVByaW1hcnlVc2VyRGVsZXRlZCI6IHsKICAgICAgICAgICAgIkRlZmF1bHQiOiB0cnVlCiAgICAgICAgfSwKICAgICAgICAiSW5jbHVkZVByaW1hcnlVc2VyTm90TG9nZ2luZ09uIjogewogICAgICAgICAgICAiRGVmYXVsdCI6IHRydWUKICAgICAgICB9LAogICAgICAgICJQcmltYXJ5VXNlckxvZ29uRGF5cyI6IHsKICAgICAgICAgICAgIkRlZmF1bHQiOiAzMAogICAgICAgIH0KICAgIH0KfQpgYGAKClNlZSB0aGUgW1J1bmJvb2sgQ3VzdG9taXphdGlvbiBHdWlkZV0oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vYXV0b21hdGlvbi9ydW5ib29rcy9ydW5ib29rLWN1c3RvbWl6YXRpb24pIGZvciB0aGUgc3ludGF4LgoKIyMgUmVwb3J0IGRlbGl2ZXJ5CgpSZXBvcnQgZmlsZXMgYXJlIG9ubHkgZ2VuZXJhdGVkIHdoZW4gYSBkZWxpdmVyeSBtZXRob2QgaXMgc2VsZWN0ZWQgdmlhIHRoZSAqKlJlcG9ydCBkZWxpdmVyeSoqIG9wdGlvbiAoZW1haWwgYW5kL29yIGRvd25sb2FkIGxpbmspLiBXaXRoICpPdXRwdXQgRGF0YSBvbmx5KiBzZWxlY3RlZCwgdGhlIHJlc3VsdHMgYXJlIHJlYWQgZGlyZWN0bHkgaW4gdGhlIE91dHB1dCBEYXRhIHRhYiBvZiB0aGUgUmVhbG1Kb2luIHBvcnRhbCwgd2hlcmUgZWFjaCB0YWJsZSBjYW4gYWxzbyBiZSBleHBvcnRlZCB0byBFeGNlbC4gRW1haWwgZGVsaXZlcnkgYW5kIGRvd25sb2FkIGxpbmsgZ2VuZXJhdGlvbiBhcmUgaW5kZXBlbmRlbnQgYW5kIGNhbiBiZSBjb21iaW5lZC4KCkZvciB0aGUgZG93bmxvYWQgbGluaywgdGhlIHJlcG9ydCBmaWxlcyBhcmUgdXBsb2FkZWQgdG8gdGhlIEF6dXJlIHN0b3JhZ2UgYWNjb3VudCBjb25maWd1cmVkIGluIHRoZSBgUkpSZXBvcnQuU3RvcmFnZUFjY291bnQuKmAgdGVuYW50IHNldHRpbmdzLCBhbmQgdGltZS1saW1pdGVkIFNBUyBkb3dubG9hZCBsaW5rcyBhcmUgcmV0dXJuZWQuIFRoZSBzdG9yYWdlIHVwbG9hZCBhdXRoZW50aWNhdGVzIHdpdGggdGhlIEF1dG9tYXRpb24gYWNjb3VudCdzIG1hbmFnZWQgaWRlbnRpdHk7IHRoYXQgaWRlbnRpdHkgbmVlZHMgdGhlICoqU3RvcmFnZSBBY2NvdW50IENvbnRyaWJ1dG9yKiogUkJBQyByb2xlIG9uIHRoZSB0YXJnZXQgc3RvcmFnZSBhY2NvdW50ICh0aGlzIGlzIGFuIEF6dXJlIFJCQUMgYXNzaWdubWVudCwgbm90IGEgR3JhcGggYXBwbGljYXRpb24gcGVybWlzc2lvbikuCgpTY2hlZHVsZXMgdGhhdCB3ZXJlIGNyZWF0ZWQgYmVmb3JlIHRoZSAqKlJlcG9ydCBkZWxpdmVyeSoqIG9wdGlvbiBleGlzdGVkIGtlZXAgc2VuZGluZyB0aGVpciBlbWFpbDogYSBzdG9yZWQgcmVjaXBpZW50IGFsb25lIHN0aWxsIGVuYWJsZXMgdGhlIGVtYWlsIGZvciB0aGVtLiBXaGVuIHN1Y2ggYSBzY2hlZHVsZSBpcyBvcGVuZWQgZm9yIGVkaXRpbmcsIHRoZSBvcHRpb24gc2hvd3MgKk91dHB1dCBEYXRhIG9ubHkqOyBzZWxlY3QgdGhlIGRlbGl2ZXJ5IGFnYWluIGJlZm9yZSBzYXZpbmcsIG90aGVyd2lzZSB0aGUgc2NoZWR1bGUgc3RvcHMgc2VuZGluZyB0aGUgcmVwb3J0LgoKIyMgUmVzdWx0IHdpdGhvdXQgZmluZGluZ3MKCk5vIGVtYWlsIGlzIHNlbnQgYW5kIG5vIGZpbGUgaXMgY3JlYXRlZCB3aGVuIG5vIGRldmljZSBmYWxscyBpbnRvIGFuIGVuYWJsZWQgY2F0ZWdvcnkuIEEgcnVuIHdpdGhvdXQgZmluZGluZ3MgY29tcGxldGVzIG5vcm1hbGx5IGFuZCBpcyBub3QgYW4gZXJyb3I7IHRoZSBPdXRwdXQgRGF0YSB0YWIgc3RpbGwgc2hvd3MgdGhlIHN1bW1hcnkuCgojIyBTZXR1cCByZWdhcmRpbmcgUmVhbG1Kb2luIEFQSSBjcmVkZW50aWFscwoKVGhlIHJ1bmJvb2sgcXVlcmllcyB0aGUgUmVhbG1Kb2luIGN1c3RvbWVyIEFQSSBhbmQgbmVlZHMgYSBkZWRpY2F0ZWQgY3JlZGVudGlhbCBzdG9yZWQgaW4gdGhlIEF6dXJlIEF1dG9tYXRpb24gQWNjb3VudC4gVGhlIHNhbWUgY3JlZGVudGlhbCBzZXJ2ZXMgZXZlcnkgcnVuYm9vayB0aGF0IHVzZXMgdGhlIEFQSSwgc28gdGhpcyBpcyBhIG9uZS10aW1lIHNldHVwIHBlciBBdXRvbWF0aW9uIEFjY291bnQuCgoxLiAqKkdldCBBUEkgY3JlZGVudGlhbHMqKiAtIElmIHlvdSBkbyBub3QgeWV0IGhhdmUgUmVhbG1Kb2luIEFQSSBjcmVkZW50aWFscywgcmVxdWVzdCB0aGVtIGF0IHN1cHBvcnRAcmVhbG1qb2luLmNvbS4gVGhlIHVzZXJuYW1lIGhhcyB0aGUgZm9ybSBgdC08dGVuYW50IGlkPmAsIHRoZSBwYXNzd29yZCBpcyB0aGUgQVBJIHNlY3JldC4gQSBwb3J0YWwgbG9naW4gZG9lcyBub3Qgd29yayBoZXJlLgoyLiAqKkFzayBmb3IgdGhlIGRldmljZSB1c2VycyBmZWF0dXJlKiogLSBUaGUgZGV2aWNlIGxpc3Qgb2YgdGhlIGN1c3RvbWVyIEFQSSBpcyBhIGZlYXR1cmUgUmVhbG1Kb2luIGVuYWJsZXMgcGVyIHRlbmFudC4gQXNrIHN1cHBvcnQgdG8gZW5hYmxlIGl0IHRvZ2V0aGVyIHdpdGggdGhlIGNyZWRlbnRpYWxzOyB3aXRob3V0IGl0IHRoZSBBUEkgYW5zd2VycyB3aXRoIEhUVFAgNDAzIGFuZCB0aGUgcnVuYm9vayBzdG9wcyB3aXRoIHRoYXQgbWVzc2FnZS4KMy4gKipPcGVuIHRoZSBBdXRvbWF0aW9uIEFjY291bnQqKiAtIEluIHRoZSBBenVyZSBwb3J0YWwsIG9wZW4gdGhlIEF1dG9tYXRpb24gQWNjb3VudCB1c2VkIGZvciBydW5ib29rcy4KNC4gKipHbyB0byBTaGFyZWQgUmVzb3VyY2VzID4gQ3JlZGVudGlhbHMqKiAtIEluIHRoZSBsZWZ0IG1lbnUgdW5kZXIgKlNoYXJlZCBSZXNvdXJjZXMqLCBjbGljayAqQ3JlZGVudGlhbHMqLgo1LiAqKkFkZCBhIG5ldyBjcmVkZW50aWFsKiogLSBDbGljayAqQWRkIGEgY3JlZGVudGlhbCouCjYuICoqTmFtZSBpdCBleGFjdGx5IGBSSkFQSWAqKiAtIFRoZSBydW5ib29rIGxvb2tzIHVwIHRoaXMgbmFtZTsgYW55IG90aGVyIG5hbWUgZmFpbHMgdGhlIGNyZWRlbnRpYWwgbG9va3VwLgo3LiAqKkVudGVyIHRoZSBBUEkgdXNlcm5hbWUgYW5kIHNlY3JldCoqIC0gVXNlIHRoZSB2YWx1ZXMgZnJvbSBzdGVwIDEuCjguICoqU2F2ZSoqIC0gQ2xpY2sgKkNyZWF0ZSogYW5kIHJ1biB0aGUgcnVuYm9vayBhZ2Fpbi4KClRoZSBBUEkgYWxsb3dzIDMwIHJlcXVlc3RzIHBlciBtaW51dGUgcGVyIHRlbmFudCBhbmQgYW5zd2VycyB3aXRoIEhUVFAgNDI5IGJleW9uZCB0aGF0LiBUaGUgcnVuYm9vayBuZWVkcyBvbmUgcmVxdWVzdCBwZXIgcnVuIGFuZCByZXBlYXRzIGEgdGhyb3R0bGVkIHJlcXVlc3QgYWZ0ZXIgYSBzaG9ydCBkZWxheSwgdXAgdG8gZml2ZSB0aW1lcywgYmVmb3JlIGl0IGdpdmVzIHVwLgoKIyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiB0aGUgKkVtYWlsIHJlcG9ydCogZGVsaXZlcnkgb3B0aW9uIGlzIHNlbGVjdGVkOyBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyB0aGVuIHJlcXVpcmVkLiBUaGUgc2VuZGVyIGFkZHJlc3MgaXMgdGFrZW4gZnJvbSB0aGUgYFJKUmVwb3J0LkVtYWlsU2VuZGVyYCB0ZW5hbnQgc2V0dGluZy4KClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGlzIHByb2Nlc3MgaXMgZGVzY3JpYmVkIGluIGRldGFpbCBpbiB0aGUgW1JlYWxtSm9pbiBSZXBvcnQgU2V0dGluZ3MgZG9jdW1lbnRhdGlvbl0oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vYXV0b21hdGlvbi9ydW5ib29rcy9ydW5ib29rLXJlcG9ydC1zZXR0aW5ncykuCgojIyMgRW1haWwgYnJhbmRpbmcKClRoZSByZXBvcnQgZW1haWwgaG9ub3JzIHRoZSBvcHRpb25hbCBgUkpSZXBvcnQuQnJhbmRpbmcuKmAgdGVuYW50IHNldHRpbmdzOgoKLSAqKkhlYWRlciBhbmQgZm9vdGVyIGltYWdlKiogLSBwdWJsaWMgSFRUUFMgVVJMcywgUE5HL0pQRUcvR0lGLCBtYXguIDIwMCBLQiBlYWNoCi0gKipGb290ZXIgbGluayoqIC0gdGFyZ2V0IG9mIHRoZSBmb290ZXIgaW1hZ2UKLSAqKkFjY2VudCBhbmQgdGV4dCBjb2xvcioqIC0gNi1kaWdpdCBoZXggdmFsdWVzLCBlLmcuIGAjMDA1MmNjYAoKV2hlbiB0aGVzZSBzZXR0aW5ncyBhcmUgbm90IGNvbmZpZ3VyZWQsIHRoZSBkZWZhdWx0IFJlYWxtSm9pbiBncmFwaGljcyBhbmQgY29sb3JzIGFyZSB1c2VkLiBBbiBpbWFnZSB0aGF0IGNhbm5vdCBiZSBkb3dubG9hZGVkIG9yIHZhbGlkYXRlZCwgb3IgYW4gaW52YWxpZCBjb2xvciB2YWx1ZSwgbmV2ZXIgcHJldmVudHMgdGhlIHJlcG9ydCBlbWFpbCAtIHRoZSBjb3JyZXNwb25kaW5nIGRlZmF1bHQgaXMgdXNlZCBpbnN0ZWFkLgoKU2V0dXAgaW5zdHJ1Y3Rpb25zIGFuZCBpbWFnZSByZXF1aXJlbWVudHM6IFtFbWFpbCBicmFuZGluZ10oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vYXV0b21hdGlvbi9ydW5ib29rcy9ydW5ib29rLXJlcG9ydC1zZXR0aW5ncyNlbWFpbC1icmFuZGluZy1vcHRpb25hbCkuCgojIyBOb3RlcyBhbmQgbGltaXRhdGlvbnMKCi0gT25seSBXaW5kb3dzIGRldmljZXMgYXJlIGNvbXBhcmVkOiB0aGUgUmVhbG1Kb2luIGFnZW50IHJ1bnMgb24gV2luZG93cywgc28gUmVhbG1Kb2luIGhhcyBubyBwcmltYXJ5IHVzZXIgb3IgbG9nb24gZGF0YSBmb3Igb3RoZXIgcGxhdGZvcm1zLgotIFRoZSByZXBvcnQgaXMgYSBzbmFwc2hvdCBwZXIgcnVuLiBJdCBkb2VzIG5vdCBrZWVwIHRoZSBwcmV2aW91cyBydW4gYW5kIHRoZXJlZm9yZSBkb2VzIG5vdCByZXBvcnQgdGhhdCBhIHByaW1hcnkgdXNlciAqY2hhbmdlZCogYmV0d2VlbiB0d28gcnVuczsgY29tcGFyZSB0d28gcmVwb3J0IGZpbGVzIGZvciB0aGF0LgotIFRoZSBsb2dvbnMgSW50dW5lIHJlY29yZHMgY292ZXIgdGhlIG1vc3QgcmVjZW50IGxvZ29ucyBvbmx5LCBhbmQgdGhlIFJlYWxtSm9pbiBhZ2VudCBvbmx5IHNlZXMgdXNlcnMgd2hvIHdlcmUgc2lnbmVkIGluIHdoaWxlIGl0IHJhbi4gQSB1c2VyIHdobyBsb2dzIG9uIHJhcmVseSBjYW4gdGhlcmVmb3JlIHNob3cgdXAgYXMgbm90IGxvZ2dpbmcgb24uCi0gVGhlIHByaW1hcnkgdXNlciBzaG93biBmb3IgUmVhbG1Kb2luIGlzIHRoZSBvbmUgUmVhbG1Kb2luIGRldGVybWluZWQgZnJvbSB0aGUgYWdlbnQgcmVwb3J0czsgaXQgaXMgbm90IHRoZSBFbnRyYSBJRCByZWdpc3RlcmVkIG93bmVyIG9mIHRoZSBkZXZpY2UuCg==",
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"DeviceManagementManagedDevices.Read.All\",\n                    \"Reason\": \"Reads the Windows devices in Intune with their primary user, last sync time and the users that logged on\"\n                },\n                {\n                    \"Value\": \"Directory.Read.All\",\n                    \"Reason\": \"Resolves the user ids from the Intune logon records to user principal names and reads the device members of the optional include and exclude groups\"\n                },\n                {\n                    \"Value\": \"Mail.Send\",\n                    \"Optional\": true,\n                    \"Feature\": \"Email report\",\n                    \"Reason\": \"Sends the report email via Send-RjRbReportEmail when a recipient is configured\"\n                },\n                {\n                    \"Value\": \"Organization.Read.All\",\n                    \"Optional\": true,\n                    \"Feature\": \"Email report\",\n                    \"Reason\": \"Reads the tenant display name for the email subject, the email body and the report file names\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": [\n        \"RealmJoin customer API: an Automation Account credential named 'RJAPI' with the tenant's API username (t-<tenant id>) and secret, issued by RealmJoin support\",\n        \"RealmJoin customer API: the device users feature of the API has to be enabled for the tenant by RealmJoin support (the device list answers with HTTP 403 otherwise)\"\n    ]\n}\n",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -11303,7 +11337,453 @@
         }
       ],
       "Roles": [],
-      "ManualPermissions": []
+      "ManualPermissions": [
+        "RealmJoin customer API: an Automation Account credential named 'RJAPI' with the tenant's API username (t-<tenant id>) and secret, issued by RealmJoin support",
+        "RealmJoin customer API: the device users feature of the API has to be enabled for the tenant by RealmJoin support (the device list answers with HTTP 403 otherwise)"
+      ]
+    }
+  },
+  {
+    "RunbookDisplayName": "Report Realmjoin Agent Contact_Scheduled",
+    "RunbookDisplayPath": "Org \\ Devices \\ Report Realmjoin Agent Contact_Scheduled",
+    "RelativeRunbookPath": "org/devices/report-realmjoin-agent-contact_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/devices",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Devices",
+    "Synopsis": "Report devices whose RealmJoin agent stopped reporting",
+    "Description": "Compares, for Windows devices, when RealmJoin last saw the device with when it last synced with Intune. A device that Intune saw well after RealmJoin last did points to a RealmJoin agent that is missing, blocked or broken. Devices RealmJoin has never seen and devices known to only one side can be listed as well. The report can be sent by email or provided as a download link.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "14",
+        "description": [
+          {
+            "Text": "A device counts as agent stale when Intune saw it at least this many days after RealmJoin last did. Short gaps are normal, as the agent only reports while a user is signed in."
+          }
+        ],
+        "globbing": "false",
+        "name": "AgentContactThresholdDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingAccentColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "14",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "12",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterLink",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "13",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingHeaderImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingTextColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "15",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user who started the runbook. Set by the portal and recorded for auditing."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "24",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "report-realmjoin-agent-contact",
+        "description": [
+          {
+            "Text": "Storage container the report files are uploaded to. Set per runbook."
+          }
+        ],
+        "globbing": "false",
+        "name": "ContainerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "20",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Also upload the report and return a download link that expires after a few days."
+          }
+        ],
+        "globbing": "false",
+        "name": "CreateDownloadLink",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "19",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Only devices whose name starts with this text. Leave empty for all."
+          }
+        ],
+        "globbing": "false",
+        "name": "DeviceNamePrefix",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sender address of the report email. Taken from the tenant setting RJReport.EmailSender."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Send the report to these addresses. Separate several with commas; each recipient gets a separate email."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "17",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Skips devices in this Entra ID group, for example kiosk or shared devices that rarely have a signed-in user. Leave empty to skip none."
+          }
+        ],
+        "globbing": "false",
+        "name": "ExcludeDeviceGroup",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Lists devices that Intune saw well after RealmJoin last did, the sign of an agent that no longer reports."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeAgentStale",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Only devices in this Entra ID group. Leave empty for all devices."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeDeviceGroup",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Lists devices that exist in RealmJoin but did not sync with Intune within the sync window. Not available together with a device name prefix."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeMissingInIntune",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Lists devices that exist in Intune but not in RealmJoin."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeMissingInRealmJoin",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Lists devices RealmJoin knows but has never seen a signed-in user on, for example devices that were enrolled but not used yet."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeNeverSeen",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "23",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "CSV & XLSX",
+        "description": [
+          {
+            "Text": "Deliver the report as CSV, as an Excel workbook, or both."
+          }
+        ],
+        "globbing": "false",
+        "name": "ReportFileFormat",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "18",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup."
+          }
+        ],
+        "globbing": "false",
+        "name": "ResourceGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "21",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Send the report to the recipient email address."
+          }
+        ],
+        "globbing": "false",
+        "name": "SendEmailReport",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "16",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName."
+          }
+        ],
+        "globbing": "false",
+        "name": "StorageAccountName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "22",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "30",
+        "description": [
+          {
+            "Text": "Only devices that synced with Intune within this many days are compared. Devices that stopped syncing altogether belong in the stale device report instead."
+          }
+        ],
+        "globbing": "false",
+        "name": "SyncThresholdDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      }
+    ],
+    "DocsContent": "## How it works\n\nThe runbook reads two lists and matches them by the Entra device ID (with the Intune device ID as fallback):\n\n- **Intune**: all Windows devices that completed a sync within the last *Intune last sync within (days)*. Devices that stopped syncing with Intune are left out on purpose; they belong in the **Report Stale Devices (Scheduled)** runbook.\n- **RealmJoin**: the device list of the RealmJoin customer API. For every device it carries the users the RealmJoin agent has reported as signed in, each with a *last seen* timestamp. RealmJoin writes the same timestamp to the user and to the device with every agent report, so the newest of these values is the device's last agent contact.\n\nFor each Intune device the runbook calculates the **gap**: how many days Intune kept seeing the device after the RealmJoin agent last reported. Every device gets one status:\n\n| Status | Meaning |\n| --- | --- |\n| `InSync` | The agent reported recently enough; the gap is below the allowed value. |\n| `AgentStale` | Intune saw the device at least *Allowed gap to RealmJoin last seen (days)* after the agent last reported. The device was in use while the agent did not report: the agent is missing, blocked by a proxy or firewall, not running or broken. |\n| `NeverSeen` | RealmJoin knows the device but the agent has never reported a signed-in user on it, for example a device that was enrolled and never used, or a kiosk. |\n| `MissingInRealmJoin` | The device exists in Intune but not in RealmJoin: the agent never registered it. |\n| `MissingInIntune` | The device exists in RealmJoin but did not sync with Intune within the sync window. Not available together with a device name prefix, because RealmJoin devices carry no device name to match. |\n\n`AgentStale` is always part of the report. The other categories are switched on with the *Include ...* choices. The Output Data tab of the run shows a summary and one table per category; the report files hold the same rows.\n\nWhether the primary users of a device agree and who logs on to it are different questions; the **Report Primary User Mismatch (Scheduled)** runbook answers them.\n\n### Why the gap and not the age\n\nComparing the RealmJoin timestamp with today would list every device that is simply switched off, for example during holidays. The gap compares the two sources with each other: a device that Intune has not seen either is not a problem of the RealmJoin agent. Only a device that keeps talking to Intune while RealmJoin hears nothing points to the agent. The default of 14 days matches the point at which the RealmJoin Portal marks a device as stale.\n\n### What the RealmJoin timestamp means\n\nThe RealmJoin agent runs in the context of the signed-in user and reports every 15 minutes while someone is signed in. Every report updates the *last seen* of that user on that device and of the device itself. A device without a signed-in user, for example a kiosk device, a shared device without a signed-in account or a device that is only powered on for updates, does not produce a fresh timestamp and can show up as `AgentStale` although the agent is fine. Exclude such devices with *Exclude devices from group*, or raise the allowed gap.\n\nThe *Last Seen* column in the RealmJoin Portal is not the same value: the portal shows the newest of the agent contact, the Intune sync and the Entra ID sign-in activity. This report deliberately uses the agent contact only, because that is what tells whether the agent works.\n\n### Plausibility line\n\nThe runbook also reads RealmJoin's own client statistics and prints how many clients RealmJoin counts as active. The threshold behind that count is a RealmJoin tenant setting (90 days by default), so the number is usually higher than the number of devices in sync here; a large difference in the other direction means the sync window or the allowed gap is set too tight for the tenant.\n\n## Setup regarding RealmJoin API credentials\n\nThe runbook queries the RealmJoin customer API and needs a dedicated credential stored in the Azure Automation Account. The same credential serves every runbook that uses the API, so this is a one-time setup per Automation Account.\n\n1. **Get API credentials** - If you do not yet have RealmJoin API credentials, request them at support@realmjoin.com. The username has the form `t-<tenant id>`, the password is the API secret. A portal login does not work here.\n2. **Ask for the device users feature** - The device list of the customer API is a feature RealmJoin enables per tenant. Ask support to enable it together with the credentials; without it the API answers with HTTP 403 and the runbook stops with that message.\n3. **Open the Automation Account** - In the Azure portal, open the Automation Account used for runbooks.\n4. **Go to Shared Resources > Credentials** - In the left menu under *Shared Resources*, click *Credentials*.\n5. **Add a new credential** - Click *Add a credential*.\n6. **Name it exactly `RJAPI`** - The runbook looks up this name; any other name fails the credential lookup.\n7. **Enter the API username and secret** - Use the values from step 1.\n8. **Save** - Click *Create* and run the runbook again.\n\nThe API allows 30 requests per minute per tenant and answers with HTTP 429 beyond that. The runbook needs two requests per run and repeats a throttled request after a short delay, up to five times, before it gives up.\n\n## Report delivery\n\nThe results always appear as named tables in the Output Data tab of the run in the RealmJoin portal. Report files are only generated when the **Report delivery** option includes an email and/or a download link; *Output Data only* creates no report files. Email delivery and download link generation are independent and can be combined.\n\nFor the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).\n\n## Setup regarding email sending\n\nSending an email report is optional and only happens when the *Email report* delivery option is selected; a recipient (`EmailTo`) is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.\n\n### Email branding\n\nThe report email honors the optional `RJReport.Branding.*` tenant settings:\n\n- **Header and footer image** - public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each\n- **Footer link** - target of the footer image\n- **Accent and text color** - 6-digit hex values, e.g. `#0052cc`\n\nWhen these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email - the corresponding default is used instead.\n\nSetup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).\n\n## Scheduling\n\nRun the report weekly. Start with the default of 14 days for the allowed gap and a sync window of 30 days; lower the gap once the list is clean, or raise it when devices with long idle periods keep showing up.\n\nA customization that fixes both values and delivers the report by email:\n\n```json\n\"rjgit-org_devices_report-realmjoin-agent-contact_scheduled\": {\n    \"parameters\": {\n        \"SyncThresholdDays\": {\n            \"Default\": 30\n        },\n        \"AgentContactThresholdDays\": {\n            \"Default\": 14\n        },\n        \"EmailTo\": {\n            \"Default\": \"endpoint-team@contoso.com\"\n        }\n    }\n}\n```\n\nSee the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization) for the syntax.\n\n## Notes and limitations\n\n- Only Windows devices are compared, as the RealmJoin agent runs on Windows.\n- The RealmJoin customer API exposes neither the agent version nor the Intune sync time per device; the comparison rests on the agent contact described above.\n- The Intune primary user shown in the tables is the user recorded in Intune, not necessarily the user the agent last saw; both are listed for the `AgentStale` rows.\n",
+    "DocsContentEncoded": "IyMgSG93IGl0IHdvcmtzCgpUaGUgcnVuYm9vayByZWFkcyB0d28gbGlzdHMgYW5kIG1hdGNoZXMgdGhlbSBieSB0aGUgRW50cmEgZGV2aWNlIElEICh3aXRoIHRoZSBJbnR1bmUgZGV2aWNlIElEIGFzIGZhbGxiYWNrKToKCi0gKipJbnR1bmUqKjogYWxsIFdpbmRvd3MgZGV2aWNlcyB0aGF0IGNvbXBsZXRlZCBhIHN5bmMgd2l0aGluIHRoZSBsYXN0ICpJbnR1bmUgbGFzdCBzeW5jIHdpdGhpbiAoZGF5cykqLiBEZXZpY2VzIHRoYXQgc3RvcHBlZCBzeW5jaW5nIHdpdGggSW50dW5lIGFyZSBsZWZ0IG91dCBvbiBwdXJwb3NlOyB0aGV5IGJlbG9uZyBpbiB0aGUgKipSZXBvcnQgU3RhbGUgRGV2aWNlcyAoU2NoZWR1bGVkKSoqIHJ1bmJvb2suCi0gKipSZWFsbUpvaW4qKjogdGhlIGRldmljZSBsaXN0IG9mIHRoZSBSZWFsbUpvaW4gY3VzdG9tZXIgQVBJLiBGb3IgZXZlcnkgZGV2aWNlIGl0IGNhcnJpZXMgdGhlIHVzZXJzIHRoZSBSZWFsbUpvaW4gYWdlbnQgaGFzIHJlcG9ydGVkIGFzIHNpZ25lZCBpbiwgZWFjaCB3aXRoIGEgKmxhc3Qgc2VlbiogdGltZXN0YW1wLiBSZWFsbUpvaW4gd3JpdGVzIHRoZSBzYW1lIHRpbWVzdGFtcCB0byB0aGUgdXNlciBhbmQgdG8gdGhlIGRldmljZSB3aXRoIGV2ZXJ5IGFnZW50IHJlcG9ydCwgc28gdGhlIG5ld2VzdCBvZiB0aGVzZSB2YWx1ZXMgaXMgdGhlIGRldmljZSdzIGxhc3QgYWdlbnQgY29udGFjdC4KCkZvciBlYWNoIEludHVuZSBkZXZpY2UgdGhlIHJ1bmJvb2sgY2FsY3VsYXRlcyB0aGUgKipnYXAqKjogaG93IG1hbnkgZGF5cyBJbnR1bmUga2VwdCBzZWVpbmcgdGhlIGRldmljZSBhZnRlciB0aGUgUmVhbG1Kb2luIGFnZW50IGxhc3QgcmVwb3J0ZWQuIEV2ZXJ5IGRldmljZSBnZXRzIG9uZSBzdGF0dXM6Cgp8IFN0YXR1cyB8IE1lYW5pbmcgfAp8IC0tLSB8IC0tLSB8CnwgYEluU3luY2AgfCBUaGUgYWdlbnQgcmVwb3J0ZWQgcmVjZW50bHkgZW5vdWdoOyB0aGUgZ2FwIGlzIGJlbG93IHRoZSBhbGxvd2VkIHZhbHVlLiB8CnwgYEFnZW50U3RhbGVgIHwgSW50dW5lIHNhdyB0aGUgZGV2aWNlIGF0IGxlYXN0ICpBbGxvd2VkIGdhcCB0byBSZWFsbUpvaW4gbGFzdCBzZWVuIChkYXlzKSogYWZ0ZXIgdGhlIGFnZW50IGxhc3QgcmVwb3J0ZWQuIFRoZSBkZXZpY2Ugd2FzIGluIHVzZSB3aGlsZSB0aGUgYWdlbnQgZGlkIG5vdCByZXBvcnQ6IHRoZSBhZ2VudCBpcyBtaXNzaW5nLCBibG9ja2VkIGJ5IGEgcHJveHkgb3IgZmlyZXdhbGwsIG5vdCBydW5uaW5nIG9yIGJyb2tlbi4gfAp8IGBOZXZlclNlZW5gIHwgUmVhbG1Kb2luIGtub3dzIHRoZSBkZXZpY2UgYnV0IHRoZSBhZ2VudCBoYXMgbmV2ZXIgcmVwb3J0ZWQgYSBzaWduZWQtaW4gdXNlciBvbiBpdCwgZm9yIGV4YW1wbGUgYSBkZXZpY2UgdGhhdCB3YXMgZW5yb2xsZWQgYW5kIG5ldmVyIHVzZWQsIG9yIGEga2lvc2suIHwKfCBgTWlzc2luZ0luUmVhbG1Kb2luYCB8IFRoZSBkZXZpY2UgZXhpc3RzIGluIEludHVuZSBidXQgbm90IGluIFJlYWxtSm9pbjogdGhlIGFnZW50IG5ldmVyIHJlZ2lzdGVyZWQgaXQuIHwKfCBgTWlzc2luZ0luSW50dW5lYCB8IFRoZSBkZXZpY2UgZXhpc3RzIGluIFJlYWxtSm9pbiBidXQgZGlkIG5vdCBzeW5jIHdpdGggSW50dW5lIHdpdGhpbiB0aGUgc3luYyB3aW5kb3cuIE5vdCBhdmFpbGFibGUgdG9nZXRoZXIgd2l0aCBhIGRldmljZSBuYW1lIHByZWZpeCwgYmVjYXVzZSBSZWFsbUpvaW4gZGV2aWNlcyBjYXJyeSBubyBkZXZpY2UgbmFtZSB0byBtYXRjaC4gfAoKYEFnZW50U3RhbGVgIGlzIGFsd2F5cyBwYXJ0IG9mIHRoZSByZXBvcnQuIFRoZSBvdGhlciBjYXRlZ29yaWVzIGFyZSBzd2l0Y2hlZCBvbiB3aXRoIHRoZSAqSW5jbHVkZSAuLi4qIGNob2ljZXMuIFRoZSBPdXRwdXQgRGF0YSB0YWIgb2YgdGhlIHJ1biBzaG93cyBhIHN1bW1hcnkgYW5kIG9uZSB0YWJsZSBwZXIgY2F0ZWdvcnk7IHRoZSByZXBvcnQgZmlsZXMgaG9sZCB0aGUgc2FtZSByb3dzLgoKV2hldGhlciB0aGUgcHJpbWFyeSB1c2VycyBvZiBhIGRldmljZSBhZ3JlZSBhbmQgd2hvIGxvZ3Mgb24gdG8gaXQgYXJlIGRpZmZlcmVudCBxdWVzdGlvbnM7IHRoZSAqKlJlcG9ydCBQcmltYXJ5IFVzZXIgTWlzbWF0Y2ggKFNjaGVkdWxlZCkqKiBydW5ib29rIGFuc3dlcnMgdGhlbS4KCiMjIyBXaHkgdGhlIGdhcCBhbmQgbm90IHRoZSBhZ2UKCkNvbXBhcmluZyB0aGUgUmVhbG1Kb2luIHRpbWVzdGFtcCB3aXRoIHRvZGF5IHdvdWxkIGxpc3QgZXZlcnkgZGV2aWNlIHRoYXQgaXMgc2ltcGx5IHN3aXRjaGVkIG9mZiwgZm9yIGV4YW1wbGUgZHVyaW5nIGhvbGlkYXlzLiBUaGUgZ2FwIGNvbXBhcmVzIHRoZSB0d28gc291cmNlcyB3aXRoIGVhY2ggb3RoZXI6IGEgZGV2aWNlIHRoYXQgSW50dW5lIGhhcyBub3Qgc2VlbiBlaXRoZXIgaXMgbm90IGEgcHJvYmxlbSBvZiB0aGUgUmVhbG1Kb2luIGFnZW50LiBPbmx5IGEgZGV2aWNlIHRoYXQga2VlcHMgdGFsa2luZyB0byBJbnR1bmUgd2hpbGUgUmVhbG1Kb2luIGhlYXJzIG5vdGhpbmcgcG9pbnRzIHRvIHRoZSBhZ2VudC4gVGhlIGRlZmF1bHQgb2YgMTQgZGF5cyBtYXRjaGVzIHRoZSBwb2ludCBhdCB3aGljaCB0aGUgUmVhbG1Kb2luIFBvcnRhbCBtYXJrcyBhIGRldmljZSBhcyBzdGFsZS4KCiMjIyBXaGF0IHRoZSBSZWFsbUpvaW4gdGltZXN0YW1wIG1lYW5zCgpUaGUgUmVhbG1Kb2luIGFnZW50IHJ1bnMgaW4gdGhlIGNvbnRleHQgb2YgdGhlIHNpZ25lZC1pbiB1c2VyIGFuZCByZXBvcnRzIGV2ZXJ5IDE1IG1pbnV0ZXMgd2hpbGUgc29tZW9uZSBpcyBzaWduZWQgaW4uIEV2ZXJ5IHJlcG9ydCB1cGRhdGVzIHRoZSAqbGFzdCBzZWVuKiBvZiB0aGF0IHVzZXIgb24gdGhhdCBkZXZpY2UgYW5kIG9mIHRoZSBkZXZpY2UgaXRzZWxmLiBBIGRldmljZSB3aXRob3V0IGEgc2lnbmVkLWluIHVzZXIsIGZvciBleGFtcGxlIGEga2lvc2sgZGV2aWNlLCBhIHNoYXJlZCBkZXZpY2Ugd2l0aG91dCBhIHNpZ25lZC1pbiBhY2NvdW50IG9yIGEgZGV2aWNlIHRoYXQgaXMgb25seSBwb3dlcmVkIG9uIGZvciB1cGRhdGVzLCBkb2VzIG5vdCBwcm9kdWNlIGEgZnJlc2ggdGltZXN0YW1wIGFuZCBjYW4gc2hvdyB1cCBhcyBgQWdlbnRTdGFsZWAgYWx0aG91Z2ggdGhlIGFnZW50IGlzIGZpbmUuIEV4Y2x1ZGUgc3VjaCBkZXZpY2VzIHdpdGggKkV4Y2x1ZGUgZGV2aWNlcyBmcm9tIGdyb3VwKiwgb3IgcmFpc2UgdGhlIGFsbG93ZWQgZ2FwLgoKVGhlICpMYXN0IFNlZW4qIGNvbHVtbiBpbiB0aGUgUmVhbG1Kb2luIFBvcnRhbCBpcyBub3QgdGhlIHNhbWUgdmFsdWU6IHRoZSBwb3J0YWwgc2hvd3MgdGhlIG5ld2VzdCBvZiB0aGUgYWdlbnQgY29udGFjdCwgdGhlIEludHVuZSBzeW5jIGFuZCB0aGUgRW50cmEgSUQgc2lnbi1pbiBhY3Rpdml0eS4gVGhpcyByZXBvcnQgZGVsaWJlcmF0ZWx5IHVzZXMgdGhlIGFnZW50IGNvbnRhY3Qgb25seSwgYmVjYXVzZSB0aGF0IGlzIHdoYXQgdGVsbHMgd2hldGhlciB0aGUgYWdlbnQgd29ya3MuCgojIyMgUGxhdXNpYmlsaXR5IGxpbmUKClRoZSBydW5ib29rIGFsc28gcmVhZHMgUmVhbG1Kb2luJ3Mgb3duIGNsaWVudCBzdGF0aXN0aWNzIGFuZCBwcmludHMgaG93IG1hbnkgY2xpZW50cyBSZWFsbUpvaW4gY291bnRzIGFzIGFjdGl2ZS4gVGhlIHRocmVzaG9sZCBiZWhpbmQgdGhhdCBjb3VudCBpcyBhIFJlYWxtSm9pbiB0ZW5hbnQgc2V0dGluZyAoOTAgZGF5cyBieSBkZWZhdWx0KSwgc28gdGhlIG51bWJlciBpcyB1c3VhbGx5IGhpZ2hlciB0aGFuIHRoZSBudW1iZXIgb2YgZGV2aWNlcyBpbiBzeW5jIGhlcmU7IGEgbGFyZ2UgZGlmZmVyZW5jZSBpbiB0aGUgb3RoZXIgZGlyZWN0aW9uIG1lYW5zIHRoZSBzeW5jIHdpbmRvdyBvciB0aGUgYWxsb3dlZCBnYXAgaXMgc2V0IHRvbyB0aWdodCBmb3IgdGhlIHRlbmFudC4KCiMjIFNldHVwIHJlZ2FyZGluZyBSZWFsbUpvaW4gQVBJIGNyZWRlbnRpYWxzCgpUaGUgcnVuYm9vayBxdWVyaWVzIHRoZSBSZWFsbUpvaW4gY3VzdG9tZXIgQVBJIGFuZCBuZWVkcyBhIGRlZGljYXRlZCBjcmVkZW50aWFsIHN0b3JlZCBpbiB0aGUgQXp1cmUgQXV0b21hdGlvbiBBY2NvdW50LiBUaGUgc2FtZSBjcmVkZW50aWFsIHNlcnZlcyBldmVyeSBydW5ib29rIHRoYXQgdXNlcyB0aGUgQVBJLCBzbyB0aGlzIGlzIGEgb25lLXRpbWUgc2V0dXAgcGVyIEF1dG9tYXRpb24gQWNjb3VudC4KCjEuICoqR2V0IEFQSSBjcmVkZW50aWFscyoqIC0gSWYgeW91IGRvIG5vdCB5ZXQgaGF2ZSBSZWFsbUpvaW4gQVBJIGNyZWRlbnRpYWxzLCByZXF1ZXN0IHRoZW0gYXQgc3VwcG9ydEByZWFsbWpvaW4uY29tLiBUaGUgdXNlcm5hbWUgaGFzIHRoZSBmb3JtIGB0LTx0ZW5hbnQgaWQ+YCwgdGhlIHBhc3N3b3JkIGlzIHRoZSBBUEkgc2VjcmV0LiBBIHBvcnRhbCBsb2dpbiBkb2VzIG5vdCB3b3JrIGhlcmUuCjIuICoqQXNrIGZvciB0aGUgZGV2aWNlIHVzZXJzIGZlYXR1cmUqKiAtIFRoZSBkZXZpY2UgbGlzdCBvZiB0aGUgY3VzdG9tZXIgQVBJIGlzIGEgZmVhdHVyZSBSZWFsbUpvaW4gZW5hYmxlcyBwZXIgdGVuYW50LiBBc2sgc3VwcG9ydCB0byBlbmFibGUgaXQgdG9nZXRoZXIgd2l0aCB0aGUgY3JlZGVudGlhbHM7IHdpdGhvdXQgaXQgdGhlIEFQSSBhbnN3ZXJzIHdpdGggSFRUUCA0MDMgYW5kIHRoZSBydW5ib29rIHN0b3BzIHdpdGggdGhhdCBtZXNzYWdlLgozLiAqKk9wZW4gdGhlIEF1dG9tYXRpb24gQWNjb3VudCoqIC0gSW4gdGhlIEF6dXJlIHBvcnRhbCwgb3BlbiB0aGUgQXV0b21hdGlvbiBBY2NvdW50IHVzZWQgZm9yIHJ1bmJvb2tzLgo0LiAqKkdvIHRvIFNoYXJlZCBSZXNvdXJjZXMgPiBDcmVkZW50aWFscyoqIC0gSW4gdGhlIGxlZnQgbWVudSB1bmRlciAqU2hhcmVkIFJlc291cmNlcyosIGNsaWNrICpDcmVkZW50aWFscyouCjUuICoqQWRkIGEgbmV3IGNyZWRlbnRpYWwqKiAtIENsaWNrICpBZGQgYSBjcmVkZW50aWFsKi4KNi4gKipOYW1lIGl0IGV4YWN0bHkgYFJKQVBJYCoqIC0gVGhlIHJ1bmJvb2sgbG9va3MgdXAgdGhpcyBuYW1lOyBhbnkgb3RoZXIgbmFtZSBmYWlscyB0aGUgY3JlZGVudGlhbCBsb29rdXAuCjcuICoqRW50ZXIgdGhlIEFQSSB1c2VybmFtZSBhbmQgc2VjcmV0KiogLSBVc2UgdGhlIHZhbHVlcyBmcm9tIHN0ZXAgMS4KOC4gKipTYXZlKiogLSBDbGljayAqQ3JlYXRlKiBhbmQgcnVuIHRoZSBydW5ib29rIGFnYWluLgoKVGhlIEFQSSBhbGxvd3MgMzAgcmVxdWVzdHMgcGVyIG1pbnV0ZSBwZXIgdGVuYW50IGFuZCBhbnN3ZXJzIHdpdGggSFRUUCA0MjkgYmV5b25kIHRoYXQuIFRoZSBydW5ib29rIG5lZWRzIHR3byByZXF1ZXN0cyBwZXIgcnVuIGFuZCByZXBlYXRzIGEgdGhyb3R0bGVkIHJlcXVlc3QgYWZ0ZXIgYSBzaG9ydCBkZWxheSwgdXAgdG8gZml2ZSB0aW1lcywgYmVmb3JlIGl0IGdpdmVzIHVwLgoKIyMgUmVwb3J0IGRlbGl2ZXJ5CgpUaGUgcmVzdWx0cyBhbHdheXMgYXBwZWFyIGFzIG5hbWVkIHRhYmxlcyBpbiB0aGUgT3V0cHV0IERhdGEgdGFiIG9mIHRoZSBydW4gaW4gdGhlIFJlYWxtSm9pbiBwb3J0YWwuIFJlcG9ydCBmaWxlcyBhcmUgb25seSBnZW5lcmF0ZWQgd2hlbiB0aGUgKipSZXBvcnQgZGVsaXZlcnkqKiBvcHRpb24gaW5jbHVkZXMgYW4gZW1haWwgYW5kL29yIGEgZG93bmxvYWQgbGluazsgKk91dHB1dCBEYXRhIG9ubHkqIGNyZWF0ZXMgbm8gcmVwb3J0IGZpbGVzLiBFbWFpbCBkZWxpdmVyeSBhbmQgZG93bmxvYWQgbGluayBnZW5lcmF0aW9uIGFyZSBpbmRlcGVuZGVudCBhbmQgY2FuIGJlIGNvbWJpbmVkLgoKRm9yIHRoZSBkb3dubG9hZCBsaW5rLCB0aGUgcmVwb3J0IGZpbGVzIGFyZSB1cGxvYWRlZCB0byB0aGUgQXp1cmUgc3RvcmFnZSBhY2NvdW50IGNvbmZpZ3VyZWQgaW4gdGhlIGBSSlJlcG9ydC5TdG9yYWdlQWNjb3VudC4qYCB0ZW5hbnQgc2V0dGluZ3MsIGFuZCB0aW1lLWxpbWl0ZWQgU0FTIGRvd25sb2FkIGxpbmtzIGFyZSByZXR1cm5lZC4gVGhlIHN0b3JhZ2UgdXBsb2FkIGF1dGhlbnRpY2F0ZXMgd2l0aCB0aGUgQXV0b21hdGlvbiBhY2NvdW50J3MgbWFuYWdlZCBpZGVudGl0eTsgdGhhdCBpZGVudGl0eSBuZWVkcyB0aGUgKipTdG9yYWdlIEFjY291bnQgQ29udHJpYnV0b3IqKiBSQkFDIHJvbGUgb24gdGhlIHRhcmdldCBzdG9yYWdlIGFjY291bnQgKHRoaXMgaXMgYW4gQXp1cmUgUkJBQyBhc3NpZ25tZW50LCBub3QgYSBHcmFwaCBhcHBsaWNhdGlvbiBwZXJtaXNzaW9uKS4KCiMjIFNldHVwIHJlZ2FyZGluZyBlbWFpbCBzZW5kaW5nCgpTZW5kaW5nIGFuIGVtYWlsIHJlcG9ydCBpcyBvcHRpb25hbCBhbmQgb25seSBoYXBwZW5zIHdoZW4gdGhlICpFbWFpbCByZXBvcnQqIGRlbGl2ZXJ5IG9wdGlvbiBpcyBzZWxlY3RlZDsgYSByZWNpcGllbnQgKGBFbWFpbFRvYCkgaXMgdGhlbiByZXF1aXJlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscyBvbiBhbGwgYXZhaWxhYmxlIHNldHRpbmdzLgoKIyMjIEVtYWlsIGJyYW5kaW5nCgpUaGUgcmVwb3J0IGVtYWlsIGhvbm9ycyB0aGUgb3B0aW9uYWwgYFJKUmVwb3J0LkJyYW5kaW5nLipgIHRlbmFudCBzZXR0aW5nczoKCi0gKipIZWFkZXIgYW5kIGZvb3RlciBpbWFnZSoqIC0gcHVibGljIEhUVFBTIFVSTHMsIFBORy9KUEVHL0dJRiwgbWF4LiAyMDAgS0IgZWFjaAotICoqRm9vdGVyIGxpbmsqKiAtIHRhcmdldCBvZiB0aGUgZm9vdGVyIGltYWdlCi0gKipBY2NlbnQgYW5kIHRleHQgY29sb3IqKiAtIDYtZGlnaXQgaGV4IHZhbHVlcywgZS5nLiBgIzAwNTJjY2AKCldoZW4gdGhlc2Ugc2V0dGluZ3MgYXJlIG5vdCBjb25maWd1cmVkLCB0aGUgZGVmYXVsdCBSZWFsbUpvaW4gZ3JhcGhpY3MgYW5kIGNvbG9ycyBhcmUgdXNlZC4gQW4gaW1hZ2UgdGhhdCBjYW5ub3QgYmUgZG93bmxvYWRlZCBvciB2YWxpZGF0ZWQsIG9yIGFuIGludmFsaWQgY29sb3IgdmFsdWUsIG5ldmVyIHByZXZlbnRzIHRoZSByZXBvcnQgZW1haWwgLSB0aGUgY29ycmVzcG9uZGluZyBkZWZhdWx0IGlzIHVzZWQgaW5zdGVhZC4KClNldHVwIGluc3RydWN0aW9ucyBhbmQgaW1hZ2UgcmVxdWlyZW1lbnRzOiBbRW1haWwgYnJhbmRpbmddKGh0dHBzOi8vZG9jcy5yZWFsbWpvaW4uY29tL2F1dG9tYXRpb24vcnVuYm9va3MvcnVuYm9vay1yZXBvcnQtc2V0dGluZ3MjZW1haWwtYnJhbmRpbmctb3B0aW9uYWwpLgoKIyMgU2NoZWR1bGluZwoKUnVuIHRoZSByZXBvcnQgd2Vla2x5LiBTdGFydCB3aXRoIHRoZSBkZWZhdWx0IG9mIDE0IGRheXMgZm9yIHRoZSBhbGxvd2VkIGdhcCBhbmQgYSBzeW5jIHdpbmRvdyBvZiAzMCBkYXlzOyBsb3dlciB0aGUgZ2FwIG9uY2UgdGhlIGxpc3QgaXMgY2xlYW4sIG9yIHJhaXNlIGl0IHdoZW4gZGV2aWNlcyB3aXRoIGxvbmcgaWRsZSBwZXJpb2RzIGtlZXAgc2hvd2luZyB1cC4KCkEgY3VzdG9taXphdGlvbiB0aGF0IGZpeGVzIGJvdGggdmFsdWVzIGFuZCBkZWxpdmVycyB0aGUgcmVwb3J0IGJ5IGVtYWlsOgoKYGBganNvbgoicmpnaXQtb3JnX2RldmljZXNfcmVwb3J0LXJlYWxtam9pbi1hZ2VudC1jb250YWN0X3NjaGVkdWxlZCI6IHsKICAgICJwYXJhbWV0ZXJzIjogewogICAgICAgICJTeW5jVGhyZXNob2xkRGF5cyI6IHsKICAgICAgICAgICAgIkRlZmF1bHQiOiAzMAogICAgICAgIH0sCiAgICAgICAgIkFnZW50Q29udGFjdFRocmVzaG9sZERheXMiOiB7CiAgICAgICAgICAgICJEZWZhdWx0IjogMTQKICAgICAgICB9LAogICAgICAgICJFbWFpbFRvIjogewogICAgICAgICAgICAiRGVmYXVsdCI6ICJlbmRwb2ludC10ZWFtQGNvbnRvc28uY29tIgogICAgICAgIH0KICAgIH0KfQpgYGAKClNlZSB0aGUgW1J1bmJvb2sgQ3VzdG9taXphdGlvbiBHdWlkZV0oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vYXV0b21hdGlvbi9ydW5ib29rcy9ydW5ib29rLWN1c3RvbWl6YXRpb24pIGZvciB0aGUgc3ludGF4LgoKIyMgTm90ZXMgYW5kIGxpbWl0YXRpb25zCgotIE9ubHkgV2luZG93cyBkZXZpY2VzIGFyZSBjb21wYXJlZCwgYXMgdGhlIFJlYWxtSm9pbiBhZ2VudCBydW5zIG9uIFdpbmRvd3MuCi0gVGhlIFJlYWxtSm9pbiBjdXN0b21lciBBUEkgZXhwb3NlcyBuZWl0aGVyIHRoZSBhZ2VudCB2ZXJzaW9uIG5vciB0aGUgSW50dW5lIHN5bmMgdGltZSBwZXIgZGV2aWNlOyB0aGUgY29tcGFyaXNvbiByZXN0cyBvbiB0aGUgYWdlbnQgY29udGFjdCBkZXNjcmliZWQgYWJvdmUuCi0gVGhlIEludHVuZSBwcmltYXJ5IHVzZXIgc2hvd24gaW4gdGhlIHRhYmxlcyBpcyB0aGUgdXNlciByZWNvcmRlZCBpbiBJbnR1bmUsIG5vdCBuZWNlc3NhcmlseSB0aGUgdXNlciB0aGUgYWdlbnQgbGFzdCBzYXc7IGJvdGggYXJlIGxpc3RlZCBmb3IgdGhlIGBBZ2VudFN0YWxlYCByb3dzLgo=",
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"DeviceManagementManagedDevices.Read.All\",\n                    \"Reason\": \"Reads the Windows devices in Intune with their primary user and last sync time for the comparison\"\n                },\n                {\n                    \"Value\": \"GroupMember.Read.All\",\n                    \"Reason\": \"Reads the device members of the optional include and exclude groups that narrow the scope\"\n                },\n                {\n                    \"Value\": \"Mail.Send\",\n                    \"Optional\": true,\n                    \"Feature\": \"Email report\",\n                    \"Reason\": \"Sends the report email via Send-RjRbReportEmail when email delivery is selected\"\n                },\n                {\n                    \"Value\": \"Organization.Read.All\",\n                    \"Optional\": true,\n                    \"Feature\": \"Email report\",\n                    \"Reason\": \"Reads the tenant display name for the email subject, the email body and the report file names\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": [\n        \"RealmJoin customer API: an Automation Account credential named 'RJAPI' with the tenant's API username (t-<tenant id>) and secret, issued by RealmJoin support\",\n        \"RealmJoin customer API: the device users feature of the API has to be enabled for the tenant by RealmJoin support (the device list answers with HTTP 403 otherwise)\"\n    ]\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementManagedDevices.Read.All",
+            "GroupMember.Read.All",
+            "Mail.Send",
+            "Organization.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": [
+        "RealmJoin customer API: an Automation Account credential named 'RJAPI' with the tenant's API username (t-<tenant id>) and secret, issued by RealmJoin support",
+        "RealmJoin customer API: the device users feature of the API has to be enabled for the tenant by RealmJoin support (the device list answers with HTTP 403 otherwise)"
+      ]
     }
   },
   {
