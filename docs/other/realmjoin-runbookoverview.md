@@ -6005,7 +6005,7 @@ User \ Mail \ List Mailbox Permissions
 
 #### Description
 
-Shows the room details and the calendar processing settings of this room mailbox, such as how booking requests are handled. Nothing is changed.
+Shows the room details and the calendar processing settings of this room mailbox, such as how booking requests are handled. It also lists the resource delegates who approve requests and the users and groups that may book the room directly or only request it. Nothing is changed.
 
 #### Where to find
 
