@@ -10,6 +10,25 @@
   - Affected runbooks:
     - **Report Expiring Application Credentials (Scheduled)** - Org/Applications
 
+- Show the results of 10 runbooks as named tables in the portal's Output Data tab, where they can be sorted, filtered and exported to Excel
+  - The console keeps short summaries with counts; an empty category shows a status line instead of an empty table
+  - Connect to Microsoft Graph with the managed identity (`Connect-MgGraph`, `Invoke-MgGraphRequest`) and send report and alert emails through that session
+  - Fail the run with a clear error when an input is invalid or a lookup fails (Get Teams Phone Number Assignment, List Owners, List User Devices)
+  - List User Devices adds devices to the target group in batches of 20 and skips devices that are already members
+  - List Signin Events offers "Output Data only" as report delivery; List Users By MFA Methods Count reads the authentication methods in batches
+  - Report SharePoint Tenant Storage shows the site table of the alert email as a proper table
+  - Affected runbooks:
+    - **List Owners** - Group/General
+    - **List User Devices** - Group/General
+    - **Report SharePoint Tenant Storage (Scheduled)** - Org/Collab
+    - **Monitor Service Health (Scheduled)** - Org/General
+    - **Get Teams Phone Number Assignment** - Org/Phone
+    - **List Inactive Users** - Org/Security
+    - **List Information Protection Labels** - Org/Security
+    - **List Users By MFA Methods Count** - Org/Security
+    - **List Mailbox Permissions** - User/Mail
+    - **List Signin Events** - User/Security
+
 ## 2026-09-28
 
 - Update **Check OneDrive Status** Runbook in Org/Collab

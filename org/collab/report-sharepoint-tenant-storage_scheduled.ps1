@@ -86,6 +86,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
 #Requires -Modules @{ModuleName = "PnP.PowerShell"; ModuleVersion = "3.4.1" }
 
 param(
@@ -132,7 +133,7 @@ param(
 ########################################################
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.4.0"
+$Version = "1.5.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "AlertLowStorageLimitInGB: $AlertLowStorageLimitInGB" -Verbose
@@ -162,25 +163,47 @@ if ($AlertEmailTo -and -not $EmailFrom) {
 ########################################################
 #region     Connect Part
 ########################################################
-Write-Output "Connecting to SharePoint Online (PnP.PowerShell)..."
+Write-Output "Connecting to Microsoft Graph..."
+try {
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+}
+catch {
+    Write-Error "Failed to connect to Microsoft Graph using the managed identity. Ensure the Automation Account's managed identity is enabled and has the required Graph app role assignments (see .permissions.json). Error: $($_.Exception.Message)" -ErrorAction Continue
+    throw
+}
 
-Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
-$mgSPOrootSiteResponse = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/sites/root"
-$SharePointAdminUrl = $mgSPOrootSiteResponse["webUrl"]
-$SharePointAdminUrl = $SharePointAdminUrl.Replace(".sharepoint.com","-admin.sharepoint.com")
+Write-Output "## Retrieving tenant information..."
+$tenantDisplayName = "Unknown Tenant"
+try {
+    $organizationResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization?`$select=displayName" -Method GET -ErrorAction Stop
+    if ($organizationResponse.value -and $organizationResponse.value.Count -gt 0) {
+        $tenantDisplayName = $organizationResponse.value[0].displayName
+    }
+    Write-Output "## Tenant: $($tenantDisplayName)"
+}
+catch {
+    Write-RjRbLog -Message "Failed to retrieve tenant information: $($_.Exception.Message)" -Verbose
+}
+
+# The SharePoint admin center URL is derived from the URL of the tenant root site
+$SharePointAdminUrl = $null
+try {
+    $mgSPOrootSiteResponse = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/sites/root" -ErrorAction Stop
+    $SharePointAdminUrl = $mgSPOrootSiteResponse["webUrl"]
+}
+catch {
+    Write-Error "Failed to read the tenant root site from Microsoft Graph (/sites/root) to discover the SharePoint admin center URL. Verify the managed identity holds the 'Sites.Read.All' Microsoft Graph application permission. Error: $($_.Exception.Message)" -ErrorAction Continue
+    throw
+}
+
+if ([string]::IsNullOrWhiteSpace($SharePointAdminUrl)) {
+    Write-Error "The SharePoint admin center URL could not be discovered from the tenant root site (Microsoft Graph /sites/root)." -ErrorAction Continue
+    throw "SharePointAdminUrl is not discovered"
+}
+$SharePointAdminUrl = $SharePointAdminUrl.Replace(".sharepoint.com", "-admin.sharepoint.com")
 Write-RjRbLog -Message "SharePointAdminUrl: $SharePointAdminUrl" -Verbose
 
-if ([string]::IsNullOrWhiteSpace($SharePointAdminUrl)) {
-    Write-Error "SharePointAdminUrl is not discovered." -ErrorAction Continue
-    throw "SharePointAdminUrl is not configured"
-}
-
-
-if ([string]::IsNullOrWhiteSpace($SharePointAdminUrl)) {
-    Write-Error "SharePointAdminUrl is not configured. Set the 'RJRunbook.SharePoint.AdminUrl' RealmJoin setting to the tenant's SharePoint admin center URL (e.g. https://contoso-admin.sharepoint.com) before running this runbook." -ErrorAction Continue
-    throw "SharePointAdminUrl is not configured"
-}
-
+Write-Output "Connecting to SharePoint Online (PnP.PowerShell)..."
 try {
     $VerbosePreference = "SilentlyContinue"
     Connect-PnPOnline -Url $SharePointAdminUrl -ManagedIdentity -ErrorAction Stop
@@ -198,36 +221,6 @@ catch {
         Write-Error "Failed to connect to SharePoint Online via PnP.PowerShell using managed identity against '$SharePointAdminUrl': $($connectError.Exception.Message). Verify the URL is the tenant's SharePoint ADMIN center URL (format: https://<tenant>-admin.sharepoint.com) and that 'PnP.PowerShell' is imported into this Automation Account's modules." -ErrorAction Continue
         throw
     }
-}
-
-Write-Output "Connecting to Microsoft Graph for RJ RunbookHelper..."
-try {
-    Connect-RjRbGraph
-}
-catch {
-    Write-Error "Failed to connect to Microsoft Graph via RJ RunbookHelper: $_" -ErrorAction Continue
-    throw
-}
-
-Write-Output "## Retrieving tenant information..."
-$tenantDisplayName = "Unknown Tenant"
-try {
-    # No Connect-MgGraph session exists in this runbook (SharePoint access is PnP-only), so the tenant
-    # name is resolved through the RJ RunbookHelper Graph wrapper already connected above instead of
-    # pulling in Connect-MgGraph / Microsoft.Graph.Authentication just for this one lookup.
-    $organizationResponse = Invoke-RjRbRestMethodGraph -Resource "/organization" -OdSelect "displayName" -ErrorAction Stop
-    if ($organizationResponse) {
-        if ($organizationResponse.displayName) {
-            $tenantDisplayName = $organizationResponse.displayName
-        }
-        elseif ($organizationResponse.Count -gt 0 -and $organizationResponse[0].displayName) {
-            $tenantDisplayName = $organizationResponse[0].displayName
-        }
-    }
-    Write-Output "## Tenant: $($tenantDisplayName)"
-}
-catch {
-    Write-RjRbLog -Message "Failed to retrieve tenant information: $($_.Exception.Message)" -Verbose
 }
 #endregion Connect Part
 
@@ -298,15 +291,19 @@ $alertTriggered = $false
 $alertReasons = @()
 
 # Low storage check
+$lowStorageResult = "OK"
 if ($freeGB -lt $AlertLowStorageLimitInGB) {
     $alertReasons += "Free tenant storage ($freeGB GB) is below the configured low-storage limit ($AlertLowStorageLimitInGB GB)."
     $alertTriggered = $true
+    $lowStorageResult = "Breached"
 }
 
 # Unused storage check (only if threshold is enabled, i.e., > 0)
+$unusedStorageResult = if ($AlertUnusedStorageLimitInGB -gt 0) { "OK" } else { "Disabled" }
 if ($AlertUnusedStorageLimitInGB -gt 0 -and $freeGB -gt $AlertUnusedStorageLimitInGB) {
     $alertReasons += "Free tenant storage ($freeGB GB) exceeds the configured unused-storage limit ($AlertUnusedStorageLimitInGB GB); licensed storage may be reclaimable."
     $alertTriggered = $true
+    $unusedStorageResult = "Breached"
 }
 
 # ===== Top sites processing =====
@@ -339,10 +336,12 @@ Write-Output "Free: $freeGB GB"
 Write-Output ""
 
 if ($topSites.Count -gt 0) {
-    Write-Output "Top $($topSites.Count) Site Collections:"
-    $topSites | Format-Table -AutoSize | Out-String | ForEach-Object { Write-Output $_ }
-    Write-Output ""
+    Write-Output "Site collections: $($allSites.Count) (the largest $($topSites.Count) are listed in the Output Data tab)"
 }
+else {
+    Write-Output "Site collections: 0"
+}
+Write-Output ""
 
 if ($alertTriggered) {
     Write-Output "ALERT: Storage threshold(s) breached:"
@@ -364,7 +363,7 @@ foreach ($site in $topSites) {
 }
 
 $tableContent = if ($tableRows.Count -gt 0) {
-    "| Site Title | URL | Storage Used |`n| --- | --- | --- | --- | --- |`n$($tableRows -join "`n")"
+    "| Site Title | URL | Storage Used |`n| --- | --- | --- |`n$($tableRows -join "`n")"
 } else {
     "(No site collections found)"
 }
@@ -401,6 +400,8 @@ Write-RjRbLog -Message "Data processing completed. Alert triggered: $alertTrigge
 ########################################################
 # Initialized unconditionally so Cleanup can safely reference it even when no alert fired.
 $brandingMailParams = @{}
+# Set when the alert email could not be sent; the run fails in Cleanup, after the tables are written
+$alertSendFailure = $null
 
 if (-not $alertTriggered) {
     Write-RjRbLog -Message "No storage thresholds were breached. Skipping alert email." -Verbose
@@ -415,42 +416,84 @@ else {
 
     try {
         $emailParams = @{
-            EmailFrom         = $EmailFrom
-            EmailTo           = $AlertEmailTo
-            Subject           = $AlertEmailSubject
-            MarkdownContent   = $markdownContent
-            TenantDisplayName = $tenantDisplayName
-            ReportVersion     = $Version
+            EmailFrom             = $EmailFrom
+            EmailTo               = $AlertEmailTo
+            Subject               = $AlertEmailSubject
+            MarkdownContent       = $markdownContent
+            TenantDisplayName     = $tenantDisplayName
+            ReportVersion         = $Version
+            UseNativeGraphRequest = $true   # sends through the Connect-MgGraph session
         }
 
-        Send-RjReportEmail @emailParams @brandingMailParams
+        Send-RjRbReportEmail @emailParams @brandingMailParams
+        Write-Output ""
+        Write-Output "Alert email sent to '$AlertEmailTo'."
     }
     catch {
-        # The storage data above was already collected successfully and is visible in this job's output -
+        # The storage data was already collected successfully and follows in the Output Data tab -
         # only the alert notification failed to send. Distinguish the likely causes for an operator
-        # reading this days after a scheduled run.
+        # reading this days after a scheduled run; the run fails in Cleanup, after the tables are written.
         $sendError = $_
         $sendErrorMessage = $sendError.Exception.Message
         if ($sendError.Exception.InnerException) { $sendErrorMessage += " " + $sendError.Exception.InnerException.Message }
         if ($sendErrorMessage -like "*EmailFrom*" -or $sendErrorMessage -like "*sender*" -or $sendErrorMessage -like "*RJReport.EmailSender*") {
-            Write-Error "The storage data was collected successfully (see the job output above for the quota and site details) - only the alert email failed to send, because no valid sender address is configured. Set the 'RJReport.EmailSender' RealmJoin setting to a mailbox the managed identity is allowed to send as. Underlying error: $($sendError.Exception.Message)" -ErrorAction Continue
-            throw "Alert email not sent: EmailFrom / RJReport.EmailSender is not configured"
+            Write-Error "The storage data was collected successfully (see the Output Data tab for the quota and site details) - only the alert email failed to send, because no valid sender address is configured. Set the 'RJReport.EmailSender' RealmJoin setting to a mailbox the managed identity is allowed to send as. Underlying error: $($sendError.Exception.Message)" -ErrorAction Continue
+            $alertSendFailure = "Alert email not sent: EmailFrom / RJReport.EmailSender is not configured"
         }
         elseif ($sendErrorMessage -like "*403*" -or $sendErrorMessage -like "*Forbidden*" -or $sendErrorMessage -like "*Unauthorized*" -or $sendErrorMessage -like "*401*" -or $sendErrorMessage -like "*consent*") {
-            Write-Error "The storage data was collected successfully (see the job output above) - only the alert email failed to send, because Microsoft Graph denied the send request. Verify the managed identity has been granted the 'Mail.Send' application permission and that consent has been completed. Underlying error: $($sendError.Exception.Message)" -ErrorAction Continue
-            throw "Alert email not sent: Mail.Send permission missing or not consented"
+            Write-Error "The storage data was collected successfully (see the Output Data tab) - only the alert email failed to send, because Microsoft Graph denied the send request. Verify the managed identity has been granted the 'Mail.Send' application permission and that consent has been completed. Underlying error: $($sendError.Exception.Message)" -ErrorAction Continue
+            $alertSendFailure = "Alert email not sent: Mail.Send permission missing or not consented"
         }
         elseif ($sendErrorMessage -like "*recipient*" -or $sendErrorMessage -like "*ResolveRecipients*" -or (($sendErrorMessage -like "*invalid*") -and ($sendErrorMessage -like "*address*" -or $sendErrorMessage -like "*recipient*"))) {
-            Write-Error "The storage data was collected successfully (see the job output above) - only the alert email failed to send, because the recipient address '$AlertEmailTo' was rejected. Verify the 'AlertEmailTo' parameter is set to a valid, existing mailbox. Underlying error: $($sendError.Exception.Message)" -ErrorAction Continue
-            throw "Alert email not sent: recipient address '$AlertEmailTo' is invalid"
+            Write-Error "The storage data was collected successfully (see the Output Data tab) - only the alert email failed to send, because the recipient address '$AlertEmailTo' was rejected. Verify the 'AlertEmailTo' parameter is set to a valid, existing mailbox. Underlying error: $($sendError.Exception.Message)" -ErrorAction Continue
+            $alertSendFailure = "Alert email not sent: recipient address '$AlertEmailTo' is invalid"
         }
         else {
-            Write-Error "The storage data was collected successfully (see the job output above) - only the alert email failed to send: $($sendError.Exception.Message)" -ErrorAction Continue
-            throw "Failed to send alert email report: $($sendError.Exception.Message)"
+            Write-Error "The storage data was collected successfully (see the Output Data tab) - only the alert email failed to send: $($sendError.Exception.Message)" -ErrorAction Continue
+            $alertSendFailure = "Failed to send alert email report: $($sendError.Exception.Message)"
         }
     }
 }
 #endregion Send Email Report
+
+########################################################
+#region     Structured Output (Output Data)
+########################################################
+
+# Emitted last so the tables are not interleaved with the progress output. Every table has its own
+# RjTableTitle marker and its own column set; a marker is only written when rows follow it.
+Write-Output ""
+
+$storageValues = [ordered]@{
+    "Quota (GB)"       = $quotaGB
+    "Used (GB)"        = $usedGB
+    "Used (%)"         = $usedPercent
+    "Free (GB)"        = $freeGB
+    "Site collections" = $allSites.Count
+}
+$storageRows = @(foreach ($metric in $storageValues.Keys) {
+        [PSCustomObject]@{ Metric = $metric; Value = [double]$storageValues[$metric] }
+    })
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Tenant storage" })
+Write-Output $storageRows
+
+$thresholdRows = @(
+    [PSCustomObject]@{ Check = "Free storage below the low-storage limit"; LimitGB = $AlertLowStorageLimitInGB; FreeGB = $freeGB; Result = $lowStorageResult }
+    [PSCustomObject]@{ Check = "Free storage above the unused-storage limit"; LimitGB = $AlertUnusedStorageLimitInGB; FreeGB = $freeGB; Result = $unusedStorageResult }
+)
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Threshold checks" })
+Write-Output $thresholdRows
+
+if ($topSites.Count -gt 0) {
+    Write-Output "Top $($topSites.Count) site collection(s) by storage used:"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Top site collections" })
+    Write-Output @($topSites | Select-Object -Property Title, Url, StorageUsedGB, PercentOfTenantStorage)
+}
+else {
+    Write-Output "No site collections found."
+}
+
+#endregion Structured Output (Output Data)
 
 ########################################################
 #region     Cleanup
@@ -462,10 +505,19 @@ catch {
     Write-RjRbLog -Message "Disconnect-PnPOnline: no active PnP session to disconnect or disconnect failed: $($_.Exception.Message)" -Verbose
 }
 
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
+
 foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
     if ($brandingMailParams -and $brandingMailParams.ContainsKey($brandingKey) -and (Test-Path -LiteralPath $brandingMailParams[$brandingKey])) {
         Remove-Item -LiteralPath $brandingMailParams[$brandingKey] -Force -ErrorAction SilentlyContinue
     }
+}
+
+# Fail the run only now that the tables are written and the sessions are closed
+if ($alertSendFailure) {
+    throw $alertSendFailure
 }
 
 Write-Output ""

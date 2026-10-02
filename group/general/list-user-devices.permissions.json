@@ -6,12 +6,12 @@
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
                 {
-                    "Value": "Group.Read.All",
-                    "Reason": "Enumerates the group's user members to know whose devices to list"
-                },
-                {
                     "Value": "Device.Read.All",
                     "Reason": "Reads each member's registered devices via /users/{id}/registeredDevices"
+                },
+                {
+                    "Value": "Group.Read.All",
+                    "Reason": "Enumerates the group's user members to know whose devices to list"
                 },
                 {
                     "Value": "GroupMember.ReadWrite.All",
