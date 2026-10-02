@@ -1524,19 +1524,38 @@ Org \ Collab \ Report Sharepoint Tenant Storage_Scheduled
 
 ## Scheduling and output
 
-A daily schedule is recommended. The storage summary and the top site collections are written to the runbook output on every run, regardless of whether a threshold is breached, so the job history stays useful on days without an alert.
+A daily schedule is recommended. The storage summary, the result of both threshold checks and the top site collections are written to the **Output Data** tab of the job on every run, regardless of whether a threshold is breached, so the job history stays useful on days without an alert. No report files are created.
 
 ## Parameter interactions
 
-- `AlertLowStorageLimitInMB` alerts when the free tenant storage drops below the configured value.
-- `AlertUnusedStorageLimitInMB` alerts when the free tenant storage rises above the configured value, an indicator of reclaimable licensed storage. Set it to `0` to disable this check.
-- Both checks can fire in the same run only when `AlertLowStorageLimitInMB` is configured higher than `AlertUnusedStorageLimitInMB`; review both values together when tuning the thresholds.
+- `AlertLowStorageLimitInGB` alerts when the free tenant storage drops below the configured value.
+- `AlertUnusedStorageLimitInGB` alerts when the free tenant storage rises above the configured value, an indicator of reclaimable licensed storage. Set it to `0` to disable this check.
+- Both checks can fire in the same run only when `AlertLowStorageLimitInGB` is configured higher than `AlertUnusedStorageLimitInGB`; review both values together when tuning the thresholds.
 - The alert email is only sent when at least one threshold is breached. A run without a breach completes normally and sends nothing.
 - The top site collections list covers SharePoint site collections only. OneDrive for Business sites are excluded because their storage does not count against the tenant storage quota this runbook monitors.
 
+## Setup regarding email sending
+
+Sending the alert email only happens when a storage threshold is breached; it goes to the recipient (`AlertEmailTo`). The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings:
+
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
+
 ## Limitations
 
-- `Get-PnPTenantSite` does not reliably report the creation date of a site on every tenant or module version; the report shows "Unknown" for such a site.
 - Enumerating all site collections can take several minutes in tenants with a large number of sites.
 
 
@@ -1584,7 +1603,7 @@ Channels and members are read through Graph batch requests, twenty at a time. A 
 
 ## Report delivery
 
-Report files are only generated when a delivery method is selected via the **Report delivery** option (email and/or download link). With *No report* selected, the results are read directly in the RealmJoin portal output. Email delivery and download link generation are independent and can be combined.
+The results always appear as named tables in the Output Data tab of the run in the RealmJoin portal. Report files are only generated when the **Report delivery** option includes an email and/or a download link; *Output Data only* creates no report files. Email delivery and download link generation are independent and can be combined.
 
 For the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
 
@@ -3558,6 +3577,10 @@ Org \ General \ Monitor Service Health_Scheduled
 - The runbook keeps no state between runs, so a failed or skipped run means those alerts are never sent unless `LookbackHours` is temporarily widened for a catch-up run.
 - One email is sent per new issue, so a busy Service Health day can produce several emails per run.
 
+## Run output
+
+Every run writes a summary of the filter stages and the list of new issues, including whether the alert email for each issue was sent, to the **Output Data** tab of the job. No report files are created.
+
 ## Setup regarding email sending
 
 Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
@@ -4511,14 +4534,15 @@ Whether an authorized user is hidden is only maintained, never changed on purpos
 
 #### Description
 
-Looks up whether a phone number is assigned to a user in Microsoft Teams. If it is, the user and their voice policies are shown. Nothing is changed.
+Looks up whether a phone number is assigned to a user in Microsoft Teams. If it is, the user and their voice policies are shown in the Output Data tab. Nothing is changed.
 
 #### Where to find
 
 Org \ Phone \ Get Teams Phone Number Assignment
 
 ## Additional documentation
-If a Teams user is found for the phone number, the following details are displayed:
+If a Teams user is found for the phone number, the following details are shown in the Output Data tab, table "Phone number assignment":
+- Phone number
 - Display name
 - User principal name
 - Account type
@@ -4718,7 +4742,7 @@ Org \ Security \ List Pim Rolegroups Without Owners_Scheduled
 
 #### Description
 
-Counts the registered authentication methods of every enabled user and lists the users whose count falls into the chosen range, for example those with no MFA method at all. The list shows display name, sign-in name and the number of methods. Nothing is changed.
+Counts the registered authentication methods of every enabled user and lists the users whose count falls into the chosen range, for example those with no MFA method at all. The list in the Output Data tab shows display name, sign-in name and the number of methods. Nothing is changed.
 
 #### Where to find
 
@@ -5962,7 +5986,7 @@ User \ Mail \ Hide Or Unhide In Addressbook
 
 #### Description
 
-Shows who has permissions on the mailbox of this user: full access, Send As and Send on Behalf, each as a table. Works for shared mailboxes as well. Nothing is changed.
+Shows who has permissions on the mailbox of this user: full access, Send As and Send on Behalf, each as a table in the Output Data tab. Works for shared mailboxes as well. Nothing is changed.
 
 #### Where to find
 
@@ -6412,7 +6436,8 @@ User \ Security \ List Signin Events
 ## Behaviour
 
 - Sign-in log data is retrieved from the Microsoft Graph beta endpoint, because sign-in event type filtering and the retrieval of non-interactive sign-ins require beta-only properties (`signInEventTypes`, `authenticationRequirement`).
-- Non-interactive sign-ins vastly outnumber interactive ones; the console detail tables are capped at the 50 most recent entries, but the exported report files always contain the full result set.
+- The results are written to the **Output Data** tab of the job on every run: a summary, the per-application summary, the failed sign-ins and, unless only failed sign-ins are requested, all sign-ins. The console shows the counts.
+- Non-interactive sign-ins vastly outnumber interactive ones; the sign-in tables in the Output Data tab are capped at the 250 most recent entries, but the exported report files always contain the full result set.
 
 ## Required license and permissions
 
@@ -6422,7 +6447,7 @@ If the sign-in log query returns a 403 although `AuditLog.Read.All` is granted a
 
 ## Report delivery
 
-Report files are only generated when a delivery method is selected via the **Report delivery** option (email and/or download link). With *No report* selected, the sign-in analysis is read directly in the RealmJoin portal output. Email delivery and download link generation are independent and can be combined.
+Report files are only generated when a delivery method is selected via the **Report delivery** option (email and/or download link). With *Output Data only* selected, no report files are created and the sign-in analysis is read in the Output Data tab of the job in the RealmJoin portal. Email delivery and download link generation are independent and can be combined.
 
 For the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
 

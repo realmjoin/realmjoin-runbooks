@@ -11,9 +11,9 @@ Org \ Security \ List Inactive Users
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - User.Read.All
   - AuditLog.Read.All
   - Organization.Read.All
+  - User.Read.All
 
 
 ## Parameters

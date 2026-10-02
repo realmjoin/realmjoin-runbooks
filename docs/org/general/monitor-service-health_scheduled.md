@@ -20,6 +20,10 @@ Org \ General \ Monitor Service Health_Scheduled
 - The runbook keeps no state between runs, so a failed or skipped run means those alerts are never sent unless `LookbackHours` is temporarily widened for a catch-up run.
 - One email is sent per new issue, so a busy Service Health day can produce several emails per run.
 
+## Run output
+
+Every run writes a summary of the filter stages and the list of new issues, including whether the alert email for each issue was sent, to the **Output Data** tab of the job. No report files are created.
+
 ## Setup regarding email sending
 
 Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
@@ -44,9 +48,9 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - Mail.Send *(optional: Email report)*
   - Organization.Read.All
   - ServiceHealth.Read.All
+  - Mail.Send *(optional: Email report)*
 
 
 ## Parameters
