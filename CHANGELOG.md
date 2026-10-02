@@ -16,6 +16,11 @@
   - Apply the include and exclude device group as soon as a group is selected; the separate "Filter by device group?" choice is gone
   - Retry throttled RealmJoin API calls and explain a rejected credential or a missing API feature in the run result; the companion documentation describes the categories, the logon sources and the API setup including the device users feature
 
+- Add **Report RealmJoin Agent Contact (Scheduled)** Runbook in Org/Devices (v1.0.0)
+  - Compares, for Windows devices, the last contact of the RealmJoin agent (newest last-seen of the device's users from the RealmJoin API) with the last Intune sync and lists devices that Intune saw well after the agent last reported, which points to an agent that is missing, blocked or broken
+  - Optionally lists devices the agent has never reported a user on and devices known to only one side; include and exclude device groups narrow the scope
+  - Retries throttled RealmJoin API calls, explains a rejected credential or a missing API feature in the run result, shows RealmJoin's own active client count for plausibility and lists the results as separate named tables in the portal's Output Data tab; the report can be sent by email or provided as a download link
+
 ## 2026-10-01
 
 - Update **Report Teams Channels (Scheduled)** Runbook in Org/Collab (v1.0.1)

@@ -1,0 +1,36 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "DeviceManagementManagedDevices.Read.All",
+                    "Reason": "Reads the Windows devices in Intune with their primary user and last sync time for the comparison"
+                },
+                {
+                    "Value": "GroupMember.Read.All",
+                    "Reason": "Reads the device members of the optional include and exclude groups that narrow the scope"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the report email via Send-RjRbReportEmail when email delivery is selected"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Reads the tenant display name for the email subject, the email body and the report file names"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": [
+        "RealmJoin customer API: an Automation Account credential named 'RJAPI' with the tenant's API username (t-<tenant id>) and secret, issued by RealmJoin support",
+        "RealmJoin customer API: the device users feature of the API has to be enabled for the tenant by RealmJoin support (the device list answers with HTTP 403 otherwise)"
+    ]
+}
