@@ -1,5 +1,14 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-10-02
+
+- Update **List Room Mailbox Configuration** Runbook in User/Mail (v1.1.0)
+  - List the resource delegates and the users and groups in the booking policies (BookInPolicy, RequestInPolicy, RequestOutOfPolicy) with display name and address
+  - Show whether meeting requests are forwarded to the delegates and whether all users may send requests in and out of policy
+  - Show the room details, the calendar processing settings and the delegates as named tables in the portal's Output Data tab
+  - Fail the run with a clear error when the calendar processing settings cannot be read; missing room details only produce a note
+  - Connect to Microsoft Graph with the managed identity (`Connect-MgGraph`, `Invoke-MgGraphRequest`)
+
 ## 2026-10-01
 
 - Update **Report Teams Channels (Scheduled)** Runbook in Org/Collab (v1.0.1)
