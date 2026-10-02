@@ -937,11 +937,9 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | Roomlist |  | Boolean | Creates the group as a room list, so its rooms can be picked together in the Outlook room finder. |
 |  |  |  |  |  |  | AllowExternalSenders |  | Boolean | Lets people outside the organization send email to the group. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  | Add Equipment Mailbox | Create an equipment mailbox with optional delegate | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br>- **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All *(optional: Disable user account)*<br> | - Exchange Administrator<br> | MailboxName | ✓ | String | Alias of the mailbox, which becomes the part of the email address in front of the @ sign. |
+|  |  | Add Equipment Mailbox | Create an equipment mailbox with optional booking delegates | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br>- **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All *(optional: Disable user account)*<br> | - Exchange Administrator<br> | MailboxName | ✓ | String | Alias of the mailbox, which becomes the part of the email address in front of the @ sign. |
 |  |  |  |  |  |  | DisplayName |  | String | Name shown in the address book. Leave empty to use the alias. |
-|  |  |  |  |  |  | DelegateTo |  | String | User who gets full access to the mailbox and handles its booking requests. Leave empty for none. |
-|  |  |  |  |  |  | AutoAccept |  | Boolean | Meeting requests are accepted automatically when the equipment is free. |
-|  |  |  |  |  |  | AutoMapping |  | Boolean | The mailbox opens automatically in the delegate's Outlook. |
+|  |  |  |  |  |  | DelegateTo |  | String Array | Users who approve or decline every booking request for the equipment. Leave empty to accept requests automatically when the equipment is free. |
 |  |  |  |  |  |  | DisableUser |  | Boolean | Blocks sign-in for the user account behind the mailbox. Booking keeps working. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  |  | Add Mail Contact | Create a mail contact for an external address | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange Administrator<br> | ExternalEmailAddress | ✓ | String | External address of the person. Mail to the contact is delivered there. |
@@ -967,12 +965,10 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | Remove |  | Boolean | Add the entry creates it with the chosen expiry; Remove the entry deletes the existing entry with the same value. |
 |  |  |  |  |  |  | DaysToExpire |  | Int32 | Days until a new entry expires and is removed automatically. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  | Add Room Mailbox | Create a room mailbox with optional delegate | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br>- **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All *(optional: Disable user account)*<br> | - Exchange Administrator<br> | MailboxName | ✓ | String | Alias of the mailbox, which becomes the part of the email address in front of the @ sign. |
+|  |  | Add Room Mailbox | Create a room mailbox with optional booking delegates | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br>- **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All *(optional: Disable user account)*<br> | - Exchange Administrator<br> | MailboxName | ✓ | String | Alias of the mailbox, which becomes the part of the email address in front of the @ sign. |
 |  |  |  |  |  |  | DisplayName |  | String | Name shown in the address book and the room finder. Leave empty to use the alias. |
-|  |  |  |  |  |  | DelegateTo |  | String | User who gets full access to the mailbox and handles its booking requests. Leave empty for none. |
-|  |  |  |  |  |  | Capacity |  | Int32 | How many people fit in the room. Shown in the room finder. |
-|  |  |  |  |  |  | AutoAccept |  | Boolean | Meeting requests are accepted automatically when the room is free. |
-|  |  |  |  |  |  | AutoMapping |  | Boolean | The mailbox opens automatically in the delegate's Outlook. |
+|  |  |  |  |  |  | DelegateTo |  | String Array | Users who approve or decline every booking request for the room. Leave empty to accept requests automatically when the room is free. |
+|  |  |  |  |  |  | Capacity |  | Int32 | How many people fit in the room. Shown in the room finder. Leave at 0 to set no capacity. |
 |  |  |  |  |  |  | DisableUser |  | Boolean | Blocks sign-in for the user account behind the mailbox. Booking keeps working. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  |  | Add Shared Mailbox | Create a shared mailbox with optional delegate | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br>- **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All *(optional: Disable user account)*<br> | - Exchange Administrator<br> | MailboxName | ✓ | String | Alias of the mailbox, which becomes the part of the email address in front of the @ sign. |
@@ -1338,15 +1334,18 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CreateEvent |  | Boolean | Puts a matching out-of-office entry into the user's calendar for the same period. |
 |  |  |  |  |  |  | EventSubject |  | String | Subject of the out-of-office entry as colleagues see it in the calendar. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  | Set Room Mailbox Configuration | Configure the booking rules of this room mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br>- **Type**: Microsoft Graph<br>&emsp;- Group.Read.All *(optional: Book-in policy group)*<br> | - Exchange Administrator<br> | UserName | ✓ | String | User principal name of the room mailbox the runbook acts on. Set by the portal from the selected user. |
-|  |  |  |  |  |  | AllBookInPolicy |  | Boolean | Everyone lets all users book the room. Only members of a group restricts booking to the "Booking group". |
-|  |  |  |  |  |  | BookInPolicyGroup |  | String | Mail-enabled security group whose members may book the room. |
+|  |  | Set Room Mailbox Configuration | Configure the booking rules and booking delegates of this room mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br>- **Type**: Microsoft Graph<br>&emsp;- Group.Read.All *(optional: Book-in policy group)*<br> | - Exchange Administrator<br> | UserName | ✓ | String | User principal name of the room mailbox the runbook acts on. Set by the portal from the selected user. |
+|  |  |  |  |  |  | AllBookInPolicy |  | Boolean | Everyone lets all users book the room directly. Restricted lets only the "Booking group" book directly; everyone else is declined or, with "Let everyone else request the room?", needs a booking delegate's approval. |
+|  |  |  |  |  |  | BookInPolicyGroup |  | String | Mail-enabled security group whose members book the room directly. Leave empty to keep the current group, for example when only the booking delegates decide. |
+|  |  |  |  |  |  | AllRequestInPolicy |  | Boolean | Requests from users outside the "Booking group" go to the booking delegates, who approve or decline them. Turn off to decline these requests. |
 |  |  |  |  |  |  | AllowRecurringMeetings |  | Boolean | Turn off to decline recurring meeting requests; single meetings are still accepted. |
-|  |  |  |  |  |  | AutomateProcessing |  | String | Auto accept books the room automatically. Auto update only marks requests as tentative for a delegate to decide. None leaves requests untouched. |
+|  |  |  |  |  |  | AutomateProcessing |  | String | Auto accept books the room automatically or sends the request to the booking delegates. Auto update only marks requests as tentative, and booking delegates get no requests. None leaves requests untouched. |
 |  |  |  |  |  |  | BookingWindowInDays |  | Int32 | Requests further ahead than this many days are declined. |
 |  |  |  |  |  |  | MaximumDurationInMinutes |  | Int32 | Longest meeting the room accepts, in minutes. |
 |  |  |  |  |  |  | AllowConflicts |  | Boolean | Lets overlapping bookings through instead of declining them. |
 |  |  |  |  |  |  | Capacity |  | Int32 | Number of seats. Leave at 0 to keep the current value. |
+|  |  |  |  |  |  | ResourceDelegates |  | String Array | Users who approve or decline the booking requests that need approval. They get no access to the mailbox itself. Leave empty to keep the current booking delegates. |
+|  |  |  |  |  |  | DelegateAction |  | String | Add puts the selected users next to the current booking delegates, Replace makes them the only booking delegates, Remove takes them off the list. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  | Phone | Disable Teams Phone | Remove Teams phone number and voice policies from this user | - **Type**: Microsoft Graph<br>&emsp;- Organization.Read.All<br> | - Teams Administrator<br> | UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |

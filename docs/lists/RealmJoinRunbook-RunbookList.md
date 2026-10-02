@@ -417,12 +417,12 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Add Distribution List | Create a classic Exchange Online distribution group |
-| Add Equipment Mailbox | Create an equipment mailbox with optional delegate |
+| Add Equipment Mailbox | Create an equipment mailbox with optional booking delegates |
 | Add Mail Contact | Create a mail contact for an external address |
 | Add Or Remove Public Folder | Create or remove an Exchange Online public folder |
 | Add Or Remove Teams Mailcontact | Give a Teams channel a friendly email address or remove it |
 | Add Or Remove Tenant Allow Block List | Add or remove a Tenant Allow/Block List entry |
-| Add Room Mailbox | Create a room mailbox with optional delegate |
+| Add Room Mailbox | Create a room mailbox with optional booking delegates |
 | Add Shared Mailbox | Create a shared mailbox with optional delegate |
 | Hide Mailboxes (Scheduled) | Hide or show all Bookings calendars in the address book |
 | Set Booking Config | Configure the Microsoft Bookings settings of the tenant |
@@ -514,7 +514,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Manage Archive Mailbox | Enable, disable or check the archive mailbox of this user |
 | Remove Mailbox | Permanently delete this shared mailbox, room or Bookings calendar |
 | Set Out Of Office | Set or remove automatic replies for this user |
-| Set Room Mailbox Configuration | Configure the booking rules of this room mailbox |
+| Set Room Mailbox Configuration | Configure the booking rules and booking delegates of this room mailbox |
 
 [Back to the RealmJoin runbook overview](#table-of-contents)
 

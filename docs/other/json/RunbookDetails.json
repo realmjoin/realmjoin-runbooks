@@ -19404,44 +19404,10 @@
     "RelativeRunbookPath_PathOnly": "org/mail",
     "PrimaryFolder": "Org",
     "SubFolder": "Mail",
-    "Synopsis": "Create an equipment mailbox with optional delegate",
-    "Description": "Creates an equipment mailbox in Exchange Online, for example for a projector or a pool car, so it can be booked in meeting requests. A delegate can get full access and manage the bookings, and meeting requests can be accepted automatically. The user account behind the mailbox can be disabled so nobody signs in with it.",
+    "Synopsis": "Create an equipment mailbox with optional booking delegates",
+    "Description": "Creates an equipment mailbox in Exchange Online, for example for a projector or a pool car, so it can be booked in meeting requests. Without booking delegates the equipment accepts requests automatically when it is free. With booking delegates every request waits for their approval; they get no access to the mailbox itself. The user account behind the mailbox can be disabled.",
     "Notes": null,
     "Parameters": [
-      {
-        "defaultValue": "False",
-        "description": [
-          {
-            "Text": "Meeting requests are accepted automatically when the equipment is free."
-          }
-        ],
-        "globbing": "false",
-        "name": "AutoAccept",
-        "parameterValue": "Boolean",
-        "pipelineInput": "false",
-        "position": "4",
-        "required": "false",
-        "type": {
-          "name": "Boolean"
-        }
-      },
-      {
-        "defaultValue": "False",
-        "description": [
-          {
-            "Text": "The mailbox opens automatically in the delegate's Outlook."
-          }
-        ],
-        "globbing": "false",
-        "name": "AutoMapping",
-        "parameterValue": "Boolean",
-        "pipelineInput": "false",
-        "position": "5",
-        "required": "false",
-        "type": {
-          "name": "Boolean"
-        }
-      },
       {
         "defaultValue": "",
         "description": [
@@ -19453,7 +19419,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "7",
+        "position": "5",
         "required": "true",
         "type": {
           "name": "String"
@@ -19463,17 +19429,17 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "User who gets full access to the mailbox and handles its booking requests. Leave empty for none."
+            "Text": "Users who approve or decline every booking request for the equipment. Leave empty to accept requests automatically when the equipment is free."
           }
         ],
         "globbing": "false",
         "name": "DelegateTo",
-        "parameterValue": "String",
+        "parameterValue": "String[]",
         "pipelineInput": "false",
         "position": "3",
         "required": "false",
         "type": {
-          "name": "String"
+          "name": "String[]"
         }
       },
       {
@@ -19487,7 +19453,7 @@
         "name": "DisableUser",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "6",
+        "position": "4",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -19530,7 +19496,7 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"Exchange.ManageAsApp\",\n                    \"Reason\": \"Creates the equipment mailbox and configures delegation and calendar processing in the app-only Exchange Online session\"\n                }\n            ]\n        },\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"User.ReadWrite.All\",\n                    \"Optional\": true,\n                    \"Feature\": \"Disable user account\",\n                    \"Reason\": \"Disables the mailbox's user account via PATCH /users/{id} when DisableUser is enabled (default on)\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [\n        {\n            \"Name\": \"Exchange Administrator\",\n            \"TemplateId\": \"29232cdf-9323-42fd-ade2-1d097af3e4de\",\n            \"Reason\": \"Required for the app-only Exchange Online session creating the equipment mailbox\"\n        }\n    ],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"Exchange.ManageAsApp\",\n                    \"Reason\": \"Creates the equipment mailbox and sets its calendar processing and booking delegates in the app-only Exchange Online session\"\n                }\n            ]\n        },\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"User.ReadWrite.All\",\n                    \"Optional\": true,\n                    \"Feature\": \"Disable user account\",\n                    \"Reason\": \"Reads the mailbox's user account and blocks its sign-in via PATCH /users/{id} when DisableUser is on (default)\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [\n        {\n            \"Name\": \"Exchange Administrator\",\n            \"TemplateId\": \"29232cdf-9323-42fd-ade2-1d097af3e4de\",\n            \"Reason\": \"Required for the app-only Exchange Online session creating the equipment mailbox\"\n        }\n    ],\n    \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -20076,44 +20042,10 @@
     "RelativeRunbookPath_PathOnly": "org/mail",
     "PrimaryFolder": "Org",
     "SubFolder": "Mail",
-    "Synopsis": "Create a room mailbox with optional delegate",
-    "Description": "Creates a room mailbox in Exchange Online so the room can be booked in meeting requests. A delegate can get full access and manage the bookings, and meeting requests can be accepted automatically. The user account behind the mailbox can be disabled so nobody signs in with it.",
+    "Synopsis": "Create a room mailbox with optional booking delegates",
+    "Description": "Creates a room mailbox in Exchange Online so the room can be booked in meeting requests. Without booking delegates the room accepts requests automatically when it is free. With booking delegates every request waits for their approval; they get no access to the mailbox itself. The user account behind the mailbox can be disabled so nobody signs in with it.",
     "Notes": null,
     "Parameters": [
-      {
-        "defaultValue": "False",
-        "description": [
-          {
-            "Text": "Meeting requests are accepted automatically when the room is free."
-          }
-        ],
-        "globbing": "false",
-        "name": "AutoAccept",
-        "parameterValue": "Boolean",
-        "pipelineInput": "false",
-        "position": "5",
-        "required": "false",
-        "type": {
-          "name": "Boolean"
-        }
-      },
-      {
-        "defaultValue": "False",
-        "description": [
-          {
-            "Text": "The mailbox opens automatically in the delegate's Outlook."
-          }
-        ],
-        "globbing": "false",
-        "name": "AutoMapping",
-        "parameterValue": "Boolean",
-        "pipelineInput": "false",
-        "position": "6",
-        "required": "false",
-        "type": {
-          "name": "Boolean"
-        }
-      },
       {
         "defaultValue": "",
         "description": [
@@ -20125,7 +20057,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "6",
         "required": "true",
         "type": {
           "name": "String"
@@ -20135,7 +20067,7 @@
         "defaultValue": "0",
         "description": [
           {
-            "Text": "How many people fit in the room. Shown in the room finder."
+            "Text": "How many people fit in the room. Shown in the room finder. Leave at 0 to set no capacity."
           }
         ],
         "globbing": "false",
@@ -20152,17 +20084,17 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "User who gets full access to the mailbox and handles its booking requests. Leave empty for none."
+            "Text": "Users who approve or decline every booking request for the room. Leave empty to accept requests automatically when the room is free."
           }
         ],
         "globbing": "false",
         "name": "DelegateTo",
-        "parameterValue": "String",
+        "parameterValue": "String[]",
         "pipelineInput": "false",
         "position": "3",
         "required": "false",
         "type": {
-          "name": "String"
+          "name": "String[]"
         }
       },
       {
@@ -20176,7 +20108,7 @@
         "name": "DisableUser",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "7",
+        "position": "5",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -20219,7 +20151,7 @@
     ],
     "DocsContent": null,
     "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"Exchange.ManageAsApp\",\n                    \"Reason\": \"Creates the room mailbox and configures delegation and calendar processing in the app-only Exchange Online session\"\n                }\n            ]\n        },\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"User.ReadWrite.All\",\n                    \"Optional\": true,\n                    \"Feature\": \"Disable user account\",\n                    \"Reason\": \"Disables the mailbox's user account via PATCH /users/{id} when DisableUser is enabled (default on)\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [\n        {\n            \"Name\": \"Exchange Administrator\",\n            \"TemplateId\": \"29232cdf-9323-42fd-ade2-1d097af3e4de\",\n            \"Reason\": \"Required for the app-only Exchange Online session creating the room mailbox\"\n        }\n    ],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"Exchange.ManageAsApp\",\n                    \"Reason\": \"Creates the room mailbox and sets its calendar processing and booking delegates in the app-only Exchange Online session\"\n                }\n            ]\n        },\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"User.ReadWrite.All\",\n                    \"Optional\": true,\n                    \"Feature\": \"Disable user account\",\n                    \"Reason\": \"Reads the mailbox's user account and blocks its sign-in via PATCH /users/{id} when DisableUser is on (default)\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [\n        {\n            \"Name\": \"Exchange Administrator\",\n            \"TemplateId\": \"29232cdf-9323-42fd-ade2-1d097af3e4de\",\n            \"Reason\": \"Required for the app-only Exchange Online session creating the room mailbox\"\n        }\n    ],\n    \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
         {
@@ -27939,15 +27871,15 @@
     "RelativeRunbookPath_PathOnly": "user/mail",
     "PrimaryFolder": "User",
     "SubFolder": "Mail",
-    "Synopsis": "Configure the booking rules of this room mailbox",
-    "Description": "Sets the booking rules of this room mailbox: who may book it, whether recurring meetings and conflicts are allowed, and how requests are processed. It also sets how far ahead and how long meetings may be, and the room capacity. All booking settings are written as shown; the capacity only when it is greater than 0.",
+    "Synopsis": "Configure the booking rules and booking delegates of this room mailbox",
+    "Description": "Sets the booking rules of this room mailbox: who may book it directly, who needs the approval of a booking delegate, and how requests are processed. It also sets recurring meetings, conflicts, the booking window, the maximum meeting length and the capacity. All booking rules are written as shown. The booking group, the booking delegates and the capacity change only when a value is given.",
     "Notes": null,
     "Parameters": [
       {
         "defaultValue": "True",
         "description": [
           {
-            "Text": "Everyone lets all users book the room. Only members of a group restricts booking to the \"Booking group\"."
+            "Text": "Everyone lets all users book the room directly. Restricted lets only the \"Booking group\" book directly; everyone else is declined or, with \"Let everyone else request the room?\", needs a booking delegate's approval."
           }
         ],
         "globbing": "false",
@@ -27971,7 +27903,7 @@
         "name": "AllowConflicts",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "9",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -27988,6 +27920,23 @@
         "name": "AllowRecurringMeetings",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Requests from users outside the \"Booking group\" go to the booking delegates, who approve or decline them. Turn off to decline these requests."
+          }
+        ],
+        "globbing": "false",
+        "name": "AllRequestInPolicy",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
         "position": "4",
         "required": "false",
         "type": {
@@ -27998,14 +27947,14 @@
         "defaultValue": "AutoAccept",
         "description": [
           {
-            "Text": "Auto accept books the room automatically. Auto update only marks requests as tentative for a delegate to decide. None leaves requests untouched."
+            "Text": "Auto accept books the room automatically or sends the request to the booking delegates. Auto update only marks requests as tentative, and booking delegates get no requests. None leaves requests untouched."
           }
         ],
         "globbing": "false",
         "name": "AutomateProcessing",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "5",
+        "position": "6",
         "required": "false",
         "type": {
           "name": "String"
@@ -28022,7 +27971,7 @@
         "name": "BookingWindowInDays",
         "parameterValue": "Int32",
         "pipelineInput": "false",
-        "position": "6",
+        "position": "7",
         "required": "false",
         "type": {
           "name": "Int32"
@@ -28032,7 +27981,7 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "Mail-enabled security group whose members may book the room."
+            "Text": "Mail-enabled security group whose members book the room directly. Leave empty to keep the current group, for example when only the booking delegates decide."
           }
         ],
         "globbing": "false",
@@ -28056,7 +28005,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "13",
         "required": "true",
         "type": {
           "name": "String"
@@ -28073,10 +28022,27 @@
         "name": "Capacity",
         "parameterValue": "Int32",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "10",
         "required": "false",
         "type": {
           "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "Add",
+        "description": [
+          {
+            "Text": "Add puts the selected users next to the current booking delegates, Replace makes them the only booking delegates, Remove takes them off the list."
+          }
+        ],
+        "globbing": "false",
+        "name": "DelegateAction",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "12",
+        "required": "false",
+        "type": {
+          "name": "String"
         }
       },
       {
@@ -28090,10 +28056,27 @@
         "name": "MaximumDurationInMinutes",
         "parameterValue": "Int32",
         "pipelineInput": "false",
-        "position": "7",
+        "position": "8",
         "required": "false",
         "type": {
           "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Users who approve or decline the booking requests that need approval. They get no access to the mailbox itself. Leave empty to keep the current booking delegates."
+          }
+        ],
+        "globbing": "false",
+        "name": "ResourceDelegates",
+        "parameterValue": "String[]",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "String[]"
         }
       },
       {
@@ -28114,9 +28097,9 @@
         }
       }
     ],
-    "DocsContent": null,
-    "DocsContentEncoded": null,
-    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"Exchange.ManageAsApp\",\n                    \"Reason\": \"Runs Get-EXOMailbox, Set-CalendarProcessing and Set-Place in the app-only Exchange Online session\"\n                }\n            ]\n        },\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"Group.Read.All\",\n                    \"Optional\": true,\n                    \"Feature\": \"Book-in policy group\",\n                    \"Reason\": \"Validates the BookInPolicyGroup via /groups/{id}\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [\n        {\n            \"Name\": \"Exchange Administrator\",\n            \"TemplateId\": \"29232cdf-9323-42fd-ade2-1d097af3e4de\",\n            \"Reason\": \"Required for the app-only Exchange Online session to change the room mailbox settings\"\n        }\n    ],\n    \"ManualPermissions\": []\n}\n",
+    "DocsContent": "## Booking modes\n\n\"Who may book the room\" and the fields shown with \"Restricted\" decide what happens to a meeting request:\n\n- **Everyone** - every user books the room directly; the request is accepted when the room is free.\n- **Restricted with a booking group** - members of the \"Booking group\" book directly. Requests from everyone else are declined.\n- **Restricted with \"Let everyone else request the room?\"** - requests from users outside the booking group go to the booking delegates, who approve or decline them. Leave the \"Booking group\" empty when the booking delegates decide every request. This is the same as the option \"Select delegates who can accept or decline booking requests\" in the Exchange admin center.\n\nBooking delegates get requests only with the request processing \"Auto accept\". With \"Auto update\" Exchange marks requests as tentative and sends nothing to the delegates. The runbook warns about both cases and about a run that switches off an existing delegate approval.\n\n## Booking delegates\n\n- A booking delegate approves or declines requests for the room in their own mailbox. They need no full access to the room mailbox; Exchange grants them Send on Behalf on its own. Grant full access with the runbook \"Delegate Full Access\" only when someone has to work in the room mailbox itself.\n- \"Booking delegate change\" decides what happens with the users selected in \"Booking delegates\": Add keeps the current delegates and adds the selected ones, Replace makes the selected users the only delegates, Remove takes them off the list. With no users selected the delegates stay as they are.\n- Users without a mailbox are skipped with a warning. Current delegates whose name does not resolve to exactly one recipient are kept unchanged.\n- The runbook \"List Room Mailbox Configuration\" shows the current booking delegates, the booking group and the request settings of a room.\n\n## Notes and limitations\n\n- Every run writes all booking rules as shown in the dialog. Running the runbook only to change the capacity therefore also resets \"Who may book the room\" to the selected option.\n- An empty \"Booking group\" keeps the current group; the runbook cannot clear it.\n- Tenant-wide defaults for the booking rules can be set as RealmJoin settings: `RoomMailbox.AllBookInPolicy`, `RoomMailbox.AllRequestInPolicy`, `RoomMailbox.AllowRecurringMeetings`, `RoomMailbox.AutomateProcessing`, `RoomMailbox.BookingWindowInDays`, `RoomMailbox.MaximumDurationInMinutes` and `RoomMailbox.AllowConflicts`. A field with a setting is shown read-only in the dialog. See [Settings](https://docs.realmjoin.com/automation/runbooks/runbook-customization#settings) in the Runbook Customization Guide.\n",
+    "DocsContentEncoded": "IyMgQm9va2luZyBtb2RlcwoKIldobyBtYXkgYm9vayB0aGUgcm9vbSIgYW5kIHRoZSBmaWVsZHMgc2hvd24gd2l0aCAiUmVzdHJpY3RlZCIgZGVjaWRlIHdoYXQgaGFwcGVucyB0byBhIG1lZXRpbmcgcmVxdWVzdDoKCi0gKipFdmVyeW9uZSoqIC0gZXZlcnkgdXNlciBib29rcyB0aGUgcm9vbSBkaXJlY3RseTsgdGhlIHJlcXVlc3QgaXMgYWNjZXB0ZWQgd2hlbiB0aGUgcm9vbSBpcyBmcmVlLgotICoqUmVzdHJpY3RlZCB3aXRoIGEgYm9va2luZyBncm91cCoqIC0gbWVtYmVycyBvZiB0aGUgIkJvb2tpbmcgZ3JvdXAiIGJvb2sgZGlyZWN0bHkuIFJlcXVlc3RzIGZyb20gZXZlcnlvbmUgZWxzZSBhcmUgZGVjbGluZWQuCi0gKipSZXN0cmljdGVkIHdpdGggIkxldCBldmVyeW9uZSBlbHNlIHJlcXVlc3QgdGhlIHJvb20/IioqIC0gcmVxdWVzdHMgZnJvbSB1c2VycyBvdXRzaWRlIHRoZSBib29raW5nIGdyb3VwIGdvIHRvIHRoZSBib29raW5nIGRlbGVnYXRlcywgd2hvIGFwcHJvdmUgb3IgZGVjbGluZSB0aGVtLiBMZWF2ZSB0aGUgIkJvb2tpbmcgZ3JvdXAiIGVtcHR5IHdoZW4gdGhlIGJvb2tpbmcgZGVsZWdhdGVzIGRlY2lkZSBldmVyeSByZXF1ZXN0LiBUaGlzIGlzIHRoZSBzYW1lIGFzIHRoZSBvcHRpb24gIlNlbGVjdCBkZWxlZ2F0ZXMgd2hvIGNhbiBhY2NlcHQgb3IgZGVjbGluZSBib29raW5nIHJlcXVlc3RzIiBpbiB0aGUgRXhjaGFuZ2UgYWRtaW4gY2VudGVyLgoKQm9va2luZyBkZWxlZ2F0ZXMgZ2V0IHJlcXVlc3RzIG9ubHkgd2l0aCB0aGUgcmVxdWVzdCBwcm9jZXNzaW5nICJBdXRvIGFjY2VwdCIuIFdpdGggIkF1dG8gdXBkYXRlIiBFeGNoYW5nZSBtYXJrcyByZXF1ZXN0cyBhcyB0ZW50YXRpdmUgYW5kIHNlbmRzIG5vdGhpbmcgdG8gdGhlIGRlbGVnYXRlcy4gVGhlIHJ1bmJvb2sgd2FybnMgYWJvdXQgYm90aCBjYXNlcyBhbmQgYWJvdXQgYSBydW4gdGhhdCBzd2l0Y2hlcyBvZmYgYW4gZXhpc3RpbmcgZGVsZWdhdGUgYXBwcm92YWwuCgojIyBCb29raW5nIGRlbGVnYXRlcwoKLSBBIGJvb2tpbmcgZGVsZWdhdGUgYXBwcm92ZXMgb3IgZGVjbGluZXMgcmVxdWVzdHMgZm9yIHRoZSByb29tIGluIHRoZWlyIG93biBtYWlsYm94LiBUaGV5IG5lZWQgbm8gZnVsbCBhY2Nlc3MgdG8gdGhlIHJvb20gbWFpbGJveDsgRXhjaGFuZ2UgZ3JhbnRzIHRoZW0gU2VuZCBvbiBCZWhhbGYgb24gaXRzIG93bi4gR3JhbnQgZnVsbCBhY2Nlc3Mgd2l0aCB0aGUgcnVuYm9vayAiRGVsZWdhdGUgRnVsbCBBY2Nlc3MiIG9ubHkgd2hlbiBzb21lb25lIGhhcyB0byB3b3JrIGluIHRoZSByb29tIG1haWxib3ggaXRzZWxmLgotICJCb29raW5nIGRlbGVnYXRlIGNoYW5nZSIgZGVjaWRlcyB3aGF0IGhhcHBlbnMgd2l0aCB0aGUgdXNlcnMgc2VsZWN0ZWQgaW4gIkJvb2tpbmcgZGVsZWdhdGVzIjogQWRkIGtlZXBzIHRoZSBjdXJyZW50IGRlbGVnYXRlcyBhbmQgYWRkcyB0aGUgc2VsZWN0ZWQgb25lcywgUmVwbGFjZSBtYWtlcyB0aGUgc2VsZWN0ZWQgdXNlcnMgdGhlIG9ubHkgZGVsZWdhdGVzLCBSZW1vdmUgdGFrZXMgdGhlbSBvZmYgdGhlIGxpc3QuIFdpdGggbm8gdXNlcnMgc2VsZWN0ZWQgdGhlIGRlbGVnYXRlcyBzdGF5IGFzIHRoZXkgYXJlLgotIFVzZXJzIHdpdGhvdXQgYSBtYWlsYm94IGFyZSBza2lwcGVkIHdpdGggYSB3YXJuaW5nLiBDdXJyZW50IGRlbGVnYXRlcyB3aG9zZSBuYW1lIGRvZXMgbm90IHJlc29sdmUgdG8gZXhhY3RseSBvbmUgcmVjaXBpZW50IGFyZSBrZXB0IHVuY2hhbmdlZC4KLSBUaGUgcnVuYm9vayAiTGlzdCBSb29tIE1haWxib3ggQ29uZmlndXJhdGlvbiIgc2hvd3MgdGhlIGN1cnJlbnQgYm9va2luZyBkZWxlZ2F0ZXMsIHRoZSBib29raW5nIGdyb3VwIGFuZCB0aGUgcmVxdWVzdCBzZXR0aW5ncyBvZiBhIHJvb20uCgojIyBOb3RlcyBhbmQgbGltaXRhdGlvbnMKCi0gRXZlcnkgcnVuIHdyaXRlcyBhbGwgYm9va2luZyBydWxlcyBhcyBzaG93biBpbiB0aGUgZGlhbG9nLiBSdW5uaW5nIHRoZSBydW5ib29rIG9ubHkgdG8gY2hhbmdlIHRoZSBjYXBhY2l0eSB0aGVyZWZvcmUgYWxzbyByZXNldHMgIldobyBtYXkgYm9vayB0aGUgcm9vbSIgdG8gdGhlIHNlbGVjdGVkIG9wdGlvbi4KLSBBbiBlbXB0eSAiQm9va2luZyBncm91cCIga2VlcHMgdGhlIGN1cnJlbnQgZ3JvdXA7IHRoZSBydW5ib29rIGNhbm5vdCBjbGVhciBpdC4KLSBUZW5hbnQtd2lkZSBkZWZhdWx0cyBmb3IgdGhlIGJvb2tpbmcgcnVsZXMgY2FuIGJlIHNldCBhcyBSZWFsbUpvaW4gc2V0dGluZ3M6IGBSb29tTWFpbGJveC5BbGxCb29rSW5Qb2xpY3lgLCBgUm9vbU1haWxib3guQWxsUmVxdWVzdEluUG9saWN5YCwgYFJvb21NYWlsYm94LkFsbG93UmVjdXJyaW5nTWVldGluZ3NgLCBgUm9vbU1haWxib3guQXV0b21hdGVQcm9jZXNzaW5nYCwgYFJvb21NYWlsYm94LkJvb2tpbmdXaW5kb3dJbkRheXNgLCBgUm9vbU1haWxib3guTWF4aW11bUR1cmF0aW9uSW5NaW51dGVzYCBhbmQgYFJvb21NYWlsYm94LkFsbG93Q29uZmxpY3RzYC4gQSBmaWVsZCB3aXRoIGEgc2V0dGluZyBpcyBzaG93biByZWFkLW9ubHkgaW4gdGhlIGRpYWxvZy4gU2VlIFtTZXR0aW5nc10oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vYXV0b21hdGlvbi9ydW5ib29rcy9ydW5ib29rLWN1c3RvbWl6YXRpb24jc2V0dGluZ3MpIGluIHRoZSBSdW5ib29rIEN1c3RvbWl6YXRpb24gR3VpZGUuCg==",
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Office 365 Exchange Online\",\n            \"Id\": \"00000002-0000-0ff1-ce00-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"Exchange.ManageAsApp\",\n                    \"Reason\": \"Reads the room mailbox, its calendar processing and booking delegates (Get-EXOMailbox, Get-CalendarProcessing, Get-Recipient) and changes them with Set-CalendarProcessing and Set-Place in the app-only Exchange Online session\"\n                }\n            ]\n        },\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"Group.Read.All\",\n                    \"Optional\": true,\n                    \"Feature\": \"Book-in policy group\",\n                    \"Reason\": \"Validates the BookInPolicyGroup via /groups/{id}\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [\n        {\n            \"Name\": \"Exchange Administrator\",\n            \"TemplateId\": \"29232cdf-9323-42fd-ade2-1d097af3e4de\",\n            \"Reason\": \"Required for the app-only Exchange Online session to change the room mailbox settings\"\n        }\n    ],\n    \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
         {

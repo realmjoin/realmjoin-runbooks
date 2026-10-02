@@ -2108,15 +2108,13 @@ Create a classic Exchange Online distribution group
 <a name='organization-mail-add-equipment-mailbox'></a>
 
 ### Add Equipment Mailbox
-Create an equipment mailbox with optional delegate
+Create an equipment mailbox with optional booking delegates
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | MailboxName | ✓ | String | Alias of the mailbox, which becomes the part of the email address in front of the @ sign. |
 | DisplayName |  | String | Name shown in the address book. Leave empty to use the alias. |
-| DelegateTo |  | String | User who gets full access to the mailbox and handles its booking requests. Leave empty for none. |
-| AutoAccept |  | Boolean | Meeting requests are accepted automatically when the equipment is free. |
-| AutoMapping |  | Boolean | The mailbox opens automatically in the delegate's Outlook. |
+| DelegateTo |  | String Array | Users who approve or decline every booking request for the equipment. Leave empty to accept requests automatically when the equipment is free. |
 | DisableUser |  | Boolean | Blocks sign-in for the user account behind the mailbox. Booking keeps working. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -2178,16 +2176,14 @@ Add or remove a Tenant Allow/Block List entry
 <a name='organization-mail-add-room-mailbox'></a>
 
 ### Add Room Mailbox
-Create a room mailbox with optional delegate
+Create a room mailbox with optional booking delegates
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | MailboxName | ✓ | String | Alias of the mailbox, which becomes the part of the email address in front of the @ sign. |
 | DisplayName |  | String | Name shown in the address book and the room finder. Leave empty to use the alias. |
-| DelegateTo |  | String | User who gets full access to the mailbox and handles its booking requests. Leave empty for none. |
-| Capacity |  | Int32 | How many people fit in the room. Shown in the room finder. |
-| AutoAccept |  | Boolean | Meeting requests are accepted automatically when the room is free. |
-| AutoMapping |  | Boolean | The mailbox opens automatically in the delegate's Outlook. |
+| DelegateTo |  | String Array | Users who approve or decline every booking request for the room. Leave empty to accept requests automatically when the room is free. |
+| Capacity |  | Int32 | How many people fit in the room. Shown in the room finder. Leave at 0 to set no capacity. |
 | DisableUser |  | Boolean | Blocks sign-in for the user account behind the mailbox. Booking keeps working. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -2965,19 +2961,22 @@ Set or remove automatic replies for this user
 <a name='user-mail-set-room-mailbox-configuration'></a>
 
 ### Set Room Mailbox Configuration
-Configure the booking rules of this room mailbox
+Configure the booking rules and booking delegates of this room mailbox
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | UserName | ✓ | String | User principal name of the room mailbox the runbook acts on. Set by the portal from the selected user. |
-| AllBookInPolicy |  | Boolean | Everyone lets all users book the room. Only members of a group restricts booking to the "Booking group". |
-| BookInPolicyGroup |  | String | Mail-enabled security group whose members may book the room. |
+| AllBookInPolicy |  | Boolean | Everyone lets all users book the room directly. Restricted lets only the "Booking group" book directly; everyone else is declined or, with "Let everyone else request the room?", needs a booking delegate's approval. |
+| BookInPolicyGroup |  | String | Mail-enabled security group whose members book the room directly. Leave empty to keep the current group, for example when only the booking delegates decide. |
+| AllRequestInPolicy |  | Boolean | Requests from users outside the "Booking group" go to the booking delegates, who approve or decline them. Turn off to decline these requests. |
 | AllowRecurringMeetings |  | Boolean | Turn off to decline recurring meeting requests; single meetings are still accepted. |
-| AutomateProcessing |  | String | Auto accept books the room automatically. Auto update only marks requests as tentative for a delegate to decide. None leaves requests untouched. |
+| AutomateProcessing |  | String | Auto accept books the room automatically or sends the request to the booking delegates. Auto update only marks requests as tentative, and booking delegates get no requests. None leaves requests untouched. |
 | BookingWindowInDays |  | Int32 | Requests further ahead than this many days are declined. |
 | MaximumDurationInMinutes |  | Int32 | Longest meeting the room accepts, in minutes. |
 | AllowConflicts |  | Boolean | Lets overlapping bookings through instead of declining them. |
 | Capacity |  | Int32 | Number of seats. Leave at 0 to keep the current value. |
+| ResourceDelegates |  | String Array | Users who approve or decline the booking requests that need approval. They get no access to the mailbox itself. Leave empty to keep the current booking delegates. |
+| DelegateAction |  | String | Add puts the selected users next to the current booking delegates, Replace makes them the only booking delegates, Remove takes them off the list. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
