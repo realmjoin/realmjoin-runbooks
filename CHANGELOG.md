@@ -21,6 +21,11 @@
   - Optionally lists devices the agent has never reported a user on and devices known to only one side; include and exclude device groups narrow the scope
   - Retries throttled RealmJoin API calls, explains a rejected credential or a missing API feature in the run result, shows RealmJoin's own active client count for plausibility and lists the results as separate named tables in the portal's Output Data tab; the report can be sent by email or provided as a download link
 
+- Add **Enable Or Disable Lost Mode** Runbook in Device/Security (v1.0.0)
+  - Locks a supervised iOS or iPadOS device with Apple Lost Mode, showing a message, a callback phone number and an optional footer on the lock screen, or lifts Lost Mode again; the device is checked for Intune enrollment, operating system and supervision before anything is sent
+  - Optionally requests the device position after locking and shows the coordinates with a map link when the device answers within a minute; otherwise points to the Intune admin center for the later result
+  - Companion documentation with the supervision prerequisite, a customization example for tenant-wide lock screen texts and the related runbooks for a lost or stolen device
+
 ## 2026-10-01
 
 - Update **Report Teams Channels (Scheduled)** Runbook in Org/Collab (v1.0.1)
