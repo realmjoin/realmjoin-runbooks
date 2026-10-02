@@ -243,7 +243,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.4.0"
+$Version = "1.4.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "List Only Expiring: $listOnlyExpiring" -Verbose
 Write-RjRbLog -Message "Days before expiry: $Days" -Verbose
@@ -510,6 +510,9 @@ Write-RjRbLog -Message "Processed $((($(($credentialResults) | Measure-Object).C
 
 Write-Output "Exporting credentials..."
 
+# Shared name of the Excel worksheet and the Output Data table; Excel limits sheet names to 31 characters
+$tableTitle = if ($listOnlyExpiring) { "Expiring within $Days days" } else { "All application credentials" }
+
 $reportFiles = @()
 $xlsxPath = $null
 
@@ -527,7 +530,7 @@ if ((($(($credentialResults) | Measure-Object).Count) -gt 0)) {
 
         if ($ReportFileFormat -ne 'CSV only') {
             $xlsxPath = $credsXlsx
-            $credentialResults | Export-RjRbXlsx -Path $xlsxPath -WorksheetName "Expiring Credentials"
+            $credentialResults | Export-RjRbXlsx -Path $xlsxPath -WorksheetName $tableTitle
             $reportFiles += $xlsxPath
             Write-Verbose "Exported application credentials to: $xlsxPath"
         }
@@ -909,12 +912,6 @@ if ($EmailTo) {
 # Emitted last on purpose: email sending and the storage upload can take a while with many credentials.
 Write-Output ""
 if ($totalCreds -gt 0) {
-    $tableTitle = if ($listOnlyExpiring) {
-        "Application credentials expiring within $Days days"
-    }
-    else {
-        "All application credentials"
-    }
     Write-Output "Listing $totalCreds credential(s):"
     Write-Output ([PSCustomObject]@{ RjTableTitle = $tableTitle })
     Write-Output $credentialResults

@@ -152,8 +152,8 @@
 				"Select": {
 					"Options": [
 						{
-							"Display": "No report",
-							"ParameterValue": "No report",
+							"Display": "Output Data only",
+							"ParameterValue": "Output Data only",
 							"Customization": {
 								"Default": { "SendEmailReport": false, "CreateDownloadLink": false },
 								"Hide": [ "EmailTo", "ReportFileFormat" ]
@@ -188,7 +188,7 @@
 						}
 					]
 				},
-				"Default": "No report"
+				"Default": "Output Data only"
 			}
 		]
 	}
@@ -240,7 +240,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
@@ -722,7 +722,7 @@ if (($SendEmailReport -or $CreateDownloadLink) -and $results.Count -gt 0) {
     if ($ReportFileFormat -ne 'CSV only') {
         $xlsxFile = Join-Path $tempDir "$fileNameBase.xlsx"
         $worksheets = [ordered]@{ 'Channels' = $results }
-        if ($noOwnerRows.Count -gt 0) { $worksheets['Without owner'] = $noOwnerRows }
+        if ($noOwnerRows.Count -gt 0) { $worksheets['Channels without owner'] = $noOwnerRows }
         if ($unreadableRows.Count -gt 0) { $worksheets['Teams not readable'] = $unreadableRows }
         $workbookCoverSheet = [ordered]@{
             Title                            = 'Teams Channels'

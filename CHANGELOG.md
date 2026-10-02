@@ -1,5 +1,15 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-10-01
+
+- Update **Report Teams Channels (Scheduled)** Runbook in Org/Collab (v1.0.1)
+  - Offer "Output Data only" as the default report delivery: the results appear as tables in the portal's Output Data tab and no report files are created
+  - Name the Excel worksheet of channels without an owner "Channels without owner", like the matching table in the portal's Output Data tab
+
+- Shorten Output Data table titles and Excel worksheet names to at most 31 characters, so "Export to Excel" in the RealmJoin portal works for every table
+  - Affected runbooks:
+    - **Report Expiring Application Credentials (Scheduled)** - Org/Applications
+
 ## 2026-09-28
 
 - Update **Check OneDrive Status** Runbook in Org/Collab
