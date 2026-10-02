@@ -9,6 +9,13 @@
   - Fail the run with a clear error when the calendar processing settings cannot be read; missing room details only produce a note
   - Connect to Microsoft Graph with the managed identity (`Connect-MgGraph`, `Invoke-MgGraphRequest`)
 
+- Update **Report Primary User Mismatch (Scheduled)** Runbook in Org/Devices (v1.8.0)
+  - Check who actually logs on to each device, using the logons Intune records and the users the RealmJoin agent saw signed in, and list devices whose primary user has not logged on within a configurable number of days while someone else has (new category, off by default)
+  - Show the last logged-on user of both sources, the primary user's last logon and the Intune last sync per device; user ids from the Intune logon records are resolved to user principal names, deleted accounts are marked as such
+  - List the results as separate named tables per category in the portal's Output Data tab; a "Report delivery" choice (Output Data only, email, download link or both) shows the recipient and the file format only when a report file is wanted, and existing schedules keep sending their email
+  - Apply the include and exclude device group as soon as a group is selected; the separate "Filter by device group?" choice is gone
+  - Retry throttled RealmJoin API calls and explain a rejected credential or a missing API feature in the run result; the companion documentation describes the categories, the logon sources and the API setup including the device users feature
+
 ## 2026-10-01
 
 - Update **Report Teams Channels (Scheduled)** Runbook in Org/Collab (v1.0.1)

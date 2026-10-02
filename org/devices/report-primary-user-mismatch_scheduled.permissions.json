@@ -7,25 +7,30 @@
             "AppRoleAssignments": [
                 {
                     "Value": "DeviceManagementManagedDevices.Read.All",
-                    "Reason": "Reads Intune managed devices to get each Windows device's primary user for comparison"
+                    "Reason": "Reads the Windows devices in Intune with their primary user, last sync time and the users that logged on"
                 },
                 {
                     "Value": "Directory.Read.All",
-                    "Reason": "Reads group members to resolve the optional include/exclude device group scope filters"
+                    "Reason": "Resolves the user ids from the Intune logon records to user principal names and reads the device members of the optional include and exclude groups"
                 },
                 {
                     "Value": "Mail.Send",
                     "Optional": true,
                     "Feature": "Email report",
-                    "Reason": "Delivers the mismatch report via Send-RjReportEmail to the configured EmailTo recipient"
+                    "Reason": "Sends the report email via Send-RjRbReportEmail when a recipient is configured"
                 },
                 {
                     "Value": "Organization.Read.All",
-                    "Reason": "Reads /organization for the tenant name shown in the report"
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Reads the tenant display name for the email subject, the email body and the report file names"
                 }
             ]
         }
     ],
     "Roles": [],
-    "ManualPermissions": []
+    "ManualPermissions": [
+        "RealmJoin customer API: an Automation Account credential named 'RJAPI' with the tenant's API username (t-<tenant id>) and secret, issued by RealmJoin support",
+        "RealmJoin customer API: the device users feature of the API has to be enabled for the tenant by RealmJoin support (the device list answers with HTTP 403 otherwise)"
+    ]
 }
