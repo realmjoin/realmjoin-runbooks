@@ -1,22 +1,22 @@
 <#
 	.SYNOPSIS
-	Check the status of a user's OneDrive
+	Check whether a user's OneDrive is active, locked or deleted
 
 	.DESCRIPTION
-	Connects to the SharePoint admin center using the managed identity and retrieves the status of the specified user's personal site (OneDrive). Reports whether the site is active or archived, its lock state, and whether it resides in the tenant recycle bin. The runbook is read-only and makes no changes to the site or its state.
+	Looks up the personal OneDrive site of a user and reports whether it is active or archived, whether it is locked, and whether it sits in the tenant recycle bin. Works for users whose account has already been deleted, as their OneDrive may still be in the recycle bin. Nothing is changed.
 
 	.PARAMETER UserPrincipalName
-	User principal name of the user whose OneDrive status should be checked. This parameter accepts the UPN of a user whose account has already been deleted, as deleted users' OneDrive sites may still exist in the tenant recycle bin.
+	User principal name of the user whose OneDrive is checked. Deleted users are accepted.
 
 	.PARAMETER CallerName
-	Name of the user or system that started the runbook. Tracked for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
 		"Parameters": {
 
 			"UserPrincipalName": {
-				"DisplayName": "User Principal Name (UPN)"
+				"DisplayName": "User principal name"
 			},
 			"CallerName": {
 				"Hide": true
@@ -24,23 +24,8 @@
 		}
 	}
 
-	.NOTES
-
-	Common Use Cases:
-	- Check whether an active user's OneDrive is provisioned, and if so, whether it is locked
-	  or archived.
-	- Check whether a deleted user's OneDrive still exists in the tenant recycle bin, and when
-	  it is scheduled to be purged.
-
-	Parameter Interactions:
-	- UserPrincipalName accepts the UPN of an already-deleted account, not only active users.
-	  This is intentional: a user picker cannot select a deleted account, so the parameter is
-	  free text rather than a picker.
-	- For a deleted user, recycle bin matching relies on the deleted site's SiteOwnerEmail; a
-	  missing value or a prior UPN rename can cause a false "Not found" result.
-
-	This runbook is strictly read-only and makes no changes to the tenant.
 #>
+
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 #Requires -Modules @{ModuleName = "PnP.PowerShell"; ModuleVersion = "3.4.1" }
 
@@ -58,7 +43,7 @@ param(
 #region     RJ Log Part
 ########################################################
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
-$Version = "1.4.0"
+$Version = "1.5.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "UserPrincipalName: $UserPrincipalName" -Verbose
 #endregion RJ Log Part
@@ -136,49 +121,6 @@ Write-Output ""
 Write-Output "Get StatusQuo"
 Write-Output "---------------------"
 Write-Output "User: $UserPrincipalName"
-
-$upnKey = $UserPrincipalName.ToLower()
-
-# The OneDrive URL is resolved from the user profile. This only works while the user account (and
-# therefore the profile) still exists - for a deleted user this stays empty, which is expected and
-# is why the recycle bin lookup in the Main Part does not depend on it.
-$personalUrl = $null
-try {
-    $userProfile = Get-PnPUserProfileProperty -Account $UserPrincipalName -ErrorAction Stop
-    if ($userProfile) {
-        $personalUrl = $userProfile.PersonalUrl
-    }
-}
-catch {
-    $profileErrorMessage = $_.Exception.Message
-    if ($profileErrorMessage -match "401|403|Access denied|Unauthorized") {
-        # A permission denial here looks identical to "the account no longer exists" unless it is
-        # called out. Surface it so the operator can tell a missing grant from a deleted user, but
-        # do not throw: the recycle bin lookup in the Main Part can still produce a useful answer.
-        Write-Error "Access denied while reading the user profile for '$UserPrincipalName'. The OneDrive URL could not be resolved because of insufficient permission, not because the account is missing - the reported status may be incomplete. Error: $profileErrorMessage" -ErrorAction Continue
-    }
-    else {
-        # Expected and benign: once a user account is deleted, its profile (and PersonalUrl) is gone
-        # with it. This is a normal path for this read-only check, not a failure - the recycle bin
-        # lookup in the Main Part does not depend on this succeeding.
-        Write-RjRbLog -Message "No user profile could be read for '$UserPrincipalName' - this is expected if the account no longer exists. Details: $($profileErrorMessage)" -Verbose
-    }
-}
-
-if ([string]::IsNullOrWhiteSpace($personalUrl)) {
-    Write-Output "Current OneDrive URL: not resolvable (the account may no longer exist)"
-    $personalUrl = $null
-}
-elseif ($personalUrl -notlike "*/personal/*") {
-    # A profile can carry a PersonalUrl that does not point at a provisioned personal site.
-    Write-RjRbLog -Message "Resolved PersonalUrl '$personalUrl' is not a personal site URL - ignoring it." -Verbose
-    Write-Output "Current OneDrive URL: not a personal site URL - ignoring it"
-    $personalUrl = $null
-}
-else {
-    $personalUrl = $personalUrl.TrimEnd('/')
-    Write-Output "Current OneDrive URL: $personalUrl"
-}
 #endregion StatusQuo & Preflight-Check Part
 
 ########################################################
@@ -190,58 +132,52 @@ Write-Output "---------------------"
 
 #region Check for an active OneDrive site collection
 $site = $null
-if ($personalUrl) {
-    try {
-        $site = Get-PnPTenantSite -Identity $personalUrl -Detailed -ErrorAction Stop
+try {
+    # -eq is case-insensitive in PowerShell, so no normalization of the owner is needed.
+    $site = Get-PnPTenantSite -IncludeOneDriveSites -Filter "Url -like '-my.sharepoint.com/personal/'" -ErrorAction Stop |
+        Where-Object { $_.Owner -eq $UserPrincipalName } |
+        Select-Object -First 1
+
+    if ($site) {
+        # The filtered listing omits properties such as ArchiveStatus; -Detailed returns the full set.
+        $site = Get-PnPTenantSite -Identity $site.Url -Detailed -ErrorAction Stop
     }
-    catch {
-        # Not an error condition: a deleted or never-provisioned OneDrive simply is not an active
-        # site collection, and the recycle bin check below tells the two cases apart. If the
-        # managed identity lacks SharePoint permissions this call also fails with 403/Access
-        # denied - that is surfaced instead by the recycle bin lookup below, which needs the same
-        # tenant-admin permission and runs unconditionally when no active site is found.
-        Write-RjRbLog -Message "No active site collection found at '$personalUrl' - this is expected if the OneDrive was deleted or never provisioned. Details: $($_.Exception.Message)" -Verbose
+}
+catch {
+    $siteErrorMessage = $_.Exception.Message
+    if ($siteErrorMessage -match "401|403|Access denied|Unauthorized") {
+        Write-Error "Access denied while enumerating OneDrive sites. The managed identity needs 'Sites.FullControl.All' application permission on the Office 365 SharePoint Online API (AppId 00000003-0000-0ff1-ce00-000000000000), with admin consent. The reported status may be incomplete. Error: $siteErrorMessage" -ErrorAction Continue
     }
+    else {
+        Write-Error "Could not enumerate OneDrive sites: $siteErrorMessage. The reported status may be incomplete." -ErrorAction Continue
+    }
+}
+
+if ($site) {
+    Write-Output "Active OneDrive found: $($site.Url)"
+}
+else {
+    Write-Output "No active OneDrive found for '$UserPrincipalName'"
 }
 #endregion Check for an active OneDrive site collection
 
 #region Check the tenant recycle bin
-# Runs INDEPENDENTLY of the profile lookup: a deleted user has no profile, so the deleted personal
-# site is matched by its SiteOwnerEmail, with the resolved URL as a fallback key. Only queried when
-# there is no active site - if the OneDrive is active there is nothing to look for.
 $deletedSite = $null
 if (-not $site) {
     try {
-        # -IncludeOnlyPersonalSite restricts the result to OneDrive sites. -Limit lifts the default
-        # page size of 200; ALL is not yet supported by PnP, so a high explicit limit is used.
-        $deletedSites = Get-PnPTenantDeletedSite -IncludeOnlyPersonalSite -Limit 1000 -Detailed -ErrorAction Stop
-
-        foreach ($candidate in $deletedSites) {
-            $ownerMatch = (-not [string]::IsNullOrWhiteSpace($candidate.SiteOwnerEmail)) -and ($candidate.SiteOwnerEmail.Trim().ToLower() -eq $upnKey)
-            $urlMatch = $personalUrl -and (-not [string]::IsNullOrWhiteSpace($candidate.Url)) -and ($candidate.Url.Trim().TrimEnd('/').ToLower() -eq $personalUrl.ToLower())
-
-            if ($ownerMatch -or $urlMatch) {
-                $deletedSite = $candidate
-                break
-            }
-        }
+        # -Limit lifts the default page size of 200.
+        $deletedSite = Get-PnPTenantDeletedSite -IncludeOnlyPersonalSite -Limit 100000 -Detailed -ErrorAction Stop |
+            Where-Object { $_.SiteOwnerEmail -eq $UserPrincipalName } |
+            Select-Object -First 1
     }
     catch {
         $recycleBinErrorMessage = $_.Exception.Message
         if ($recycleBinErrorMessage -match "401|403|Access denied|Unauthorized") {
-            # The connection itself succeeded (region:Connect), but the managed identity does not
-            # have permission to call this tenant-admin cmdlet. This is a distinct, actionable
-            # cause from "nothing found" and is worth calling out by name rather than folding it
-            # into the generic enumeration-failure message below.
-            Write-Error "Access denied while querying the SharePoint tenant recycle bin. The connection succeeded, but the Automation account's managed identity does not have sufficient SharePoint Online permission to enumerate deleted sites (requires 'Sites.FullControl.All' application permission on the Office 365 SharePoint Online API, AppId 00000003-0000-0ff1-ce00-000000000000, with admin consent). The OneDrive could not be confirmed as deleted or permanently removed - the reported status may be incomplete. Error: $recycleBinErrorMessage" -ErrorAction Continue
+            Write-Error "Access denied while querying the SharePoint tenant recycle bin. The managed identity needs 'Sites.FullControl.All' application permission on the Office 365 SharePoint Online API (AppId 00000003-0000-0ff1-ce00-000000000000), with admin consent. The reported status may be incomplete. Error: $recycleBinErrorMessage" -ErrorAction Continue
         }
         else {
-            # This is a read-only check: a failed lookup here does not mean anything was changed
-            # or left in an inconsistent state, only that this one status source is missing.
-            Write-Error "Could not enumerate the SharePoint tenant recycle bin: $recycleBinErrorMessage. The OneDrive could not be confirmed as deleted or permanently removed - the reported status may be incomplete." -ErrorAction Continue
+            Write-Error "Could not enumerate the SharePoint tenant recycle bin: $recycleBinErrorMessage. The reported status may be incomplete." -ErrorAction Continue
         }
-        # Deliberately not re-thrown: a partial answer (active-site check already completed) is
-        # still useful to the operator, and this runbook makes no changes that would need undoing.
     }
 }
 #endregion Check the tenant recycle bin
@@ -291,6 +227,8 @@ if ($site) {
         IsReadOnly        = ($site.LockState -eq "ReadOnly")
         InRecycleBin      = $false
         DeletionTime      = $null
+        # StorageUsageCurrent is reported in MB.
+        StorageUsedGB     = [math]::Round($site.StorageUsageCurrent / 1024, 2)
     }
 }
 elseif ($deletedSite) {
@@ -305,6 +243,8 @@ elseif ($deletedSite) {
         IsReadOnly        = "n/a"
         InRecycleBin      = $true
         DeletionTime      = $deletedSite.DeletionTime
+        # StorageUsed (from -Detailed) is reported in bytes.
+        StorageUsedGB     = $(if ($null -ne $deletedSite.StorageUsed) { [math]::Round($deletedSite.StorageUsed / 1GB, 2) } else { $null })
     }
 }
 else {
@@ -312,7 +252,7 @@ else {
     # retention period (93 days by default).
     $oneDriveStatus = [PSCustomObject]@{
         UserPrincipalName = $UserPrincipalName
-        OneDriveUrl       = $personalUrl
+        OneDriveUrl       = $null
         Status            = "Not found (never provisioned or permanently deleted)"
         Exists            = $false
         ArchiveStatus     = "n/a"
@@ -321,6 +261,7 @@ else {
         IsReadOnly        = "n/a"
         InRecycleBin      = $false
         DeletionTime      = $null
+        StorageUsedGB     = $null
     }
 }
 
@@ -335,6 +276,7 @@ Write-Output "Archived:          $($oneDriveStatus.IsArchived)"
 Write-Output "Lock state:        $($oneDriveStatus.LockState)"
 Write-Output "Read-only:         $($oneDriveStatus.IsReadOnly)"
 Write-Output "In recycle bin:    $($oneDriveStatus.InRecycleBin)"
+Write-Output "Storage used:      $(if ($null -ne $oneDriveStatus.StorageUsedGB) { "$($oneDriveStatus.StorageUsedGB) GB" } else { 'n/a' })"
 
 if ($oneDriveStatus.DeletionTime) {
     Write-Output "Deletion time:     $(Get-Date $oneDriveStatus.DeletionTime -Format 'yyyy-MM-dd HH:mm:ss')"

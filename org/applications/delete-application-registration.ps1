@@ -1,20 +1,22 @@
 <#
     .SYNOPSIS
-    Delete an application registration from Azure AD
+    Delete an application registration and its service principal
 
     .DESCRIPTION
-    This runbook deletes an application registration and its associated service principal from Microsoft Entra ID.
-    It verifies that the application exists before deletion and performs a best-effort cleanup of groups assigned during provisioning.
+    Deletes an application registration from Entra ID together with its service principal. Every group assigned to the application is deleted as well, including groups shared with other applications. Applications that still sign users in stop working immediately.
 
     .PARAMETER ClientId
-    The application client ID (appId) of the application registration to delete.
+    Client ID (appId) of the application registration to delete.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
+            "ClientId": {
+                "DisplayName": "Application (client) ID"
+            },
             "CallerName": {
                 "Hide": true
             }

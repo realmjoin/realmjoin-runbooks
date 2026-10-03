@@ -1,25 +1,18 @@
 # List Sharepoint Sitecollection Permission
 
-List all members and administrators of a SharePoint Online site collection
+List the administrators and members of a SharePoint site
 
 ## Detailed description
-Connects to a SharePoint Online site collection using PnP.PowerShell with the system-assigned managed identity and retrieves the members of the site collection administrators, Owners group, Members group, and Visitors group. Each group's members are listed with their type, such as user, security group, or Entra ID group.
+Shows who has access to a SharePoint Online site collection: the site collection administrators and the members of the Owners, Members and Visitors groups. Each entry shows its type, such as user, Entra ID group, security group or SharePoint group. Nothing is changed.
 
 ## Where to find
 Org \ Collab \ List Sharepoint Sitecollection Permission
 
-## Notes
-Parameter Interactions:
-- SiteUrl must point at a site collection root (e.g. https://contoso.sharepoint.com/sites/marketing),
-  not a sub-site. A sub-site URL still returns results, but they describe the parent site
-  collection - the runbook logs a warning when this happens.
-- The Owners, Members, and Visitors groups are resolved via the site's associated-group properties,
-  not by matching localized group names, so the report is accurate regardless of tenant language.
-  Any of the three may be absent (common on Teams-connected sites) and is reported as "not configured"
-  rather than causing a failure.
+## Parameter behaviour
 
-Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
-Requires -Modules @{ModuleName = "PnP.PowerShell"; ModuleVersion = "3.4.1" }
+- `SiteUrl` must point at a site collection root (for example `https://contoso.sharepoint.com/sites/marketing`), not at a sub-site. A sub-site URL still returns results, but they describe the parent site collection; the runbook logs a warning when this happens.
+- The Owners, Members and Visitors groups are resolved via the site's associated-group properties, not by matching localized group names, so the report is accurate regardless of the tenant language. Any of the three groups may be absent (common on Teams-connected sites) and is then reported as "not configured" instead of causing a failure.
+
 
 ## Permissions
 ### Application permissions
@@ -32,7 +25,7 @@ Grant admin consent for the 'Sites.FullControl.All' application permission on th
 
 ## Parameters
 ### SiteUrl
-Full URL of the SharePoint Online site collection, for example https://contoso.sharepoint.com/sites/marketing
+Full URL of the site, for example https://contoso.sharepoint.com/sites/marketing.
 
 | Property | Value |
 |----------|-------|

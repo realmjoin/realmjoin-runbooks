@@ -1,19 +1,18 @@
 <#
     .SYNOPSIS
-    Check Intune assignments for one or more group names
+    Show which Intune policies and apps target given groups
 
     .DESCRIPTION
-    This runbook queries Intune policies and optionally app assignments that target the specified group(s).
-    It resolves group IDs and reports matching assignments.
+    Lists the Intune policies, and optionally the apps, that are assigned to one or more groups. Nothing is changed.
 
     .PARAMETER GroupIDs
-    Group IDs of the groups to check assignments for
-
-    .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Assignments are matched against each picked group directly; assignments to parent groups are not included.
 
     .PARAMETER IncludeApps
-    If set to true, also evaluates application assignments.
+    Also lists the apps assigned to the groups.
+
+    .PARAMETER CallerName
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -22,10 +21,10 @@
                 "Hide": true
             },
             "GroupIDs": {
-                "DisplayName": "One or more groups to check assignments for"
+                "DisplayName": "Groups"
             },
             "IncludeApps": {
-                "DisplayName": "Include app assignments"
+                "DisplayName": "Include app assignments?"
             }
         }
     }
@@ -34,11 +33,11 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 
 param(
-    [Parameter(Mandatory = $true)]
-    [string] $CallerName,
     [Parameter(Mandatory = $true)][ValidateScript({ Use-RjRbInterface -Type Graph -Entity Group })]
     [string[]] $GroupIDs,
-    [bool] $IncludeApps = $false
+    [bool] $IncludeApps = $false,
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose

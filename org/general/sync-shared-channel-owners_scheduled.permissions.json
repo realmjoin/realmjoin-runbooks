@@ -6,14 +6,6 @@
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
                 {
-                    "Value": "Group.ReadWrite.All",
-                    "Reason": "Lists teams, reads group owners and adds missing team owners via /groups/{id}/owners/$ref"
-                },
-                {
-                    "Value": "GroupMember.ReadWrite.All",
-                    "Reason": "Reads owner-group transitive members and adds users as team members first"
-                },
-                {
                     "Value": "Channel.ReadBasic.All",
                     "Reason": "Lists /teams/{id}/channels to find the shared channels to process"
                 },
@@ -22,14 +14,22 @@
                     "Reason": "Reads channel members and adds users or promotes them to shared channel owner"
                 },
                 {
-                    "Value": "Mail.Send",
-                    "Optional": true,
-                    "Feature": "Email report",
-                    "Reason": "Sends the sync report email via Send-RjReportEmail when EmailTo is configured"
+                    "Value": "Group.ReadWrite.All",
+                    "Reason": "Lists teams, reads the owner group names and group owners and adds missing team owners via /groups/{id}/owners/$ref"
+                },
+                {
+                    "Value": "GroupMember.ReadWrite.All",
+                    "Reason": "Reads owner-group transitive members and adds users as team members first"
                 },
                 {
                     "Value": "User.Read.All",
                     "Reason": "Reads member user properties (UPN, userType) via transitiveMembers to filter guests"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the sync report email via Send-RjRbReportEmail when email delivery is selected"
                 },
                 {
                     "Value": "Organization.Read.All",
@@ -41,5 +41,7 @@
         }
     ],
     "Roles": [],
-    "ManualPermissions": []
+    "ManualPermissions": [
+        "Azure Storage Account: 'Storage Account Contributor' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link options)"
+    ]
 }

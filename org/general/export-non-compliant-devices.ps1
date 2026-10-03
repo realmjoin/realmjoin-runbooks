@@ -1,38 +1,55 @@
 <#
     .SYNOPSIS
-    Export non-compliant Intune devices and settings
+    Export non-compliant Intune devices with their failing settings
 
     .DESCRIPTION
-    This runbook queries Intune for non-compliant and in-grace-period devices and retrieves detailed policy and setting compliance data.
-    It can export the results to CSV with SAS (download) links.
+    Lists the Intune devices that are non-compliant or in a grace period, together with the policies and the individual settings that fail on each of them. The results can be exported as CSV files to an Azure Storage account with time-limited download links. Nothing is changed.
 
     .PARAMETER produceLinks
-    If set to true, uploads artifacts and produces SAS (download) links when storage settings are available.
+    Uploads the CSV files to the storage account configured in the tenant settings and returns download links.
 
     .PARAMETER ContainerName
-    Storage container name used for uploads.
+    Storage container the report files are uploaded to. Taken from the tenant setting IntuneDevicesReport.Container.
 
     .PARAMETER ResourceGroupName
-    Resource group that contains the storage account.
+    Resource group of the storage account. Taken from the tenant setting IntuneDevicesReport.ResourceGroup.
 
     .PARAMETER StorageAccountName
-    Storage account name used for uploads.
+    Storage account for the export. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Name.
 
     .PARAMETER StorageAccountLocation
-    Azure region for the storage account.
+    Azure region used when the storage account has to be created. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Location.
 
     .PARAMETER StorageAccountSku
-    Storage account SKU.
+    Performance tier used when the storage account has to be created. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Sku.
 
     .PARAMETER SubscriptionId
-    Azure subscription ID used for storage operations.
+    Azure subscription that holds the storage account. Taken from the tenant setting IntuneDevicesReport.SubscriptionId.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
+            "ContainerName": {
+                "Hide": true
+            },
+            "ResourceGroupName": {
+                "Hide": true
+            },
+            "StorageAccountName": {
+                "Hide": true
+            },
+            "StorageAccountLocation": {
+                "Hide": true
+            },
+            "StorageAccountSku": {
+                "Hide": true
+            },
+            "SubscriptionId": {
+                "Hide": true
+            },
             "CallerName": {
                 "Hide": true
             }
@@ -45,7 +62,7 @@
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Create SAS Tokens / Links?" -Type Setting -Attribute "IntuneDevicesReport.CreateLinks" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Create download links?" -Type Setting -Attribute "IntuneDevicesReport.CreateLinks" } )]
     [bool] $produceLinks = $true,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "IntuneDevicesReport.Container" } )]
     [string] $ContainerName = "rjrb-device-compliance-report-v2",

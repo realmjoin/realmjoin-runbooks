@@ -1,37 +1,34 @@
 <#
-    .SYNOPSIS
-    Report users by the count of their registered MFA methods
+	.SYNOPSIS
+	List users by how many MFA methods they registered
 
-    .DESCRIPTION
-    This Runbook retrieves a list of users from Azure AD and counts their registered MFA authentication methods.
-    As a dropdown for the MFA methods count range, you can select from "0 methods (no MFA)", "1-3 methods", "4-5 methods", or "6+ methods".
-    The output includes the user display name, user principal name, and the count of registered MFA methods.
+	.DESCRIPTION
+	Counts the registered authentication methods of every enabled user and lists the users whose count falls into the chosen range, for example those with no MFA method at all. The list in the Output Data tab shows display name, sign-in name and the number of methods. Nothing is changed.
 
-    .PARAMETER mfaMethodsRange
-    Range for filtering users based on the count of their registered MFA methods.
+	.PARAMETER mfaMethodsRange
+	No methods lists users without any registered method; the other ranges list users with that many registered methods.
 
-    .PARAMETER CallerName
-    Caller name for auditing purposes.
+	.PARAMETER CallerName
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
-.INPUTS
-RunbookCustomization: {
-    "Parameters": {
-        "mfaMethodsRange": {
-            "DisplayName": "Select MFA Methods Count Range",
-            "Description": "Filter users based on the count of their registered MFA methods.",
-            "Required": true,
-            "SelectSimple": {
-                "Users with 0 methods (no MFA)": "0",
-                "Users with 1-3 methods": "1-3",
-                "Users with 4-5 methods": "4-5",
-                "Users with 6+ methods": "6+"
-            }
-        },
-        "CallerName": {
-            "Hide": true
-        }
-    }
-}
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"mfaMethodsRange": {
+				"DisplayName": "Number of MFA methods",
+				"Mandatory": true,
+				"SelectSimple": {
+					"No methods (no MFA)": "0",
+					"1 to 3 methods": "1-3",
+					"4 to 5 methods": "4-5",
+					"6 or more methods": "6+"
+				}
+			},
+			"CallerName": {
+				"Hide": true
+			}
+		}
+	}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
@@ -48,132 +45,233 @@ param (
 
 ########################################################
 #region     RJ Log Part
-##
 ########################################################
 
-# Add Caller and Version in Verbose output
-if ($CallerName) {
-    Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
-}
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.2"
+$Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
-# Add Parameter in Verbose output
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
-Write-RjRbLog -Message "MFA Methods Range: $mfaMethodsRange" -Verbose
+Write-RjRbLog -Message "mfaMethodsRange: $mfaMethodsRange" -Verbose
 
-#endregion
+#endregion RJ Log Part
 
-####################################################################
-#region Connect to Microsoft Graph
-####################################################################
+########################################################
+#region     Function Definitions
+########################################################
 
-try {
-    Write-Verbose "Connecting to Microsoft Graph..."
-    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
-    Write-Verbose "Successfully connected to Microsoft Graph."
-}
-catch {
-    Write-Error "Failed to connect to Microsoft Graph: $($_.Exception.Message)"
-    throw
-}
+function Get-GraphPagedResult {
+    <#
+        .SYNOPSIS
+        Retrieves all items from a paginated Microsoft Graph API endpoint.
 
-#endregion
+        .DESCRIPTION
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
 
-####################################################################
-#region Retrieve Users and their MFA Methods
-####################################################################
+        .PARAMETER Uri
+        The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
 
-#region Fetch all users
-$allUsers = @()
-$usersBaseURI = 'https://graph.microsoft.com/v1.0/users?$select=id,displayName,userPrincipalName,accountEnabled&$filter=accountEnabled eq true'
+        .EXAMPLE
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
+    #>
+    param(
+        [string]$Uri
+    )
 
-try {
-    Write-Verbose "Retrieving users from Microsoft Graph..."
-    $currentURI = $usersBaseURI
+    $allResults = [System.Collections.Generic.List[object]]::new()
+    $nextLink = $Uri
+    $pageCount = 0
 
     do {
-        Write-Verbose "Fetching data from URI: $($currentURI)"
-        $response = Invoke-MgGraphRequest -Uri $currentURI -Method Get -ErrorAction Stop
-        if ($response -and $response.value) {
-            $allUsers += $response.value
-            Write-Verbose "Retrieved $($response.value.Count) users in this batch. Total users so far: $(($allUsers | Measure-Object).Count)."
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
         }
-        else {
-            Write-Verbose "No users found in this batch or response format unexpected."
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
         }
-        $currentURI = $response.'@odata.nextLink'
-    } while ($null -ne $currentURI)
 
-    Write-Output "Retrieved total users: $(($allUsers | Measure-Object).Count)"
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
+        $nextLink = $response.'@odata.nextLink'
+    } while ($nextLink)
+
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
+}
+
+#endregion Function Definitions
+
+########################################################
+#region     Connect Part
+########################################################
+
+Write-Output "Connect to Microsoft Graph..."
+
+try {
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
 }
 catch {
-    Write-Error "Failed to retrieve users: $($_.Exception.Message)"
+    Write-Error "Failed to connect to Microsoft Graph: $($_.Exception.Message)" -ErrorAction Continue
     throw
 }
-#endregion
 
-#region Get MFA methods for each user and filter by range
-$filteredUsers = @()
+#endregion Connect Part
 
-foreach ($user in $allUsers) {
-    try {
-        $mfaMethodsURI = "https://graph.microsoft.com/v1.0/users/$($user.id)/authentication/methods"
-        Write-Verbose "Fetching MFA methods for user: $($user.userPrincipalName)"
+########################################################
+#region     StatusQuo & Preflight-Check Part
+########################################################
 
-        $mfaResponse = Invoke-MgGraphRequest -Uri $mfaMethodsURI -Method Get -ErrorAction Stop
-        $mfaMethodsCount = ($mfaResponse.value | Measure-Object).Count
+Write-Output ""
+Write-Output "Retrieving all enabled users (this may take a while in large tenants)..."
+
+try {
+    $allUsers = @(Get-GraphPagedResult -Uri 'https://graph.microsoft.com/v1.0/users?$select=id,displayName,userPrincipalName,accountEnabled&$filter=accountEnabled eq true')
+}
+catch {
+    Write-Error "Failed to retrieve users: $($_.Exception.Message)" -ErrorAction Continue
+    if (Get-MgContext -ErrorAction SilentlyContinue) { Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null }
+    throw
+}
+
+Write-Output "Retrieved enabled users: $($allUsers.Count)"
+
+#endregion StatusQuo & Preflight-Check Part
+
+########################################################
+#region     Main Part
+########################################################
+
+Write-Output ""
+Write-Output "Reading the registered authentication methods of $($allUsers.Count) users (this may take a while in large tenants)..."
+
+# One request per user; the user id doubles as the request id for correlation.
+$userById = @{}
+$batchRequests = foreach ($tenantUser in $allUsers) {
+    $userById["$($tenantUser.id)"] = $tenantUser
+    @{
+        id     = "$($tenantUser.id)"
+        method = "GET"
+        url    = "/users/$($tenantUser.id)/authentication/methods"
+    }
+}
+
+$filteredUsers = [System.Collections.Generic.List[object]]::new()
+$unreadableUsers = [System.Collections.Generic.List[object]]::new()
+
+try {
+    $responses = @()
+    if ($batchRequests) {
+        $responses = @(Invoke-RjRbGraphBatch -Requests @($batchRequests) -ProgressLabel "users")
+    }
+
+    foreach ($response in $responses) {
+        $tenantUser = $userById["$($response.id)"]
+        if (-not $tenantUser) { continue }
+
+        if ($response.status -ne 200) {
+            Write-RjRbLog -Message "WARNING: Failed to retrieve MFA methods for user $($tenantUser.userPrincipalName): HTTP $($response.status)" -Verbose
+            $unreadableUsers.Add([PSCustomObject]@{
+                    DisplayName       = $tenantUser.displayName
+                    UserPrincipalName = $tenantUser.userPrincipalName
+                    Error             = "HTTP $($response.status)"
+                })
+            continue
+        }
+
+        $mfaMethodsCount = @($response.body.value).Count
 
         # Filter based on the selected range
-        $includeUser = $false
-        switch ($mfaMethodsRange) {
-            "0" {
-                $includeUser = ($mfaMethodsCount -eq 0)
-            }
-            "1-3" {
-                $includeUser = ($mfaMethodsCount -ge 1 -and $mfaMethodsCount -le 3)
-            }
-            "4-5" {
-                $includeUser = ($mfaMethodsCount -ge 4 -and $mfaMethodsCount -le 5)
-            }
-            "6+" {
-                $includeUser = ($mfaMethodsCount -ge 6)
-            }
+        $includeUser = switch ($mfaMethodsRange) {
+            "0" { $mfaMethodsCount -eq 0 }
+            "1-3" { $mfaMethodsCount -ge 1 -and $mfaMethodsCount -le 3 }
+            "4-5" { $mfaMethodsCount -ge 4 -and $mfaMethodsCount -le 5 }
+            "6+" { $mfaMethodsCount -ge 6 }
         }
 
         if ($includeUser) {
-            $filteredUsers += [PSCustomObject]@{
-                DisplayName       = $user.displayName
-                UserPrincipalName = $user.userPrincipalName
-                MFAMethodsCount   = $mfaMethodsCount
-                UserId            = $user.id
-            }
+            $filteredUsers.Add([PSCustomObject]@{
+                    DisplayName       = $tenantUser.displayName
+                    UserPrincipalName = $tenantUser.userPrincipalName
+                    MFAMethodsCount   = $mfaMethodsCount
+                })
         }
     }
-    catch {
-        Write-Warning "Failed to retrieve MFA methods for user $($user.userPrincipalName): $($_.Exception.Message)"
-    }
+}
+catch {
+    Write-Error "Failed to retrieve MFA methods: $($_.Exception.Message)" -ErrorAction Continue
+    if (Get-MgContext -ErrorAction SilentlyContinue) { Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null }
+    throw
 }
 
-#endregion
-#endregion
+Write-Output ""
+Write-Output "Summary"
+Write-Output "---------------------"
+Write-Output "Users checked: $($allUsers.Count)"
+Write-Output "Users with MFA methods count in range '$mfaMethodsRange': $($filteredUsers.Count)"
+Write-Output "Users not readable: $($unreadableUsers.Count)"
 
-######################################################################
-#region Output Users
-######################################################################
+#endregion Main Part
 
-Write-Verbose "Resulting users with MFA methods in range '$mfaMethodsRange': $(($filteredUsers | Measure-Object).Count)"
+########################################################
+#region     Structured Output (Output Data)
+########################################################
 
-if ($(($filteredUsers | Measure-Object).Count) -eq 0) {
-    Write-Output "No users found with MFA methods count in the specified range: $mfaMethodsRange"
+# Emitted last. Every table has its own RjTableTitle marker; a marker is only written when rows follow it.
+Write-Output ""
+
+$summaryValues = [ordered]@{
+    "Users checked"      = $allUsers.Count
+    "Users in range"     = $filteredUsers.Count
+    "Users not readable" = $unreadableUsers.Count
+}
+$summaryRows = @(foreach ($metric in $summaryValues.Keys) {
+        [PSCustomObject]@{ Metric = $metric; Value = [int]$summaryValues[$metric] }
+    })
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
+Write-Output $summaryRows
+
+if ($filteredUsers.Count -gt 0) {
+    $resultTitle = if ($mfaMethodsRange -eq "0") { "Users without MFA methods" } else { "Users with $mfaMethodsRange MFA methods" }
+    # Sort by MFA methods count (descending) and then by display name
+    $sortedUsers = @($filteredUsers | Sort-Object MFAMethodsCount, DisplayName -Descending)
+    Write-Output ([PSCustomObject]@{ RjTableTitle = $resultTitle })
+    Write-Output @($sortedUsers | Select-Object -Property MFAMethodsCount, DisplayName, UserPrincipalName)
 }
 else {
-    Write-Output "Users with MFA methods count in range '$mfaMethodsRange': $(($filteredUsers | Measure-Object).Count)"
-
-    # Sort by MFA methods count (descending) and then by display name
-    $sortedUsers = $filteredUsers | Sort-Object MFAMethodsCount, DisplayName -Descending
-
-    # Output in a formatted table
-    $sortedUsers | Select-Object MFAMethodsCount, DisplayName, UserPrincipalName | Format-Table -AutoSize
+    Write-Output "No users found with MFA methods count in the specified range: $mfaMethodsRange"
 }
+
+if ($unreadableUsers.Count -gt 0) {
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Users not readable" })
+    Write-Output @($unreadableUsers | Select-Object -Property DisplayName, UserPrincipalName, Error)
+}
+
+#endregion Structured Output (Output Data)
+
+########################################################
+#region     Cleanup
+########################################################
+
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
+
+Write-Output ""
+Write-Output "Done!"
+
+#endregion Cleanup

@@ -1,19 +1,18 @@
 <#
     .SYNOPSIS
-    Check Intune assignments for one or more device names
+    Show which Intune policies and apps target given devices
 
     .DESCRIPTION
-    This runbook queries Intune policies and optionally app assignments relevant to the specified device(s).
-    It resolves device group memberships and reports matching assignments.
-
-    .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Lists the Intune policies, and optionally the apps, that apply to one or more devices by resolving the devices' group memberships and matching them against the assignments. Nothing is changed.
 
     .PARAMETER DeviceNames
-    Comma-separated list of device names to check.
+    Names of the devices to check, separated by commas.
 
     .PARAMETER IncludeApps
-    If set to true, also evaluates application assignments.
+    Also lists the apps assigned to the devices.
+
+    .PARAMETER CallerName
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -22,10 +21,10 @@
                 "Hide": true
             },
             "DeviceNames": {
-                "DisplayName": "Device names (comma-separated)"
+                "DisplayName": "Device names"
             },
             "IncludeApps": {
-                "DisplayName": "Include app assignments"
+                "DisplayName": "Include app assignments?"
             }
         }
     }
@@ -35,10 +34,10 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [string] $CallerName,
-    [Parameter(Mandatory = $true)]
     [string] $DeviceNames,
-    [bool] $IncludeApps = $false
+    [bool] $IncludeApps = $false,
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose

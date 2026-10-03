@@ -1,14 +1,22 @@
+## Common use cases
+
+- Inventory of all mobile devices including IMEI, serial number, phone number and carrier
+- Identifying in which (Wi-Fi) networks mobile devices were last active, for example handheld scanners across warehouse locations
+- Reviewing the compliance, supervision and encryption state of the mobile fleet
+- SIM/eSIM inventory via ICCID and eSIM identifier
+- Handing the full mobile inventory to asset management as an Excel workbook or CSV file
+
 ## Output columns
 
-The runbook prints a summary block (device counts per platform, compliance state and ownership, applied filters and - with network details enabled - the number of devices without a reported IP address) followed by up to three tables. The same data can optionally be delivered as an email report and/or as a download link, see [Report delivery](#report-delivery).
+Every run writes a **Summary** table (device counts per platform, non-compliant and personally owned devices and - with network details enabled - the number of devices without a reported IP address) and up to three device tables to the Output Data tab of the RealmJoin portal. The console output shows the same counts plus the breakdown by compliance state and ownership and the applied filters. The same data can also be delivered as report files by email and/or as a download link, see the section on report delivery below.
 
 ### Inventory (always shown)
 
 | Column | Source and meaning |
 | --- | --- |
 | DeviceName | Device name as reported by Intune |
-| User | User principal name of the primary user |
-| OS / OSVersion | Operating system (Android, iOS, iPadOS) and version |
+| PrimaryUser | User principal name of the primary user |
+| OperatingSystem / OSVersion | Operating system (Android, iOS, iPadOS) and version |
 | Manufacturer / Model | Hardware manufacturer and model |
 | SerialNumber | Hardware serial number |
 | IMEI | International Mobile Equipment Identity of the device |
@@ -62,9 +70,31 @@ The scope can be limited to the members of an Entra device group (`IncludeDevice
 
 ## Report delivery
 
-By default the runbook only prints the tables to the job output. Two optional delivery channels are available and can be combined:
+Report files are only generated when the **Report delivery** option includes an email or a download link. With *Output Data only* selected, the results are read directly in the Output Data tab of the RealmJoin portal, where each table can also be exported to Excel. Email delivery and download link generation are independent and can be combined; the *Report file format* defaults to the Excel workbook only.
 
-- **Email report** (`EmailTo`): sends a summary email with the complete inventory attached as CSV and/or Excel workbook (`ReportFileFormat`, default `XLSX only`). Requires the `RJReport.EmailSender` setting; the email branding is taken from the `RJReport.Branding.*` settings as in the other report runbooks. When the CSV attachment exceeds the email size limit and `CSV & XLSX` is selected, the email falls back to the Excel workbook alone.
-- **Download link** (`CreateDownloadLink`): uploads the report file(s) to the storage account configured in the `RJReport.StorageAccount.*` settings (container `list-mobile-devices` by default) and prints time-limited SAS download links in the job output. Suitable when the inventory is too large for an email attachment or should be handed to asset management directly.
+- **Email**: sends a summary email with the complete inventory attached as CSV and/or Excel workbook. When the CSV attachment exceeds the email size limit and *CSV & XLSX* is selected, the email falls back to the Excel workbook alone. When no mobile device matches, the email states that no device was found and carries no attachment.
+- **Download link**: uploads the report file(s) to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings (container `list-mobile-devices` by default) and prints time-limited SAS download links in the job output. Suitable when the inventory is too large for an email attachment or should be handed to asset management directly. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
 
 The report files contain all columns of the tables above, including the `DeviceId`. The `PhoneNumber` and the network/SIM columns are only part of the files when the corresponding options are enabled. Non-compliant devices are highlighted in the Excel workbook. No files are created when no mobile device matches the selected platforms and filters.
+
+Schedules that were created before the **Report delivery** option existed keep sending their email: a stored recipient alone still enables the email for them. When such a schedule is opened for editing, the option shows *Output Data only*; select the delivery again before saving, otherwise the schedule stops sending the report.
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when the **Report delivery** option includes an email; a recipient is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings:
+
+- **Header and footer image** - public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** - target of the footer image
+- **Accent and text color** - 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email - the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).

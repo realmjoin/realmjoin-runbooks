@@ -1,5 +1,197 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-10-03
+
+- Unify the report delivery option of report runbooks: one "Report delivery" choice for Output Data, email and download link (SAS link)
+  - "Output Data only" is the default: the results appear as named tables in the portal's Output Data tab and no report files are created
+  - "Also email the report", "Also create a download link" and "Also email & download link" add the report files on top of the Output Data tables
+  - The recipient and the file format are shown only when an email or a download link is chosen; the recipient is then required
+  - Existing scheduled runs keep sending their email; when such a scheduled run is edited, choose the report delivery again before saving
+  - Excel worksheets carry the same names as the matching Output Data tables, so both exports of the same data look alike
+  - Report Stale Devices (Scheduled) applies the user group filter as soon as a group is selected; the separate "Filter by primary user group?" choice is gone, and with an include group only devices whose primary user is a member are listed
+  - Report Intune Enrollment Readiness can also provide the report as a download link
+  - Report Expiring Application Credentials (Scheduled) and Report EPM Elevation Requests (Scheduled) send the email with the "CSV only" file format as well
+  - Report Application Registration shows whether the service principal of each app is enabled, marks apps without one and counts the enabled ones
+  - Report EPM Elevation Requests (Scheduled) shows the reviewer, the device name and the product version, and reduces a time range above 30 days to the 30 days Intune keeps
+  - Report Stale Devices (Scheduled) includes iPadOS devices when iOS/iPadOS devices are selected
+  - Sync Shared Channel Owners (Scheduled) skips teams whose owner group no longer exists and processes the remaining teams
+  - Report Intune Enrollment Readiness reads all group and role memberships of a user for the Conditional Access check and adds a warning when they cannot be read
+  - Connect to Microsoft Graph with the managed identity (`Connect-MgGraph`, `Invoke-MgGraphRequest`) and send the report email through that session
+  - Affected runbooks:
+    - **List Inactive Enterprise Applications** - Org/Applications (v1.5.0)
+    - **Report Application Registration** - Org/Applications (v1.4.0)
+    - **Report Expiring Application Credentials (Scheduled)** - Org/Applications (v1.5.0)
+    - **List Mobile Devices** - Org/Devices (v1.1.0)
+    - **Report Devices Low Diskspace (Scheduled)** - Org/Devices (v1.1.0)
+    - **Report Devices Without Primary User (Scheduled)** - Org/Devices (v1.10.0)
+    - **Report Stale Devices (Scheduled)** - Org/Devices (v1.6.0)
+    - **Report Users With More Than 5 Devices (Scheduled)** - Org/Devices (v1.12.0)
+    - **Report Intune Enrollment Readiness** - Org/General (v1.1.0)
+    - **Report License Assignment (Scheduled)** - Org/General (v1.4.0)
+    - **Sync Shared Channel Owners (Scheduled)** - Org/General (v1.4.0)
+    - **Report EPM Elevation Requests (Scheduled)** - Org/Security (v1.4.0)
+
+## 2026-10-02
+
+- Update **List Room Mailbox Configuration** Runbook in User/Mail (v1.1.0)
+  - List the resource delegates and the users and groups in the booking policies (BookInPolicy, RequestInPolicy, RequestOutOfPolicy) with display name and address
+  - Show whether meeting requests are forwarded to the delegates and whether all users may send requests in and out of policy
+  - Show the room details, the calendar processing settings and the delegates as named tables in the portal's Output Data tab
+  - Fail the run with a clear error when the calendar processing settings cannot be read; missing room details only produce a note
+  - Connect to Microsoft Graph with the managed identity (`Connect-MgGraph`, `Invoke-MgGraphRequest`)
+
+- Update **Set Room Mailbox Configuration** Runbook in User/Mail (v1.1.0)
+  - Add, replace or remove booking delegates; with "Let everyone else request the room?" requests from outside the booking group go to them for approval
+  - Show the current booking rules and delegates before the change, and the result as tables in the portal's Output Data tab
+  - Warn when the booking delegates would get no requests or when a run switches off an existing delegate approval
+  - Companion documentation explains the booking modes and the difference between a booking delegate and full access
+  - Connect to Microsoft Graph with the managed identity (`Connect-MgGraph`, `Invoke-MgGraphRequest`)
+
+- Set the booking delegates of new room and equipment mailboxes through the calendar processing, like the Exchange admin center does
+  - Several booking delegates can be selected and every booking request waits for their approval; without delegates the mailbox accepts requests automatically when it is free
+  - The delegates get no full access and no Send on Behalf from the runbook; the options "Accept meeting requests automatically?" and "Open automatically in the delegate's Outlook?" are removed
+  - Check the alias and the booking delegates before the mailbox is created and wait for the new mailbox with a time limit; a failed step ends the run with a clear error
+  - Connect to Microsoft Graph with the managed identity (`Connect-MgGraph`, `Invoke-MgGraphRequest`) to block the sign-in of the mailbox account
+  - Affected runbooks:
+    - **Add Equipment Mailbox** - Org/Mail (v2.0.0)
+    - **Add Room Mailbox** - Org/Mail (v2.0.0)
+
+- Update **Report Primary User Mismatch (Scheduled)** Runbook in Org/Devices (v1.8.0)
+  - Check who actually logs on to each device, using the logons Intune records and the users the RealmJoin agent saw signed in, and list devices whose primary user has not logged on within a configurable number of days while someone else has (new category, off by default)
+  - Show the last logged-on user of both sources, the primary user's last logon and the Intune last sync per device; user ids from the Intune logon records are resolved to user principal names, deleted accounts are marked as such
+  - List the results as separate named tables per category in the portal's Output Data tab; a "Report delivery" choice (Output Data only, email, download link or both) shows the recipient and the file format only when a report file is wanted, and existing schedules keep sending their email
+  - Apply the include and exclude device group as soon as a group is selected; the separate "Filter by device group?" choice is gone
+  - Retry throttled RealmJoin API calls and explain a rejected credential or a missing API feature in the run result; the companion documentation describes the categories, the logon sources and the API setup including the device users feature
+
+- Add **Report RealmJoin Agent Contact (Scheduled)** Runbook in Org/Devices (v1.0.0)
+  - Compares, for Windows devices, the last contact of the RealmJoin agent (newest last-seen of the device's users from the RealmJoin API) with the last Intune sync and lists devices that Intune saw well after the agent last reported, which points to an agent that is missing, blocked or broken
+  - Optionally lists devices the agent has never reported a user on and devices known to only one side; include and exclude device groups narrow the scope
+  - Retries throttled RealmJoin API calls, explains a rejected credential or a missing API feature in the run result, shows RealmJoin's own active client count for plausibility and lists the results as separate named tables in the portal's Output Data tab; the report can be sent by email or provided as a download link
+
+- Add **Enable Or Disable Lost Mode** Runbook in Device/Security (v1.0.0)
+  - Locks a supervised iOS or iPadOS device with Apple Lost Mode, showing a message, a callback phone number and an optional footer on the lock screen, or lifts Lost Mode again; the device is checked for Intune enrollment, operating system and supervision before anything is sent
+  - Optionally requests the device position after locking and shows the coordinates with a map link when the device answers within a minute; otherwise points to the Intune admin center for the later result
+  - Companion documentation with the supervision prerequisite, a customization example for tenant-wide lock screen texts and the related runbooks for a lost or stolen device
+
+## 2026-10-01
+
+- Update **Report Teams Channels (Scheduled)** Runbook in Org/Collab (v1.0.1)
+  - Offer "Output Data only" as the default report delivery: the results appear as tables in the portal's Output Data tab and no report files are created
+  - Name the Excel worksheet of channels without an owner "Channels without owner", like the matching table in the portal's Output Data tab
+
+- Shorten Output Data table titles and Excel worksheet names to at most 31 characters, so "Export to Excel" in the RealmJoin portal works for every table
+  - Affected runbooks:
+    - **Report Expiring Application Credentials (Scheduled)** - Org/Applications
+
+- Show the results of 10 runbooks as named tables in the portal's Output Data tab, where they can be sorted, filtered and exported to Excel
+  - The console keeps short summaries with counts; an empty category shows a status line instead of an empty table
+  - Connect to Microsoft Graph with the managed identity (`Connect-MgGraph`, `Invoke-MgGraphRequest`) and send report and alert emails through that session
+  - Fail the run with a clear error when an input is invalid or a lookup fails (Get Teams Phone Number Assignment, List Owners, List User Devices)
+  - List User Devices adds devices to the target group in batches of 20 and skips devices that are already members
+  - List Signin Events offers "Output Data only" as report delivery; List Users By MFA Methods Count reads the authentication methods in batches
+  - Report SharePoint Tenant Storage shows the site table of the alert email as a proper table
+  - Affected runbooks:
+    - **List Owners** - Group/General
+    - **List User Devices** - Group/General
+    - **Report SharePoint Tenant Storage (Scheduled)** - Org/Collab
+    - **Monitor Service Health (Scheduled)** - Org/General
+    - **Get Teams Phone Number Assignment** - Org/Phone
+    - **List Inactive Users** - Org/Security
+    - **List Information Protection Labels** - Org/Security
+    - **List Users By MFA Methods Count** - Org/Security
+    - **List Mailbox Permissions** - User/Mail
+    - **List Signin Events** - User/Security
+
+## 2026-09-28
+
+- Update **Check OneDrive Status** Runbook in Org/Collab
+  - Find the active OneDrive by its site owner instead of the user profile, so the status is also reported reliably when the profile cannot be read
+  - Search up to 100,000 deleted OneDrive sites in the tenant recycle bin and report the used storage in GB
+
+- Update **Report SharePoint Tenant Storage (Scheduled)** Runbook in Org/Collab
+  - Report the used tenant storage in GB in the run output and the alert email
+
+- Add **Pre-Provision OneDrive** Runbook in User/Collab
+  - Requests the creation of the selected user's OneDrive in SharePoint Online via PnP PowerShell (`New-PnPPersonalSite`), connecting with the Automation account's system-assigned managed identity, so the OneDrive is available before the first sign-in (e.g. onboarding or migration).
+  - Verifies via Microsoft Graph that the user account is enabled and aborts otherwise, as SharePoint silently ignores requests for users who are blocked from signing in.
+  - Optional license check (`CheckSharePointLicense`, enabled by default) aborts when the user has no enabled SharePoint service plan, regardless of the license source (e.g. Microsoft 365 E3/E5, F3, SharePoint Online Plan 1/2, group-based licensing).
+  - Idempotent: no request is sent if the OneDrive already exists; a warning is shown if a deleted OneDrive of the user is found in the tenant recycle bin. Provisioning is asynchronous, the runbook only queues the request and points to **Check OneDrive Status** for verification.
+
+## 2026-09-24
+
+- New **Report Teams Channels (Scheduled)** Runbook in Org/Collab
+  - Lists the private and shared channels of every team with their owners and, optionally, their members; members from other tenants are marked as external and channels without an owner are listed separately
+  - Reads channels and members through Graph batch requests so large tenants complete in reasonable time; teams that cannot be read are reported instead of aborting the run
+  - Results as separate named tables in the portal's Output Data tab; the report can be sent by email or provided as a download link
+
+## 2026-09-21
+
+- Update **Delegate Full Access** Runbook in User/Mail
+  - Address the mailbox by its directory object id in all permission reads and changes, so mailboxes whose name also matches other recipients in the tenant (for example a shared mailbox named `Export`) are processed reliably
+  - Include the Exchange Online response in the run result when the connection, the mailbox lookup or the permission read-back fails
+
+- Update **Add Or Remove User** Runbook in Group/General
+  - Accept every Exchange Online recipient as a member of a distribution or mail-enabled security group, including mail users whose mailbox is hosted on-premises in a hybrid setup; a user without an Exchange Online recipient object is reported with a clear message
+
+- Address recipients by unique identifiers in further Exchange Online runbooks, so recipient names shared with other objects in the tenant are handled reliably
+  - **Add Or Remove User** and **Add Or Remove Nested Group** in Group/General: distribution group members are recognized and addressed by their directory object id
+  - **Add Or Remove Owner** in Group/General: the owner is recognized by directory object id and added to or removed from the distribution group's owner list individually
+  - **Hide Mailboxes (Scheduled)** in Org/Mail: Bookings calendars are addressed by their SMTP address
+  - **List Room Mailbox Configuration** in User/Mail: the calendar processing settings are read via the user principal name
+  - **Delegate Send On Behalf** and **List Mailbox Permissions** in User/Mail: Send on Behalf entries that resolve to more than one recipient are listed by name
+
+- Update **Get Teams User Info** Runbook in User/Phone
+  - Read the assigned Teams voice applications policy under its correct name, so a policy assigned to the user is reported instead of always showing `Global`
+
+- Add **Add Or Remove Call Queue Agents** Runbook in Org/Phone
+  - Adds several users at once as individually assigned agents of a call queue given by its name, or removes them; every user is checked for Enterprise Voice enablement and the limit of 20 individually assigned agents is enforced before any change
+  - Recognizes call queues whose agents come from a Teams channel, a group or a Shifts schedule and explains where the members are managed instead of changing anything; a removal that would leave the queue without any agent is refused
+  - Optional Graph permissions resolve team, channel and group names in the output; the call queue is read back after the change to confirm the result
+
+- Add **Add Or Remove Call Queue Authorized Users** Runbook in Org/Phone
+  - Adds several users at once as authorized users of a call queue given by its name, or removes them; every user is checked for Enterprise Voice enablement, the limit of 15 authorized users is enforced before any change and the list of hidden authorized users is kept consistent
+  - Optionally assigns or removes the Teams voice applications policy of the users; a policy is only removed when the user is not an authorized user of another call queue or auto attendant, and group-based policy assignments are reported instead of changed
+
+- New **Rename Devices By Group Tag (Scheduled)** Runbook in Org/Devices
+  - Builds the computer name of every Windows Autopilot device from a template of group tag and serial number (for example `%GROUPTAG%-%SERIAL%`), writes it to the Autopilot record for the next deployment and renames already enrolled, Entra joined, corporate-owned devices through the Intune rename action
+  - Shortens the serial number to fit the 15-character limit (end or start of the serial number), drops repeated, leading and trailing hyphens that hyphen-separated virtual machine serial numbers would otherwise leave in the name, reports and skips name collisions, invalid names, hybrid joined and personal devices and renames that are still pending
+  - Dry run (default), group tag filter and exclude list with `*` wildcard (for example `MTR,SHARED,KIOSK` for device types that must keep their names) and a maximum number of changes per run for a staged rollout
+  - Lists the result as separate named tables in the portal's Output Data tab: summary, planned or applied changes, skipped devices with their reason, devices already named
+  - Replaces per-location Autopilot deployment profiles and dynamic groups that only exist to apply a location-specific naming template
+
+## 2026-09-18
+
+- Update **Show Bitlocker Recovery Key** Runbook in Device/Security
+  - Add optional `skipIfAtRisk` parameter (default off): when enabled, the recovery keys are only shown if the device's Microsoft Defender for Endpoint risk score is not Medium or High, so the keys of a device potentially involved in a security incident are not disclosed without aligning with the security team first; the check runs before any key is read and aborts with a clearly visible warning
+  - Adds the optional `WindowsDefenderATP` permission `Machine.Read.All` for the risk check
+  - New companion documentation describing the check, its outcomes and how to enable it by default via runbook customization
+
+- Update **Reset Mobile Device Pin** Runbook in Device/Security
+  - Add optional `skipIfAtRisk` parameter (default off): when enabled, the passcode is only reset if the device's Microsoft Defender for Endpoint risk score is not Medium or High, so a reset on a device potentially involved in a security incident does not grant access or interfere with the investigation; the check runs before the Intune device is looked up and aborts with a clearly visible warning
+  - Adds the optional `WindowsDefenderATP` permission `Machine.Read.All` for the risk check
+  - New companion documentation describing the check, its outcomes and how to enable it by default via runbook customization
+
+- Update **Wipe Device** Runbook in Device/General
+  - Describe the Microsoft Defender for Endpoint risk check (`skipWipeIfAtRisk`) in the companion documentation, including its outcomes and a customization example to enable it by default
+  - Mark the `WindowsDefenderATP` permission `Machine.Read.All` as optional in the permission manifest, as it is only needed when the risk check is enabled
+
+- Revise the portal help texts (synopsis, description and parameter descriptions) of all runbooks for readability in the RealmJoin Portal; technical background moves to the companion documentation, every parameter is documented and the runbook customization of three runbooks is parsed again
+  - **Report SharePoint Tenant Storage (Scheduled)**: the alert thresholds in gigabytes are evaluated again after the parameter rename
+
+## 2026-09-16
+
+- Update **Notify Users About Low Diskspace (Scheduled)** in Org/Devices
+  - Point out in the documentation, in the override warning and in the notification summary that the override mailbox receives one email per affected user within seconds, that mail filters may classify such a burst as bulk or spam, and where to look when the emails do not arrive (junk folder, quarantine, message trace of the sender)
+
+- Move the background notes of 27 runbooks from the comment-based help (`.NOTES`) into their companion documentation (`<runbook>.md` next to the script), so the generated runbook reference presents each topic once and in a consistent place; use cases, parameter interactions, limitations and configuration examples that were previously only available in the notes are now part of the documentation page, permission lists are covered by the permission manifests
+  - New companion documentation for **Add Or Remove Trusted Site**, **Check Intune Enrollment Readiness**, **Check OneDrive Status**, **Dedup Device Names (Scheduled)**, **Enable Or Disable External Mail**, **Invite External Guest Users**, **List SharePoint Site Collection Permission** and **Report SharePoint Tenant Storage (Scheduled)**
+  - Extended companion documentation for **Add Primary Users Of Devices To Group (Scheduled)**, **Auto Approve Driver Updates (Scheduled)**, **Cleanup Autopilot Devices (Scheduled)**, **Delete Stale Devices (Scheduled)**, **List MFA Methods**, **List Mobile Devices**, **List Signin Events**, **Monitor Pending EPM Requests (Scheduled)**, **Monitor Service Health (Scheduled)**, **Notify Users About Low Diskspace (Scheduled)**, **Notify Users About Stale Devices (Scheduled)**, **Report Devices Low Diskspace (Scheduled)**, **Report EPM Elevation Requests (Scheduled)**, **Report Intune Enrollment Readiness**, **Report Primary User Mismatch (Scheduled)**, **Report Stale Devices (Scheduled)** and **Sync Shared Channel Owners (Scheduled)**
+
+## 2026-09-15
+
+- Update **Report Expiring Application Credentials (Scheduled)** in Org/Applications
+  - Emit the credential list as structured objects at the end of the run, so it appears as a sortable and filterable table in the portal's Output Data tab - also when neither email nor download link is configured
+
 ## 2026-09-10
 
 - Update **Notify Users About Low Diskspace (Scheduled)** and **Report Devices Low Diskspace (Scheduled)** in Org/Devices

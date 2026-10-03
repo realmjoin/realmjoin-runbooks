@@ -1,19 +1,22 @@
 <#
     .SYNOPSIS
-    Hide or unhide special mailboxes in the Global Address List
+    Hide or show all Bookings calendars in the address book
 
     .DESCRIPTION
-    Hides or unhides special mailboxes in the Global Address List, currently intended for Bookings calendars. The runbook updates all scheduling mailboxes accordingly.
+    Hides every Microsoft Bookings calendar mailbox from the global address list, or shows them again, on each run. New Bookings calendars are covered automatically the next time the runbook runs.
 
     .PARAMETER HideBookingCalendars
-    If set to true, booking calendars are hidden from address lists.
+    Hidden calendars cannot be found in Outlook or the address book; turn off to list them again.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
+            "HideBookingCalendars": {
+                "DisplayName": "Hide Bookings calendars?"
+            },
             "CallerName": {
                 "Hide": true
             }
@@ -34,13 +37,15 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.2"
+$Version = "1.0.3"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbExchangeOnline
 
 Get-Mailbox -RecipientTypeDetails SchedulingMailbox | ForEach-Object {
-    Set-Mailbox -HiddenFromAddressListsEnabled $HideBookingCalendars -Identity $_.Identity
+    # Address the mailbox by its SMTP address - the 'Identity' property holds the mailbox Name, which is
+    # not unique in Exchange Online and can fail as an ambiguous identity.
+    Set-Mailbox -HiddenFromAddressListsEnabled $HideBookingCalendars -Identity $_.PrimarySmtpAddress
     "## Updated Booking Calendar '$($_.Alias)' - hide in address book: '$HideBookingCalendars'."
 }
 

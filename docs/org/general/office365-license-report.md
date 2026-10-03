@@ -1,13 +1,33 @@
 # Office365 License Report
 
-Generate an Office 365 licensing report
+Report Microsoft 365 license usage and availability
 
 ## Detailed description
-This runbook creates a licensing report based on Microsoft 365 subscription SKUs and optionally includes Exchange Online related reports.
-It can export the results to Azure Storage and generate SAS links for downloads.
+Creates a report of the Microsoft 365 licenses in the tenant, how many are in use and how many are free. Exchange Online details such as shared mailbox licensing can be added. The report files can be uploaded to an Azure Storage account, as single files or as one ZIP, with download links. Nothing is changed unless real user data is requested, which briefly switches off the report privacy setting and restores it afterwards.
 
 ## Where to find
 Org \ General \ Office365 License Report
+
+## Configure the storage account for the export
+
+The report files are uploaded to an Azure Storage account. Its subscription, resource group and name come from the tenant settings below; the container name is taken from `OfficeLicensingReport.Container`. The switches of this runbook are backed by `OfficeLicensingReport.*` settings as well, so their defaults can be fixed per tenant.
+
+```json
+{
+	"Settings": {
+		"OfficeLicensingReport": {
+			"ResourceGroup": "rj-test-runbooks-01",
+			"SubscriptionId": "00000000-0000-0000-0000-000000000000",
+			"StorageAccount": {
+				"Name": "rbexports01"
+			}
+		}
+	}
+}
+```
+
+For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
 
 ## Permissions
 ### Application permissions
@@ -26,7 +46,7 @@ Org \ General \ Office365 License Report
 
 ## Parameters
 ### printOverview
-If set to true, prints a short license usage overview.
+Prints a table per license SKU with total, used, available and suspended counts in the run output.
 
 | Property | Value |
 |----------|-------|
@@ -35,7 +55,7 @@ If set to true, prints a short license usage overview.
 | Type | Boolean |
 
 ### includeExchange
-If set to true, includes Exchange Online related reports (Shared Mailbox licensing).
+Adds Exchange Online reports such as shared mailbox licensing.
 
 | Property | Value |
 |----------|-------|
@@ -44,7 +64,7 @@ If set to true, includes Exchange Online related reports (Shared Mailbox licensi
 | Type | Boolean |
 
 ### includeUserData
-If set to true, the Microsoft 365 report privacy setting is temporarily disabled (if currently active) to include real user data such as UPNs in Graph activity reports. The setting is always restored to its original state after the run. Note: Enabling this option will expose personally identifiable information (UPNs) in the exported reports - ensure compliance with your organization's data protection policies before use.
+Shows real user names in the activity reports by switching off the report privacy setting for the run; it is restored afterwards. The reports then contain personal data, so check your data protection rules first.
 
 | Property | Value |
 |----------|-------|
@@ -53,7 +73,7 @@ If set to true, the Microsoft 365 report privacy setting is temporarily disabled
 | Type | Boolean |
 
 ### exportToFile
-If set to true, exports reports to Azure Storage when configured.
+Uploads the report files to the Azure Storage account configured in the tenant settings.
 
 | Property | Value |
 |----------|-------|
@@ -62,7 +82,7 @@ If set to true, exports reports to Azure Storage when configured.
 | Type | Boolean |
 
 ### exportAsZip
-If set to true, exports reports as a single ZIP file.
+Uploads one ZIP file instead of the single report files.
 
 | Property | Value |
 |----------|-------|
@@ -71,7 +91,7 @@ If set to true, exports reports as a single ZIP file.
 | Type | Boolean |
 
 ### produceLinks
-If set to true, creates SAS tokens/links for exported artifacts.
+Returns time-limited download links for the uploaded files.
 
 | Property | Value |
 |----------|-------|
@@ -80,7 +100,7 @@ If set to true, creates SAS tokens/links for exported artifacts.
 | Type | Boolean |
 
 ### ContainerName
-Storage container name used for uploads.
+Storage container the report files are uploaded to. Taken from the tenant setting OfficeLicensingReport.Container.
 
 | Property | Value |
 |----------|-------|
@@ -89,7 +109,7 @@ Storage container name used for uploads.
 | Type | String |
 
 ### ResourceGroupName
-Resource group that contains the storage account.
+Resource group of the storage account. Taken from the tenant setting OfficeLicensingReport.ResourceGroup.
 
 | Property | Value |
 |----------|-------|
@@ -98,7 +118,7 @@ Resource group that contains the storage account.
 | Type | String |
 
 ### StorageAccountName
-Storage account name used for uploads. The account must exist before running this report.
+Storage account for the export. Taken from the tenant setting OfficeLicensingReport.StorageAccount.Name.
 
 | Property | Value |
 |----------|-------|
@@ -107,7 +127,7 @@ Storage account name used for uploads. The account must exist before running thi
 | Type | String |
 
 ### SubscriptionId
-Azure subscription ID used for storage operations.
+Azure subscription that holds the storage account. Taken from the tenant setting OfficeLicensingReport.SubscriptionId.
 
 | Property | Value |
 |----------|-------|

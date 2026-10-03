@@ -1,18 +1,18 @@
 <#
     .SYNOPSIS
-    Confirm compromise or dismiss a risky user
+    Confirm this user as compromised or dismiss the risk
 
     .DESCRIPTION
-    Confirms a user compromise or dismisses a risky user entry using Microsoft Entra ID Identity Protection. This helps security teams remediate and track risky sign-in events.
+    Tells Microsoft Entra ID Protection what to do with the risk flagged on this user. Confirm compromise marks the account as compromised, which sets the user risk to high. Dismiss risk clears the flag when the activity was legitimate.
 
     .PARAMETER UserName
-    User principal name of the target user.
+    User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER Dismiss
-    "Confirm compromise" (final value: $false) or "Dismiss risk" (final value: $true) can be selected as action to perform. If set to true, the runbook will attempt to dismiss the risky user entry for the target user. If set to false, it will attempt to confirm a compromise for the target user.
+    Confirm compromise marks the account as compromised. Dismiss risk clears the risk flag.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -39,7 +39,7 @@
 param(
     [Parameter(Mandatory = $true)]
     [String] $UserName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Textarea -DisplayName "Dismiss risk" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Textarea -DisplayName "Action" } )]
     [boolean] $Dismiss = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

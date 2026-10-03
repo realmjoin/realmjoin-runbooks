@@ -1,78 +1,36 @@
 <#
 	.SYNOPSIS
-	Assign cloud-only groups to a user based on a template
+	Add this user to a predefined set of groups
 
 	.DESCRIPTION
-	Adds a user to one or more Entra ID groups using either group object IDs or display names. The list of groups is typically provided via runbook customization templates.
+	Adds this user to one or more Entra ID groups. The groups come from a template that an administrator defines in the runbook customization, so the person running it picks a template instead of individual groups.
 
 	.PARAMETER UserId
-	ID of the target user in Microsoft Graph.
+	Object ID of the user the runbook acts on. Set by the portal from the selected user.
 
 	.PARAMETER GroupsTemplate
-	Template selector used by portal customization to populate the group list.
+	Template that decides which groups the user joins. The available templates are set up in the runbook customization.
 
 	.PARAMETER GroupsString
-	Comma-separated list of group object IDs or group display names.
+	Groups to add the user to, separated by commas. Usually filled in by the selected template.
 
 	.PARAMETER UseDisplaynames
-	If set to true, treats values in GroupsString as group display names instead of IDs.
+	Whether the group list contains display names instead of object IDs. Preset in the runbook customization.
 
 	.PARAMETER CallerName
-	Caller name is tracked purely for auditing purposes.
-
-    .EXAMPLE
-    Full Runbook Customizations Example
-    {
-        "Templates": {
-            "Options": [
-                {
-                    "$id": "GroupsTemplates",
-                    "$values": [
-                        {
-                            "Display": "User template 1 (UseDisplaynames=false)",
-                            "Customization": {
-                                "Default": {
-                                    "GroupsString": "c1f8e69f-e6c0-4e7e-b49d-241046958aa3,98c19df0-0bc1-4236-92b9-12559e1127d3"
-                                }
-                            }
-                        },
-                        {
-                            "Display": "User template 2 (UseDisplaynames=true)",
-                            "Customization": {
-                                "Default": {
-                                    "GroupsString": "app - Microsoft VC Redistributable 2013",
-                                }
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        "Runbooks": {
-            "rjgit-user_general_assign-groups-by-template": {
-                "ParameterList": [
-                    {
-                        "Name": "GroupsTemplate",
-                        "Select": {
-                            "Options": {
-                                "$ref": "GroupsTemplates"
-                            }
-                        }
-                        },
-                        {
-                            "Name": "UseDisplaynames",
-                            "Default": false
-                        }
-                ]
-            }
-        }
-    }
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
 		"Parameters": {
 			"UserId": {
 				"Hide": true
+			},
+			"GroupsTemplate": {
+				"DisplayName": "Group template"
+			},
+			"GroupsString": {
+				"DisplayName": "Groups"
 			},
 			"CallerName": {
 				"Hide": true
@@ -82,7 +40,6 @@
 			}
 		}
 	}
-
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }

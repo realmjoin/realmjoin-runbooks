@@ -1,0 +1,41 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Required by the app-based Teams PowerShell sign-in (Connect-MicrosoftTeams -Identity) to read tenant info"
+                },
+                {
+                    "Value": "Channel.ReadBasic.All",
+                    "Optional": true,
+                    "Feature": "Group, team and channel names in the output",
+                    "Reason": "Resolves the channel name of a call queue that is answered by a team channel"
+                },
+                {
+                    "Value": "GroupMember.Read.All",
+                    "Optional": true,
+                    "Feature": "Group, team and channel names in the output",
+                    "Reason": "Resolves the display names of the groups and shifts teams assigned to the call queue"
+                },
+                {
+                    "Value": "Team.ReadBasic.All",
+                    "Optional": true,
+                    "Feature": "Group, team and channel names in the output",
+                    "Reason": "Lists the teams of the channel owner to find the team behind the answering channel"
+                }
+            ]
+        }
+    ],
+    "Roles": [
+        {
+            "Name": "Teams Administrator",
+            "TemplateId": "69091246-20e8-4a56-aa4d-066075b2a7a8",
+            "Reason": "Required to run Get-CsCallQueue, Set-CsCallQueue and Get-CsOnlineUser via app-based Teams PowerShell"
+        }
+    ],
+    "ManualPermissions": []
+}

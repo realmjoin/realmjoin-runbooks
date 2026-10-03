@@ -1,77 +1,60 @@
 <#
     .SYNOPSIS
-    Reports all Windows Entra devices that have no associated Windows Autopilot object.
+    Report Windows devices in Entra ID without an Autopilot record
 
     .DESCRIPTION
-    This runbook lists every Windows device object in Entra ID (Microsoft Entra) and matches it against
-    the Windows Autopilot device identities in Intune. Entra devices whose device ID is not referenced by
-    any Autopilot object (via the Autopilot object's azureActiveDirectoryDeviceId) are reported as orphans.
-
-    Such orphaned Entra device objects are typical leftovers ("Objektleichen") from devices that were
-    reset, re-imaged, or replaced without being cleaned up. The report supports clean-up efforts by making
-    these candidates visible so they can be reviewed and - if appropriate - deleted.
-
-    Optionally, the report files can be uploaded to an Azure Storage Account (returning time-limited
-    download links) and/or sent via email with the selected report file format(s) attached.
-    The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
-    When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+    Lists Windows device objects in Entra ID that no Windows Autopilot registration refers to. Such orphaned objects are usually left over from devices that were reset, re-imaged or replaced without cleanup, so the list shows what can be reviewed and deleted. Nothing is changed. The report can be sent by email or provided as a download link.
 
     .PARAMETER SendMail
-    If enabled, the report is sent via email with the selected report file format(s) attached. Toggling this on reveals the recipient address and report file format fields.
+    Send the report to the recipient email address.
 
     .PARAMETER ReportFileFormat
-    Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+    Deliver the report as CSV, as an Excel workbook, or both.
 
     .PARAMETER CreateDownloadLink
-    If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned.
+    Also upload the report and return a download link that expires after a few days.
 
     .PARAMETER EmailTo
-    Recipient address(es) for the email report. Only used / shown when SendMail is enabled.
-    Can be a single address or multiple comma-separated addresses (string).
+    Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
     .PARAMETER EmailFrom
-    The sender email address. Sourced from the RJReport tenant settings (RJReport.EmailSender).
+    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
     .PARAMETER BrandingHeaderImageUrl
-    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
     .PARAMETER BrandingFooterImageUrl
-    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
     .PARAMETER BrandingFooterLink
-    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-    When empty, the default link (https://www.realmjoin.com) is used.
+    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
     .PARAMETER BrandingAccentColor
-    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER BrandingTextColor
-    Optional text color override (6-digit hex) for the report email template.
-    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
     .PARAMETER ContainerName
-    Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+    Storage container the report files are uploaded to. Set per runbook.
 
     .PARAMETER ResourceGroupName
-    Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
     .PARAMETER StorageAccountName
-    Storage account name used for the upload. Sourced from the RJReport tenant settings.
+    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
     .PARAMETER LinkExpiryDays
-    Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "SendMail": {
-                "DisplayName": "Send the report via email?",
+                "DisplayName": "Send the report by email?",
                 "Select": {
                     "Options": [
                         {
@@ -92,7 +75,7 @@
                 }
             },
             "CreateDownloadLink": {
-                "DisplayName": "Create a file download link (upload report to storage)?",
+                "DisplayName": "Create a download link?",
                 "Select": {
                     "Options": [
                         {
@@ -134,7 +117,7 @@
                 }
             },
             "EmailTo": {
-                "DisplayName": "Recipient Email Address(es)",
+                "DisplayName": "Recipient email address(es)",
                 "Hide": true
             },
             "BrandingHeaderImageUrl": {
@@ -184,22 +167,22 @@ param(
     [Parameter(Mandatory = $false)]
     [string] $EmailTo,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
     [string] $EmailFrom,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" } )]
     [string] $BrandingHeaderImageUrl,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" } )]
     [string] $BrandingFooterImageUrl,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" } )]
     [string] $BrandingFooterLink,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" } )]
     [string] $BrandingAccentColor,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" } )]
     [string] $BrandingTextColor,
 
     [ValidateSet('CSV only', 'CSV & XLSX', 'XLSX only')]
@@ -209,11 +192,11 @@ param(
 
     [string] $ContainerName = "windows-devices-without-autopilot",
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" } )]
     [string] $ResourceGroupName,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" } )]
     [string] $StorageAccountName,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" } )]
     [ValidateRange(1, 3650)]
     [int] $LinkExpiryDays = 6,
 
@@ -512,7 +495,7 @@ Every Windows device object in Entra ID is associated with a Windows Autopilot o
 
 This report identifies **$($totalDevices) Windows device object(s)** in Entra ID for tenant **$($tenantDisplayName)** that have **no associated Windows Autopilot object**.
 
-These objects are typical leftovers ("Objektleichen") of devices that were reset, re-imaged, or replaced without being cleaned up. They are good candidates for review and possible deletion.
+These objects are typical leftovers of devices that were reset, re-imaged, or replaced without being cleaned up. They are good candidates for review and possible deletion.
 
 ## How the association is determined
 
@@ -577,15 +560,15 @@ This report identifies **$($totalDevices) Windows device object(s)** in Entra ID
                 }
                 $guardParams.UseNativeGraphRequest = $true
                 if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFilePath) {
-                    Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
+                    Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
                 }
                 else {
-                    Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
+                    Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
                 }
             }
             else {
                 # -UseNativeGraphRequest reuses the native Connect-MgGraph context established above
-                Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version -UseNativeGraphRequest @brandingMailParams
+                Send-RjRbReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version -UseNativeGraphRequest @brandingMailParams
                 Write-Output "## Email report sent successfully to: $($EmailTo)"
             }
         }

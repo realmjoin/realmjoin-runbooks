@@ -1,10 +1,9 @@
 # Add Autopilot Device
 
-Import a Windows device into Windows Autopilot
+Register a Windows device in Windows Autopilot
 
 ## Detailed description
-This runbook imports a Windows device into Windows Autopilot using the device serial number and hardware hash.
-It can optionally wait for the import job to finish and supports tagging during import.
+Registers a Windows device in Windows Autopilot from its serial number and hardware hash, as collected with Get-WindowsAutopilotInfo. Optionally a group tag is set during the import and the runbook waits until the import has finished.
 
 ## Where to find
 Org \ Devices \ Add Autopilot Device
@@ -18,7 +17,7 @@ Org \ Devices \ Add Autopilot Device
 
 ## Parameters
 ### SerialNumber
-Device serial number as returned by Get-WindowsAutopilotInfo.
+Serial number of the device as reported by Get-WindowsAutopilotInfo.
 
 | Property | Value |
 |----------|-------|
@@ -27,7 +26,7 @@ Device serial number as returned by Get-WindowsAutopilotInfo.
 | Type | String |
 
 ### HardwareIdentifier
-Device hardware hash as returned by Get-WindowsAutopilotInfo.
+Hardware hash of the device as reported by Get-WindowsAutopilotInfo.
 
 | Property | Value |
 |----------|-------|
@@ -36,7 +35,7 @@ Device hardware hash as returned by Get-WindowsAutopilotInfo.
 | Type | String |
 
 ### AssignedUser
-Optional user to assign to the Autopilot device.
+User to assign during the import. Microsoft no longer accepts this, so leave it empty.
 
 | Property | Value |
 |----------|-------|
@@ -45,7 +44,7 @@ Optional user to assign to the Autopilot device.
 | Type | String |
 
 ### Wait
-If set to true, the runbook waits until the import job completes.
+Keeps the runbook running until Autopilot has processed the import, so the result shows in the output.
 
 | Property | Value |
 |----------|-------|
@@ -54,7 +53,7 @@ If set to true, the runbook waits until the import job completes.
 | Type | Boolean |
 
 ### GroupTag
-Optional group tag to apply to the imported device.
+Group tag to set on the device, for example to steer it into an Autopilot profile. Leave empty for none.
 
 | Property | Value |
 |----------|-------|

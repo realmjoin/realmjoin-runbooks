@@ -16,6 +16,7 @@
   - [Check Onedrive Status](collab/check-onedrive-status.md)
   - [List Sharepoint Sitecollection Permission](collab/list-sharepoint-sitecollection-permission.md)
   - [Report Sharepoint Tenant Storage (Scheduled)](collab/report-sharepoint-tenant-storage_scheduled.md)
+  - [Report Teams Channels (Scheduled)](collab/report-teams-channels_scheduled.md)
 <a name='org-devices'></a>
 ## Devices
   - [Add Autopilot Device](devices/add-autopilot-device.md)
@@ -30,9 +31,11 @@
   - [Notify Users About Low Diskspace (Scheduled)](devices/notify-users-about-low-diskspace_scheduled.md)
   - [Notify Users About Stale Devices (Scheduled)](devices/notify-users-about-stale-devices_scheduled.md)
   - [Outphase Devices](devices/outphase-devices.md)
+  - [Rename Devices By Group Tag (Scheduled)](devices/rename-devices-by-group-tag_scheduled.md)
   - [Report Devices Low Diskspace (Scheduled)](devices/report-devices-low-diskspace_scheduled.md)
   - [Report Devices Without Primary User (Scheduled)](devices/report-devices-without-primary-user_scheduled.md)
   - [Report Primary User Mismatch (Scheduled)](devices/report-primary-user-mismatch_scheduled.md)
+  - [Report Realmjoin Agent Contact (Scheduled)](devices/report-realmjoin-agent-contact_scheduled.md)
   - [Report Stale Devices (Scheduled)](devices/report-stale-devices_scheduled.md)
   - [Report Users With More Than 5-Devices (Scheduled)](devices/report-users-with-more-than-5-devices_scheduled.md)
   - [Report Windows Devices Without Autopilot (Scheduled)](devices/report-windows-devices-without-autopilot_scheduled.md)
@@ -92,6 +95,8 @@
   - [Set Booking Config](mail/set-booking-config.md)
 <a name='org-phone'></a>
 ## Phone
+  - [Add Or Remove Call Queue Agents](phone/add-or-remove-call-queue-agents.md)
+  - [Add Or Remove Call Queue Authorized Users](phone/add-or-remove-call-queue-authorized-users.md)
   - [Get Teams Phone Number Assignment](phone/get-teams-phone-number-assignment.md)
 <a name='org-security'></a>
 ## Security

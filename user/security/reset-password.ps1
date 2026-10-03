@@ -1,21 +1,21 @@
 <#
     .SYNOPSIS
-    Reset a user's password
+    Set a new password for this user
 
     .DESCRIPTION
-    Resets the password for a user in Microsoft Entra ID and optionally enables the account first. The user can be forced to change the password at the next sign-in. This runbook is useful for helpdesk scenarios where a technician needs to reset a user's password and ensure that the user updates it upon next login.
+    Sets a new password for this user in Entra ID and shows it in the output. A disabled account can be enabled first, and the user can be made to choose their own password at the next sign-in.
 
     .PARAMETER UserName
-    User principal name of the target user.
+    User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER EnableUserIfNeeded
-    If set to true, enables the user account before resetting the password.
+    Enables a disabled account before the password is set.
 
     .PARAMETER ForceChangePasswordNextSignIn
-    If set to true, forces the user to change the password at the next sign-in.
+    Makes the user choose their own password at the next sign-in.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -25,10 +25,15 @@
             },
             "CallerName": {
                 "Hide": true
+            },
+            "EnableUserIfNeeded": {
+                "DisplayName": "Enable the account if disabled?"
+            },
+            "ForceChangePasswordNextSignIn": {
+                "DisplayName": "Require a new password at next sign-in?"
             }
         }
     }
-
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }

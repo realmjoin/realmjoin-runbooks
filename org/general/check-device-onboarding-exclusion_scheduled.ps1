@@ -1,19 +1,18 @@
 <#
   .SYNOPSIS
-  Add unenrolled Autopilot devices to an exclusion group
+  Keep unenrolled Autopilot devices in a compliance exclusion group
 
   .DESCRIPTION
-  This runbook identifies Windows Autopilot devices that are not yet enrolled in Intune and ensures they are members of a configured exclusion group.
-  It also removes devices from the group once they are no longer in scope.
+  Puts Windows Autopilot devices that are not yet enrolled in Intune, plus devices enrolled only recently, into an exclusion group. Once they are past that grace period, they are taken out again. Devices in the group can get a longer compliance grace period after enrollment.
 
   .PARAMETER exclusionGroupName
-  Display name of the exclusion group to manage.
+  Display name of the group that holds the excluded devices.
 
   .PARAMETER maxAgeInDays
-  Maximum age in days for recently enrolled devices to be considered in grace scope.
+  Devices enrolled within this many days stay in the group; older ones are removed.
 
   .PARAMETER CallerName
-  Caller name for auditing purposes.
+  Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
   .INPUTS
   RunbookCustomization: {
@@ -25,7 +24,7 @@
         "DisplayName": "Exclusion group name"
       },
       "maxAgeInDays": {
-        "DisplayName": "Max age in days"
+        "DisplayName": "Grace period (days)"
       }
     }
   }

@@ -1,10 +1,9 @@
 # Check Assignments Of Groups
 
-Check Intune assignments for one or more group names
+Show which Intune policies and apps target given groups
 
 ## Detailed description
-This runbook queries Intune policies and optionally app assignments that target the specified group(s).
-It resolves group IDs and reports matching assignments.
+Lists the Intune policies, and optionally the apps, that are assigned to one or more groups. Nothing is changed.
 
 ## Where to find
 Org \ General \ Check Assignments Of Groups
@@ -19,7 +18,7 @@ Org \ General \ Check Assignments Of Groups
 
 ## Parameters
 ### GroupIDs
-Group IDs of the groups to check assignments for
+Assignments are matched against each picked group directly; assignments to parent groups are not included.
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +27,7 @@ Group IDs of the groups to check assignments for
 | Type | String Array |
 
 ### IncludeApps
-If set to true, also evaluates application assignments.
+Also lists the apps assigned to the groups.
 
 | Property | Value |
 |----------|-------|

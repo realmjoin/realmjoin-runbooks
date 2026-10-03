@@ -1,12 +1,24 @@
 # List Signin Events
 
-Retrieve and analyze sign-in events for a target user
+Show the recent sign-ins of this user and their failures
 
 ## Detailed description
-Retrieves the target user's Entra ID sign-in logs from the Microsoft Graph beta endpoint and analyzes them: each sign-in's application, timestamp, status (with error codes and failure reasons if applicable), client app, device and location information is displayed, and a per-application failure summary helps support teams identify which applications are experiencing issues and diagnose the underlying causes. IP addresses are shown in the failed sign-in view; conditional access details are included in the exported report files. The runbook can optionally export the full data set to CSV and XLSX files and deliver them by email and/or a time-limited download link.
+Lists the Entra ID sign-ins of this user for the chosen number of days with application, time, result, client app, device and location. Failures are summed up per application so support can see where sign-ins go wrong, and failed sign-ins also show the IP address. The report can be sent by email or provided as a download link.
 
 ## Where to find
 User \ Security \ List Signin Events
+
+## Common use cases
+
+- Investigate which application generates sign-in failures for a specific user and why, grouped by error code.
+- Narrow the results with `ApplicationName` (partial match) or `FailedSignInsOnly` when a user reports access issues.
+- Export the sign-in data to CSV or Excel for further analysis when the event count is too large to read in the portal.
+
+## Behaviour
+
+- Sign-in log data is retrieved from the Microsoft Graph beta endpoint, because sign-in event type filtering and the retrieval of non-interactive sign-ins require beta-only properties (`signInEventTypes`, `authenticationRequirement`).
+- The results are written to the **Output Data** tab of the job on every run: a summary, the per-application summary, the failed sign-ins and, unless only failed sign-ins are requested, all sign-ins. The console shows the counts.
+- Non-interactive sign-ins vastly outnumber interactive ones; the sign-in tables in the Output Data tab are capped at the 250 most recent entries, but the exported report files always contain the full result set.
 
 ## Required license and permissions
 
@@ -16,13 +28,13 @@ If the sign-in log query returns a 403 although `AuditLog.Read.All` is granted a
 
 ## Report delivery
 
-Report files are only generated when a delivery method is selected via the **Report delivery** option (email and/or download link). With *No report* selected, the sign-in analysis is read directly in the RealmJoin portal output. Email delivery and download link generation are independent and can be combined.
+Report files are only generated when a delivery method is selected via the **Report delivery** option (email and/or download link). With *Output Data only* selected, no report files are created and the sign-in analysis is read in the Output Data tab of the job in the RealmJoin portal. Email delivery and download link generation are independent and can be combined.
 
 For the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
 
 ## Setup regarding email sending
 
-Sending an email report is optional and only happens when the *Email report* delivery option is selected; a recipient (`EmailTo`) is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+Sending an email report is optional and only happens when *Also email the report* or *Also email & download link* is selected as report delivery; a recipient is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
@@ -47,18 +59,6 @@ Entra counts some sign-in interrupts as errors (for example 50140 "Keep me signe
 Sign-in log data typically lags ~15 minutes but can take up to 2 hours for some records - a very recent sign-in may not yet appear. All timestamps are shown in UTC.
 
 
-## Notes
-Common Use Cases:
-- Investigate which application is generating sign-in failures for a specific user and why (grouped by error code).
-- Narrow results with ApplicationName (partial match) or FailedSignInsOnly when a user reports access issues.
-- Export sign-in data to CSV/XLSX for further analysis in Excel when the event count is too large to read in the portal.
-
-Behavior:
-- Sign-in log data is retrieved from the Microsoft Graph beta endpoint because sign-in event type filtering
-  and non-interactive sign-in retrieval require beta-only properties (signInEventTypes, authenticationRequirement).
-- Non-interactive sign-ins vastly outnumber interactive ones; the console detail tables are capped at the
-  50 most recent entries, but exported report files always contain the full result set.
-
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
@@ -67,10 +67,13 @@ Behavior:
   - Mail.Send *(optional: Email report)*
   - Organization.Read.All *(optional: Email report)*
 
+### Permission notes
+Azure Storage Account: 'Storage Account Contributor' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link options)
+
 
 ## Parameters
 ### UserName
-User principal name of the target user.
+User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|
@@ -79,7 +82,7 @@ User principal name of the target user.
 | Type | String |
 
 ### Days
-Number of days to retrieve sign-in logs for (1 to 30 days). Default is 7 days.
+How many days of sign-in logs to include, 1 to 30.
 
 | Property | Value |
 |----------|-------|
@@ -88,7 +91,7 @@ Number of days to retrieve sign-in logs for (1 to 30 days). Default is 7 days.
 | Type | Int32 |
 
 ### SignInType
-Filter sign-in events by type: Interactive only, Non-interactive only, or both.
+Interactive sign-ins by the user, non-interactive ones by apps and tokens, or both.
 
 | Property | Value |
 |----------|-------|
@@ -97,7 +100,7 @@ Filter sign-in events by type: Interactive only, Non-interactive only, or both.
 | Type | String |
 
 ### FailedSignInsOnly
-If set to true, only failed sign-in attempts are displayed. If false, all sign-in events are shown.
+Hides successful sign-ins so the failures and their reasons stand out.
 
 | Property | Value |
 |----------|-------|
@@ -106,7 +109,7 @@ If set to true, only failed sign-in attempts are displayed. If false, all sign-i
 | Type | Boolean |
 
 ### ApplicationName
-Optional filter to display sign-ins for a specific application only (partial match). Leave empty to include all applications.
+Shows only sign-ins to applications whose name contains this text. Leave empty for all applications.
 
 | Property | Value |
 |----------|-------|
@@ -115,7 +118,7 @@ Optional filter to display sign-ins for a specific application only (partial mat
 | Type | String |
 
 ### EmailFrom
-The sender email address. Sourced from the RJReport.EmailSender tenant setting. This needs to be configured in the runbook customization.
+Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
 | Property | Value |
 |----------|-------|
@@ -124,8 +127,7 @@ The sender email address. Sourced from the RJReport.EmailSender tenant setting. 
 | Type | String |
 
 ### BrandingHeaderImageUrl
-Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -134,8 +136,7 @@ Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, th
 | Type | String |
 
 ### BrandingFooterImageUrl
-Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -144,8 +145,7 @@ Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, th
 | Type | String |
 
 ### BrandingFooterLink
-Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-When empty, the default link (https://www.realmjoin.com) is used.
+Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -154,8 +154,7 @@ When empty, the default link (https://www.realmjoin.com) is used.
 | Type | String |
 
 ### BrandingAccentColor
-Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -164,8 +163,7 @@ Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or inv
 | Type | String |
 
 ### BrandingTextColor
-Optional text color override (6-digit hex) for the report email template.
-Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -174,7 +172,7 @@ Sourced from the RJReport.Branding.TextColor tenant setting. When empty or inval
 | Type | String |
 
 ### SendEmailReport
-If set to true, the sign-in report will be sent by email. If false, no email is sent.
+Whether the report is sent by email. Preset in the runbook customization.
 
 | Property | Value |
 |----------|-------|
@@ -183,8 +181,7 @@ If set to true, the sign-in report will be sent by email. If false, no email is 
 | Type | Boolean |
 
 ### EmailTo
-Recipient email address(es) for the report. Can be a single address or multiple comma-separated addresses.
-Emails are sent individually to each recipient.
+Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
 | Property | Value |
 |----------|-------|
@@ -193,7 +190,7 @@ Emails are sent individually to each recipient.
 | Type | String |
 
 ### ReportFileFormat
-Select the report file format: CSV & XLSX (both files), CSV only, or XLSX only. Only used when a delivery method (email or download link) is selected.
+Deliver the report as CSV, as an Excel workbook, or both.
 
 | Property | Value |
 |----------|-------|
@@ -202,7 +199,7 @@ Select the report file format: CSV & XLSX (both files), CSV only, or XLSX only. 
 | Type | String |
 
 ### CreateDownloadLink
-If set to true, the report files will be uploaded to Azure Storage and a time-limited download link will be generated. If false, no upload occurs.
+Also upload the report and return a download link that expires after a few days.
 
 | Property | Value |
 |----------|-------|
@@ -211,7 +208,7 @@ If set to true, the report files will be uploaded to Azure Storage and a time-li
 | Type | Boolean |
 
 ### ContainerName
-Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+Storage container the report files are uploaded to. Set per runbook.
 
 | Property | Value |
 |----------|-------|
@@ -220,7 +217,7 @@ Storage container name used for the upload. Configured per runbook (not a global
 | Type | String |
 
 ### ResourceGroupName
-Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
 | Property | Value |
 |----------|-------|
@@ -229,7 +226,7 @@ Resource group that contains the storage account. Sourced from the RJReport tena
 | Type | String |
 
 ### StorageAccountName
-Storage account name used for the upload. Sourced from the RJReport tenant settings.
+Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
 | Property | Value |
 |----------|-------|
@@ -238,7 +235,7 @@ Storage account name used for the upload. Sourced from the RJReport tenant setti
 | Type | String |
 
 ### LinkExpiryDays
-Number of days until the generated download link expires (1 to 3650 days). Sourced from the RJReport tenant settings. Default is 6 days.
+Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
 | Property | Value |
 |----------|-------|

@@ -11,17 +11,25 @@
                 },
                 {
                     "Value": "Directory.Read.All",
-                    "Reason": "Lists service principals and reads the tenant name for the report"
+                    "Reason": "Lists the service principals of all enterprise applications"
                 },
                 {
                     "Value": "Mail.Send",
                     "Optional": true,
                     "Feature": "Email report",
-                    "Reason": "Sends the report email via Send-RjRbReportEmail when EmailTo is configured"
+                    "Reason": "Sends the report email via Send-RjRbReportEmail when email delivery is selected"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Reads the tenant display name for the report email"
                 }
             ]
         }
     ],
     "Roles": [],
-    "ManualPermissions": []
+    "ManualPermissions": [
+        "Azure Storage Account: 'Storage Account Contributor' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link options)"
+    ]
 }

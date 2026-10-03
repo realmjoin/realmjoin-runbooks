@@ -34,7 +34,9 @@
       "RoleManagement.Read.All",
       "RoleManagement.Read.Directory",
       "ServiceHealth.Read.All",
+      "Sites.Read.All",
       "Team.Create",
+      "Team.ReadBasic.All",
       "TeamMember.ReadWrite.All",
       "TeamSettings.ReadWrite.All",
       "User.ReadWrite.All",
@@ -53,7 +55,8 @@
     "Name": "Office 365 SharePoint Online",
     "Id": "00000003-0000-0ff1-ce00-000000000000",
     "AppRoleAssignments": [
-      "Sites.FullControl.All"
+      "Sites.FullControl.All",
+      "User.ReadWrite.All"
     ]
   },
   {

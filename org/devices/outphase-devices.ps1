@@ -1,72 +1,69 @@
 <#
     .SYNOPSIS
-    Remove or outphase multiple devices
+    Wipe and clean up several devices at once
 
     .DESCRIPTION
-    This runbook outphases multiple devices based on a comma-separated list of device IDs or serial numbers.
-    It can optionally wipe devices in Intune and delete or disable the corresponding Entra ID device objects.
-    Optionally, each device can be tagged in Microsoft Defender for Endpoint to mark it as excluded from remediation.
-    NOTE: The Exclusion Tag is applied to the device, but it only appears in the Defender portal's "Tags" filter once it has been created once via the portal (Device > Manage tags > "Create new tag").
+    Takes several devices out of service in one go, given as a list of device IDs or serial numbers. You choose whether the devices are wiped or only deleted from Intune, and whether their Autopilot registration is removed. Their Entra ID objects can be deleted, disabled or kept. Optionally the devices are tagged in Microsoft Defender for Endpoint so rules that use the tag can exclude them from automated remediation. A wipe removes all data and cannot be undone.
 
     .PARAMETER DeviceListChoice
-    Determines whether the list contains device IDs or serial numbers.
+    Whether the list holds Entra ID device IDs or serial numbers.
 
     .PARAMETER DeviceList
-    Comma-separated list of device IDs or serial numbers.
+    Device IDs or serial numbers, separated by commas.
 
     .PARAMETER intuneAction
-    Determines whether to wipe the device, delete it from Intune, or skip Intune actions.
+    Completely wipe erases all user and enrollment data on the devices. Delete from Intune only removes the device records, for devices that are already wiped or destroyed. Do not wipe or remove leaves Intune untouched.
 
     .PARAMETER aadAction
-    Determines whether to delete the Entra ID device, disable it, or skip Entra ID actions.
+    Delete removes the device objects from Entra ID, Disable keeps them but blocks sign-ins from the devices, and Keep leaves Entra ID untouched.
 
     .PARAMETER wipeDevice
-    Internal flag derived from intuneAction.
+    Legacy switch kept for compatibility. The choice under "Intune action" decides whether the devices are wiped.
 
     .PARAMETER removeIntuneDevice
-    Internal flag derived from intuneAction.
+    Legacy switch kept for compatibility. The choice under "Intune action" decides whether the Intune records are deleted.
 
     .PARAMETER removeAutopilotDevice
-    "Remove the device from Autopilot" (final value: true) or "Keep device in Autopilot" (final value: false) handles whether to delete the device from the Autopilot database.
+    Removing the devices from the Autopilot database lets them leave the tenant and be registered elsewhere. Keeping them allows a later redeployment in this tenant.
 
     .PARAMETER removeAADDevice
-    Internal flag derived from aadAction.
+    Legacy switch kept for compatibility. The choice under "Entra ID object" decides whether the Entra ID objects are deleted.
 
     .PARAMETER disableAADDevice
-    Internal flag derived from aadAction.
+    Legacy switch kept for compatibility. The choice under "Entra ID object" decides whether the Entra ID objects are disabled.
 
     .PARAMETER excludeFromDefender
-    If set to true, each device will be tagged in Microsoft Defender for Endpoint with the specified exclusion tag. If set to false, the Defender step will be skipped entirely.
+    Tags the devices in Microsoft Defender for Endpoint with the exclusion tag so rules that use the tag can exclude them from automated remediation. Skip leaves Defender untouched.
 
     .PARAMETER defenderExclusionTag
-    The tag that will be added to the device in Microsoft Defender for Endpoint to mark it as excluded. Defaults to "ExcludeFromRemediation".
+    Tag name written to the devices in Defender for Endpoint, for use in your exclusion rules.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "DeviceListChoice": {
-                "DisplayName": "Select list type",
+                "DisplayName": "List contains",
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Comma separated list by Device IDs",
+                            "Display": "Device IDs",
                             "Value": 0
                         },
                         {
-                            "Display": "Comma separated list by Serial Numbers",
+                            "Display": "Serial numbers",
                             "Value": 1
                         }
                     ]
                 }
             },
             "DeviceList": {
-                "DisplayName": "Comma separated list"
+                "DisplayName": "Device list"
             },
             "intuneAction": {
-                "DisplayName": "Wipe this device?",
+                "DisplayName": "Intune action",
                 "Select": {
                     "Options": [
                         {
@@ -92,14 +89,14 @@
                 "Hide": true
             },
             "removeAutopilotDevice": {
-                "DisplayName": "Delete device from Autopilot database",
+                "DisplayName": "Delete from Autopilot database?",
                 "SelectSimple": {
                     "Remove the device from Autopilot": true,
                     "Keep device": false
                 }
             },
             "aadAction": {
-                "DisplayName": "Delete device from Entra ID?",
+                "DisplayName": "Entra ID object",
                 "Select": {
                     "Options": [
                         {
@@ -111,7 +108,7 @@
                             "Value": 1
                         },
                         {
-                            "Display": "Do not delete or disable Entra ID device",
+                            "Display": "Keep the Entra ID device",
                             "Value": 0
                         }
                     ],
@@ -125,14 +122,14 @@
                 "Hide": true
             },
             "excludeFromDefender": {
-                "DisplayName": "Exclude devices from Defender for Endpoint?",
+                "DisplayName": "Tag as excluded in Defender for Endpoint?",
                 "SelectSimple": {
                     "Tag devices as excluded in Defender for Endpoint": true,
                     "Skip Defender operations": false
                 }
             },
             "defenderExclusionTag": {
-                "DisplayName": "Defender Exclusion Tag",
+                "DisplayName": "Defender exclusion tag",
                 "Default": "ExcludeFromRemediation"
             },
             "CallerName": {

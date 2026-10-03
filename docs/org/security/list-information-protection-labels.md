@@ -1,9 +1,9 @@
 # List Information Protection Labels
 
-List Microsoft Information Protection labels
+List the sensitivity labels of the tenant with their IDs
 
 ## Detailed description
-Retrieves all available Microsoft Information Protection labels in the tenant. This can be used to get the label IDs for use in other runbooks, e.g. for auto-labeling based on sensitivity.
+Lists the Microsoft Purview Information Protection sensitivity labels of the tenant with their IDs, for example to pick the label ID needed by other runbooks. Nothing is changed.
 
 ## Where to find
 Org \ Security \ List Information Protection Labels

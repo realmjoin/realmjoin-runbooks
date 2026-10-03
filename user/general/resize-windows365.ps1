@@ -1,49 +1,48 @@
 <#
     .SYNOPSIS
-    Resize an existing Windows 365 Cloud PC for a user
+    Resize the Windows 365 Cloud PC of this user
 
     .DESCRIPTION
-    Resizes a Windows 365 Cloud PC by removing the current assignment and provisioning a new size using a different license group.
-    WARNING: This operation deprovisions and reprovisions the Cloud PC and local data may be lost.
+    Moves the Windows 365 Cloud PC of this user to a different size by removing the current license assignment and provisioning a new Cloud PC with the new license. The old Cloud PC is deprovisioned, so data stored only on it is lost; ask the user to back up first. Optionally the user gets an email when the new Cloud PC is ready.
 
     .PARAMETER UserName
-    User principal name of the target user.
+    User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER currentLicWin365GroupName
-    Current Windows 365 license group name used by the Cloud PC.
+    License group the user is removed from; the Cloud PC behind it is deprovisioned.
 
     .PARAMETER newLicWin365GroupName
-    New Windows 365 license group name to assign for the resized Cloud PC.
+    License group that provides the new size. Must differ from the current one.
 
     .PARAMETER sendMailWhenDoneResizing
-    "Do not send an Email." (final value: $false) or "Send an Email." (final value: $true) can be selected as action to perform. If set to true, an email notification will be sent to the user when Cloud PC resizing has finished.
+    Sends the user an email once the new Cloud PC is ready.
 
     .PARAMETER fromMailAddress
-    Mailbox used to send the notification email.
+    Mailbox the notification email is sent from.
 
     .PARAMETER customizeMail
-    If set to true, uses a custom email body.
+    Replaces the standard notification text with your own message.
 
     .PARAMETER customMailMessage
-    Custom message body used for the notification email.
+    Text of the notification email.
 
     .PARAMETER cfgProvisioningGroupPrefix
-    Prefix used to detect provisioning-related configuration groups.
+    Name prefix that identifies provisioning policy groups. Preset in the runbook customization.
 
     .PARAMETER cfgUserSettingsGroupPrefix
-    Prefix used to detect user-settings-related configuration groups.
+    Name prefix that identifies user settings policy groups. Preset in the runbook customization.
 
     .PARAMETER unassignRunbook
-    Name of the runbook used to remove the current Windows 365 assignment.
+    Name of the runbook that removes the current assignment. Preset in the runbook customization.
 
     .PARAMETER assignRunbook
-    Name of the runbook used to assign the new Windows 365 configuration.
+    Name of the runbook that assigns the new size. Preset in the runbook customization.
 
     .PARAMETER skipGracePeriod
-    If set to true, ends the old Cloud PC grace period immediately.
+    Deletes the old Cloud PC right away instead of after the 7-day grace period.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -67,47 +66,39 @@
                 "Hide": true
             },
             "currentLicWin365GroupName": {
-                "DisplayName": "The to-be-resized Cloud PC uses the following Windows365 license: ",
-                "SelectSimple": {
-                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
-                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
-                }
+                "DisplayName": "Current Windows 365 license"
             },
             "newLicWin365GroupName": {
-                "DisplayName": "Resizing to following license: ",
-                "SelectSimple": {
-                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
-                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
-                }
+                "DisplayName": "New Windows 365 license"
             },
             "sendMailWhenDoneResizing": {
-                    "DisplayName": "Notify User once the Cloud PC has finished resizing?",
-                    "Select": {
-                        "Options": [
-                            {
-                                "Display": "Do not send an Email.",
-                                "ParameterValue": false,
-                                "Customization": {
-                                    "Hide": [
-                                        "fromMailAddress",
-                                        "customizeMail",
-                                        "customMailMessage"
-                                    ]
-                                }
-                            },
-                            {
-                                "Display": "Send an Email.",
-                                "ParameterValue": true
-                            }
-                        ]
-                    }
-                },
-            "customizeMail": {
-                "DisplayName": "Would you like to customize the mail sent to the user?",
+                "DisplayName": "Notify the user when the resize is done?",
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Do not customize the email.",
+                            "Display": "Do not send an email",
+                            "ParameterValue": false,
+                            "Customization": {
+                                "Hide": [
+                                    "fromMailAddress",
+                                    "customizeMail",
+                                    "customMailMessage"
+                                ]
+                            }
+                        },
+                        {
+                            "Display": "Send an email",
+                            "ParameterValue": true
+                        }
+                    ]
+                }
+            },
+            "customizeMail": {
+                "DisplayName": "Customize the notification email?",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Use the standard email",
                             "ParameterValue": false,
                             "Customization": {
                                 "Hide": [
@@ -116,35 +107,20 @@
                             }
                         },
                         {
-                            "Display": "Customize the email.",
+                            "Display": "Use a custom message",
                             "ParameterValue": true
                         }
                     ]
                 }
             },
-            "customizeMail": {
-                "DisplayName": "Would you like to customize the mail sent to the user?"
-            },
             "customMailMessage": {
-                "DisplayName": "Custom message to be sent to the user."
+                "DisplayName": "Custom message"
             },
             "fromMailAddress": {
-                "DisplayName": "(Shared) Mailbox to send mail from: "
+                "DisplayName": "Sender mailbox"
             },
             "skipGracePeriod": {
                 "DisplayName": "Remove the old Cloud PC immediately?"
-            }
-        }
-    }
-
-    .EXAMPLE
-    "user_general_resizing-windows365": {
-        "Parameters": {
-            "licWin365GroupName": {
-                "SelectSimple": {
-                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
-                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
-                }
             }
         }
     }

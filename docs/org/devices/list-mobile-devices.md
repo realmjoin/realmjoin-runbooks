@@ -1,33 +1,32 @@
 # List Mobile Devices
 
-Lists all managed mobile devices (Android, iOS/iPadOS) with mobile-specific inventory, security and network details.
+List managed mobile devices with inventory and network details
 
 ## Detailed description
-Lists all Intune managed mobile devices with their mobile-specific inventory such as IMEI, serial number, phone number,
-carrier, ownership, compliance and enrollment details.
-Optionally the last reported IP address and subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health
-and Shared iPad state are added per device, which helps to see in which (Wi-Fi) networks the devices were last active.
-The result can be narrowed down by platform and by an Entra device group and/or a user group of the primary users.
-Optionally the full inventory is sent as an email report with CSV and/or Excel (xlsx) attachments and/or uploaded to an
-Azure Storage Account, returning time-limited download links. Without a recipient and without the download link option,
-the runbook only prints the result to the job output.
-The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
-When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+Lists all Intune managed Android, iOS and iPadOS devices with their inventory: IMEI, serial number, phone number, carrier, ownership, compliance and enrollment. Optionally the last reported IP address and subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health and Shared iPad state are added. That shows in which networks the devices were last active. The list can be limited by platform, a device group or a group of the primary users. The report can be sent by email or provided as a download link.
 
 ## Where to find
 Org \ Devices \ List Mobile Devices
 
+## Common use cases
+
+- Inventory of all mobile devices including IMEI, serial number, phone number and carrier
+- Identifying in which (Wi-Fi) networks mobile devices were last active, for example handheld scanners across warehouse locations
+- Reviewing the compliance, supervision and encryption state of the mobile fleet
+- SIM/eSIM inventory via ICCID and eSIM identifier
+- Handing the full mobile inventory to asset management as an Excel workbook or CSV file
+
 ## Output columns
 
-The runbook prints a summary block (device counts per platform, compliance state and ownership, applied filters and - with network details enabled - the number of devices without a reported IP address) followed by up to three tables. The same data can optionally be delivered as an email report and/or as a download link, see [Report delivery](#report-delivery).
+Every run writes a **Summary** table (device counts per platform, non-compliant and personally owned devices and - with network details enabled - the number of devices without a reported IP address) and up to three device tables to the Output Data tab of the RealmJoin portal. The console output shows the same counts plus the breakdown by compliance state and ownership and the applied filters. The same data can also be delivered as report files by email and/or as a download link, see the section on report delivery below.
 
 ### Inventory (always shown)
 
 | Column | Source and meaning |
 | --- | --- |
 | DeviceName | Device name as reported by Intune |
-| User | User principal name of the primary user |
-| OS / OSVersion | Operating system (Android, iOS, iPadOS) and version |
+| PrimaryUser | User principal name of the primary user |
+| OperatingSystem / OSVersion | Operating system (Android, iOS, iPadOS) and version |
 | Manufacturer / Model | Hardware manufacturer and model |
 | SerialNumber | Hardware serial number |
 | IMEI | International Mobile Equipment Identity of the device |
@@ -81,55 +80,51 @@ The scope can be limited to the members of an Entra device group (`IncludeDevice
 
 ## Report delivery
 
-By default the runbook only prints the tables to the job output. Two optional delivery channels are available and can be combined:
+Report files are only generated when the **Report delivery** option includes an email or a download link. With *Output Data only* selected, the results are read directly in the Output Data tab of the RealmJoin portal, where each table can also be exported to Excel. Email delivery and download link generation are independent and can be combined; the *Report file format* defaults to the Excel workbook only.
 
-- **Email report** (`EmailTo`): sends a summary email with the complete inventory attached as CSV and/or Excel workbook (`ReportFileFormat`, default `XLSX only`). Requires the `RJReport.EmailSender` setting; the email branding is taken from the `RJReport.Branding.*` settings as in the other report runbooks. When the CSV attachment exceeds the email size limit and `CSV & XLSX` is selected, the email falls back to the Excel workbook alone.
-- **Download link** (`CreateDownloadLink`): uploads the report file(s) to the storage account configured in the `RJReport.StorageAccount.*` settings (container `list-mobile-devices` by default) and prints time-limited SAS download links in the job output. Suitable when the inventory is too large for an email attachment or should be handed to asset management directly.
+- **Email**: sends a summary email with the complete inventory attached as CSV and/or Excel workbook. When the CSV attachment exceeds the email size limit and *CSV & XLSX* is selected, the email falls back to the Excel workbook alone. When no mobile device matches, the email states that no device was found and carries no attachment.
+- **Download link**: uploads the report file(s) to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings (container `list-mobile-devices` by default) and prints time-limited SAS download links in the job output. Suitable when the inventory is too large for an email attachment or should be handed to asset management directly. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
 
 The report files contain all columns of the tables above, including the `DeviceId`. The `PhoneNumber` and the network/SIM columns are only part of the files when the corresponding options are enabled. Non-compliant devices are highlighted in the Excel workbook. No files are created when no mobile device matches the selected platforms and filters.
 
+Schedules that were created before the **Report delivery** option existed keep sending their email: a stored recipient alone still enables the email for them. When such a schedule is opened for editing, the option shows *Output Data only*; select the delivery again before saving, otherwise the schedule stops sending the report.
 
-## Notes
-Intune does not report the Wi-Fi SSID of a device. The last reported IP address and subnet are the closest network
-indicator and should always be interpreted together with the Last Sync column, because they describe the state of the
-last successful device check-in - which can also have happened over cellular.
+## Setup regarding email sending
 
-Prerequisites:
-- EmailFrom parameter must be configured in runbook customization (RJReport.EmailSender setting) when an email report is requested
-- RJReport.StorageAccount.* settings must be configured when a download link is requested
+Sending an email report is optional and only happens when the **Report delivery** option includes an email; a recipient is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
 
-Data source and freshness:
-All values are taken from the Intune inventory of each device, which is refreshed with the regular device check-in.
-They therefore describe the state of the last successful check-in and not necessarily the current state.
-The network and SIM details (IP address, subnet, ICCID, UDID, ...) are not part of the Graph device list response and
-are retrieved with one additional Graph request per device, sent through the Graph batch endpoint in chunks of up to 20.
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
-Performance:
-The network/SIM details are disabled by default. When enabled, the runtime grows linearly with the number of mobile
-devices. On tenants with many mobile devices, combine the option with the group scope filters.
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
-Common Use Cases:
-- Inventory of all mobile devices including IMEI, serial number, phone number and carrier
-- Identifying in which (Wi-Fi) networks mobile devices were last active, e.g. handheld scanners across warehouse locations
-- Reviewing compliance, supervision and encryption state of the mobile fleet
-- SIM/eSIM inventory via ICCID and eSIM identifier
-- Handing the full mobile inventory to asset management as an Excel workbook or CSV file
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings:
+
+- **Header and footer image** - public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** - target of the footer image
+- **Accent and text color** - 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email - the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
+
 
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
   - DeviceManagementManagedDevices.Read.All
   - Directory.Read.All *(optional: Group scope filtering)*
-  - Organization.Read.All *(optional: Email report / download link)*
   - Mail.Send *(optional: Email report)*
+  - Organization.Read.All *(optional: Email report)*
 
 ### Permission notes
-Azure Storage Account: 'Storage Account Contributor' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required when CreateDownloadLink is used)
+Azure Storage Account: 'Storage Account Contributor' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link options)
 
 
 ## Parameters
 ### Android
-Include Android devices in the results.
+Includes Android devices.
 
 | Property | Value |
 |----------|-------|
@@ -138,7 +133,7 @@ Include Android devices in the results.
 | Type | Boolean |
 
 ### iOS
-Include iOS and iPadOS devices in the results.
+Includes iOS and iPadOS devices.
 
 | Property | Value |
 |----------|-------|
@@ -147,9 +142,7 @@ Include iOS and iPadOS devices in the results.
 | Type | Boolean |
 
 ### IncludeNetworkDetails
-Adds last reported IP address and subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health and Shared
-iPad state to the output. Requires one additional Graph request per device (sent in batches of 20), so the runtime grows
-with the number of devices. Disabled by default.
+Adds IP address, subnet, ICCID, eSIM identifier, cellular technology, UDID, battery health and Shared iPad state. Needs one extra request per device, so large tenants take longer.
 
 | Property | Value |
 |----------|-------|
@@ -158,8 +151,7 @@ with the number of devices. Disabled by default.
 | Type | Boolean |
 
 ### IncludePhoneNumber
-Controls whether the phone number is retrieved and shown. When disabled, the phone number column is omitted entirely.
-Note that Intune partially masks the phone number of personally owned devices anyway.
+Shows the phone number column. Intune masks part of the number on personally owned devices anyway.
 
 | Property | Value |
 |----------|-------|
@@ -168,7 +160,7 @@ Note that Intune partially masks the phone number of personally owned devices an
 | Type | Boolean |
 
 ### IncludeDeviceGroup
-Only include devices that are members of this Entra device group. Nested group memberships are resolved. Leave empty to include all mobile devices.
+Only devices in this Entra ID group, nested groups included. Leave empty for all mobile devices.
 
 | Property | Value |
 |----------|-------|
@@ -177,7 +169,7 @@ Only include devices that are members of this Entra device group. Nested group m
 | Type | String |
 
 ### IncludeUserGroup
-Only include devices whose primary user is a member of this Entra user group. Nested group memberships are resolved. Leave empty to include all mobile devices.
+Only devices whose primary user is in this group, nested groups included. Leave empty for all.
 
 | Property | Value |
 |----------|-------|
@@ -186,7 +178,7 @@ Only include devices whose primary user is a member of this Entra user group. Ne
 | Type | String |
 
 ### EmailFrom
-The sender email address. This needs to be configured in the runbook customization
+Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
 | Property | Value |
 |----------|-------|
@@ -195,8 +187,7 @@ The sender email address. This needs to be configured in the runbook customizati
 | Type | String |
 
 ### BrandingHeaderImageUrl
-Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -205,8 +196,7 @@ Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, th
 | Type | String |
 
 ### BrandingFooterImageUrl
-Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -215,8 +205,7 @@ Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, th
 | Type | String |
 
 ### BrandingFooterLink
-Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-When empty, the default link (https://www.realmjoin.com) is used.
+Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -225,8 +214,7 @@ When empty, the default link (https://www.realmjoin.com) is used.
 | Type | String |
 
 ### BrandingAccentColor
-Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -235,8 +223,7 @@ Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or inv
 | Type | String |
 
 ### BrandingTextColor
-Optional text color override (6-digit hex) for the report email template.
-Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -245,7 +232,7 @@ Sourced from the RJReport.Branding.TextColor tenant setting. When empty or inval
 | Type | String |
 
 ### ReportFileFormat
-Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" or "XLSX only" (default).
+Deliver the report as CSV, as an Excel workbook, or both.
 
 | Property | Value |
 |----------|-------|
@@ -254,7 +241,7 @@ Controls which report file formats are generated and delivered: "CSV only", "CSV
 | Type | String |
 
 ### CreateDownloadLink
-If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+Also upload the report and return a download link that expires after a few days.
 
 | Property | Value |
 |----------|-------|
@@ -263,7 +250,7 @@ If enabled, the report files are uploaded to an Azure Storage Account and time-l
 | Type | Boolean |
 
 ### ContainerName
-Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+Storage container the report files are uploaded to. Set per runbook.
 
 | Property | Value |
 |----------|-------|
@@ -272,7 +259,7 @@ Storage container name used for the upload. Configured per runbook (not a global
 | Type | String |
 
 ### ResourceGroupName
-Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
 | Property | Value |
 |----------|-------|
@@ -281,7 +268,7 @@ Resource group that contains the storage account. Sourced from the RJReport tena
 | Type | String |
 
 ### StorageAccountName
-Storage account name used for the upload. Sourced from the RJReport tenant settings.
+Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
 | Property | Value |
 |----------|-------|
@@ -290,7 +277,7 @@ Storage account name used for the upload. Sourced from the RJReport tenant setti
 | Type | String |
 
 ### LinkExpiryDays
-Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
 | Property | Value |
 |----------|-------|
@@ -298,10 +285,17 @@ Number of days until the generated download link expires. Sourced from the RJRep
 | Required | false |
 | Type | Int32 |
 
+### SendEmailReport
+Send the report to the recipient email address.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
 ### EmailTo
-If specified, an email with the report will be sent to the provided address(es).
-Can be a single address or multiple comma-separated addresses (string).
-The function sends individual emails to each recipient for privacy reasons.
+Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
 | Property | Value |
 |----------|-------|

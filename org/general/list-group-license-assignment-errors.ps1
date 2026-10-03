@@ -1,13 +1,12 @@
 <#
     .SYNOPSIS
-    Report groups that have license assignment errors
+    List groups whose license assignments have errors
 
     .DESCRIPTION
-    This runbook searches for Entra ID groups that have members with license assignment errors.
-    It prints the affected group names and object IDs.
+    Finds the Entra ID groups with members whose group-based license assignment failed and lists their names and object IDs. Nothing is changed.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {

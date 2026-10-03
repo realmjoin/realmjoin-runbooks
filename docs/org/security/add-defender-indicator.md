@@ -1,9 +1,9 @@
 # Add Defender Indicator
 
-Create a new Microsoft Defender for Endpoint indicator
+Add an allow or block indicator to Defender for Endpoint
 
 ## Detailed description
-Creates a new indicator in Microsoft Defender for Endpoint to allow or block a specific file hash, certificate thumbprint, IP, domain, or URL. The indicator action can generate alerts automatically for audit or alert-and-block actions.
+Creates a custom indicator in Microsoft Defender for Endpoint that allows, warns about, audits or blocks a file hash, certificate thumbprint, IP address, domain or URL on all onboarded devices. An alert can be raised whenever the indicator matches.
 
 ## Where to find
 Org \ Security \ Add Defender Indicator
@@ -16,7 +16,7 @@ Org \ Security \ Add Defender Indicator
 
 ## Parameters
 ### IndicatorValue
-Value of the indicator, such as a hash, thumbprint, IP address, domain name, or URL.
+The hash, thumbprint, IP address, domain name or URL the indicator applies to. Must match the indicator type.
 
 | Property | Value |
 |----------|-------|
@@ -25,7 +25,7 @@ Value of the indicator, such as a hash, thumbprint, IP address, domain name, or 
 | Type | String |
 
 ### IndicatorType
-Type of the indicator value.
+File hash (SHA-256, SHA-1 or MD5), certificate thumbprint, IP address, domain name or URL. The value must be of this type.
 
 | Property | Value |
 |----------|-------|
@@ -34,7 +34,7 @@ Type of the indicator value.
 | Type | String |
 
 ### Title
-Title of the indicator entry.
+Short name shown for the indicator in the Defender portal.
 
 | Property | Value |
 |----------|-------|
@@ -43,7 +43,7 @@ Title of the indicator entry.
 | Type | String |
 
 ### Description
-Description of the indicator entry.
+Why the indicator exists. Shown in the Defender portal and in alerts.
 
 | Property | Value |
 |----------|-------|
@@ -52,7 +52,7 @@ Description of the indicator entry.
 | Type | String |
 
 ### Action
-Action applied to the indicator.
+What Defender does on a match: Allow, Warn, Audit, Block, Block and remediate, or Alert and block.
 
 | Property | Value |
 |----------|-------|
@@ -61,7 +61,7 @@ Action applied to the indicator.
 | Type | String |
 
 ### Severity
-Severity used for the indicator.
+Severity of the alerts raised for this indicator.
 
 | Property | Value |
 |----------|-------|
@@ -70,7 +70,7 @@ Severity used for the indicator.
 | Type | String |
 
 ### GenerateAlert
-If set to true, an alert is generated when the indicator matches.
+Raises an alert in the Defender portal each time the indicator matches.
 
 | Property | Value |
 |----------|-------|

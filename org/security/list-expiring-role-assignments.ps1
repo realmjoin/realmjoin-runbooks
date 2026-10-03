@@ -1,15 +1,15 @@
 <#
   .SYNOPSIS
-  List Azure AD role assignments expiring within a given number of days
+  List Entra ID role assignments that expire soon
 
   .DESCRIPTION
-  Lists active and PIM-eligible Azure AD role assignments that expire within a specified number of days. The output includes role name, principal, and expiration date.
+  Lists the active and PIM eligible Entra ID role assignments that expire within the chosen number of days, so they can be renewed in time. Each entry shows the role, the principal and the expiry date. Nothing is changed.
 
   .PARAMETER Days
-  Maximum number of days until expiry.
+  Assignments that expire within this many days are listed.
 
   .PARAMETER CallerName
-  Caller name is tracked purely for auditing purposes.
+  Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
   .INPUTS
   RunbookCustomization: {
@@ -18,7 +18,7 @@
         "Hide": true
       },
       "Days": {
-        "DisplayName": "Maximum days before expiry"
+        "DisplayName": "Expiring within (days)"
       }
     }
   }

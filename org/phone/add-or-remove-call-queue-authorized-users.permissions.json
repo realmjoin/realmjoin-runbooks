@@ -1,0 +1,23 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Required by the app-based Teams PowerShell sign-in (Connect-MicrosoftTeams -Identity) to read tenant info"
+                }
+            ]
+        }
+    ],
+    "Roles": [
+        {
+            "Name": "Teams Administrator",
+            "TemplateId": "69091246-20e8-4a56-aa4d-066075b2a7a8",
+            "Reason": "Required to run Get-CsCallQueue, Set-CsCallQueue, Get-CsAutoAttendant, Get-CsOnlineUser, Get-CsUserPolicyAssignment, Get-CsTeamsVoiceApplicationsPolicy and Grant-CsTeamsVoiceApplicationsPolicy via app-based Teams PowerShell"
+        }
+    ],
+    "ManualPermissions": []
+}

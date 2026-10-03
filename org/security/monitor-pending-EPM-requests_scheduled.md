@@ -1,3 +1,20 @@
+## Endpoint Privilege Management context
+
+- Endpoint Privilege Management (EPM) allows users to request temporary admin rights for specific applications.
+- Pending requests require manual review and approval by security admins.
+- Requests expire automatically if they are not reviewed within the configured timeframe.
+- A timely review is critical for user productivity and for the security posture.
+
+## Scheduling
+
+An hourly schedule is recommended.
+
+## Email behaviour
+
+- Emails are sent individually to each recipient.
+- No email is sent when there are no pending requests.
+- Report file attachments (see `ReportFileFormat`) are only included when `DetailedReport` is enabled.
+
 ## Setup regarding email sending
 
 Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.

@@ -1,3 +1,15 @@
+## Common use cases
+
+This runbook deletes managed devices from Intune based on inactivity, so use it with care.
+
+- Regular cleanup of stale device records in Intune
+- Simulation runs (report-only mode) before enabling the actual deletion
+- Scheduled lifecycle management with an audit trail via the email report
+
+## User scope filtering
+
+The runbook supports optional user scope filtering to include or exclude devices based on the group membership of their primary user. This acts as an additional safety net when deletion is enabled.
+
 ## Setup regarding email sending
 
 Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.

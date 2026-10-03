@@ -1,34 +1,49 @@
 <#
     .SYNOPSIS
-    List app registrations potentially vulnerable to CVE-2021-42306
+    List app registrations possibly affected by CVE-2021-42306
 
     .DESCRIPTION
-    Lists Azure AD app registrations that may be affected by CVE-2021-42306 by inspecting stored key credentials. Optionally exports the findings to a CSV file in Azure Storage.
+    Checks the key credentials of every app registration in Entra ID for signs of CVE-2021-42306, where private key material was stored in the credential by mistake. App registrations that may be affected are listed. The result can be shown in the run output or exported as a CSV file to an Azure Storage account. Nothing is changed.
 
     .PARAMETER ExportToFile
-    "List in Console" (final value: $false) or "Export to a CSV file" (final value: $true) can be selected as action to perform. The export saves the findings to a CSV file in Azure Storage.
+    List in the run output, or export to a CSV file in the storage account configured in the tenant settings.
 
     .PARAMETER ContainerName
-    Name of the Azure Storage container to upload the CSV report to.
+    Storage container the report files are uploaded to. Taken from the tenant setting VulnAppRegExport.Container.
 
     .PARAMETER ResourceGroupName
-    Name of the Azure Resource Group containing the Storage Account.
+    Resource group of the storage account. Taken from the tenant setting VulnAppRegExport.ResourceGroup.
 
     .PARAMETER StorageAccountName
-    Name of the Azure Storage Account used for upload.
+    Storage account for the export. Taken from the tenant setting VulnAppRegExport.StorageAccount.Name.
 
     .PARAMETER StorageAccountLocation
-    Azure region for the Storage Account if it needs to be created.
+    Azure region used when the storage account has to be created. Taken from the tenant setting VulnAppRegExport.StorageAccount.Location.
 
     .PARAMETER StorageAccountSku
-    SKU name for the Storage Account if it needs to be created.
+    Performance tier used when the storage account has to be created. Taken from the tenant setting VulnAppRegExport.StorageAccount.Sku.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
+            "ContainerName": {
+                "Hide": true
+            },
+            "ResourceGroupName": {
+                "Hide": true
+            },
+            "StorageAccountName": {
+                "Hide": true
+            },
+            "StorageAccountLocation": {
+                "Hide": true
+            },
+            "StorageAccountSku": {
+                "Hide": true
+            },
             "CallerName": {
                 "Hide": true
             },
@@ -40,7 +55,7 @@
                             "ParameterValue": true
                         },
                         {
-                            "Display": "List in Console",
+                            "Display": "List in the run output",
                             "ParameterValue": false,
                             "Customization": {
                                 "Hide": [
@@ -65,7 +80,7 @@
 #Requires -Modules @{ ModuleName = "Az.Storage"; ModuleVersion = "9.7.2" }
 
 param(
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Save report to CSV file (instead of printing it to console)?" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Output" } )]
     [bool] $ExportToFile = $false,
     [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "VulnAppRegExport.Container" } )]
     [string] $ContainerName,

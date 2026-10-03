@@ -11,7 +11,22 @@ The runbook is **add-only**: it never demotes or removes existing owners or memb
 
 ### Mapping configuration
 
-The mapping lives centrally in the RealmJoin org settings (Runbook Customization → `Settings` → `SharedChannelOwners.Mapping`) so it is maintained once and shared by every schedule. It is a list of `{ TeamName, OwnerGroupId }` objects, where `TeamName` is the **exact team display name** (see the *Notes* section for a ready-to-use example). The hidden `TeamOwnerGroupMapping` parameter is injected from this setting; the runbook accepts it either as a structured array (recommended sub-setting form) or as a JSON string and normalizes both.
+The mapping lives centrally in the RealmJoin org settings (Runbook Customization → `Settings` → `SharedChannelOwners.Mapping`) so it is maintained once and shared by every schedule. It is a list of `{ TeamName, OwnerGroupId }` objects, where `TeamName` is the **exact team display name**. The hidden `TeamOwnerGroupMapping` parameter is injected from this setting; the runbook accepts it either as a structured array (recommended sub-setting form) or as a JSON string and normalizes both.
+
+Ready-to-use example for the org settings:
+
+```json
+{
+    "Settings": {
+        "SharedChannelOwners": {
+            "Mapping": [
+                { "TeamName": "EXT Service A", "OwnerGroupId": "11111111-1111-1111-1111-111111111111" },
+                { "TeamName": "EXT Service B", "OwnerGroupId": "22222222-2222-2222-2222-222222222222" }
+            ]
+        }
+    }
+}
+```
 
 ### Team matching
 
@@ -31,27 +46,38 @@ For every configured `TeamName` the runbook runs a Graph `displayName eq '...'` 
 
 ### Dry run
 
-Set **`WhatIfMode`** to log what would change without writing anything. In this mode the runbook prints, up front, the teams it would process (with their owner group) and any configured team names that were not found.
-
-### Reporting (optional, both default off)
-
-- **`SendEmailReport`** sends a RealmJoin-branded email (via `Send-RjReportEmail`) with run statistics and two CSV attachments: a per-team summary and a per-change detail list. The sender is taken from the `RJReport.EmailSender` setting.
-- **`CreateDownloadLink`** uploads the same CSVs to a storage account and returns time-limited SAS download links (also embedded into the email when both options are enabled). The target storage account is taken from the `RJReport.StorageAccount.*` settings.
-
-The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
+Select **Dry run?** to log what would change without writing anything. Every run prints, up front, the teams it will process (with their owner group) and any configured team names that were not found; in a dry run the changes are listed as planned changes.
 
 ### Scheduling
 
 Designed to run unattended on a schedule. Because configuration is centralized in the org settings and the runbook is add-only and idempotent, a single recurring schedule keeps all mapped teams and their shared channels in sync as people and channels come and go.
 
-## Email branding
+## Report delivery
+
+Every run writes its results to the Output Data tab of the RealmJoin portal: a summary, the changes made (or planned in a dry run), the skipped teams and users with the reason (team not found, empty owner group, guest users, failed changes) and the owner assignments that were already in place. Each table can be exported to Excel there.
+
+Report files are only generated when a delivery method is selected via the **Report delivery** option (email and/or download link): a per-team summary and a per-change detail list, as CSV files and/or as an Excel workbook. With *Output Data only* selected, the results are read directly in the Output Data tab. Email delivery and download link generation are independent and can be combined; when both are selected, the download links are also embedded into the email.
+
+For the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
+
+Schedules that were saved with the earlier delivery labels (for example *Email report*) keep their delivery. When such a schedule is opened for editing, the option shows *Output Data only* although the stored delivery stays active; select the delivery again before saving so that the dialog matches what the schedule does.
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when *Also email the report* or *Also email & download link* is selected as report delivery; a recipient is then required. The RealmJoin-branded email (sent via `Send-RjRbReportEmail`) contains the run statistics and the report files as attachments. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
+
+### Email branding
 
 The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
-- **Footer link** – target of the footer image
-- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+- **Header and footer image** - public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** - target of the footer image
+- **Accent and text color** - 6-digit hex values, e.g. `#0052cc`
 
-When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email - the corresponding default is used instead.
 
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).

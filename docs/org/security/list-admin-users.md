@@ -1,9 +1,9 @@
 # List Admin Users
 
-List Entra ID role holders and optionally evaluate their MFA methods
+List all Entra ID admins and check their MFA methods
 
 ## Detailed description
-Lists users and service principals holding built-in Entra ID roles and produces an admin-to-role report. Optionally queries each admin for registered authentication methods to assess MFA coverage.
+Lists every user and service principal that holds a built-in Entra ID role, including PIM eligible assignments, as an admin-to-role report. Optionally the registered authentication methods of each admin are checked to show who is protected by MFA, with a choice of which methods count. The report can be uploaded as CSV to an Azure Storage account. Nothing is changed.
 
 ## Where to find
 Org \ Security \ List Admin Users
@@ -20,7 +20,7 @@ Org \ Security \ List Admin Users
 
 ## Parameters
 ### ExportToFile
-If set to true, exports the report to an Azure Storage Account.
+Uploads the report as CSV to the storage account configured in the tenant settings.
 
 | Property | Value |
 |----------|-------|
@@ -29,7 +29,7 @@ If set to true, exports the report to an Azure Storage Account.
 | Type | Boolean |
 
 ### PimEligibleUntilInCSV
-If set to true, includes PIM eligible/active until information in the CSV report.
+Adds the end dates of PIM eligible and active assignments to the CSV report.
 
 | Property | Value |
 |----------|-------|
@@ -38,7 +38,7 @@ If set to true, includes PIM eligible/active until information in the CSV report
 | Type | Boolean |
 
 ### ContainerName
-Name of the Azure Storage container to upload the CSV report to.
+Storage container the report files are uploaded to. Taken from the tenant setting ListAdminsReport.Container.
 
 | Property | Value |
 |----------|-------|
@@ -47,7 +47,7 @@ Name of the Azure Storage container to upload the CSV report to.
 | Type | String |
 
 ### ResourceGroupName
-Name of the Azure Resource Group containing the Storage Account.
+Resource group of the storage account. Taken from the tenant setting ListAdminsReport.ResourceGroup.
 
 | Property | Value |
 |----------|-------|
@@ -56,7 +56,7 @@ Name of the Azure Resource Group containing the Storage Account.
 | Type | String |
 
 ### StorageAccountName
-Name of the Azure Storage Account used for upload.
+Storage account for the export. Taken from the tenant setting ListAdminsReport.StorageAccount.Name.
 
 | Property | Value |
 |----------|-------|
@@ -65,7 +65,7 @@ Name of the Azure Storage Account used for upload.
 | Type | String |
 
 ### StorageAccountLocation
-Azure region for the Storage Account if it needs to be created.
+Azure region used when the storage account has to be created. Taken from the tenant setting ListAdminsReport.StorageAccount.Location.
 
 | Property | Value |
 |----------|-------|
@@ -74,7 +74,7 @@ Azure region for the Storage Account if it needs to be created.
 | Type | String |
 
 ### StorageAccountSku
-SKU name for the Storage Account if it needs to be created.
+Performance tier used when the storage account has to be created. Taken from the tenant setting ListAdminsReport.StorageAccount.Sku.
 
 | Property | Value |
 |----------|-------|
@@ -83,7 +83,7 @@ SKU name for the Storage Account if it needs to be created.
 | Type | String |
 
 ### QueryMfaState
-"Check and report every admin's MFA state" (final value: $true) or "Do not check admin MFA states" (final value: $false) can be selected as action to perform.
+With the check, each admin gets a column showing whether a method that counts as MFA is registered; without it, the report lists only the role assignments.
 
 | Property | Value |
 |----------|-------|
@@ -92,7 +92,7 @@ SKU name for the Storage Account if it needs to be created.
 | Type | Boolean |
 
 ### TrustEmailMfa
-If set to true, regards email as a valid MFA method.
+Counts email as a valid MFA method.
 
 | Property | Value |
 |----------|-------|
@@ -101,7 +101,7 @@ If set to true, regards email as a valid MFA method.
 | Type | Boolean |
 
 ### TrustPhoneMfa
-If set to true, regards phone/SMS as a valid MFA method.
+Counts phone calls and SMS as a valid MFA method.
 
 | Property | Value |
 |----------|-------|
@@ -110,7 +110,7 @@ If set to true, regards phone/SMS as a valid MFA method.
 | Type | Boolean |
 
 ### TrustSoftwareOathMfa
-If set to true, regards software OATH token as a valid MFA method.
+Counts software OATH tokens as a valid MFA method.
 
 | Property | Value |
 |----------|-------|
@@ -119,7 +119,7 @@ If set to true, regards software OATH token as a valid MFA method.
 | Type | Boolean |
 
 ### TrustWinHelloMFA
-If set to true, regards Windows Hello for Business as a valid MFA method.
+Counts Windows Hello for Business as a valid MFA method.
 
 | Property | Value |
 |----------|-------|

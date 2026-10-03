@@ -1,19 +1,18 @@
 <#
     .SYNOPSIS
-    Check Intune assignments for one or more user principal names
+    Show which Intune policies and apps target given users
 
     .DESCRIPTION
-    This runbook queries Intune policies and optionally app assignments relevant to the specified user(s).
-    It resolves transitive group membership and reports matching assignments.
+    Lists the Intune policies, and optionally the apps, that apply to one or more users by resolving their group memberships, nested groups included, and matching them against the assignments. Nothing is changed.
 
     .PARAMETER UserPrincipalName
-    User Principal Names of the users to check assignments for.
-
-    .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Each picked user is checked separately through their group memberships, nested groups included.
 
     .PARAMETER IncludeApps
-    If set to true, also evaluates application assignments.
+    Also lists the apps assigned to the users.
+
+    .PARAMETER CallerName
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -22,10 +21,10 @@
                 "Hide": true
             },
             "UserPrincipalName": {
-                "DisplayName": "One or more users to check assignments for"
+                "DisplayName": "Users"
             },
             "IncludeApps": {
-                "DisplayName": "Include app assignments"
+                "DisplayName": "Include app assignments?"
             }
         }
     }
@@ -34,11 +33,11 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 
 param(
-    [Parameter(Mandatory = $true)]
-    [string] $CallerName,
     [Parameter(Mandatory = $true)][ValidateScript({ Use-RjRbInterface -Type Graph -Entity User -Attribute userPrincipalName })]
     [string[]] $UserPrincipalName,
-    [bool] $IncludeApps = $false
+    [bool] $IncludeApps = $false,
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose

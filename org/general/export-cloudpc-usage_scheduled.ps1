@@ -1,28 +1,40 @@
 <#
     .SYNOPSIS
-    Write daily Windows 365 utilization data to Azure Table Storage
+    Write daily Windows 365 usage data to an Azure table
 
     .DESCRIPTION
-    Collects Windows 365 Cloud PC remote connection usage for the last full day and writes it to an Azure Table. The runbook creates the table if needed and merges records per tenant and timestamp.
+    Collects how the Windows 365 Cloud PCs were used, based on the remote connection reports of the chosen number of past days. The figures are written to an Azure Table so they can be tracked over time. The table is created when missing, and records for the same day are updated rather than duplicated.
 
     .PARAMETER Table
-    Name of the Azure Table Storage table to write to.
+    Table in the storage account the usage data is written to. Created when it does not exist yet.
 
     .PARAMETER ResourceGroupName
-    Name of the Azure Resource Group containing the Storage Account.
+    Resource group that holds the storage account.
 
     .PARAMETER StorageAccountName
-    Name of the Azure Storage Account hosting the table.
+    Storage account that holds the table.
 
     .PARAMETER Days
-    Number of days to look back when collecting usage data.
+    Usage of the past this many days is collected; days already in the table are updated, not added again.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
+            "Table": {
+                "DisplayName": "Table name"
+            },
+            "ResourceGroupName": {
+                "DisplayName": "Resource group"
+            },
+            "StorageAccountName": {
+                "DisplayName": "Storage account"
+            },
+            "Days": {
+                "DisplayName": "Days to look back"
+            },
             "CallerName": {
                 "Hide": true
             }

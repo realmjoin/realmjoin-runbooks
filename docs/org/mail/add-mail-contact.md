@@ -1,9 +1,9 @@
 # Add Mail Contact
 
-Create a new Exchange Online mail contact with optional display name and address list settings
+Create a mail contact for an external address
 
 ## Detailed description
-This runbook creates a new Exchange Online mail contact (external contact) using the New-MailContact cmdlet. You can optionally set the contact's first name, last name, email alias, and control whether it appears in the Global Address List. All names default to the provided display name if not explicitly set.
+Creates a mail contact in Exchange Online for an external email address, so the person can be found in the address book and added to groups. First name, last name, contact name and alias are optional; the contact can be hidden from the address lists.
 
 ## Where to find
 Org \ Mail \ Add Mail Contact
@@ -19,7 +19,7 @@ Org \ Mail \ Add Mail Contact
 
 ## Parameters
 ### ExternalEmailAddress
-The external SMTP email address for the mail contact. This is the primary email address used for communication with the contact.
+External address of the person. Mail to the contact is delivered there.
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +28,7 @@ The external SMTP email address for the mail contact. This is the primary email 
 | Type | String |
 
 ### DisplayName
-The display name shown for the mail contact in Exchange Online and the Global Address List.
+Name shown in the address book.
 
 | Property | Value |
 |----------|-------|
@@ -37,7 +37,7 @@ The display name shown for the mail contact in Exchange Online and the Global Ad
 | Type | String |
 
 ### Name
-The unique contact name used for management and identification. If left empty, defaults to the DisplayName value.
+Unique name used to manage the contact in Exchange Online. Leave empty to use the display name.
 
 | Property | Value |
 |----------|-------|
@@ -46,7 +46,7 @@ The unique contact name used for management and identification. If left empty, d
 | Type | String |
 
 ### FirstName
-The first name of the contact. If not specified, the field is left empty.
+First name of the person. Can stay empty.
 
 | Property | Value |
 |----------|-------|
@@ -55,7 +55,7 @@ The first name of the contact. If not specified, the field is left empty.
 | Type | String |
 
 ### LastName
-The last name of the contact. If not specified, the field is left empty.
+Last name of the person. Can stay empty.
 
 | Property | Value |
 |----------|-------|
@@ -64,7 +64,7 @@ The last name of the contact. If not specified, the field is left empty.
 | Type | String |
 
 ### Alias
-The mail nickname (alias) for the mail contact. If not specified, the system generates one automatically from the display name.
+Mail alias of the contact. Leave empty to have Exchange derive one from the contact name.
 
 | Property | Value |
 |----------|-------|
@@ -73,7 +73,7 @@ The mail nickname (alias) for the mail contact. If not specified, the system gen
 | Type | String |
 
 ### HideFromAddressLists
-If set to true, the mail contact will be hidden from the Global Address List and other address lists. If false, the contact is visible to all users. Defaults to false.
+Hides the contact from the global address list and the other address lists.
 
 | Property | Value |
 |----------|-------|

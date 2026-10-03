@@ -1,23 +1,26 @@
 # Report Devices Without Primary User (Scheduled)
 
-Reports all managed devices in Intune that do not have a primary user assigned.
+Report Intune devices without a primary user
 
 ## Detailed description
-This script retrieves all managed devices from Intune, and filters out those without a primary user (userId).
-The output is a formatted table showing Object ID, Device ID, Display Name, Operating System, and Last Sync Date/Time for each device without a primary user.
-The report can be limited to specific platforms (Windows, macOS, iOS/iPadOS, Android, Other) via boolean parameters. By default, all platforms are included.
-
-Optionally, the report can be sent via email with CSV and/or Excel (xlsx) attachments containing detailed device information.
-The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
-The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
-When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+Lists all Intune managed devices that have no primary user, with object ID, device ID, name, operating system and last sync, so shared or orphaned devices can be reviewed. The list can be limited by platform. Nothing is changed. The report can be sent by email or provided as a download link.
 
 ## Where to find
 Org \ Devices \ Report Devices Without Primary User_Scheduled
 
+## Report delivery
+
+Every run lists the devices without a primary user in the Output Data tab of the RealmJoin portal, together with a summary per platform; each table can be exported to Excel there. Report files (CSV and/or Excel workbook) are only generated when the **Report delivery** option includes an email or a download link. Email delivery and download link generation are independent and can be combined.
+
+For the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
+
+Schedules that were created before the **Report delivery** option existed keep sending their email: a stored recipient alone still enables the email for them. When such a schedule is opened for editing, the option shows *Output Data only*; select the delivery again before saving, otherwise the schedule stops sending the report.
+
+When no device without a primary user is found, no report file is created; a selected email delivery still sends a short confirmation without attachments.
+
 ## Setup regarding email sending
 
-Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+Sending an email report is optional and only happens when the **Report delivery** option includes an email; a recipient is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
@@ -27,11 +30,11 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 
 The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
-- **Footer link** – target of the footer image
-- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+- **Header and footer image** - public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** - target of the footer image
+- **Accent and text color** - 6-digit hex values, e.g. `#0052cc`
 
-When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email - the corresponding default is used instead.
 
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
@@ -41,11 +44,15 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 - **Type**: Microsoft Graph
   - DeviceManagementManagedDevices.Read.All
   - Mail.Send *(optional: Email report)*
+  - Organization.Read.All *(optional: Email report)*
+
+### Permission notes
+Azure Storage Account: 'Storage Account Contributor' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link options)
 
 
 ## Parameters
 ### IncludeWindows
-Include Windows devices in the report. Enabled by default.
+Includes Windows devices.
 
 | Property | Value |
 |----------|-------|
@@ -54,7 +61,7 @@ Include Windows devices in the report. Enabled by default.
 | Type | Boolean |
 
 ### IncludeMacOS
-Include macOS devices in the report. Enabled by default.
+Includes macOS devices.
 
 | Property | Value |
 |----------|-------|
@@ -63,7 +70,7 @@ Include macOS devices in the report. Enabled by default.
 | Type | Boolean |
 
 ### IncludeIOS
-Include iOS and iPadOS devices in the report. Enabled by default.
+Includes iOS and iPadOS devices.
 
 | Property | Value |
 |----------|-------|
@@ -72,7 +79,7 @@ Include iOS and iPadOS devices in the report. Enabled by default.
 | Type | Boolean |
 
 ### IncludeAndroid
-Include Android devices in the report. Enabled by default.
+Includes Android devices.
 
 | Property | Value |
 |----------|-------|
@@ -81,7 +88,7 @@ Include Android devices in the report. Enabled by default.
 | Type | Boolean |
 
 ### IncludeOther
-Include devices with any other operating system (e.g. Linux, ChromeOS) in the report. Enabled by default.
+Includes devices with any other operating system, such as Linux or ChromeOS.
 
 | Property | Value |
 |----------|-------|
@@ -90,7 +97,7 @@ Include devices with any other operating system (e.g. Linux, ChromeOS) in the re
 | Type | Boolean |
 
 ### ReportFileFormat
-Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+Deliver the report as CSV, as an Excel workbook, or both.
 
 | Property | Value |
 |----------|-------|
@@ -99,7 +106,7 @@ Controls which report file formats are generated and delivered: "CSV only", "CSV
 | Type | String |
 
 ### CreateDownloadLink
-If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+Also upload the report and return a download link that expires after a few days.
 
 | Property | Value |
 |----------|-------|
@@ -108,7 +115,7 @@ If enabled, the report files are uploaded to an Azure Storage Account and time-l
 | Type | Boolean |
 
 ### ContainerName
-Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+Storage container the report files are uploaded to. Set per runbook.
 
 | Property | Value |
 |----------|-------|
@@ -117,7 +124,7 @@ Storage container name used for the upload. Configured per runbook (not a global
 | Type | String |
 
 ### ResourceGroupName
-Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
 | Property | Value |
 |----------|-------|
@@ -126,7 +133,7 @@ Resource group that contains the storage account. Sourced from the RJReport tena
 | Type | String |
 
 ### StorageAccountName
-Storage account name used for the upload. Sourced from the RJReport tenant settings.
+Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
 | Property | Value |
 |----------|-------|
@@ -135,7 +142,7 @@ Storage account name used for the upload. Sourced from the RJReport tenant setti
 | Type | String |
 
 ### LinkExpiryDays
-Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
 | Property | Value |
 |----------|-------|
@@ -144,7 +151,7 @@ Number of days until the generated download link expires. Sourced from the RJRep
 | Type | Int32 |
 
 ### EmailFrom
-The sender email address. This needs to be configured in the runbook customization.
+Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
 | Property | Value |
 |----------|-------|
@@ -153,8 +160,7 @@ The sender email address. This needs to be configured in the runbook customizati
 | Type | String |
 
 ### BrandingHeaderImageUrl
-Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -163,8 +169,7 @@ Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, th
 | Type | String |
 
 ### BrandingFooterImageUrl
-Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -173,8 +178,7 @@ Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, th
 | Type | String |
 
 ### BrandingFooterLink
-Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-When empty, the default link (https://www.realmjoin.com) is used.
+Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -183,8 +187,7 @@ When empty, the default link (https://www.realmjoin.com) is used.
 | Type | String |
 
 ### BrandingAccentColor
-Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -193,8 +196,7 @@ Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or inv
 | Type | String |
 
 ### BrandingTextColor
-Optional text color override (6-digit hex) for the report email template.
-Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -202,10 +204,17 @@ Sourced from the RJReport.Branding.TextColor tenant setting. When empty or inval
 | Required | false |
 | Type | String |
 
+### SendEmailReport
+Send the report to the recipient email address.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
 ### EmailTo
-If specified, an email with the report will be sent to the provided address(es).
-Can be a single address or multiple comma-separated addresses (string).
-The function sends individual emails to each recipient for privacy reasons.
+Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
 | Property | Value |
 |----------|-------|

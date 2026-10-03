@@ -1,51 +1,51 @@
 <#
     .SYNOPSIS
-    Wipe a Windows or MacOS device
+    Wipe this Windows or macOS device and clean up its records
 
     .DESCRIPTION
-    Wipe a Windows or MacOS device. For Windows devices, you can choose between a regular wipe and a protected wipe. For MacOS devices, you can provide a recovery code if needed and specify the obliteration behavior.
+    Wipes this Windows or macOS device. Optionally it also cleans up what is left of it: the Intune record, the Autopilot registration and the Entra ID object can be deleted or disabled. For Windows you can choose a protected wipe and a longer compliance grace period after re-enrollment, for macOS a recovery code and how the OS is erased. A wipe removes all data on the device and cannot be undone. The wipe can be skipped when Defender for Endpoint rates the device as medium or high risk.
 
     .PARAMETER DeviceId
-    The device ID of the target device.
+    Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
     .PARAMETER wipeDevice
-    "Wipe this device?" (final value: true) or "Do not wipe device" (final value: false) can be selected as action to perform. If set to true, the runbook will trigger a wipe action for the device in Intune. If set to false, no wipe action will be triggered for the device in Intune.
+    Completely wipe erases all user and enrollment data on the device. Do not wipe leaves the device untouched and only runs the selected cleanup steps.
 
     .PARAMETER useProtectedWipe
-    Windows-only. If set to true, uses protected wipe.
+    Keeps trying to wipe even if the device is switched off in between, so the wipe cannot be dodged by powering off. Windows only.
 
     .PARAMETER removeIntuneDevice
-    If set to true, deletes the Intune device object.
+    Deletes the device record in Intune. Only sensible when the device is already wiped or destroyed.
 
     .PARAMETER removeAutopilotDevice
-    Windows-only. "Delete device from AutoPilot database?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device from the AutoPilot database, which also allows the device to leave the tenant. If set to false, the device will remain in the AutoPilot database and can be re-assigned to another user/device in the tenant.
+    Removing the device from the Autopilot database lets it leave the tenant and be registered elsewhere. Keeping it allows a later redeployment in this tenant. Windows only.
 
     .PARAMETER removeAADDevice
-    "Delete device from EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device object from Entra ID (Azure AD). If set to false, the device object will remain in Entra ID (Azure AD).
+    Whether the Entra ID device object is deleted after the wipe. Preset in the runbook customization.
 
     .PARAMETER disableAADDevice
-    "Disable device in EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will disable the device object in Entra ID (Azure AD). If set to false, the device object will remain enabled in Entra ID (Azure AD).
+    Disabling blocks sign-ins from the device but keeps its object in Entra ID. Keep leaves the Entra ID object unchanged.
 
     .PARAMETER skipWipeIfAtRisk
-    If set to true, the wipe is only performed when the device's Microsoft Defender for Endpoint risk score is not Medium or High. This protects forensic data (e.g. logs) of devices that may be involved in a security incident from being destroyed by the wipe.
+    Skips the wipe when Microsoft Defender for Endpoint rates the device as medium or high risk. That keeps evidence intact on a device that may be part of a security incident.
 
     .PARAMETER addToExclusionGroup
-    Windows-only. If set to true, the device is added to the compliance exclusion group referenced by 'exclusionGroupName'. This grants the device a longer compliance grace period after it is re-enrolled via Autopilot (see the 'Check Device Onboarding Exclusion' runbook).
+    Adds the device to the compliance exclusion group so it gets a longer compliance grace period when it is re-enrolled through Autopilot. Windows only.
 
     .PARAMETER exclusionGroupName
-    Display name of the compliance exclusion group the device should be added to when 'addToExclusionGroup' is enabled.
+    Display name of the exclusion group the device is added to. An object ID preset in the runbook customization takes precedence.
 
     .PARAMETER exclusionGroupId
-    Object ID of the compliance exclusion group. If provided, it always overrides 'exclusionGroupName' (avoids name conflicts). Hidden by default; intended to be set via Runbook Customization.
+    Object ID of the exclusion group. Preset in the runbook customization and used instead of the group name to avoid name clashes.
 
     .PARAMETER macOsRecoveryCode
-    MacOS-only. Recovery code for older devices; newer devices may not require this.
+    Recovery code for older Macs that need one to be wiped. Newer devices ignore it. Preset in the runbook customization.
 
     .PARAMETER macOsObliterationBehavior
-    MacOS-only. Controls the OS obliteration behavior during wipe.
+    How a Mac is erased: erase user data first and fall back to erasing the OS, never erase the OS, warn before erasing the OS, or always erase the OS.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -57,10 +57,10 @@
                 "Hide": true
             },
             "disableAADDevice": {
-                "DisplayName": "Disable AzureAD device object?",
+                "DisplayName": "Disable Entra ID device object?",
                 "SelectSimple": {
-                    "Disable device in AzureAD": true,
-                    "Do not modify AzureAD device / do not care": false
+                    "Disable device in Entra ID": true,
+                    "Keep the Entra ID device unchanged": false
                 }
             },
             "wipeDevice": {
@@ -91,17 +91,17 @@
                 }
             },
             "useProtectedWipe": {
-                "DisplayName": "Windows: Use protected wipe?"
+                "DisplayName": "Use protected wipe (Windows)?"
             },
             "skipWipeIfAtRisk": {
-                "DisplayName": "Only wipe if device is not at risk (Defender Medium/High)?",
+                "DisplayName": "Only wipe if the device is not at risk?",
                 "SelectSimple": {
-                    "Only wipe if Defender risk score is not Medium/High": true,
-                    "Wipe regardless of Defender risk score": false
+                    "Only wipe if the Defender risk score is not medium or high": true,
+                    "Wipe regardless of the Defender risk score": false
                 }
             },
             "addToExclusionGroup": {
-                "DisplayName": "Windows: Add device to compliance exclusion group (longer grace period)?",
+                "DisplayName": "Add to compliance exclusion group (Windows)?",
                 "Select": {
                     "Options": [
                         {
@@ -109,7 +109,7 @@
                             "Value": true
                         },
                         {
-                            "Display": "Do not add to exclusion group / do not care",
+                            "Display": "Do not add to the exclusion group",
                             "Value": false,
                             "Customization": {
                                 "Hide": [
@@ -125,34 +125,34 @@
                 "DisplayName": "Compliance exclusion group name"
             },
             "exclusionGroupId": {
-                "DisplayName": "Compliance exclusion group Object ID (overrides name)",
+                "DisplayName": "Compliance exclusion group object ID",
                 "Hide": true
             },
             "removeIntuneDevice": {
                 "DisplayName": "Delete device from Intune?",
                 "SelectSimple": {
                     "Delete device from Intune (only if device is already wiped or destroyed)": true,
-                    "Do not modify the Intune object / do not care": false
+                    "Keep the Intune record": false
                 }
             },
             "removeAutopilotDevice": {
-                "DisplayName": "Windows: Delete device from AutoPilot database?",
+                "DisplayName": "Delete from Autopilot database (Windows)?",
                 "SelectSimple": {
-                    "Remove the device from AutoPilot (the device can leave the tenant)": true,
-                    "Keep device / do not care": false
+                    "Remove from Autopilot (the device can leave the tenant)": true,
+                    "Keep the device in Autopilot": false
                 }
             },
             "macOsRecoveryCode": {
-                "DisplayName": "MacOS: Recovery Code - not needed for newer devices",
+                "DisplayName": "Recovery code (macOS)",
                 "Hide": true
             },
             "macOsObliterationBehavior": {
-                "DisplayName": "MacOS: OS Obliteration Behavior",
+                "DisplayName": "Obliteration behavior (macOS)",
                 "SelectSimple": {
-                    "Default: Try to erase user date (EACS), obliterate OS if this fails": "default",
-                    "Try to erase user data (EACS), do not obliterate the OS": "doNotObliterate",
-                    "Try to erase user data (EACS), else warn and obliterate the OS": "obliterateWithWarning",
-                    "Always obliterate OS": "always"
+                    "Erase user data (EACS), erase the OS if that fails": "default",
+                    "Erase user data (EACS), never erase the OS": "doNotObliterate",
+                    "Erase user data (EACS), else warn and erase the OS": "obliterateWithWarning",
+                    "Always erase the OS": "always"
                 }
             },
             "CallerName": {

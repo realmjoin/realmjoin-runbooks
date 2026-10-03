@@ -1,10 +1,9 @@
 # Add Management Partner
 
-List or add Management Partner Links (PAL)
+List or add a Partner Admin Link (PAL) for the tenant
 
 ## Detailed description
-This runbook lists existing Partner Admin Links (PAL) for the tenant or adds a new PAL.
-It uses the Azure Management Partner API and supports an interactive action selection.
+Shows the Partner Admin Links (PAL) that tie the Azure usage of this tenant to a Microsoft partner, or adds a new one with the partner's ID. The link only credits the partner for the Azure consumption it manages.
 
 ## Where to find
 Org \ General \ Add Management Partner
@@ -16,7 +15,7 @@ Owner or Contributor role on the Azure Subscription
 
 ## Parameters
 ### Action
-Choice of action to perform: list existing PALs or add a new PAL.
+List shows the current links, Add creates one for the "Partner ID".
 
 | Property | Value |
 |----------|-------|
@@ -25,7 +24,7 @@ Choice of action to perform: list existing PALs or add a new PAL.
 | Type | Int32 |
 
 ### PartnerId
-Partner ID to set when adding a PAL.
+Microsoft Partner Network ID of the partner to link.
 
 | Property | Value |
 |----------|-------|

@@ -1,3 +1,15 @@
+## Common use cases
+
+- Investigate which application generates sign-in failures for a specific user and why, grouped by error code.
+- Narrow the results with `ApplicationName` (partial match) or `FailedSignInsOnly` when a user reports access issues.
+- Export the sign-in data to CSV or Excel for further analysis when the event count is too large to read in the portal.
+
+## Behaviour
+
+- Sign-in log data is retrieved from the Microsoft Graph beta endpoint, because sign-in event type filtering and the retrieval of non-interactive sign-ins require beta-only properties (`signInEventTypes`, `authenticationRequirement`).
+- The results are written to the **Output Data** tab of the job on every run: a summary, the per-application summary, the failed sign-ins and, unless only failed sign-ins are requested, all sign-ins. The console shows the counts.
+- Non-interactive sign-ins vastly outnumber interactive ones; the sign-in tables in the Output Data tab are capped at the 250 most recent entries, but the exported report files always contain the full result set.
+
 ## Required license and permissions
 
 Reading sign-in logs through the Microsoft Graph API requires an **Entra ID P1 or P2 license** in the tenant. Tenants without it receive a 403 error from the sign-in log query even when all Graph permissions are granted. With P1/P2, sign-in logs are retained for up to 30 days; the 7-day retention of the free tier applies to the Entra portal, not to this runbook.
@@ -6,13 +18,13 @@ If the sign-in log query returns a 403 although `AuditLog.Read.All` is granted a
 
 ## Report delivery
 
-Report files are only generated when a delivery method is selected via the **Report delivery** option (email and/or download link). With *No report* selected, the sign-in analysis is read directly in the RealmJoin portal output. Email delivery and download link generation are independent and can be combined.
+Report files are only generated when a delivery method is selected via the **Report delivery** option (email and/or download link). With *Output Data only* selected, no report files are created and the sign-in analysis is read in the Output Data tab of the job in the RealmJoin portal. Email delivery and download link generation are independent and can be combined.
 
 For the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
 
 ## Setup regarding email sending
 
-Sending an email report is optional and only happens when the *Email report* delivery option is selected; a recipient (`EmailTo`) is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+Sending an email report is optional and only happens when *Also email the report* or *Also email & download link* is selected as report delivery; a recipient is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 

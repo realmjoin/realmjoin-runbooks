@@ -1,12 +1,46 @@
 # Assign Windows365
 
-Assign and provision a Windows 365 Cloud PC for a user
+Provision a Windows 365 Cloud PC for this user
 
 ## Detailed description
-Assigns the required groups and license or Frontline provisioning policy to initiate Windows 365 provisioning. Optionally notifies the user when provisioning completes and can create a support ticket when licenses are exhausted.
+Assigns this user the groups that trigger Windows 365 provisioning: the provisioning policy or Frontline assignment, the user settings policy and, for a dedicated Cloud PC, the license group. Optionally the user gets an email once the Cloud PC is ready, and a service ticket is opened by email when no licenses or Frontline seats are left.
 
 ## Where to find
 User \ General \ Assign Windows365
+
+## Offer the policy and license groups as dropdowns
+
+The provisioning policy, user settings policy and license group are plain text fields by default. Turn them into dropdowns with the group names of your tenant via runbook customization:
+
+```json
+"rjgit-user_general_assign-windows365": {
+    "Parameters": {
+        "cfgProvisioningGroupName": {
+            "SelectSimple": {
+                "cfg - Windows 365 - Provisioning - Win11": "cfg - Windows 365 - Provisioning - Win11",
+                "cfg - Windows 365 - Provisioning - Win10": "cfg - Windows 365 - Provisioning - Win10"
+            }
+        },
+        "cfgUserSettingsGroupName": {
+            "SelectSimple": {
+                "cfg - Windows 365 - User Settings - restore allowed": "cfg - Windows 365 - User Settings - restore allowed",
+                "cfg - Windows 365 - User Settings - no restore": "cfg - Windows 365 - User Settings - no restore"
+            }
+        },
+        "licWin365GroupName": {
+            "SelectSimple": {
+                "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+                "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
+            }
+        }
+    }
+}
+```
+
+The group name prefixes (`cfgProvisioningGroupPrefix`, `cfgUserSettingsGroupPrefix`) decide which groups count as provisioning or user settings groups; adjust them in the same place when your naming differs.
+
+For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
 
 ## Permissions
 ### Application permissions
@@ -21,7 +55,7 @@ User \ General \ Assign Windows365
 
 ## Parameters
 ### UserName
-User principal name of the target user.
+User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|
@@ -30,7 +64,7 @@ User principal name of the target user.
 | Type | String |
 
 ### cfgProvisioningGroupName
-Display name of the provisioning policy group or Frontline assignment to use.
+Provisioning policy group for a dedicated Cloud PC, or the name of the Frontline provisioning policy. Type the name, or pick it when your runbook customization offers a list.
 
 | Property | Value |
 |----------|-------|
@@ -39,7 +73,7 @@ Display name of the provisioning policy group or Frontline assignment to use.
 | Type | String |
 
 ### cfgUserSettingsGroupName
-Display name of the user settings policy group to use.
+Group that carries the user settings policy, for example whether the user may restore the Cloud PC.
 
 | Property | Value |
 |----------|-------|
@@ -48,7 +82,7 @@ Display name of the user settings policy group to use.
 | Type | String |
 
 ### licWin365GroupName
-Display name of the Windows 365 license group to assign when using dedicated Cloud PCs.
+License group for a dedicated Cloud PC. Not needed for Frontline.
 
 | Property | Value |
 |----------|-------|
@@ -57,7 +91,7 @@ Display name of the Windows 365 license group to assign when using dedicated Clo
 | Type | String |
 
 ### cfgProvisioningGroupPrefix
-Prefix used to detect provisioning-related configuration groups.
+Name prefix that identifies provisioning policy groups. Preset in the runbook customization.
 
 | Property | Value |
 |----------|-------|
@@ -66,7 +100,7 @@ Prefix used to detect provisioning-related configuration groups.
 | Type | String |
 
 ### cfgUserSettingsGroupPrefix
-Prefix used to detect user-settings-related configuration groups.
+Name prefix that identifies user settings policy groups. Preset in the runbook customization.
 
 | Property | Value |
 |----------|-------|
@@ -75,7 +109,7 @@ Prefix used to detect user-settings-related configuration groups.
 | Type | String |
 
 ### sendMailWhenProvisioned
-If set to true, sends an email to the user after provisioning completes.
+Sends the user an email as soon as provisioning has finished.
 
 | Property | Value |
 |----------|-------|
@@ -84,7 +118,7 @@ If set to true, sends an email to the user after provisioning completes.
 | Type | Boolean |
 
 ### customizeMail
-If set to true, uses a custom email body.
+Replaces the standard notification text with your own message. Only used when the user is notified.
 
 | Property | Value |
 |----------|-------|
@@ -93,7 +127,7 @@ If set to true, uses a custom email body.
 | Type | Boolean |
 
 ### customMailMessage
-Custom message body used for the notification email.
+Text of the notification email.
 
 | Property | Value |
 |----------|-------|
@@ -102,7 +136,7 @@ Custom message body used for the notification email.
 | Type | String |
 
 ### createTicketOutOfLicenses
-If set to true, creates a service ticket email when no licenses or Frontline seats are available.
+Sends a ticket email to the service desk when no license or Frontline seat is available.
 
 | Property | Value |
 |----------|-------|
@@ -111,7 +145,7 @@ If set to true, creates a service ticket email when no licenses or Frontline sea
 | Type | Boolean |
 
 ### ticketQueueAddress
-Email address used as ticket queue recipient.
+Mailbox of the service desk that turns the email into a ticket.
 
 | Property | Value |
 |----------|-------|
@@ -120,7 +154,7 @@ Email address used as ticket queue recipient.
 | Type | String |
 
 ### fromMailAddress
-Mailbox used to send the ticket and user notification emails.
+Mailbox the notification and ticket emails are sent from.
 
 | Property | Value |
 |----------|-------|
@@ -129,7 +163,7 @@ Mailbox used to send the ticket and user notification emails.
 | Type | String |
 
 ### ticketCustomerId
-Customer identifier used in ticket subject lines.
+Customer identifier put into the ticket subject.
 
 | Property | Value |
 |----------|-------|

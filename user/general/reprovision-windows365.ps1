@@ -1,30 +1,30 @@
 <#
     .SYNOPSIS
-    Reprovision a Windows 365 Cloud PC
+    Reprovision the Windows 365 Cloud PC of this user
 
     .DESCRIPTION
-    Triggers a reprovision action for an existing Windows 365 Cloud PC without assigning a new instance. Optionally notifies the user when reprovisioning starts.
+    Reprovisions the existing Windows 365 Cloud PC of this user. The Cloud PC is rebuilt from scratch with the same license, so everything stored on it is lost; the user keeps the assignment. Optionally the user gets an email when the reprovisioning starts.
 
     .PARAMETER UserName
-    User principal name of the target user.
+    User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER licWin365GroupName
-    Display name of the Windows 365 license group used to identify the Cloud PC.
+    License group of the Cloud PC to reprovision. Type the group name, or pick it when your runbook customization offers a list.
 
     .PARAMETER sendMailWhenReprovisioning
-    "Do not send an Email." (final value: $false) or "Send an Email." (final value: $true) can be selected as action to perform. If set to true, an email notification will be sent to the user when Cloud PC reprovisioning has begun.
+    Sends the user an email as soon as the reprovisioning has begun.
 
     .PARAMETER fromMailAddress
-    Mailbox used to send the notification email.
+    Mailbox the notification email is sent from.
 
     .PARAMETER customizeMail
-    If set to true, uses a custom email body.
+    Replaces the standard notification text with your own message.
 
     .PARAMETER customMailMessage
-    Custom message body used for the notification email.
+    Text of the notification email.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -36,40 +36,36 @@
                 "Hide": true
             },
             "licWin365GroupName": {
-                "DisplayName": "Select the Windows 365 license to be used for reprovisioning",
-                "SelectSimple": {
-                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
-                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
-                }
+                "DisplayName": "Windows 365 license of the Cloud PC"
             },
             "sendMailWhenReprovisioning": {
-                    "DisplayName": "Notify user when CloudPC reprovisioning has begun?",
-                    "Select": {
-                        "Options": [
-                            {
-                                "Display": "Do not send an Email.",
-                                "ParameterValue": false,
-                                "Customization": {
-                                    "Hide": [
-                                        "fromMailAddress",
-                                        "customizeMail",
-                                        "customMailMessage"
-                                    ]
-                                }
-                            },
-                            {
-                                "Display": "Send an Email.",
-                                "ParameterValue": true
-                            }
-                        ]
-                    }
-                },
-            "customizeMail": {
-                "DisplayName": "Would you like to customize the mail sent to the user?",
+                "DisplayName": "Notify the user when reprovisioning starts?",
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Do not customize the email.",
+                            "Display": "Do not send an email",
+                            "ParameterValue": false,
+                            "Customization": {
+                                "Hide": [
+                                    "fromMailAddress",
+                                    "customizeMail",
+                                    "customMailMessage"
+                                ]
+                            }
+                        },
+                        {
+                            "Display": "Send an email",
+                            "ParameterValue": true
+                        }
+                    ]
+                }
+            },
+            "customizeMail": {
+                "DisplayName": "Customize the notification email?",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Use the standard email",
                             "ParameterValue": false,
                             "Customization": {
                                 "Hide": [
@@ -78,32 +74,17 @@
                             }
                         },
                         {
-                            "Display": "Customize the email.",
+                            "Display": "Use a custom message",
                             "ParameterValue": true
                         }
                     ]
                 }
             },
-            "customizeMail": {
-                "DisplayName": "Would you like to customize the mail sent to the user?"
-            },
             "customMailMessage": {
-                "DisplayName": "Custom message to be sent to the user."
+                "DisplayName": "Custom message"
             },
             "fromMailAddress": {
-                "DisplayName": "(Shared) Mailbox to send mail from: "
-            }
-        }
-    }
-
-    .EXAMPLE
-    "user_general_reprovision-windows365": {
-        "Parameters": {
-            "licWin365GroupName": {
-                "SelectSimple": {
-                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
-                    "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
-                }
+                "DisplayName": "Sender mailbox"
             }
         }
     }

@@ -13,10 +13,12 @@
                 { "Value": "RoleManagement.Read.Directory", "Reason": "Populates the roleTemplateId of the directoryRole objects returned by /users/{id}/transitiveMemberOf/microsoft.graph.directoryRole, which Conditional Access includeRoles/excludeRoles scoping is matched against. User.Read.All authorizes the call itself but leaves directoryRole properties null, which would silently make every role-scoped policy appear not to apply" },
                 { "Value": "User.Read.All", "Reason": "Reads /users/{id} with accountEnabled, assignedLicenses, usageLocation and department for each selected or group-resolved user, /users/{id}/ownedDevices to count registered devices for the readiness check, /users/{id}/transitiveMemberOf/microsoft.graph.directoryRole to resolve each user's directory roles for Conditional Access includeRoles/excludeRoles scoping, and /subscribedSkus to determine which licenses include an Intune service plan" },
                 { "Value": "UserAuthenticationMethod.Read.All", "Reason": "Reads /users/{id}/authentication/methods to check each target user has a registered authentication method before enrollment" },
-                { "Value": "Mail.Send", "Optional": true, "Feature": "Email report", "Reason": "Sends the readiness report email with its CSV/XLSX attachments via Send-RjReportEmail when SendEmailReport is enabled" }
+                { "Value": "Mail.Send", "Optional": true, "Feature": "Email report", "Reason": "Sends the readiness report email with its CSV/XLSX attachments via Send-RjRbReportEmail when email delivery is selected" }
             ]
         }
     ],
     "Roles": [],
-    "ManualPermissions": []
+    "ManualPermissions": [
+        "Azure Storage Account: 'Storage Account Contributor' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link options)"
+    ]
 }

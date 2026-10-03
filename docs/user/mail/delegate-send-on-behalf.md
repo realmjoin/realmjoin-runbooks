@@ -1,10 +1,9 @@
 # Delegate Send On Behalf
 
-Delegate SendOnBehalf permissions for the user's mailbox
+Grant or remove Send on Behalf permission on this user's mailbox
 
 ## Detailed description
-Grants or removes SendOnBehalf permissions for a delegate on the user's mailbox. Outputs the resulting SendOnBehalf trustees after applying the change.
-This allows the delegate to send emails on behalf of the mailbox owner.
+Lets another person send email on behalf of this user, so recipients see the delegate's name with "on behalf of" this user, or removes that permission again. The resulting list of trustees is shown after the change.
 
 ## Where to find
 User \ Mail \ Delegate Send On Behalf
@@ -20,7 +19,7 @@ User \ Mail \ Delegate Send On Behalf
 
 ## Parameters
 ### UserName
-User principal name of the mailbox.
+User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|
@@ -29,7 +28,7 @@ User principal name of the mailbox.
 | Type | String |
 
 ### delegateTo
-User principal name of the delegate.
+Person who gets or loses the Send on Behalf permission.
 
 | Property | Value |
 |----------|-------|
@@ -38,7 +37,7 @@ User principal name of the delegate.
 | Type | String |
 
 ### Remove
-If set to true, removes the delegation instead of granting it.
+Whether the permission is removed instead of granted. Set by the "Action" choice.
 
 | Property | Value |
 |----------|-------|

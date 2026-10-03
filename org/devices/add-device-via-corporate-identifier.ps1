@@ -1,30 +1,36 @@
 <#
     .SYNOPSIS
-    Import a device into Intune via corporate identifier
+    Register a device in Intune by its corporate identifier
 
     .DESCRIPTION
-    This runbook imports a device into Intune using a corporate identifier such as serial number or IMEI.
-    It can overwrite existing entries and optionally stores a description for the imported identity.
+    Adds a device to Intune's list of corporate identifiers, such as a serial number or IMEI, so it counts as corporate-owned when it enrolls. An existing entry for the same identifier can be overwritten, and a description can be stored with it.
 
     .PARAMETER CorpIdentifierType
-    Identifier type to use for import.
+    Serial number for most devices, IMEI for cellular devices.
 
     .PARAMETER CorpIdentifier
-    Identifier value to import.
+    Value of the chosen identifier, exactly as printed on or reported by the device.
 
     .PARAMETER DeviceDescripton
-    Optional description stored for the imported identity.
+    Free text stored with the identifier, for example the device model or its owner.
 
     .PARAMETER OverwriteExistingEntry
-    If set to true, an existing entry for the same identifier will be overwritten.
+    Replaces an entry that already exists for the same identifier.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
+            "DeviceDescripton": {
+                "DisplayName": "Description"
+            },
+            "OverwriteExistingEntry": {
+                "DisplayName": "Overwrite an existing entry?"
+            },
             "CorpIdentifierType": {
+                "DisplayName": "Identifier type",
                 "SelectSimple": {
                     "Serial Number": "serialNumber",
                     "IMEI": "imei"
@@ -34,7 +40,7 @@
                 "Hide": true
             },
             "CorpIdentifier": {
-                "DisplayName": "Corporate Identifier Value"
+                "DisplayName": "Identifier"
             }
         }
     }

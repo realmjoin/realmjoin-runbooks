@@ -1,23 +1,25 @@
 <#
 	.SYNOPSIS
-	List or add Management Partner Links (PAL)
+	List or add a Partner Admin Link (PAL) for the tenant
 
 	.DESCRIPTION
-	This runbook lists existing Partner Admin Links (PAL) for the tenant or adds a new PAL.
-	It uses the Azure Management Partner API and supports an interactive action selection.
+	Shows the Partner Admin Links (PAL) that tie the Azure usage of this tenant to a Microsoft partner, or adds a new one with the partner's ID. The link only credits the partner for the Azure consumption it manages.
 
 	.PARAMETER Action
-	Choice of action to perform: list existing PALs or add a new PAL.
+	List shows the current links, Add creates one for the "Partner ID".
 
 	.PARAMETER PartnerId
-	Partner ID to set when adding a PAL.
+	Microsoft Partner Network ID of the partner to link.
 
 	.PARAMETER CallerName
-	Caller name for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
 		"Parameters": {
+			"PartnerId": {
+				"DisplayName": "Partner ID"
+			},
 			"CallerName": {
 				"Hide": true
 			},
