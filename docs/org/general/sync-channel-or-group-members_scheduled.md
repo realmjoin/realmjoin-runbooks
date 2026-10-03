@@ -58,7 +58,7 @@ Set `WhatIfMode` to log what would change without writing anything.
 
 ### Reporting (optional, both default off)
 
-- **`SendEmailReport`** sends a RealmJoin-branded email (via `Send-RjReportEmail`) with run statistics and
+- **`SendEmailReport`** sends a RealmJoin-branded email (via `Send-RjRbReportEmail`) with run statistics and
   a CSV attachment listing every individual change. The sender is taken from the `RJReport.EmailSender`
   setting.
 - **`CreateDownloadLink`** uploads the same CSV to a storage account and returns a time-limited SAS

@@ -809,13 +809,14 @@ List enterprise applications with no recent sign-ins
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
+| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
 | BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
 | BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
 | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
-| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-applications-report-application-registration'></a>
@@ -825,6 +826,8 @@ Report all application registrations, including deleted ones
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
+| IncludeDeletedApps |  | Boolean | Also lists application registrations that were deleted within the last 30 days. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -832,7 +835,6 @@ Report all application registrations, including deleted ones
 | BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
 | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
-| IncludeDeletedApps |  | Boolean | Also lists application registrations that were deleted within the last 30 days. |
 | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
 | CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
@@ -848,8 +850,8 @@ Report expiring client secrets and certificates of app registrations
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| listOnlyExpiring |  | Boolean | Only credentials that expire within the given number of days, or all credentials. |
-| Days |  | Int32 | Credentials that expire within this many days count as about to expire. |
+| listOnlyExpiring |  | Boolean | Only credentials that expire within "Days before expiry", or all credentials including expired ones. |
+| Days |  | Int32 | Credentials that expire within this many days count as about to expire. Not used when all credentials are listed. |
 | CredentialType |  | String | Client secrets, certificates, or both. |
 | ApplicationIds |  | String | Limits the report to these application (client) IDs, separated by commas. Leave empty for all applications. |
 | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
@@ -858,6 +860,7 @@ Report expiring client secrets and certificates of app registrations
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -1148,7 +1151,8 @@ List managed mobile devices with inventory and network details
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
-| EmailTo |  | String | Send the report to these addresses, separated by commas. Leave empty to only show the result in the run output. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
+| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-devices-notify-users-about-low-diskspace-scheduled'></a>
@@ -1290,6 +1294,7 @@ Report devices that are running out of disk space
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -1317,6 +1322,7 @@ Report Intune devices without a primary user
 | BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
 | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -1398,6 +1404,11 @@ Report devices that have been inactive for too long
 | MacOS |  | Boolean | Includes macOS devices. |
 | iOS |  | Boolean | Includes iOS and iPadOS devices. |
 | Android |  | Boolean | Includes Android devices. |
+| UseUserScope |  | Boolean | Not used any more. The primary user group filter applies as soon as a group is selected in "Include users from group" or "Exclude users from group". Kept so existing schedules keep working. |
+| IncludeUserGroup |  | String | Only devices whose primary user is a direct member of this group. Leave empty for all devices. |
+| ExcludeUserGroup |  | String | Skips devices whose primary user is a direct member of this group. Leave empty to skip none. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
+| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
 | BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
@@ -1410,10 +1421,6 @@ Report devices that have been inactive for too long
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
-| UseUserScope |  | Boolean | Whether devices are filtered by the group membership of their primary user. Set by the "Filter by primary user group?" choice. |
-| IncludeUserGroup |  | String | Only devices whose primary user is in this group. |
-| ExcludeUserGroup |  | String | Skips devices whose primary user is in this group. |
-| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-devices-report-users-with-more-than-5-devices-scheduled'></a>
@@ -1436,6 +1443,7 @@ Report users with more than five registered devices
 | BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
 | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -1972,6 +1980,11 @@ Report which users can enroll devices in Intune
 | SendEmailReport |  | Boolean | Send the report to the recipient email address. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
+| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+| ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
+| ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
+| StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-general-report-license-assignment-scheduled'></a>
@@ -1988,6 +2001,7 @@ Alert when license availability crosses thresholds
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -2069,7 +2083,7 @@ Make a group's members owners of mapped teams and shared channels
 | TeamOwnerGroupMapping |  | Object | List of team names with the security group whose members become owners. Taken from the tenant setting SharedChannelOwners.Mapping. |
 | IncludeTeamOwners |  | Boolean | Also makes the group members owners and members of the team itself, which is required for owning its channels. |
 | WhatIfMode |  | Boolean | Only logs what would change without writing anything. |
-| SendEmailReport |  | Boolean | Send the report by email after the run. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -2483,7 +2497,8 @@ Report EPM elevation requests by status and age
 | IncludeRevoked |  | Boolean | Includes requests whose approval was withdrawn later. |
 | IncludePending |  | Boolean | Includes requests that are still waiting for a decision. |
 | IncludeCompleted |  | Boolean | Includes requests that were approved and used. |
-| MaxAgeInDays |  | Int32 | Only requests created within this many days are reported. Intune keeps request details for 30 days. |
+| MaxAgeInDays |  | Int32 | Only requests created within this many days are reported. Intune keeps request details for 30 days, so a larger value is reduced to 30. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
