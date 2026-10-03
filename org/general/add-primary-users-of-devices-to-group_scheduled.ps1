@@ -658,7 +658,7 @@ $removeLinesMail
             if ($reportFiles.Count -gt 0) {
                 $emailParams.Attachments = $reportFiles
             }
-            Send-RjReportEmail @emailParams @brandingMailParams
+            Send-RjRbReportEmail @emailParams @brandingMailParams
             Write-Output ""
             Write-Output "Preview report sent to '$EmailTo'$(if ($reportFiles.Count -gt 0) { " with $($reportFiles.Count) attachment(s)" })."
         }

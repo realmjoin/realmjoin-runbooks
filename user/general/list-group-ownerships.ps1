@@ -458,10 +458,10 @@ The report file(s) are attached for your review.
             ReportVersion     = $Version
         }
         if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFilePath) {
-            Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
+            Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
         }
         else {
-            Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
+            Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
         }
     }
     catch {

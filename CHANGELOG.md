@@ -1,5 +1,36 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-10-03
+
+- Unify the report delivery option of report runbooks: one "Report delivery" choice for Output Data, email and download link (SAS link)
+  - "Output Data only" is the default: the results appear as named tables in the portal's Output Data tab and no report files are created
+  - "Also email the report", "Also create a download link" and "Also email & download link" add the report files on top of the Output Data tables
+  - The recipient and the file format are shown only when an email or a download link is chosen; the recipient is then required
+  - Existing scheduled runs keep sending their email; when such a scheduled run is edited, choose the report delivery again before saving
+  - Excel worksheets carry the same names as the matching Output Data tables, so both exports of the same data look alike
+  - Report Stale Devices (Scheduled) applies the user group filter as soon as a group is selected; the separate "Filter by primary user group?" choice is gone, and with an include group only devices whose primary user is a member are listed
+  - Report Intune Enrollment Readiness can also provide the report as a download link
+  - Report Expiring Application Credentials (Scheduled) and Report EPM Elevation Requests (Scheduled) send the email with the "CSV only" file format as well
+  - Report Application Registration shows whether the service principal of each app is enabled, marks apps without one and counts the enabled ones
+  - Report EPM Elevation Requests (Scheduled) shows the reviewer, the device name and the product version, and reduces a time range above 30 days to the 30 days Intune keeps
+  - Report Stale Devices (Scheduled) includes iPadOS devices when iOS/iPadOS devices are selected
+  - Sync Shared Channel Owners (Scheduled) skips teams whose owner group no longer exists and processes the remaining teams
+  - Report Intune Enrollment Readiness reads all group and role memberships of a user for the Conditional Access check and adds a warning when they cannot be read
+  - Connect to Microsoft Graph with the managed identity (`Connect-MgGraph`, `Invoke-MgGraphRequest`) and send the report email through that session
+  - Affected runbooks:
+    - **List Inactive Enterprise Applications** - Org/Applications (v1.5.0)
+    - **Report Application Registration** - Org/Applications (v1.4.0)
+    - **Report Expiring Application Credentials (Scheduled)** - Org/Applications (v1.5.0)
+    - **List Mobile Devices** - Org/Devices (v1.1.0)
+    - **Report Devices Low Diskspace (Scheduled)** - Org/Devices (v1.1.0)
+    - **Report Devices Without Primary User (Scheduled)** - Org/Devices (v1.10.0)
+    - **Report Stale Devices (Scheduled)** - Org/Devices (v1.6.0)
+    - **Report Users With More Than 5 Devices (Scheduled)** - Org/Devices (v1.12.0)
+    - **Report Intune Enrollment Readiness** - Org/General (v1.1.0)
+    - **Report License Assignment (Scheduled)** - Org/General (v1.4.0)
+    - **Sync Shared Channel Owners (Scheduled)** - Org/General (v1.4.0)
+    - **Report EPM Elevation Requests (Scheduled)** - Org/Security (v1.4.0)
+
 ## 2026-10-02
 
 - Update **List Room Mailbox Configuration** Runbook in User/Mail (v1.1.0)

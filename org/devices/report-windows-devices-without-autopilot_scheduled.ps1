@@ -560,15 +560,15 @@ This report identifies **$($totalDevices) Windows device object(s)** in Entra ID
                 }
                 $guardParams.UseNativeGraphRequest = $true
                 if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFilePath) {
-                    Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
+                    Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
                 }
                 else {
-                    Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
+                    Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
                 }
             }
             else {
                 # -UseNativeGraphRequest reuses the native Connect-MgGraph context established above
-                Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version -UseNativeGraphRequest @brandingMailParams
+                Send-RjRbReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version -UseNativeGraphRequest @brandingMailParams
                 Write-Output "## Email report sent successfully to: $($EmailTo)"
             }
         }

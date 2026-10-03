@@ -154,8 +154,8 @@
 							}
 						},
 						{
-							"Display": "Email report",
-							"ParameterValue": "Email report",
+							"Display": "Also email the report",
+							"ParameterValue": "Also email the report",
 							"Customization": {
 								"Default": { "SendEmailReport": true, "CreateDownloadLink": false },
 								"Show": [ "EmailTo", "ReportFileFormat" ],
@@ -163,8 +163,8 @@
 							}
 						},
 						{
-							"Display": "Report download link",
-							"ParameterValue": "Report download link",
+							"Display": "Also create a download link",
+							"ParameterValue": "Also create a download link",
 							"Customization": {
 								"Default": { "SendEmailReport": false, "CreateDownloadLink": true },
 								"Show": [ "ReportFileFormat" ],
@@ -172,8 +172,8 @@
 							}
 						},
 						{
-							"Display": "Email report & download link",
-							"ParameterValue": "Email report & download link",
+							"Display": "Also email & download link",
+							"ParameterValue": "Also email & download link",
 							"Customization": {
 								"Default": { "SendEmailReport": true, "CreateDownloadLink": true },
 								"Show": [ "EmailTo", "ReportFileFormat" ],
@@ -1029,7 +1029,7 @@ $fullListHint = if ($SendEmailReport -or $CreateDownloadLink) {
     "The report files hold every sign-in."
 }
 else {
-    "Choose 'Email report' or 'Report download link' under 'Report delivery' to receive every sign-in as a report file."
+    "Choose 'Also email the report' or 'Also create a download link' under 'Report delivery' to receive every sign-in as a report file."
 }
 
 if ($processedSignIns.Count -eq 0) {

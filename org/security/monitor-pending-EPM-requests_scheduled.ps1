@@ -600,14 +600,14 @@ There are currently **$($processedRequests.Count)** pending Endpoint Privilege M
                 ReportVersion     = $Version
             }
             if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFilePath) {
-                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
+                Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
             }
             else {
-                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
+                Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
             }
         }
         else {
-            Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version @brandingMailParams
+            Send-RjRbReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version @brandingMailParams
             Write-Output "Email report sent successfully to: $EmailTo"
         }
     }

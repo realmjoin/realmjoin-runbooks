@@ -309,7 +309,7 @@ catch {
     throw
 }
 
-# Connect-RjRbGraph is required because Send-RjReportEmail (optional email path) uses it for sender auth.
+# Connect-RjRbGraph is required because Send-RjRbReportEmail (optional email path) uses it for sender auth.
 try {
     Connect-RjRbGraph
 }
@@ -964,10 +964,10 @@ if ($sendEmail -and $reportFiles.Count -gt 0) {
             ReportVersion     = $Version
         }
         if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFilePath) {
-            Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
+            Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
         }
         else {
-            Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
+            Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
         }
         Write-RjRbLog -Message "Cleanup report email sent to '$EmailTo'." -Verbose
     }

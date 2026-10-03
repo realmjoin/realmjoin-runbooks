@@ -1,150 +1,200 @@
 <#
-    .SYNOPSIS
-    Report Intune devices without a primary user
+	.SYNOPSIS
+	Report Intune devices without a primary user
 
-    .DESCRIPTION
-    Lists all Intune managed devices that have no primary user, with object ID, device ID, name, operating system and last sync, so shared or orphaned devices can be reviewed. The list can be limited by platform. Nothing is changed. The report can be sent by email or provided as a download link.
+	.DESCRIPTION
+	Lists all Intune managed devices that have no primary user, with object ID, device ID, name, operating system and last sync, so shared or orphaned devices can be reviewed. The list can be limited by platform. Nothing is changed. The report can be sent by email or provided as a download link.
 
-    .PARAMETER IncludeWindows
-    Includes Windows devices.
+	.PARAMETER IncludeWindows
+	Includes Windows devices.
 
-    .PARAMETER IncludeMacOS
-    Includes macOS devices.
+	.PARAMETER IncludeMacOS
+	Includes macOS devices.
 
-    .PARAMETER IncludeIOS
-    Includes iOS and iPadOS devices.
+	.PARAMETER IncludeIOS
+	Includes iOS and iPadOS devices.
 
-    .PARAMETER IncludeAndroid
-    Includes Android devices.
+	.PARAMETER IncludeAndroid
+	Includes Android devices.
 
-    .PARAMETER IncludeOther
-    Includes devices with any other operating system, such as Linux or ChromeOS.
+	.PARAMETER IncludeOther
+	Includes devices with any other operating system, such as Linux or ChromeOS.
 
-    .PARAMETER ReportFileFormat
-    Deliver the report as CSV, as an Excel workbook, or both.
+	.PARAMETER ReportFileFormat
+	Deliver the report as CSV, as an Excel workbook, or both.
 
-    .PARAMETER CreateDownloadLink
-    Also upload the report and return a download link that expires after a few days.
+	.PARAMETER CreateDownloadLink
+	Also upload the report and return a download link that expires after a few days.
 
-    .PARAMETER ContainerName
-    Storage container the report files are uploaded to. Set per runbook.
+	.PARAMETER ContainerName
+	Storage container the report files are uploaded to. Set per runbook.
 
-    .PARAMETER ResourceGroupName
-    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
+	.PARAMETER ResourceGroupName
+	Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
-    .PARAMETER StorageAccountName
-    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
+	.PARAMETER StorageAccountName
+	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
-    .PARAMETER LinkExpiryDays
-    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
+	.PARAMETER LinkExpiryDays
+	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
-    .PARAMETER EmailTo
-    Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
+	.PARAMETER EmailFrom
+	Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
-    .PARAMETER EmailFrom
-    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
+	.PARAMETER BrandingHeaderImageUrl
+	Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
-    .PARAMETER BrandingHeaderImageUrl
-    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
+	.PARAMETER BrandingFooterImageUrl
+	Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
-    .PARAMETER BrandingFooterImageUrl
-    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
+	.PARAMETER BrandingFooterLink
+	Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
-    .PARAMETER BrandingFooterLink
-    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
+	.PARAMETER BrandingAccentColor
+	Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
-    .PARAMETER BrandingAccentColor
-    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
+	.PARAMETER BrandingTextColor
+	Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
-    .PARAMETER BrandingTextColor
-    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
+	.PARAMETER SendEmailReport
+	Send the report to the recipient email address.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
+	.PARAMETER EmailTo
+	Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
-    .INPUTS
-    RunbookCustomization: {
-        "Parameters": {
-            "IncludeWindows": {
-                "DisplayName": "Include Windows devices?"
-            },
-            "IncludeMacOS": {
-                "DisplayName": "Include macOS devices?"
-            },
-            "IncludeIOS": {
-                "DisplayName": "Include iOS/iPadOS devices?"
-            },
-            "IncludeAndroid": {
-                "DisplayName": "Include Android devices?"
-            },
-            "IncludeOther": {
-                "DisplayName": "Include other devices?"
-            },
-            "ReportFileFormat": {
-                "DisplayName": "Report file format",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "CSV & XLSX",
-                            "ParameterValue": "CSV & XLSX"
-                        },
-                        {
-                            "Display": "CSV only",
-                            "ParameterValue": "CSV only"
-                        },
-                        {
-                            "Display": "XLSX only",
-                            "ParameterValue": "XLSX only"
-                        }
-                    ],
-                    "ShowValue": false
-                }
-            },
-            "CreateDownloadLink": {
-                "DisplayName": "Create a download link?",
-                "SelectSimple": {
-                    "Yes - upload report and return a download link": true,
-                    "No - do not create a download link": false
-                }
-            },
-            "ContainerName": {
-                "Hide": true
-            },
-            "ResourceGroupName": {
-                "Hide": true
-            },
-            "StorageAccountName": {
-                "Hide": true
-            },
-            "LinkExpiryDays": {
-                "Hide": true
-            },
-            "EmailTo": {
-                "DisplayName": "Recipient email address(es)"
-            },
-            "BrandingHeaderImageUrl": {
-                "Hide": true
-            },
-            "BrandingFooterImageUrl": {
-                "Hide": true
-            },
-            "BrandingFooterLink": {
-                "Hide": true
-            },
-            "BrandingAccentColor": {
-                "Hide": true
-            },
-            "BrandingTextColor": {
-                "Hide": true
-            },
-            "EmailFrom": {
-                "Hide": true
-            },
-            "CallerName": {
-                "Hide": true
-            }
-        }
-    }
+	.PARAMETER CallerName
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
+
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"IncludeWindows": {
+				"DisplayName": "Include Windows devices?"
+			},
+			"IncludeMacOS": {
+				"DisplayName": "Include macOS devices?"
+			},
+			"IncludeIOS": {
+				"DisplayName": "Include iOS/iPadOS devices?"
+			},
+			"IncludeAndroid": {
+				"DisplayName": "Include Android devices?"
+			},
+			"IncludeOther": {
+				"DisplayName": "Include other devices?"
+			},
+			"ReportFileFormat": {
+				"DisplayName": "Report file format",
+				"Hide": true,
+				"Select": {
+					"Options": [
+						{
+							"Display": "CSV & XLSX",
+							"ParameterValue": "CSV & XLSX"
+						},
+						{
+							"Display": "CSV only",
+							"ParameterValue": "CSV only"
+						},
+						{
+							"Display": "XLSX only",
+							"ParameterValue": "XLSX only"
+						}
+					],
+					"ShowValue": false
+				}
+			},
+			"CreateDownloadLink": {
+				"Hide": true
+			},
+			"ContainerName": {
+				"Hide": true
+			},
+			"ResourceGroupName": {
+				"Hide": true
+			},
+			"StorageAccountName": {
+				"Hide": true
+			},
+			"LinkExpiryDays": {
+				"Hide": true
+			},
+			"EmailFrom": {
+				"Hide": true
+			},
+			"BrandingHeaderImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterLink": {
+				"Hide": true
+			},
+			"BrandingAccentColor": {
+				"Hide": true
+			},
+			"BrandingTextColor": {
+				"Hide": true
+			},
+			"SendEmailReport": {
+				"Hide": true
+			},
+			"EmailTo": {
+				"DisplayName": "Recipient email address(es)",
+				"Hide": true
+			},
+			"CallerName": {
+				"Hide": true
+			}
+		},
+		"ParameterList": [
+			{
+				"DisplayName": "Report delivery",
+				"DisplayAfter": "IncludeOther",
+				"Select": {
+					"Options": [
+						{
+							"Display": "Output Data only",
+							"ParameterValue": "Output Data only",
+							"Customization": {
+								"Default": { "SendEmailReport": false, "CreateDownloadLink": false },
+								"Hide": [ "EmailTo", "ReportFileFormat" ]
+							}
+						},
+						{
+							"Display": "Also email the report",
+							"ParameterValue": "Also email the report",
+							"Customization": {
+								"Default": { "SendEmailReport": true, "CreateDownloadLink": false },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also create a download link",
+							"ParameterValue": "Also create a download link",
+							"Customization": {
+								"Default": { "SendEmailReport": false, "CreateDownloadLink": true },
+								"Show": [ "ReportFileFormat" ],
+								"Hide": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also email & download link",
+							"ParameterValue": "Also email & download link",
+							"Customization": {
+								"Default": { "SendEmailReport": true, "CreateDownloadLink": true },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						}
+					]
+				},
+				"Default": "Output Data only"
+			}
+		]
+	}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
@@ -197,6 +247,8 @@ param (
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" } )]
     [string]$BrandingTextColor,
 
+    [bool]$SendEmailReport = $false,
+
     [Parameter(Mandatory = $false)]
     [string]$EmailTo,
 
@@ -207,30 +259,19 @@ param (
 
 ########################################################
 #region     RJ Log Part
-##
 ########################################################
 
-# Add Caller and Version in Verbose output
-if ($CallerName) {
-    Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
-}
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.9.0"
+$Version = "1.10.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
+
+Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "IncludeWindows: $IncludeWindows" -Verbose
 Write-RjRbLog -Message "IncludeMacOS: $IncludeMacOS" -Verbose
 Write-RjRbLog -Message "IncludeIOS: $IncludeIOS" -Verbose
 Write-RjRbLog -Message "IncludeAndroid: $IncludeAndroid" -Verbose
 Write-RjRbLog -Message "IncludeOther: $IncludeOther" -Verbose
-if ($EmailTo) {
-    Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
-Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
-Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
-Write-RjRbLog -Message "BrandingFooterLink: $BrandingFooterLink" -Verbose
-Write-RjRbLog -Message "BrandingAccentColor: $BrandingAccentColor" -Verbose
-Write-RjRbLog -Message "BrandingTextColor: $BrandingTextColor" -Verbose
-    Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
-}
 Write-RjRbLog -Message "ReportFileFormat: $ReportFileFormat" -Verbose
 Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
 if ($CreateDownloadLink) {
@@ -239,33 +280,69 @@ if ($CreateDownloadLink) {
     Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
     Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
 }
+Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
+Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterLink: $BrandingFooterLink" -Verbose
+Write-RjRbLog -Message "BrandingAccentColor: $BrandingAccentColor" -Verbose
+Write-RjRbLog -Message "BrandingTextColor: $BrandingTextColor" -Verbose
+Write-RjRbLog -Message "SendEmailReport: $SendEmailReport" -Verbose
+Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
 
-#endregion
+#endregion RJ Log Part
 
 ########################################################
 #region     Parameter Validation
 ########################################################
 
-# Validate Email Addresses (only if email is requested)
-if ($EmailTo) {
-    if (-not $EmailFrom) {
-    Write-Warning -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://docs.realmjoin.com/automation/runbooks/runbook-report-settings" -Verbose
-    throw "This needs to be configured in the runbook customization. Documentation: https://docs.realmjoin.com/automation/runbooks/runbook-report-settings"
-    exit
-    }
+Write-Output ""
+Write-Output "Parameter Validation"
+Write-Output "---------------------"
+
+# Schedules created before the "Report delivery" choice existed pass a recipient but no SendEmailReport.
+# For them the recipient alone keeps the email enabled; every newer run passes SendEmailReport explicitly.
+$sendEmail = if ($PSBoundParameters.ContainsKey('SendEmailReport')) { $SendEmailReport } else { [bool]$EmailTo }
+
+# Email delivery needs a recipient
+if ($sendEmail -and -not $EmailTo) {
+    Write-Error "Email delivery is selected but no recipient email address was provided." -ErrorAction Continue
+    throw "Missing recipient email address (EmailTo)"
+}
+
+# A configured sender address is required before any mail can be sent
+if ($sendEmail -and -not $EmailFrom) {
+    Write-Error "The sender email address is missing. Configure the tenant setting RJReport.EmailSender in the runbook customization (https://docs.realmjoin.com/automation/runbooks/runbook-report-settings)." -ErrorAction Continue
+    throw "Missing email sender configuration (RJReport.EmailSender)"
 }
 
 # A target storage account is required to create a download link
 if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
-    Write-Warning -Message "A target storage account is required to create a download link. Configure the RJReport.StorageAccount.* settings in the runbook customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) or pass ResourceGroupName and StorageAccountName when starting the runbook." -Verbose
-    throw "Missing Storage Account Configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)."
+    Write-Error "A target storage account is required to create a download link. Configure the RJReport.StorageAccount.* tenant settings in the runbook customization (https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) or pass ResourceGroupName and StorageAccountName when starting the runbook." -ErrorAction Continue
+    throw "Missing storage account configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)"
 }
 
-#endregion
+# At least one platform has to be evaluated
+$enabledPlatforms = @(@(
+        @{ Name = "Windows"; Enabled = $IncludeWindows },
+        @{ Name = "macOS"; Enabled = $IncludeMacOS },
+        @{ Name = "iOS/iPadOS"; Enabled = $IncludeIOS },
+        @{ Name = "Android"; Enabled = $IncludeAndroid },
+        @{ Name = "Other"; Enabled = $IncludeOther }
+    ) | Where-Object { $_.Enabled } | ForEach-Object { $_.Name })
 
-####################################################################
-#region Function Definitions
-####################################################################
+if ($enabledPlatforms.Count -eq 0) {
+    Write-Error "All platform filters are disabled. Enable at least one platform (Windows, macOS, iOS/iPadOS, Android, Other) to generate a report." -ErrorAction Continue
+    throw "No platform selected"
+}
+
+Write-Output "Included platforms: $($enabledPlatforms -join ', ')"
+Write-Output "Parameter validation passed."
+
+#endregion Parameter Validation
+
+########################################################
+#region     Function Definitions
+########################################################
 
 function Get-GraphPagedResult {
     <#
@@ -274,31 +351,72 @@ function Get-GraphPagedResult {
 
         .DESCRIPTION
         Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
-        by following the @odata.nextLink property in the response.
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
 
         .PARAMETER Uri
         The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
-        e.g., "https://graph.microsoft.com/v1.0/applications".
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
 
         .EXAMPLE
-        PS C:\> $allApps = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/applications"
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
     #>
     param(
         [string]$Uri
     )
 
-    $allResults = @()
+    $allResults = [System.Collections.Generic.List[object]]::new()
     $nextLink = $Uri
+    $pageCount = 0
 
     do {
-        $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
-        if ($response.value) {
-            $allResults += $response.value
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
         }
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
         $nextLink = $response.'@odata.nextLink'
     } while ($nextLink)
 
-    return $allResults
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
+}
+
+function Get-PlatformLabel {
+    <#
+        .SYNOPSIS
+        Maps the operatingSystem value of a managed device to the platform label of the platform filters.
+
+        .PARAMETER OperatingSystem
+        The operatingSystem value of the managed device as reported by Intune.
+    #>
+    param(
+        [string]$OperatingSystem
+    )
+
+    switch -Wildcard ($OperatingSystem) {
+        "Windows*" { return "Windows" }
+        "macOS*" { return "macOS" }
+        "iOS*" { return "iOS/iPadOS" }
+        "iPadOS*" { return "iOS/iPadOS" }
+        "Android*" { return "Android" }
+        default { return "Other" }
+    }
 }
 
 function Test-OsIncluded {
@@ -313,184 +431,195 @@ function Test-OsIncluded {
         [string]$OperatingSystem
     )
 
-    switch -Wildcard ($OperatingSystem) {
-        "Windows*" { return $IncludeWindows }
-        "macOS*" { return $IncludeMacOS }
-        "iOS*" { return $IncludeIOS }
-        "iPadOS*" { return $IncludeIOS }
-        "Android*" { return $IncludeAndroid }
-        default { return $IncludeOther }
-    }
+    return ($enabledPlatforms -contains (Get-PlatformLabel -OperatingSystem $OperatingSystem))
 }
 
-#endregion
+#endregion Function Definitions
 
-####################################################################
-#region Connect to Microsoft Graph
-####################################################################
+########################################################
+#region     Connect Part
+########################################################
 
+Write-Output ""
+Write-Output "Connecting to Microsoft Graph..."
 try {
-    Write-Verbose "Connecting to Microsoft Graph..."
     Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
-    Write-Verbose "Successfully connected to Microsoft Graph."
 }
 catch {
-    Write-Error "Failed to connect to Microsoft Graph: $($_.Exception.Message)"
+    Write-Error "Failed to connect to Microsoft Graph. Ensure the managed identity is configured correctly. Error: $($_.Exception.Message)" -ErrorAction Continue
     throw
 }
 
-# Get tenant information for email report
-$tenantInfo = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization" -Method Get
-$TenantDisplayName = $tenantInfo.value[0].displayName
-
-# Connect RJ RunbookHelper for email reporting
-Write-Output "Graph connection for RJ RunbookHelper..."
-Connect-RjRbGraph
-
-#endregion
-
-####################################################################
-#region Get all devices without registered users
-####################################################################
-
-$enabledPlatforms = @(
-    @{ Name = "Windows"; Enabled = $IncludeWindows },
-    @{ Name = "macOS"; Enabled = $IncludeMacOS },
-    @{ Name = "iOS/iPadOS"; Enabled = $IncludeIOS },
-    @{ Name = "Android"; Enabled = $IncludeAndroid },
-    @{ Name = "Other"; Enabled = $IncludeOther }
-) | Where-Object { $_.Enabled } | ForEach-Object { $_.Name }
-
-if (($enabledPlatforms | Measure-Object).Count -eq 0) {
-    throw "All platform filters are disabled. Enable at least one platform (Windows, macOS, iOS/iPadOS, Android, Other) to generate a report."
+# Tenant display name for the email (needs Organization.Read.All)
+$tenantDisplayName = "Unknown Tenant"
+try {
+    $organizationResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization?`$select=displayName" -Method GET -ErrorAction Stop
+    if ($organizationResponse.value -and $organizationResponse.value.Count -gt 0) {
+        $tenantDisplayName = $organizationResponse.value[0].displayName
+    }
+    Write-Output "Tenant: $tenantDisplayName"
+}
+catch {
+    Write-RjRbLog -Message "Failed to retrieve tenant information: $($_.Exception.Message)" -Verbose
 }
 
+#endregion Connect Part
+
+########################################################
+#region     Data Collection
+########################################################
+
 Write-Output ""
-Write-Output "Getting all managed devices and filter those without a primary user..."
-Write-Output "Included platforms: $($enabledPlatforms -join ', ')"
-Write-Output "Note: This may take a while depending on the number of devices in your tenant."
+Write-Output "Get Intune Managed Devices"
+Write-Output "---------------------"
+Write-Output "Retrieving all managed devices. This may take a while in large tenants."
 
-# Define the base URI for the Microsoft Graph API to retrieve managed devices and the properties to select.
-$baseURI = 'https://graph.microsoft.com/beta/deviceManagement/managedDevices'
+# Only the properties the report needs; the primary user and the platform are evaluated locally.
+$devicesUri = "https://graph.microsoft.com/beta/deviceManagement/managedDevices?`$select=id,azureADDeviceId,lastSyncDateTime,deviceName,operatingSystem,userId"
 
-$selectQuery = '?$select='
-$selectProperties = "id,azureADDeviceId,lastSyncDateTime,deviceName,operatingSystem,userId"
+try {
+    $allDevices = @(Get-GraphPagedResult -Uri $devicesUri)
+}
+catch {
+    Write-Error "Failed to retrieve the Intune managed devices from Microsoft Graph: $($_.Exception.Message)" -ErrorAction Continue
+    throw "Unable to retrieve the Intune device inventory"
+}
 
-$raw = @()
-$uri = $baseURI + $selectQuery + $selectProperties
+Write-Output "Retrieved $($allDevices.Count) managed device(s)."
+Write-RjRbLog -Message "Managed devices retrieved: $($allDevices.Count)" -Verbose
 
-do {
-    $response = Invoke-MgGraphRequest -Uri $uri -Method Get -ErrorAction Stop
-    $raw += $response.value | Where-Object {
-        # Filter devices where userId is null or empty and the platform is included
+#endregion Data Collection
+
+########################################################
+#region     Data Processing
+########################################################
+
+# Devices without a primary user on one of the selected platforms, sorted by name
+$devicesWithoutPrimaryUser = @($allDevices | Where-Object {
         [string]::IsNullOrEmpty($_.userId) -and (Test-OsIncluded -OperatingSystem $_.operatingSystem)
-    }
-    $uri = $response.'@odata.nextLink'
-} while ($null -ne $uri)
+    } | ForEach-Object {
+        [PSCustomObject]@{
+            ObjectId         = $_.id
+            DeviceId         = $_.azureADDeviceId
+            DisplayName      = $_.deviceName
+            OperatingSystem  = $_.operatingSystem
+            LastSyncDateTime = $_.lastSyncDateTime
+        }
+    } | Sort-Object -Property DisplayName)
 
-#endregion
+$totalDevices = $devicesWithoutPrimaryUser.Count
 
-####################################################################
-#region Output Devices Without Primary User
-####################################################################
-
-Write-Output "Prepared output for devices without a primary user..."
-# Create a PSCustomObject with all devices without registered users, and prettify the output
-$devicesWithoutPrimaryUser = $raw | ForEach-Object {
-    [PSCustomObject]@{
-        ObjectId         = $_.id
-        DeviceId         = $_.azureADDeviceId
-        DisplayName      = $_.deviceName
-        OperatingSystem  = $_.operatingSystem
-        LastSyncDateTime = $_.lastSyncDateTime
-    }
+$platformCounts = [ordered]@{}
+foreach ($platform in $enabledPlatforms) { $platformCounts[$platform] = 0 }
+foreach ($device in $devicesWithoutPrimaryUser) {
+    $platformLabel = Get-PlatformLabel -OperatingSystem $device.OperatingSystem
+    if ($platformCounts.Contains($platformLabel)) { $platformCounts[$platformLabel]++ }
 }
 
 Write-Output ""
-Write-Output "Devices without a primary user:"
-if ($($devicesWithoutPrimaryUser | Measure-Object).Count -gt 0) {
-    $devicesWithoutPrimaryUser | Sort-Object DisplayName | Format-Table -AutoSize
+Write-Output "Summary"
+Write-Output "---------------------"
+Write-Output "Managed devices retrieved: $($allDevices.Count)"
+Write-Output "Devices without a primary user: $totalDevices"
+foreach ($platform in $platformCounts.Keys) {
+    Write-Output "  $($platform): $($platformCounts[$platform])"
 }
-else {
-    Write-Output "No devices without a primary user were found."
-}
+Write-RjRbLog -Message "Devices without a primary user: $totalDevices" -Verbose
 
-#endregion
+#endregion Data Processing
 
-####################################################################
-#region Report File Export (if needed for download link or email)
-####################################################################
+########################################################
+#region     Report File Export
+########################################################
 
-$totalDevices = ($devicesWithoutPrimaryUser | Measure-Object).Count
 $reportFiles = @()
-$xlsxPath = $null
-$tempDir = $null
-$fileName_Details = "devices-without-primary-user.csv"
-$fileName_DetailsXlsx = "devices-without-primary-user.xlsx"
+$csvFile = $null
+$xlsxFile = $null
+$tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "DevicesWithoutPrimaryUser_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+$csvFileName = "devices-without-primary-user.csv"
+$xlsxFileName = "devices-without-primary-user.xlsx"
 
-if (($CreateDownloadLink -or $EmailTo) -and $totalDevices -gt 0) {
-    $tempDir = New-Item -ItemType Directory -Path ([System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "DevicesWithoutPrimaryUser_$(Get-Date -Format 'yyyyMMdd_HHmmss')"))
-
-    $sortedDevices = $devicesWithoutPrimaryUser | Sort-Object DisplayName
+# Report files are only needed when they are attached to an email and/or uploaded for a download link
+if (($sendEmail -or $CreateDownloadLink) -and $totalDevices -gt 0) {
+    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+    Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
 
     if ($ReportFileFormat -ne 'XLSX only') {
-        $csvPath = Join-Path $tempDir.FullName $fileName_Details
-        $sortedDevices | Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
-        $reportFiles += $csvPath
-        Write-Output "Exported devices to: $csvPath"
+        $csvFile = Join-Path $tempDir $csvFileName
+        $devicesWithoutPrimaryUser | Export-Csv -Path $csvFile -NoTypeInformation -Encoding UTF8
+        $reportFiles += $csvFile
+        Write-RjRbLog -Message "Exported $totalDevices row(s) to CSV: $csvFile" -Verbose
     }
 
     if ($ReportFileFormat -ne 'CSV only') {
-        $xlsxPath = Join-Path $tempDir.FullName $fileName_DetailsXlsx
-        $sortedDevices | Export-RjRbXlsx -Path $xlsxPath -WorksheetName "Devices"
-        $reportFiles += $xlsxPath
-        Write-Output "Exported devices to: $xlsxPath"
+        $xlsxFile = Join-Path $tempDir $xlsxFileName
+        $devicesWithoutPrimaryUser | Export-RjRbXlsx -Path $xlsxFile -WorksheetName 'Devices without primary user'
+        $reportFiles += $xlsxFile
+        Write-RjRbLog -Message "Exported $totalDevices row(s) to XLSX: $xlsxFile" -Verbose
     }
+
+    Write-Output ""
+    Write-Output "Report file export completed: $($reportFiles.Count) file(s) created."
+}
+elseif ($totalDevices -eq 0) {
+    Write-RjRbLog -Message "No devices without a primary user - skipping the report file export" -Verbose
 }
 
-#endregion
+#endregion Report File Export
 
-####################################################################
-#region Upload / Download Link (if CreateDownloadLink is enabled)
-####################################################################
+########################################################
+#region     Upload / Download Link
+########################################################
 
 if ($CreateDownloadLink) {
     Write-Output ""
-    if ($totalDevices -gt 0) {
-        Write-Output "Uploading report to storage account..."
+    if ($reportFiles.Count -gt 0) {
+        Write-Output "## Uploading the report file(s) to the storage account..."
 
         # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
         # transparently connects the managed identity if no Az context is active.
-        $uploadResults = Publish-RjRbFilesToStorageContainer `
-            -FilePaths $reportFiles `
-            -ContainerName $ContainerName `
-            -ResourceGroupName $ResourceGroupName `
-            -StorageAccountName $StorageAccountName `
-            -LinkExpiryDays $LinkExpiryDays `
-            -AddBlobNamePrefix $true
+        try {
+            $uploadResults = Publish-RjRbFilesToStorageContainer `
+                -FilePaths $reportFiles `
+                -ContainerName $ContainerName `
+                -ResourceGroupName $ResourceGroupName `
+                -StorageAccountName $StorageAccountName `
+                -LinkExpiryDays $LinkExpiryDays `
+                -AddBlobNamePrefix $true
+        }
+        catch {
+            Write-Error "Failed to upload the report file(s) to storage account '$StorageAccountName': $($_.Exception.Message). The managed identity needs the 'Storage Account Contributor' role on the storage account." -ErrorAction Continue
+            throw
+        }
 
         foreach ($uploadResult in $uploadResults) {
+            Write-Output ""
             Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
             $uploadResult.SASLink | Out-String | Write-Output
         }
     }
     else {
-        Write-Output "No devices without a primary user were found - skipping report upload."
+        Write-Output "No devices without a primary user were found - skipping the upload."
     }
 }
 
-#endregion
+#endregion Upload / Download Link
 
-####################################################################
-#region Send Email Report (if EmailTo is provided)
-####################################################################
+########################################################
+#region     Send Email Report
+########################################################
 
-if ($EmailTo) {
+$brandingMailParams = @{}
+
+if (-not $sendEmail) {
+    Write-RjRbLog -Message "Email delivery not selected - email report skipped" -Verbose
+}
+else {
     Write-Output ""
-    Write-Output "Preparing email report..."
+    Write-Output "## Sending the email report to '$EmailTo'..."
 
     if ($totalDevices -eq 0) {
-        # No devices without primary user found - send positive message without attachments
+        # No devices without primary user found - send a positive message without attachments
         $markdownContent = @"
 # Devices Without Primary User Report
 
@@ -502,9 +631,9 @@ if ($EmailTo) {
 
 ## What does this mean
 
-- ✅ **Complete User Assignment**: All managed devices in Intune have a primary user assigned
-- ✅ **Proper Device Enrollment**: Devices are correctly enrolled and associated with users
-- ✅ **Good Device Management**: Your device inventory is well-maintained
+- **Complete User Assignment**: All managed devices in Intune have a primary user assigned
+- **Proper Device Enrollment**: Devices are correctly enrolled and associated with users
+- **Good Device Management**: Your device inventory is well-maintained
 
 ---
 
@@ -514,7 +643,6 @@ if ($EmailTo) {
         $emailSubject = "Devices Without Primary User Report - No Issues Found"
     }
     else {
-        # Devices without primary user found - prepare detailed report (CSV was already exported above)
         $markdownContent = @"
 # Devices Without Primary User Report
 
@@ -536,7 +664,7 @@ Devices without a primary user assignment can cause:
 
 ## Detailed Device Information
 
-The attached CSV and Excel files contain the following information for each device:
+The attached report file(s) contain the following information for each device:
 
 | Column | Description |
 |--------|-------------|
@@ -574,8 +702,8 @@ For devices that are legitimately shared:
 
 The following file(s) are attached to this email:
 
-$(if ($ReportFileFormat -ne 'XLSX only') { "- **$($fileName_Details)**: Complete list of all devices without primary user assignment (CSV)" })
-$(if ($ReportFileFormat -ne 'CSV only') { "- **$($fileName_DetailsXlsx)**: The same list as a formatted Excel workbook" })
+$(if ($csvFile) { "- **$($csvFileName)**: Complete list of all devices without primary user assignment (CSV)" })
+$(if ($xlsxFile) { "- **$($xlsxFileName)**: The same list as a formatted Excel workbook" })
 
 ---
 
@@ -586,13 +714,7 @@ $(if ($ReportFileFormat -ne 'CSV only') { "- **$($fileName_DetailsXlsx)**: The s
         $emailSubject = "Devices Without Primary User Report - $totalDevices Device(s) Found"
     }
 
-    # Send email (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSVs are too large)
-    # Resolve optional tenant email branding once per run (never fails the send)
-    $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
-
-    try {
-        if ($($reportFiles | Measure-Object).Count -gt 0) {
-            $markdownFallback = @"
+    $markdownFallback = @"
 # Devices Without Primary User Report
 
 ## Executive Summary
@@ -603,53 +725,86 @@ This report identifies **$($totalDevices) managed device(s)** in your Intune ten
 
 ## Data Files
 
-- **$($fileName_DetailsXlsx)**: Formatted Excel workbook with the complete device list
+- **$($xlsxFileName)**: Formatted Excel workbook with the complete device list
 
-> **Note:** The CSV file was not attached because it exceeds the email attachment size limit. The Excel workbook contains the complete data. Enable the download link option (CreateDownloadLink) to obtain the raw CSV file.
+> **Note:** The CSV file was not attached because it exceeds the email attachment size limit. The Excel workbook contains the complete data. Enable the download link option to obtain the raw CSV file.
 
 ---
 
 *This email was automatically generated. Please do not reply to this email.*
 "@
 
-            $guardParams = @{
-                EmailFrom         = $EmailFrom
-                EmailTo           = $EmailTo
-                Subject           = $emailSubject
-                MarkdownContent   = $markdownContent
-                TenantDisplayName = $TenantDisplayName
-                ReportVersion     = $Version
-            }
-            if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxPath) {
-                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
-            }
-            else {
-                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
-            }
+    # Resolve optional tenant email branding once per run (never fails the send)
+    $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
+
+    try {
+        $emailParams = @{
+            EmailFrom             = $EmailFrom
+            EmailTo               = $EmailTo
+            Subject               = $emailSubject
+            MarkdownContent       = $markdownContent
+            TenantDisplayName     = $tenantDisplayName
+            ReportVersion         = $Version
+            UseNativeGraphRequest = $true
+        }
+        if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFile -and (Test-Path -Path $xlsxFile)) {
+            # Both formats attached; the built-in size guard falls back to the workbook alone if the pair is too large
+            Send-RjRbReportEmail @emailParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFile) -FallbackMarkdownContent $markdownFallback
+        }
+        elseif ($reportFiles.Count -gt 0) {
+            Send-RjRbReportEmail @emailParams @brandingMailParams -Attachments $reportFiles
         }
         else {
-            Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $TenantDisplayName -ReportVersion $Version @brandingMailParams
-            Write-Output "Email report sent successfully to: $EmailTo"
+            Send-RjRbReportEmail @emailParams @brandingMailParams
         }
+        Write-RjRbLog -Message "Email report sent to: $EmailTo" -Verbose
+        Write-Output "Email report sent to '$EmailTo'."
     }
     catch {
-        Write-Error "Failed to send email report: $($_.Exception.Message)"
+        Write-Error "Failed to send the email report: $($_.Exception.Message)" -ErrorAction Continue
         throw
-    }
-    finally {
-        # Cleanup temporary files
-        if ($reportFiles.Count -gt 0 -and $tempDir) {
-            Remove-Item -Path $tempDir.FullName -Recurse -Force -ErrorAction SilentlyContinue
-            Write-Verbose "Cleaned up temporary files"
-        }
     }
 }
 
-#endregion
+#endregion Send Email Report
 
-####################################################################
-#region Cleanup
-####################################################################
+########################################################
+#region     Structured Output (Output Data)
+########################################################
+
+# Emitted last so the tables are not interleaved with the progress output. Every table has its own
+# RjTableTitle marker and its own column set; a marker is only written when rows follow it.
+Write-Output ""
+
+$summaryValues = [ordered]@{
+    "Managed devices retrieved"    = $allDevices.Count
+    "Devices without primary user" = $totalDevices
+}
+foreach ($platform in $platformCounts.Keys) {
+    $summaryValues["$platform without primary user"] = $platformCounts[$platform]
+}
+$summaryRows = @(foreach ($metric in $summaryValues.Keys) {
+        [PSCustomObject]@{ Metric = $metric; Value = [int]$summaryValues[$metric] }
+    })
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
+Write-Output $summaryRows
+
+if ($totalDevices -gt 0) {
+    $deviceRows = @($devicesWithoutPrimaryUser | Select-Object -Property DisplayName, OperatingSystem, LastSyncDateTime, DeviceId, ObjectId)
+    Write-Output "$totalDevices device(s) without a primary user"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Devices without primary user" })
+    Write-Output $deviceRows
+}
+else {
+    Write-Output "No devices without a primary user were found."
+}
+
+#endregion Structured Output (Output Data)
+
+########################################################
+#region     Cleanup
+########################################################
+
 # Remove the downloaded branding images, if any were used.
 foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
     if ($brandingMailParams -and $brandingMailParams.ContainsKey($brandingKey) -and (Test-Path -LiteralPath $brandingMailParams[$brandingKey])) {
@@ -657,10 +812,16 @@ foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
     }
 }
 
-# Cleanup temporary files (covers the download-link-only case; the email path cleans up in its finally block)
-if ($tempDir -and (Test-Path $tempDir.FullName)) {
-    Remove-Item -Path $tempDir.FullName -Recurse -Force -ErrorAction SilentlyContinue
-    Write-Verbose "Cleaned up temporary files"
+if ($tempDir -and (Test-Path -Path $tempDir)) {
+    Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+    Write-RjRbLog -Message "Removed temporary export directory: $tempDir" -Verbose
 }
 
-#endregion
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
+
+Write-Output ""
+Write-Output "Done!"
+
+#endregion Cleanup

@@ -311,7 +311,7 @@ catch {
     throw
 }
 
-# Connect to RealmJoin RunbookHelper (required for Send-RjReportEmail if EmailTo is provided)
+# Connect to RealmJoin RunbookHelper (required for Send-RjRbReportEmail if EmailTo is provided)
 if ($EmailTo) {
     Write-RjRbLog -Message "Email notification requested - connecting to RJ RunbookHelper Graph..." -Verbose
     try {
@@ -820,14 +820,14 @@ $(if ($approvalSummary.FailedApprovals -gt 0) { "- **Failed Approvals:** $($appr
                 ReportVersion     = $Version
             }
             if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxPath) {
-                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
+                Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
             }
             else {
-                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
+                Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
             }
         }
         else {
-            Send-RjReportEmail `
+            Send-RjRbReportEmail `
                 -EmailFrom $EmailFrom `
                 -EmailTo $EmailTo `
                 -Subject $emailSubject `

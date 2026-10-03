@@ -1,177 +1,204 @@
 <#
-    .SYNOPSIS
-    Report expiring client secrets and certificates of app registrations
+	.SYNOPSIS
+	Report expiring client secrets and certificates of app registrations
 
-    .DESCRIPTION
-    Lists the client secrets and certificates of application registrations with their expiry dates. You can limit the list to credentials that expire within a chosen number of days and to certain applications. The credential list also appears as a sortable table in the portal's output. Nothing is changed. The report can be sent by email or provided as a download link.
+	.DESCRIPTION
+	Lists the client secrets and certificates of application registrations with their expiry dates. The list can be limited to credentials that expire within a chosen number of days and to certain applications. The results also appear as tables in the Output Data tab of the run. Nothing is changed. The report can be sent by email or provided as a download link.
 
-    .PARAMETER listOnlyExpiring
-    Only credentials that expire within the given number of days, or all credentials.
+	.PARAMETER listOnlyExpiring
+	Only credentials that expire within "Days before expiry", or all credentials including expired ones.
 
-    .PARAMETER Days
-    Credentials that expire within this many days count as about to expire.
+	.PARAMETER Days
+	Credentials that expire within this many days count as about to expire. Not used when all credentials are listed.
 
-    .PARAMETER CredentialType
-    Client secrets, certificates, or both.
+	.PARAMETER CredentialType
+	Client secrets, certificates, or both.
 
-    .PARAMETER ApplicationIds
-    Limits the report to these application (client) IDs, separated by commas. Leave empty for all applications.
+	.PARAMETER ApplicationIds
+	Limits the report to these application (client) IDs, separated by commas. Leave empty for all applications.
 
-    .PARAMETER ReportFileFormat
-    Deliver the report as CSV, as an Excel workbook, or both.
+	.PARAMETER ReportFileFormat
+	Deliver the report as CSV, as an Excel workbook, or both.
 
-    .PARAMETER CreateDownloadLink
-    Also upload the report and return a download link that expires after a few days.
+	.PARAMETER CreateDownloadLink
+	Also upload the report and return a download link that expires after a few days.
 
-    .PARAMETER ContainerName
-    Storage container the report files are uploaded to. Set per runbook.
+	.PARAMETER ContainerName
+	Storage container the report files are uploaded to. Set per runbook.
 
-    .PARAMETER ResourceGroupName
-    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
+	.PARAMETER ResourceGroupName
+	Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
-    .PARAMETER StorageAccountName
-    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
+	.PARAMETER StorageAccountName
+	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
-    .PARAMETER LinkExpiryDays
-    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
+	.PARAMETER LinkExpiryDays
+	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
-    .PARAMETER EmailTo
-    Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
+	.PARAMETER SendEmailReport
+	Send the report to the recipient email address.
 
-    .PARAMETER EmailFrom
-    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
+	.PARAMETER EmailTo
+	Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
-    .PARAMETER BrandingHeaderImageUrl
-    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
+	.PARAMETER EmailFrom
+	Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
-    .PARAMETER BrandingFooterImageUrl
-    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
+	.PARAMETER BrandingHeaderImageUrl
+	Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
-    .PARAMETER BrandingFooterLink
-    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
+	.PARAMETER BrandingFooterImageUrl
+	Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
-    .PARAMETER BrandingAccentColor
-    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
+	.PARAMETER BrandingFooterLink
+	Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
-    .PARAMETER BrandingTextColor
-    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
+	.PARAMETER BrandingAccentColor
+	Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
+	.PARAMETER BrandingTextColor
+	Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
-    .INPUTS
-    RunbookCustomization: {
-        "Parameters": {
-            "CallerName": {
-                "Hide": true
-            },
-            "listOnlyExpiring": {
-                "DisplayName": "Which credentials?",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "List only credentials about to expire",
-                            "Value": true
-                        },
-                        {
-                            "Display": "List all credentials",
-                            "Value": false,
-                            "Customization": {
-                                "Hide": [
-                                    "Days"
-                                ]
-                            }
-                        }
-                    ]
-                }
-            },
-            "Days": {
-                "DisplayName": "Days before expiry"
-            },
-            "CredentialType": {
-                "DisplayName": "Credential type",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Client secrets and certificates",
-                            "Value": "Both"
-                        },
-                        {
-                            "Display": "Client secrets only",
-                            "Value": "ClientSecrets"
-                        },
-                        {
-                            "Display": "Certificates only",
-                            "Value": "Certificates"
-                        }
-                    ]
-                }
-            },
-            "ApplicationIds": {
-                "DisplayName": "Application IDs"
-            },
-            "ReportFileFormat": {
-                "DisplayName": "Report file format",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "CSV & XLSX",
-                            "ParameterValue": "CSV & XLSX"
-                        },
-                        {
-                            "Display": "CSV only",
-                            "ParameterValue": "CSV only"
-                        },
-                        {
-                            "Display": "XLSX only",
-                            "ParameterValue": "XLSX only"
-                        }
-                    ],
-                    "ShowValue": false
-                }
-            },
-            "CreateDownloadLink": {
-                "DisplayName": "Create a download link?",
-                "SelectSimple": {
-                    "Yes - upload report and return a download link": true,
-                    "No - do not create a download link": false
-                }
-            },
-            "ContainerName": {
-                "Hide": true
-            },
-            "ResourceGroupName": {
-                "Hide": true
-            },
-            "StorageAccountName": {
-                "Hide": true
-            },
-            "LinkExpiryDays": {
-                "Hide": true
-            },
-            "EmailTo": {
-                "DisplayName": "Recipient email address(es)"
-            },
-            "BrandingHeaderImageUrl": {
-                "Hide": true
-            },
-            "BrandingFooterImageUrl": {
-                "Hide": true
-            },
-            "BrandingFooterLink": {
-                "Hide": true
-            },
-            "BrandingAccentColor": {
-                "Hide": true
-            },
-            "BrandingTextColor": {
-                "Hide": true
-            },
-            "EmailFrom": {
-                "Hide": true
-            }
-        }
-    }
+	.PARAMETER CallerName
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
+
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"CallerName": {
+				"Hide": true
+			},
+			"listOnlyExpiring": {
+				"DisplayName": "Which credentials?",
+				"Select": {
+					"Options": [
+						{
+							"Display": "List only credentials about to expire",
+							"ParameterValue": true
+						},
+						{
+							"Display": "List all credentials",
+							"ParameterValue": false,
+							"Customization": {
+								"Hide": [ "Days" ]
+							}
+						}
+					]
+				}
+			},
+			"Days": {
+				"DisplayName": "Days before expiry"
+			},
+			"CredentialType": {
+				"DisplayName": "Credential type",
+				"SelectSimple": {
+					"Client secrets and certificates": "Both",
+					"Client secrets only": "ClientSecrets",
+					"Certificates only": "Certificates"
+				}
+			},
+			"ApplicationIds": {
+				"DisplayName": "Application IDs"
+			},
+			"ReportFileFormat": {
+				"DisplayName": "Report file format",
+				"Hide": true,
+				"SelectSimple": {
+					"CSV & XLSX": "CSV & XLSX",
+					"CSV only": "CSV only",
+					"XLSX only": "XLSX only"
+				}
+			},
+			"CreateDownloadLink": {
+				"DisplayName": "Create a download link?",
+				"Hide": true
+			},
+			"ContainerName": {
+				"Hide": true
+			},
+			"ResourceGroupName": {
+				"Hide": true
+			},
+			"StorageAccountName": {
+				"Hide": true
+			},
+			"LinkExpiryDays": {
+				"Hide": true
+			},
+			"SendEmailReport": {
+				"DisplayName": "Send the report by email?",
+				"Hide": true
+			},
+			"EmailTo": {
+				"DisplayName": "Recipient email address(es)",
+				"Hide": true
+			},
+			"BrandingHeaderImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterLink": {
+				"Hide": true
+			},
+			"BrandingAccentColor": {
+				"Hide": true
+			},
+			"BrandingTextColor": {
+				"Hide": true
+			},
+			"EmailFrom": {
+				"Hide": true
+			}
+		},
+		"ParameterList": [
+			{
+				"DisplayName": "Report delivery",
+				"DisplayAfter": "ApplicationIds",
+				"Select": {
+					"Options": [
+						{
+							"Display": "Output Data only",
+							"ParameterValue": "Output Data only",
+							"Customization": {
+								"Default": { "SendEmailReport": false, "CreateDownloadLink": false },
+								"Hide": [ "EmailTo", "ReportFileFormat" ]
+							}
+						},
+						{
+							"Display": "Also email the report",
+							"ParameterValue": "Also email the report",
+							"Customization": {
+								"Default": { "SendEmailReport": true, "CreateDownloadLink": false },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also create a download link",
+							"ParameterValue": "Also create a download link",
+							"Customization": {
+								"Default": { "SendEmailReport": false, "CreateDownloadLink": true },
+								"Show": [ "ReportFileFormat" ],
+								"Hide": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also email & download link",
+							"ParameterValue": "Also email & download link",
+							"Customization": {
+								"Default": { "SendEmailReport": true, "CreateDownloadLink": true },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						}
+					]
+				},
+				"Default": "Output Data only"
+			}
+		]
+	}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
@@ -207,6 +234,8 @@ param(
     [ValidateRange(1, 3650)]
     [int]$LinkExpiryDays = 6,
 
+    [bool]$SendEmailReport = $false,
+
     [Parameter(Mandatory = $false)]
     [string]$EmailTo,
 
@@ -235,15 +264,11 @@ param(
 
 ########################################################
 #region     RJ Log Part
-##
 ########################################################
 
-# Add Caller and Version in Verbose output
-if ($CallerName) {
-    Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
-}
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.4.1"
+$Version = "1.5.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "List Only Expiring: $listOnlyExpiring" -Verbose
 Write-RjRbLog -Message "Days before expiry: $Days" -Verbose
@@ -251,15 +276,14 @@ Write-RjRbLog -Message "Credential Type: $CredentialType" -Verbose
 Write-RjRbLog -Message "Application IDs: $ApplicationIds" -Verbose
 
 # Add Parameter in Verbose output
-if ($EmailTo) {
-    Write-RjRbLog -Message "Email To: $EmailTo" -Verbose
-    Write-RjRbLog -Message "Email From: $EmailFrom" -Verbose
+Write-RjRbLog -Message "SendEmailReport: $SendEmailReport" -Verbose
+Write-RjRbLog -Message "Email To: $EmailTo" -Verbose
+Write-RjRbLog -Message "Email From: $EmailFrom" -Verbose
 Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
 Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
 Write-RjRbLog -Message "BrandingFooterLink: $BrandingFooterLink" -Verbose
 Write-RjRbLog -Message "BrandingAccentColor: $BrandingAccentColor" -Verbose
 Write-RjRbLog -Message "BrandingTextColor: $BrandingTextColor" -Verbose
-}
 Write-RjRbLog -Message "ReportFileFormat: $ReportFileFormat" -Verbose
 Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
 if ($CreateDownloadLink) {
@@ -269,28 +293,39 @@ if ($CreateDownloadLink) {
     Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
 }
 
-#endregion
+#endregion RJ Log Part
 
 ########################################################
 #region     Parameter Validation
 ########################################################
 
-# Validate Email Addresses (only if email is requested)
-if ($EmailTo) {
-    if (-not $EmailFrom) {
-        Write-Warning -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://docs.realmjoin.com/automation/runbooks/runbook-report-settings" -Verbose
-        throw "This needs to be configured in the runbook customization. Documentation: https://docs.realmjoin.com/automation/runbooks/runbook-report-settings"
-        exit
-    }
+Write-Output ""
+Write-Output "Parameter Validation"
+Write-Output "---------------------"
+
+# Schedules created before the "Report delivery" choice existed pass a recipient but no SendEmailReport.
+# For them the recipient alone keeps the email enabled; every newer run passes SendEmailReport explicitly.
+$sendEmail = if ($PSBoundParameters.ContainsKey('SendEmailReport')) { $SendEmailReport } else { [bool]$EmailTo }
+
+# Email delivery needs a recipient
+if ($sendEmail -and -not $EmailTo) {
+    Write-Error "Email delivery is selected but no recipient email address was provided." -ErrorAction Continue
+    throw "Missing recipient email address (EmailTo)"
+}
+
+# A configured sender address is required before any mail can be sent
+if ($sendEmail -and -not $EmailFrom) {
+    Write-Error "The sender email address is missing. Configure the tenant setting RJReport.EmailSender in the runbook customization (https://docs.realmjoin.com/automation/runbooks/runbook-report-settings)." -ErrorAction Continue
+    throw "Missing email sender configuration (RJReport.EmailSender)"
 }
 
 # A target storage account is required to create a download link
 if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
-    Write-Warning -Message "A target storage account is required to create a download link. Configure the RJReport.StorageAccount.* settings in the runbook customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) or pass ResourceGroupName and StorageAccountName when starting the runbook." -Verbose
-    throw "Missing Storage Account Configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)."
+    Write-Error "A target storage account is required to create a download link. Configure the RJReport.StorageAccount.* tenant settings in the runbook customization (https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) or pass ResourceGroupName and StorageAccountName when starting the runbook." -ErrorAction Continue
+    throw "Missing storage account configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)"
 }
 
-#endregion
+#endregion Parameter Validation
 
 ########################################################
 #region     Function Definitions
@@ -303,80 +338,92 @@ function Get-GraphPagedResult {
 
         .DESCRIPTION
         Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
-        by following the @odata.nextLink property in the response.
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
 
         .PARAMETER Uri
         The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
-        e.g., "https://graph.microsoft.com/v1.0/applications".
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
 
         .EXAMPLE
-        PS C:\> $allApps = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/applications"
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
     #>
     param(
         [string]$Uri
     )
 
-    $allResults = @()
+    $allResults = [System.Collections.Generic.List[object]]::new()
     $nextLink = $Uri
+    $pageCount = 0
 
     do {
-        $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
-        if ($response.value) {
-            $allResults += $response.value
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
         }
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
         $nextLink = $response.'@odata.nextLink'
     } while ($nextLink)
 
-    return $allResults
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
 }
 
-#endregion
+#endregion Function Definitions
 
 ########################################################
-#region     Connect and Initialize
+#region     Connect Part
 ########################################################
 
+Write-Output ""
 Write-Output "Connecting to Microsoft Graph..."
-Connect-MgGraph -Identity -NoWelcome
-
-Write-Output "Getting basic tenant information..."
-# Get tenant information
-$tenant = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization" -Method GET
-if ($tenant.value -and (($(($tenant.value) | Measure-Object).Count) -gt 0)) {
-    $tenant = $tenant.value[0]
+try {
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
 }
-elseif ($tenant.'@odata.context') {
-    # Single tenant response
-    $tenant = $tenant
-}
-else {
-    Write-Error "Could not retrieve tenant information" -ErrorAction Continue
-    throw "Could not retrieve tenant information"
+catch {
+    Write-Error "Failed to connect to Microsoft Graph. Ensure the managed identity is configured correctly. Error: $($_.Exception.Message)" -ErrorAction Continue
+    throw
 }
 
-$tenantDisplayName = $tenant.displayName
-$tenantId = $tenant.id
+# Tenant display name for the email subject and body (needs Organization.Read.All, never fails the run)
+$tenantId = (Get-MgContext).TenantId
+$tenantDisplayName = "Unknown Tenant"
+try {
+    $organizationResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization?`$select=displayName" -Method GET -ErrorAction Stop
+    if ($organizationResponse.value -and $organizationResponse.value.Count -gt 0) {
+        $tenantDisplayName = $organizationResponse.value[0].displayName
+    }
+    Write-Output "Tenant: $tenantDisplayName"
+}
+catch {
+    Write-RjRbLog -Message "Failed to retrieve tenant information: $($_.Exception.Message)" -Verbose
+}
 
 Write-RjRbLog -Message "Tenant: $tenantDisplayName ($tenantId)" -Verbose
 
-# Connect RJ RunbookHelper for email reporting
-Write-Output "Graph connection for RJ RunbookHelper..."
-Connect-RjRbGraph
-
-Write-Output "Preparing temporary file paths for the report files..."
-# Create temporary file paths for the report files
-$tempDir = (Get-Location).Path
-$credsCsv = Join-Path $tempDir "AppCredsExpiry_$(Get-Date -Format 'yyyyMMdd_HHmmss').csv"
-$credsXlsx = [System.IO.Path]::ChangeExtension($credsCsv, 'xlsx')
-
-
-#endregion
+#endregion Connect Part
 
 ########################################################
-#region     Retrieve Application Credentials
+#region     Data Collection
 ########################################################
 
-Write-Output "Retrieving application credentials..."
+Write-Output ""
+Write-Output "Retrieving application credentials (this may take a while in large tenants)..."
 
 # Split the comma-separated application IDs into an array and trim whitespace
 $ApplicationIdArray = @()
@@ -396,6 +443,12 @@ Write-RjRbLog -Message "Processing Client Secrets: $processClientSecrets" -Verbo
 $apps = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/applications"
 
 Write-Output "Found $((($(($apps) | Measure-Object).Count))) applications/service principals"
+
+#endregion Data Collection
+
+########################################################
+#region     Data Processing
+########################################################
 
 $date = Get-Date
 $credentialResults = @()
@@ -502,84 +555,11 @@ foreach ($app in $apps) {
 
 Write-RjRbLog -Message "Processed $((($(($credentialResults) | Measure-Object).Count))) credentials" -Verbose
 
-#endregion
-
-########################################################
-#region     Report File Export (if needed for download link or email)
-########################################################
-
-Write-Output "Exporting credentials..."
-
-# Shared name of the Excel worksheet and the Output Data table; Excel limits sheet names to 31 characters
-$tableTitle = if ($listOnlyExpiring) { "Expiring within $Days days" } else { "All application credentials" }
-
-$reportFiles = @()
-$xlsxPath = $null
-
-if ((($(($credentialResults) | Measure-Object).Count) -gt 0)) {
-    # Sort credentials by days left (ascending) to show most critical first
-    $credentialResults = $credentialResults | Sort-Object DaysLeft
-
-    # The report files are only needed when they will be uploaded and/or attached to an email
-    if ($EmailTo -or $CreateDownloadLink) {
-        if ($ReportFileFormat -ne 'XLSX only') {
-            $credentialResults | Export-Csv -Path $credsCsv -NoTypeInformation -Encoding UTF8
-            $reportFiles += $credsCsv
-            Write-Verbose "Exported application credentials to: $credsCsv"
-        }
-
-        if ($ReportFileFormat -ne 'CSV only') {
-            $xlsxPath = $credsXlsx
-            $credentialResults | Export-RjRbXlsx -Path $xlsxPath -WorksheetName $tableTitle
-            $reportFiles += $xlsxPath
-            Write-Verbose "Exported application credentials to: $xlsxPath"
-        }
-    }
-}
-else {
-    Write-RjRbLog -Message "No credentials found matching the filter criteria" -Verbose
-}
-
-#endregion
-
-########################################################
-#region     Upload / Download Link (if CreateDownloadLink is enabled)
-########################################################
-
-if ($CreateDownloadLink) {
-    Write-Output ""
-    if ($reportFiles.Count -gt 0) {
-        Write-Output "Uploading report to storage account..."
-
-        # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
-        # transparently connects the managed identity if no Az context is active.
-        $uploadResults = Publish-RjRbFilesToStorageContainer `
-            -FilePaths $reportFiles `
-            -ContainerName $ContainerName `
-            -ResourceGroupName $ResourceGroupName `
-            -StorageAccountName $StorageAccountName `
-            -LinkExpiryDays $LinkExpiryDays `
-            -AddBlobNamePrefix $true
-
-        foreach ($uploadResult in $uploadResults) {
-            Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
-            $uploadResult.SASLink | Out-String | Write-Output
-        }
-    }
-    else {
-        Write-Output "No credentials found matching the filter criteria - skipping report upload."
-    }
-}
-
-#endregion
-
-########################################################
-#region     Prepare Email Content
-########################################################
-
-Write-Output "Preparing email content..."
+# Sort credentials by days left (ascending) to show most critical first
+$credentialResults = @($credentialResults | Sort-Object DaysLeft)
 
 # Generate statistics
+$appsInScope = @($apps | Where-Object { -not $ApplicationIdArray -or ($_.appId -in $ApplicationIdArray) }).Count
 $totalCreds = (($(($credentialResults) | Measure-Object).Count))
 $expiredCreds = (($(($credentialResults | Where-Object { $_.IsExpired }) | Measure-Object).Count))
 $criticalCreds = (($(($credentialResults | Where-Object { $_.Status -eq "Critical" -and -not $_.IsExpired }) | Measure-Object).Count))
@@ -588,10 +568,115 @@ $validCreds = (($(($credentialResults | Where-Object { $_.Status -eq "Valid" }) 
 $secrets = (($(($credentialResults | Where-Object { $_.CredentialType -eq "Client Secret" }) | Measure-Object).Count))
 $certs = (($(($credentialResults | Where-Object { $_.CredentialType -eq "Certificate" }) | Measure-Object).Count))
 
-# Create markdown content for email - different content based on mode
+Write-Output ""
+Write-Output "Summary"
+Write-Output "---------------------"
+Write-Output "Applications evaluated: $appsInScope"
+Write-Output "Credentials listed: $totalCreds (client secrets: $secrets, certificates: $certs)"
 if ($listOnlyExpiring) {
-    # EXPIRING MODE: Focus on urgency and action items (NO EXPIRED CREDENTIALS)
-    $markdownContent = @"
+    Write-Output "Expiring within $Days days - Critical (7 days or less): $criticalCreds | Warning: $warningCreds"
+}
+else {
+    Write-Output "Status - Expired: $expiredCreds | Critical: $criticalCreds | Warning: $warningCreds | Valid: $validCreds"
+}
+
+#endregion Data Processing
+
+########################################################
+#region     Report File Export
+########################################################
+
+# Name of the Excel worksheet with the complete credential list; Excel limits sheet names to 31 characters
+$tableTitle = if ($listOnlyExpiring) { "Expiring within $Days days" } else { "All application credentials" }
+
+$reportFiles = @()
+$xlsxPath = $null
+$tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "AppCredsExpiry_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+$credsCsv = Join-Path $tempDir "AppCredsExpiry_$(Get-Date -Format 'yyyyMMdd_HHmmss').csv"
+$credsXlsx = [System.IO.Path]::ChangeExtension($credsCsv, 'xlsx')
+
+# Report files are only needed when they are attached to an email and/or uploaded for a download link
+if (($sendEmail -or $CreateDownloadLink) -and $totalCreds -gt 0) {
+    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+    Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
+
+    if ($ReportFileFormat -ne 'XLSX only') {
+        $credentialResults | Export-Csv -Path $credsCsv -NoTypeInformation -Encoding UTF8
+        $reportFiles += $credsCsv
+        Write-RjRbLog -Message "Exported application credentials to: $credsCsv" -Verbose
+    }
+
+    if ($ReportFileFormat -ne 'CSV only') {
+        $xlsxPath = $credsXlsx
+        $credentialResults | Export-RjRbXlsx -Path $xlsxPath -WorksheetName $tableTitle
+        $reportFiles += $xlsxPath
+        Write-RjRbLog -Message "Exported application credentials to: $xlsxPath" -Verbose
+    }
+
+    Write-Output ""
+    Write-Output "Report file export completed: $($reportFiles.Count) file(s) created."
+}
+elseif ($totalCreds -eq 0) {
+    Write-RjRbLog -Message "No credentials found matching the filter criteria - skipping the report file export" -Verbose
+}
+
+#endregion Report File Export
+
+########################################################
+#region     Upload / Download Link
+########################################################
+
+if ($CreateDownloadLink) {
+    Write-Output ""
+    if ($reportFiles.Count -gt 0) {
+        Write-Output "## Uploading the report file(s) to the storage account..."
+
+        # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
+        # transparently connects the managed identity if no Az context is active.
+        try {
+            $uploadResults = Publish-RjRbFilesToStorageContainer `
+                -FilePaths $reportFiles `
+                -ContainerName $ContainerName `
+                -ResourceGroupName $ResourceGroupName `
+                -StorageAccountName $StorageAccountName `
+                -LinkExpiryDays $LinkExpiryDays `
+                -AddBlobNamePrefix $true
+        }
+        catch {
+            Write-Error "Failed to upload the report file(s) to storage account '$StorageAccountName': $($_.Exception.Message). The managed identity needs the 'Storage Account Contributor' role on the storage account." -ErrorAction Continue
+            throw
+        }
+
+        foreach ($uploadResult in $uploadResults) {
+            Write-Output ""
+            Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
+            $uploadResult.SASLink | Out-String | Write-Output
+        }
+    }
+    else {
+        Write-Output "No credentials found matching the filter criteria - skipping the upload."
+    }
+}
+
+#endregion Upload / Download Link
+
+########################################################
+#region     Send Email Report
+########################################################
+
+$brandingMailParams = @{}
+
+if (-not $sendEmail) {
+    Write-RjRbLog -Message "Email delivery not selected - email report skipped" -Verbose
+}
+else {
+    Write-Output ""
+    Write-Output "## Sending the email report to '$EmailTo'..."
+
+    # Create markdown content for email - different content based on mode
+    if ($listOnlyExpiring) {
+        # EXPIRING MODE: Focus on urgency and action items (NO EXPIRED CREDENTIALS)
+        $markdownContent = @"
 # Application Credentials Expiry Alert
 
 **Notice:** This report shows credentials that are **expiring within $Days days**.
@@ -671,10 +756,10 @@ The attached report file(s) contain complete information for all $($totalCreds) 
 
 *This email was automatically generated. Please do not reply to this email.*
 "@
-}
-else {
-    # ALL MODE: Comprehensive overview with statistics
-    $markdownContent = @"
+    }
+    else {
+        # ALL MODE: Comprehensive overview with statistics
+        $markdownContent = @"
 # Application Credentials Overview Report
 
 This is a comprehensive inventory of **all** Application Registration credentials in your tenant.
@@ -808,17 +893,7 @@ The attached report file(s) contain the complete inventory of all $($totalCreds)
 
 *This email was automatically generated. Please do not reply to this email.*
 "@
-}
-
-#endregion
-
-########################################################
-#region     Send Email Report (if EmailTo is provided)
-########################################################
-
-if ($EmailTo) {
-    Write-Output "Sending email report..."
-    Write-Output ""
+    }
 
     $dateStr = Get-Date -Format 'yyyy-MM-dd'
     $emailSubject = if ($listOnlyExpiring) {
@@ -828,13 +903,23 @@ if ($EmailTo) {
         "Application Credentials Inventory - $($tenantDisplayName) - $($dateStr)"
     }
 
-    # Send email (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSV is too large)
     # Resolve optional tenant email branding once per run (never fails the send)
     $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
 
+    # Send email (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSV is too large)
     try {
+        $emailParams = @{
+            EmailFrom             = $EmailFrom
+            EmailTo               = $EmailTo
+            Subject               = $emailSubject
+            MarkdownContent       = $markdownContent
+            TenantDisplayName     = $tenantDisplayName
+            ReportVersion         = $Version
+            UseNativeGraphRequest = $true
+        }
         if ($reportFiles.Count -gt 0) {
-            $markdownFallback = @"
+            if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxPath -and (Test-Path -Path $xlsxPath)) {
+                $markdownFallback = @"
 # $(if ($listOnlyExpiring) { "Application Credentials Expiry Alert" } else { "Application Credentials Overview Report" })
 
 ## Summary
@@ -851,80 +936,87 @@ if ($EmailTo) {
 
 - **$(Split-Path $xlsxPath -Leaf)**: Formatted Excel workbook with the complete credential list
 
-> **Note:** The CSV file was not attached because it exceeds the email attachment size limit. The Excel workbook contains the complete data. Enable the download link option (CreateDownloadLink) to obtain the raw CSV file.
+> **Note:** The CSV file was not attached because it exceeds the email attachment size limit. The Excel workbook contains the complete data. Enable the download link option to obtain the raw CSV file.
 
 ---
 
 *This email was automatically generated. Please do not reply to this email.*
 "@
 
-            $guardParams = @{
-                EmailFrom         = $EmailFrom
-                EmailTo           = $EmailTo
-                Subject           = $emailSubject
-                MarkdownContent   = $markdownContent
-                TenantDisplayName = $tenantDisplayName
-                ReportVersion     = $Version
-            }
-            if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxPath) {
-                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
+                Send-RjRbReportEmail @emailParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
             }
             else {
-                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
+                Send-RjRbReportEmail @emailParams @brandingMailParams -Attachments $reportFiles
             }
         }
         else {
-            Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version @brandingMailParams
-            Write-RjRbLog -Message "Email report sent successfully to: $($EmailTo)" -Verbose
+            Send-RjRbReportEmail @emailParams @brandingMailParams
         }
-
-        if ($listOnlyExpiring) {
-            Write-Output "Application Credentials Expiry Alert sent successfully"
-            Write-Output "Mode: EXPIRING ONLY (≤$($Days) days)"
-        }
-        else {
-            Write-Output "Application Credentials Inventory Report sent successfully"
-            Write-Output "Mode: ALL CREDENTIALS"
-        }
-
-        Write-Output "Recipient: $($EmailTo)"
-        Write-Output "Total Credentials: $($totalCreds)"
-
-        if ($listOnlyExpiring) {
-            Write-Output "Requiring Attention: Expired: $($expiredCreds) | Critical: $($criticalCreds) | Warning: $($warningCreds)"
-        }
-        else {
-            Write-Output "Status: Valid: $($validCreds) | Warning: $($warningCreds) | Critical: $($criticalCreds) | Expired: $($expiredCreds)"
-        }
+        Write-RjRbLog -Message "Email report sent successfully to: $($EmailTo)" -Verbose
+        Write-Output "Email report sent to '$EmailTo'."
     }
     catch {
         Write-Error "Failed to send email report: $($_.Exception.Message)" -ErrorAction Continue
-        throw "Failed to send email report: $($_.Exception.Message)"
+        throw
     }
 }
 
-#endregion
+#endregion Send Email Report
 
 ########################################################
 #region     Structured Output (Output Data)
 ########################################################
 
 # Emitted last on purpose: email sending and the storage upload can take a while with many credentials.
+# Every table has its own RjTableTitle marker; a marker is only written when rows follow it.
 Write-Output ""
-if ($totalCreds -gt 0) {
-    Write-Output "Listing $totalCreds credential(s):"
-    Write-Output ([PSCustomObject]@{ RjTableTitle = $tableTitle })
-    Write-Output $credentialResults
+
+$warningLabel = if (-not $listOnlyExpiring) { "Warning (8 to 30 days)" } elseif ($Days -ge 8) { "Warning (8 to $Days days)" } else { "Warning" }
+$summaryRows = [System.Collections.Generic.List[object]]::new()
+$summaryRows.Add([PSCustomObject]@{ Metric = "Applications evaluated"; Value = [int]$appsInScope })
+$summaryRows.Add([PSCustomObject]@{ Metric = "Credentials listed"; Value = [int]$totalCreds })
+$summaryRows.Add([PSCustomObject]@{ Metric = "Client secrets"; Value = [int]$secrets })
+$summaryRows.Add([PSCustomObject]@{ Metric = "Certificates"; Value = [int]$certs })
+if (-not $listOnlyExpiring) {
+    $summaryRows.Add([PSCustomObject]@{ Metric = "Expired"; Value = [int]$expiredCreds })
 }
-else {
-    Write-Output "No credentials found matching the filter criteria."
+$summaryRows.Add([PSCustomObject]@{ Metric = "Critical (7 days or less)"; Value = [int]$criticalCreds })
+$summaryRows.Add([PSCustomObject]@{ Metric = $warningLabel; Value = [int]$warningCreds })
+if (-not $listOnlyExpiring) {
+    $summaryRows.Add([PSCustomObject]@{ Metric = "Valid (more than 30 days)"; Value = [int]$validCreds })
+}
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
+Write-Output $summaryRows.ToArray()
+
+# One table per status, most urgent first. Expired and valid credentials only exist when all credentials are listed.
+$credentialColumns = @("AppDisplayName", "AppId", "CredentialType", "CredentialName", "EndDateTime", "DaysLeft")
+$statusTables = @(
+    @{ Enabled = (-not $listOnlyExpiring); Title = "Expired credentials"; Status = "Expired"; Columns = $credentialColumns }
+    @{ Enabled = $true; Title = "Critical credentials"; Status = "Critical"; Columns = $credentialColumns }
+    @{ Enabled = $true; Title = "Warning credentials"; Status = "Warning"; Columns = $credentialColumns }
+    @{ Enabled = (-not $listOnlyExpiring); Title = "Valid credentials"; Status = "Valid"; Columns = @("AppDisplayName", "AppId", "CredentialType", "CredentialName", "StartDateTime", "EndDateTime", "DaysLeft") }
+)
+
+foreach ($table in $statusTables) {
+    if (-not $table.Enabled) { continue }
+    $statusRows = @($credentialResults | Where-Object { $_.Status -eq $table.Status })
+    $total = $statusRows.Count
+    if ($total -gt 0) {
+        Write-Output "$total credential(s): $($table.Title)"
+        Write-Output ([PSCustomObject]@{ RjTableTitle = $table.Title })
+        Write-Output @($statusRows | Select-Object -Property $table.Columns)
+    }
+    else {
+        Write-Output "No credentials: $($table.Title)."
+    }
 }
 
-#endregion
+#endregion Structured Output (Output Data)
 
 ########################################################
 #region     Cleanup
 ########################################################
+
 # Remove the downloaded branding images, if any were used.
 foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
     if ($brandingMailParams -and $brandingMailParams.ContainsKey($brandingKey) -and (Test-Path -LiteralPath $brandingMailParams[$brandingKey])) {
@@ -932,19 +1024,17 @@ foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
     }
 }
 
-# Clean up temporary report files (covers the email and the download-link-only case)
-foreach ($reportFilePath in $reportFiles) {
-    if ($reportFilePath -and (Test-Path -Path $reportFilePath)) {
-        try {
-            Remove-Item -Path $reportFilePath -Force -ErrorAction Stop
-            Write-RjRbLog -Message "Cleaned up report file: $($reportFilePath)" -Verbose
-        }
-        catch {
-            Write-RjRbLog -Message "Warning: Could not clean up report file '$($reportFilePath)': $($_.Exception.Message)" -Verbose
-        }
-    }
+# Remove the temporary report files (email and download link)
+if ($tempDir -and (Test-Path -Path $tempDir)) {
+    Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+    Write-RjRbLog -Message "Removed temporary export directory: $tempDir" -Verbose
 }
 
-Write-RjRbLog -Message "Application Credentials Expiry email report completed successfully" -Verbose
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
 
-#endregion
+Write-Output ""
+Write-Output "Done!"
+
+#endregion Cleanup

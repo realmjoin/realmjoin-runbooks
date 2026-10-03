@@ -160,8 +160,8 @@
 							}
 						},
 						{
-							"Display": "Email report",
-							"ParameterValue": "Email report",
+							"Display": "Also email the report",
+							"ParameterValue": "Also email the report",
 							"Customization": {
 								"Default": { "SendEmailReport": true, "CreateDownloadLink": false },
 								"Show": [ "EmailTo", "ReportFileFormat" ],
@@ -169,8 +169,8 @@
 							}
 						},
 						{
-							"Display": "Report download link",
-							"ParameterValue": "Report download link",
+							"Display": "Also create a download link",
+							"ParameterValue": "Also create a download link",
 							"Customization": {
 								"Default": { "SendEmailReport": false, "CreateDownloadLink": true },
 								"Show": [ "ReportFileFormat" ],
@@ -178,8 +178,8 @@
 							}
 						},
 						{
-							"Display": "Email report & download link",
-							"ParameterValue": "Email report & download link",
+							"Display": "Also email & download link",
+							"ParameterValue": "Also email & download link",
 							"Customization": {
 								"Default": { "SendEmailReport": true, "CreateDownloadLink": true },
 								"Show": [ "EmailTo", "ReportFileFormat" ],
@@ -913,7 +913,6 @@ else {
 
 # Emitted last so the tables are not interleaved with the progress output. Every table has its own
 # RjTableTitle marker and its own column set; a marker is only written when rows follow it.
-$maxTableRows = 250
 Write-Output ""
 
 $summaryValues = [ordered]@{
@@ -936,9 +935,9 @@ $tableColumns += "Note"
 
 if ($IncludePrivateChannels) {
     if ($privateRows.Count -gt 0) {
-        Write-Output "$($privateRows.Count) private channel(s)$(if ($privateRows.Count -gt $maxTableRows) { ", showing the first $maxTableRows" }):"
+        Write-Output "$($privateRows.Count) private channel(s):"
         Write-Output ([PSCustomObject]@{ RjTableTitle = "Private channels" })
-        Write-Output @($privateRows | Select-Object -First $maxTableRows -Property $tableColumns)
+        Write-Output @($privateRows | Select-Object -Property $tableColumns)
     }
     else {
         Write-Output "No private channels."
@@ -947,9 +946,9 @@ if ($IncludePrivateChannels) {
 
 if ($IncludeSharedChannels) {
     if ($sharedRows.Count -gt 0) {
-        Write-Output "$($sharedRows.Count) shared channel(s)$(if ($sharedRows.Count -gt $maxTableRows) { ", showing the first $maxTableRows" }):"
+        Write-Output "$($sharedRows.Count) shared channel(s):"
         Write-Output ([PSCustomObject]@{ RjTableTitle = "Shared channels" })
-        Write-Output @($sharedRows | Select-Object -First $maxTableRows -Property $tableColumns)
+        Write-Output @($sharedRows | Select-Object -Property $tableColumns)
     }
     else {
         Write-Output "No shared channels."
@@ -959,7 +958,7 @@ if ($IncludeSharedChannels) {
 if ($noOwnerRows.Count -gt 0) {
     Write-Output "$($noOwnerRows.Count) channel(s) without owner:"
     Write-Output ([PSCustomObject]@{ RjTableTitle = "Channels without owner" })
-    Write-Output @($noOwnerRows | Select-Object -First $maxTableRows -Property Team, Channel, ChannelType, Archived, MemberCount, ExternalCount)
+    Write-Output @($noOwnerRows | Select-Object -Property Team, Channel, ChannelType, Archived, MemberCount, ExternalCount)
 }
 else {
     Write-Output "No channels without owner."

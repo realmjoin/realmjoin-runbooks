@@ -190,8 +190,8 @@
 							}
 						},
 						{
-							"Display": "Email report",
-							"ParameterValue": "Email report",
+							"Display": "Also email the report",
+							"ParameterValue": "Also email the report",
 							"Customization": {
 								"Default": { "SendEmailReport": true, "CreateDownloadLink": false },
 								"Show": [ "EmailTo", "ReportFileFormat" ],
@@ -199,8 +199,8 @@
 							}
 						},
 						{
-							"Display": "Report download link",
-							"ParameterValue": "Report download link",
+							"Display": "Also create a download link",
+							"ParameterValue": "Also create a download link",
 							"Customization": {
 								"Default": { "SendEmailReport": false, "CreateDownloadLink": true },
 								"Show": [ "ReportFileFormat" ],
@@ -208,8 +208,8 @@
 							}
 						},
 						{
-							"Display": "Email report & download link",
-							"ParameterValue": "Email report & download link",
+							"Display": "Also email & download link",
+							"ParameterValue": "Also email & download link",
 							"Customization": {
 								"Default": { "SendEmailReport": true, "CreateDownloadLink": true },
 								"Show": [ "EmailTo", "ReportFileFormat" ],
@@ -1088,7 +1088,6 @@ else {
 
 # Emitted last so the tables are not interleaved with the progress output. Every table has its own
 # RjTableTitle marker and its own column set; a marker is only written when rows follow it.
-$maxTableRows = 250
 Write-Output ""
 
 $summaryValues = [ordered]@{
@@ -1109,9 +1108,9 @@ $summaryRows = @(foreach ($metric in $summaryValues.Keys) {
 Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
 Write-Output $summaryRows
 
-$agentStaleRows = @($results | Where-Object { $_.Status -eq "AgentStale" } | Select-Object -First $maxTableRows -Property DeviceName, PrimaryUser, IntuneLastSync, RealmJoinLastSeen, RealmJoinLastSeenUser, GapDays)
+$agentStaleRows = @($results | Where-Object { $_.Status -eq "AgentStale" } | Select-Object -Property DeviceName, PrimaryUser, IntuneLastSync, RealmJoinLastSeen, RealmJoinLastSeenUser, GapDays)
 if ($agentStaleRows.Count -gt 0) {
-    Write-Output "$agentStaleCount device(s) with a stale RealmJoin agent$(if ($agentStaleCount -gt $maxTableRows) { ", showing the first $maxTableRows" }):"
+    Write-Output "$agentStaleCount device(s) with a stale RealmJoin agent:"
     Write-Output ([PSCustomObject]@{ RjTableTitle = "Agent stale" })
     Write-Output $agentStaleRows
 }
@@ -1119,9 +1118,9 @@ elseif ($IncludeAgentStale) {
     Write-Output "No devices with a stale RealmJoin agent."
 }
 
-$neverSeenRows = @($results | Where-Object { $_.Status -eq "NeverSeen" } | Select-Object -First $maxTableRows -Property DeviceName, PrimaryUser, IntuneLastSync)
+$neverSeenRows = @($results | Where-Object { $_.Status -eq "NeverSeen" } | Select-Object -Property DeviceName, PrimaryUser, IntuneLastSync)
 if ($neverSeenRows.Count -gt 0) {
-    Write-Output "$neverSeenCount device(s) never seen by RealmJoin$(if ($neverSeenCount -gt $maxTableRows) { ", showing the first $maxTableRows" }):"
+    Write-Output "$neverSeenCount device(s) never seen by RealmJoin:"
     Write-Output ([PSCustomObject]@{ RjTableTitle = "Never seen by RealmJoin" })
     Write-Output $neverSeenRows
 }
@@ -1129,9 +1128,9 @@ elseif ($IncludeNeverSeen) {
     Write-Output "No devices that RealmJoin has never seen."
 }
 
-$missingInRjRows = @($results | Where-Object { $_.Status -eq "MissingInRealmJoin" } | Select-Object -First $maxTableRows -Property DeviceName, PrimaryUser, IntuneLastSync)
+$missingInRjRows = @($results | Where-Object { $_.Status -eq "MissingInRealmJoin" } | Select-Object -Property DeviceName, PrimaryUser, IntuneLastSync)
 if ($missingInRjRows.Count -gt 0) {
-    Write-Output "$missingInRjCount device(s) missing in RealmJoin$(if ($missingInRjCount -gt $maxTableRows) { ", showing the first $maxTableRows" }):"
+    Write-Output "$missingInRjCount device(s) missing in RealmJoin:"
     Write-Output ([PSCustomObject]@{ RjTableTitle = "Missing in RealmJoin" })
     Write-Output $missingInRjRows
 }
@@ -1139,9 +1138,9 @@ elseif ($IncludeMissingInRealmJoin) {
     Write-Output "No devices missing in RealmJoin."
 }
 
-$missingInIntuneRows = @($results | Where-Object { $_.Status -eq "MissingInIntune" } | Select-Object -First $maxTableRows -Property AzureAdDeviceId, IntuneDeviceId, RealmJoinLastSeen, RealmJoinLastSeenUser)
+$missingInIntuneRows = @($results | Where-Object { $_.Status -eq "MissingInIntune" } | Select-Object -Property AzureAdDeviceId, IntuneDeviceId, RealmJoinLastSeen, RealmJoinLastSeenUser)
 if ($missingInIntuneRows.Count -gt 0) {
-    Write-Output "$missingInIntuneCount device(s) missing in Intune$(if ($missingInIntuneCount -gt $maxTableRows) { ", showing the first $maxTableRows" }):"
+    Write-Output "$missingInIntuneCount device(s) missing in Intune:"
     Write-Output ([PSCustomObject]@{ RjTableTitle = "Missing in Intune" })
     Write-Output $missingInIntuneRows
 }

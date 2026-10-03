@@ -26,6 +26,9 @@
 	.PARAMETER LinkExpiryDays
 	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
+	.PARAMETER SendEmailReport
+	Send the report to the recipient email address.
+
 	.PARAMETER EmailTo
 	Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
@@ -53,9 +56,6 @@
 	.INPUTS
 	RunbookCustomization: {
 		"Parameters": {
-			"EmailTo": {
-				"DisplayName": "Recipient email address(es)"
-			},
 			"InputJson": {
 				"Hide": true,
 				"DefaultValue": [
@@ -74,6 +74,7 @@
 			},
 			"ReportFileFormat": {
 				"DisplayName": "Report file format",
+				"Hide": true,
 				"Select": {
 					"Options": [
 						{
@@ -93,11 +94,7 @@
 				}
 			},
 			"CreateDownloadLink": {
-				"DisplayName": "Create a download link?",
-				"SelectSimple": {
-					"Yes - upload report and return a download link": true,
-					"No - do not create a download link": false
-				}
+				"Hide": true
 			},
 			"ContainerName": {
 				"Hide": true
@@ -109,6 +106,13 @@
 				"Hide": true
 			},
 			"LinkExpiryDays": {
+				"Hide": true
+			},
+			"SendEmailReport": {
+				"Hide": true
+			},
+			"EmailTo": {
+				"DisplayName": "Recipient email address(es)",
 				"Hide": true
 			},
 			"EmailFrom": {
@@ -132,7 +136,53 @@
 			"CallerName": {
 				"Hide": true
 			}
-		}
+		},
+		"ParameterList": [
+			{
+				"DisplayName": "Report delivery",
+				"DisplayAfter": "InputJson",
+				"Select": {
+					"Options": [
+						{
+							"Display": "Output Data only",
+							"ParameterValue": "Output Data only",
+							"Customization": {
+								"Default": { "SendEmailReport": false, "CreateDownloadLink": false },
+								"Hide": [ "EmailTo", "ReportFileFormat" ]
+							}
+						},
+						{
+							"Display": "Also email the report",
+							"ParameterValue": "Also email the report",
+							"Customization": {
+								"Default": { "SendEmailReport": true, "CreateDownloadLink": false },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also create a download link",
+							"ParameterValue": "Also create a download link",
+							"Customization": {
+								"Default": { "SendEmailReport": false, "CreateDownloadLink": true },
+								"Show": [ "ReportFileFormat" ],
+								"Hide": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also email & download link",
+							"ParameterValue": "Also email & download link",
+							"Customization": {
+								"Default": { "SendEmailReport": true, "CreateDownloadLink": true },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						}
+					]
+				},
+				"Default": "Output Data only"
+			}
+		]
 	}
 #>
 
@@ -160,6 +210,8 @@ param (
     [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" })]
     [ValidateRange(1, 3650)]
     [int]$LinkExpiryDays = 6,
+
+    [bool]$SendEmailReport = $false,
 
     [Parameter(Mandatory = $false)]
     [string]$EmailTo,
@@ -189,28 +241,14 @@ param (
 
 ########################################################
 #region     RJ Log Part
-#
 ########################################################
 
-# Add Caller and Version in Verbose output
-if ($CallerName) {
-    Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
-}
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.3.0"
+$Version = "1.4.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
-# Add Parameter in Verbose output
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
-if ($EmailTo) {
-    Write-RjRbLog -Message "Email To: $EmailTo" -Verbose
-    Write-RjRbLog -Message "Email From: $EmailFrom" -Verbose
-    Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
-    Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
-    Write-RjRbLog -Message "BrandingFooterLink: $BrandingFooterLink" -Verbose
-Write-RjRbLog -Message "BrandingAccentColor: $BrandingAccentColor" -Verbose
-Write-RjRbLog -Message "BrandingTextColor: $BrandingTextColor" -Verbose
-}
 Write-RjRbLog -Message "InputJson: $($InputJson.Length) characters" -Verbose
 Write-RjRbLog -Message "ReportFileFormat: $ReportFileFormat" -Verbose
 Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
@@ -220,36 +258,77 @@ if ($CreateDownloadLink) {
     Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
     Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
 }
+Write-RjRbLog -Message "SendEmailReport: $SendEmailReport" -Verbose
+Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
+Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
+Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
+Write-RjRbLog -Message "BrandingFooterLink: $BrandingFooterLink" -Verbose
+Write-RjRbLog -Message "BrandingAccentColor: $BrandingAccentColor" -Verbose
+Write-RjRbLog -Message "BrandingTextColor: $BrandingTextColor" -Verbose
 
 #endregion RJ Log Part
 
-
 ########################################################
 #region     Parameter Validation
-#
 ########################################################
 
-# Validate Email Addresses (only if email is requested)
-if ($EmailTo) {
-    if (-not $EmailFrom) {
-        Write-Warning -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://docs.realmjoin.com/automation/runbooks/runbook-report-settings" -Verbose
-        throw "This needs to be configured in the runbook customization. Documentation: https://docs.realmjoin.com/automation/runbooks/runbook-report-settings"
-        exit
-    }
+Write-Output ""
+Write-Output "Parameter Validation"
+Write-Output "---------------------"
+
+# Schedules created before the "Report delivery" choice existed pass a recipient but no SendEmailReport.
+# For them the recipient alone keeps the email enabled; every newer run passes SendEmailReport explicitly.
+$sendEmail = if ($PSBoundParameters.ContainsKey('SendEmailReport')) { $SendEmailReport } else { [bool]$EmailTo }
+
+# Email delivery needs a recipient
+if ($sendEmail -and -not $EmailTo) {
+    Write-Error "Email delivery is selected but no recipient email address was provided." -ErrorAction Continue
+    throw "Missing recipient email address (EmailTo)"
+}
+
+# A configured sender address is required before any mail can be sent
+if ($sendEmail -and -not $EmailFrom) {
+    Write-Error "The sender email address is missing. Configure the tenant setting RJReport.EmailSender in the runbook customization (https://docs.realmjoin.com/automation/runbooks/runbook-report-settings)." -ErrorAction Continue
+    throw "Missing email sender configuration (RJReport.EmailSender)"
 }
 
 # A target storage account is required to create a download link
 if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
-    Write-Warning -Message "A target storage account is required to create a download link. Configure the RJReport.StorageAccount.* settings in the runbook customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) or pass ResourceGroupName and StorageAccountName when starting the runbook." -Verbose
-    throw "Missing Storage Account Configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)."
+    Write-Error "A target storage account is required to create a download link. Configure the RJReport.StorageAccount.* tenant settings in the runbook customization (https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) or pass ResourceGroupName and StorageAccountName when starting the runbook." -ErrorAction Continue
+    throw "Missing storage account configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)"
 }
+
+# Convert the license configuration (JSON string or already deserialized array) to PowerShell objects
+try {
+    if ($InputJson -is [string]) {
+        Write-RjRbLog -Message "InputJson is a string, converting from JSON..." -Verbose
+        $inputData = $InputJson | ConvertFrom-Json -Depth 10
+    }
+    elseif ($InputJson -is [array] -or $InputJson -is [System.Collections.ArrayList]) {
+        Write-RjRbLog -Message "InputJson is already an array/object" -Verbose
+        $inputData = $InputJson
+    }
+    else {
+        Write-RjRbLog -Message "InputJson type: $($InputJson.GetType().Name)" -Verbose
+        # Try to convert anyway
+        $inputData = $InputJson | ConvertFrom-Json -Depth 10
+    }
+    $inputData = @($inputData)
+}
+catch {
+    Write-Error -Message "Failed to parse the license configuration (InputJson): $($_.Exception.Message)" -ErrorAction Continue
+    Write-RjRbLog -Message "InputJson content: $InputJson" -Verbose
+    throw "Invalid JSON format in InputJson parameter. Please ensure the parameter contains a valid JSON array."
+}
+
+Write-Output "Loaded $($inputData.Count) license configuration(s)."
+Write-Output "Parameter validation passed."
 
 #endregion Parameter Validation
 
-
 ########################################################
 #region     Function Definitions
-#
 ########################################################
 
 function Get-GraphPagedResult {
@@ -259,31 +338,50 @@ function Get-GraphPagedResult {
 
         .DESCRIPTION
         Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
-        by following the @odata.nextLink property in the response.
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
 
         .PARAMETER Uri
         The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
-        e.g., "https://graph.microsoft.com/v1.0/applications".
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
 
         .EXAMPLE
-        PS C:\> $allApps = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/applications"
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
     #>
     param(
         [string]$Uri
     )
 
-    $allResults = @()
+    $allResults = [System.Collections.Generic.List[object]]::new()
     $nextLink = $Uri
+    $pageCount = 0
 
     do {
-        $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
-        if ($response.value) {
-            $allResults += $response.value
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
         }
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
         $nextLink = $response.'@odata.nextLink'
     } while ($nextLink)
 
-    return $allResults
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
 }
 
 function Test-LicenseThreshold {
@@ -372,85 +470,62 @@ function Test-LicenseThreshold {
 #endregion Function Definitions
 
 ########################################################
-#region     Connect and Initialize
-#
-########################################################
-
-Write-Output "Connecting to Microsoft Graph..."
-Connect-MgGraph -Identity -NoWelcome
-
-Write-Output "Getting basic tenant information..."
-# Get tenant information
-$tenant = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization" -Method GET
-if ($tenant.value -and $tenant.value.Count -gt 0) {
-    $tenant = $tenant.value[0]
-}
-elseif ($tenant.'@odata.context') {
-    # Single object response (already extracted)
-}
-else {
-    throw "Unable to retrieve tenant information"
-}
-
-$tenantDisplayName = $tenant.displayName
-$tenantId = $tenant.id
-$tenantDomain = ($tenant.verifiedDomains | Where-Object { $_.isDefault -eq $true }).name
-
-Write-RjRbLog -Message "Tenant: $tenantDisplayName ($tenantId)" -Verbose
-
-# Connect RJ RunbookHelper for email reporting
-Write-Output "Graph connection for RJ RunbookHelper..."
-Connect-RjRbGraph
-
-Write-Output "Retrieving all licenses..."
-$allLicenses = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/subscribedSkus"
-Write-Output "Found $($allLicenses.Count) total licenses in the tenant"
-
-Write-Output "Parsing license configuration..."
-# Convert JSON based input to PowerShell object
-try {
-    # Handle different input types
-    if ($InputJson -is [string]) {
-        Write-RjRbLog -Message "InputJson is a string, converting from JSON..." -Verbose
-        $inputData = $InputJson | ConvertFrom-Json -Depth 10
-    }
-    elseif ($InputJson -is [array] -or $InputJson -is [System.Collections.ArrayList]) {
-        Write-RjRbLog -Message "InputJson is already an array/object" -Verbose
-        $inputData = $InputJson
-    }
-    else {
-        Write-RjRbLog -Message "InputJson type: $($InputJson.GetType().Name)" -Verbose
-        # Try to convert anyway
-        $inputData = $InputJson | ConvertFrom-Json -Depth 10
-    }
-
-    Write-Output "Loaded $($inputData.Count) license configuration(s) from InputJson"
-}
-catch {
-    Write-Error -Message "Failed to parse InputJson: $_" -ErrorAction Continue
-    Write-RjRbLog -Message "InputJson content: $InputJson" -Verbose
-    throw "Invalid JSON format in InputJson parameter. Please ensure the parameter contains valid JSON array."
-}
-
-Write-Output "Preparing temporary directory for CSV files..."
-# Create temporary directory for CSV files
-$tempDir = Join-Path (Get-Location).Path "LicenseReport_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
-New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
-Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
-
-#endregion Connect and Initialize
-
-
-########################################################
-#region     Data Collection
-#
+#region     Connect Part
 ########################################################
 
 Write-Output ""
-Write-Output "Checking license thresholds..."
+Write-Output "Connecting to Microsoft Graph..."
+try {
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+}
+catch {
+    Write-Error "Failed to connect to Microsoft Graph. Ensure the managed identity is configured correctly. Error: $($_.Exception.Message)" -ErrorAction Continue
+    throw
+}
 
-# Track violations and errors
+# Tenant display name and default domain for the email subject and body (needs Organization.Read.All)
+$tenantDisplayName = "Unknown Tenant"
+$tenantDomain = ""
+try {
+    $organizationResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization?`$select=id,displayName,verifiedDomains" -Method GET -ErrorAction Stop
+    if ($organizationResponse.value -and $organizationResponse.value.Count -gt 0) {
+        $tenant = $organizationResponse.value[0]
+        $tenantDisplayName = $tenant.displayName
+        $tenantDomain = ($tenant.verifiedDomains | Where-Object { $_.isDefault -eq $true }).name
+        Write-RjRbLog -Message "Tenant: $tenantDisplayName ($($tenant.id))" -Verbose
+    }
+    Write-Output "Tenant: $tenantDisplayName"
+}
+catch {
+    Write-RjRbLog -Message "Failed to retrieve tenant information: $($_.Exception.Message)" -Verbose
+}
+
+#endregion Connect Part
+
+########################################################
+#region     Data Collection
+########################################################
+
+Write-Output ""
+Write-Output "Get Licenses"
+Write-Output "---------------------"
+
+try {
+    $allLicenses = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/subscribedSkus")
+}
+catch {
+    Write-Error "Failed to retrieve the licenses of the tenant from Microsoft Graph: $($_.Exception.Message)" -ErrorAction Continue
+    throw "Unable to retrieve the subscribed SKUs"
+}
+Write-Output "Found $($allLicenses.Count) license SKU(s) in the tenant."
+
+Write-Output ""
+Write-Output "Check License Thresholds"
+Write-Output "---------------------"
+
+# Track violations, SKUs within their thresholds and configured SKUs that do not exist in the tenant
 $thresholdViolations = @()
+$withinThresholds = @()
 $notFoundSKUs = @()
 $processedCount = 0
 
@@ -481,17 +556,29 @@ foreach ($item in $inputData) {
                                       -AllLicenses $allLicenses
 
     if ($result -eq "SKU_NOT_FOUND") {
-        Write-Output "    ❌ SKU not found in tenant"
-        $notFoundSKUs += $item.SKUPartNumber
+        Write-Output "    SKU not found in the tenant"
+        $notFoundSKUs += [PSCustomObject]@{
+            FriendlyName  = $item.FriendlyName
+            SKUPartNumber = $item.SKUPartNumber
+        }
     }
     elseif ($null -ne $result) {
-        Write-Output "    ⚠️  Threshold violation: $($result.ViolationType) (Available: $($result.AvailableLicenses), Threshold: $($result.ThresholdValue))"
+        Write-Output "    Threshold violation: $($result.ViolationType) (Available: $($result.AvailableLicenses), Threshold: $($result.ThresholdValue))"
         $thresholdViolations += $result
     }
     else {
         $licenseDetails = $allLicenses | Where-Object { $_.skuPartNumber -eq $item.SKUPartNumber }
         $availableLicenses = $licenseDetails.prepaidUnits.enabled - $licenseDetails.consumedUnits
-        Write-Output "    ✅ Within thresholds (Available: $availableLicenses)"
+        Write-Output "    Within thresholds (Available: $availableLicenses)"
+        $withinThresholds += [PSCustomObject]@{
+            FriendlyName      = $item.FriendlyName
+            SKUPartNumber     = $item.SKUPartNumber
+            AvailableLicenses = $availableLicenses
+            MinThreshold      = if ($minThreshold -gt 0) { $minThreshold } else { "Not Set" }
+            MaxThreshold      = if ($maxThreshold -gt 0) { $maxThreshold } else { "Not Set" }
+            TotalLicenses     = $licenseDetails.prepaidUnits.enabled
+            UsedLicenses      = $licenseDetails.consumedUnits
+        }
     }
 }
 
@@ -501,48 +588,43 @@ Write-RjRbLog -Message "Processed all $processedCount license configuration(s)" 
 
 ########################################################
 #region     Data Processing
-#
 ########################################################
 
+$totalViolations = $thresholdViolations.Count
+$belowMinCount = @($thresholdViolations | Where-Object { $_.ViolationType -eq "Below Minimum" }).Count
+$aboveMaxCount = @($thresholdViolations | Where-Object { $_.ViolationType -eq "Above Maximum" }).Count
+$notFoundCount = $notFoundSKUs.Count
+$withinCount = $withinThresholds.Count
+
 Write-Output ""
-Write-Output "Processing results..."
+Write-Output "Summary"
+Write-Output "---------------------"
+Write-Output "License configurations checked: $($inputData.Count)"
+Write-Output "Within thresholds: $withinCount"
+Write-Output "Below minimum threshold: $belowMinCount"
+Write-Output "Above maximum threshold: $aboveMaxCount"
+Write-Output "SKUs not found in the tenant: $notFoundCount"
 
-# Check if there are any violations or errors
-if ($thresholdViolations.Count -eq 0 -and $notFoundSKUs.Count -eq 0) {
-    Write-Output "✅ All licenses are within configured thresholds. No report will be sent."
-
-    # Clean up temporary directory
-    try {
-        Remove-Item -Path $tempDir -Recurse -Force
-        Write-RjRbLog -Message "Temporary files cleaned up successfully" -Verbose
-    }
-    catch {
-        Write-Warning "Failed to clean up temporary directory: $_"
-    }
-
-    Write-Output ""
-    Write-Output "Done!"
-    exit
+if ($totalViolations -eq 0 -and $notFoundCount -eq 0) {
+    Write-Output "All licenses are within the configured thresholds."
 }
-
-Write-Output "⚠️  Found $($thresholdViolations.Count) threshold violation(s) and $($notFoundSKUs.Count) SKU(s) not found"
 
 #endregion Data Processing
 
-
 ########################################################
-#region     Output/Export
-#
+#region     Report File Export
 ########################################################
-
-Write-Output ""
-Write-Output "Exporting results..."
 
 $reportFiles = @()
 $xlsxPath = $null
+$tempDir = $null
 
-# Export threshold violations (report files are only needed when they will be emailed and/or uploaded)
-if (($EmailTo -or $CreateDownloadLink) -and $thresholdViolations.Count -gt 0) {
+# Report files list the threshold violations; they are only needed when they will be emailed and/or uploaded
+if (($sendEmail -or $CreateDownloadLink) -and $thresholdViolations.Count -gt 0) {
+    $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "LicenseReport_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+    Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
+
     $violationData = $thresholdViolations | Select-Object SKUPartNumber, FriendlyName, TotalLicenses, UsedLicenses, AvailableLicenses, ViolationType, ThresholdValue, MinThreshold, MaxThreshold
 
     if ($ReportFileFormat -ne 'XLSX only') {
@@ -554,74 +636,86 @@ if (($EmailTo -or $CreateDownloadLink) -and $thresholdViolations.Count -gt 0) {
 
     if ($ReportFileFormat -ne 'CSV only') {
         $xlsxPath = Join-Path $tempDir "License_Threshold_Violations.xlsx"
-        $violationData | Export-RjRbXlsx -Path $xlsxPath -WorksheetName "License Assignment"
+        $violationData | Export-RjRbXlsx -Path $xlsxPath -WorksheetName "Threshold violations"
         $reportFiles += $xlsxPath
         Write-RjRbLog -Message "Exported threshold violations to: $xlsxPath" -Verbose
     }
-}
 
-# Display violations in console
-if ($thresholdViolations.Count -gt 0) {
     Write-Output ""
-    Write-Output "License Threshold Violations:"
-    $thresholdViolations | Format-Table -AutoSize
+    Write-Output "Report file export completed: $($reportFiles.Count) file(s) created."
+}
+elseif ($sendEmail -or $CreateDownloadLink) {
+    Write-RjRbLog -Message "No threshold violations - no report files created" -Verbose
 }
 
-#endregion Output/Export
+#endregion Report File Export
 
 ########################################################
-#region     Upload / Download Link (if CreateDownloadLink is enabled)
-#
+#region     Upload / Download Link
 ########################################################
 
 if ($CreateDownloadLink) {
     Write-Output ""
     if ($reportFiles.Count -gt 0) {
-        Write-Output "Uploading report to storage account..."
+        Write-Output "## Uploading the report file(s) to the storage account..."
 
         # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
         # transparently connects the managed identity if no Az context is active.
-        $uploadResults = Publish-RjRbFilesToStorageContainer `
-            -FilePaths $reportFiles `
-            -ContainerName $ContainerName `
-            -ResourceGroupName $ResourceGroupName `
-            -StorageAccountName $StorageAccountName `
-            -LinkExpiryDays $LinkExpiryDays `
-            -AddBlobNamePrefix $true
+        try {
+            $uploadResults = Publish-RjRbFilesToStorageContainer `
+                -FilePaths $reportFiles `
+                -ContainerName $ContainerName `
+                -ResourceGroupName $ResourceGroupName `
+                -StorageAccountName $StorageAccountName `
+                -LinkExpiryDays $LinkExpiryDays `
+                -AddBlobNamePrefix $true
+        }
+        catch {
+            Write-Error "Failed to upload the report file(s) to storage account '$StorageAccountName': $($_.Exception.Message). The managed identity needs the 'Storage Account Contributor' role on the storage account." -ErrorAction Continue
+            throw
+        }
 
         foreach ($uploadResult in $uploadResults) {
+            Write-Output ""
             Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
             $uploadResult.SASLink | Out-String | Write-Output
         }
     }
     else {
-        Write-Output "No threshold violations were found - skipping report upload."
+        Write-Output "No threshold violations were found - skipping the upload."
     }
 }
 
 #endregion Upload / Download Link
 
 ########################################################
-#region     Prepare Email Content
-#
+#region     Send Email Report
 ########################################################
 
-Write-Output ""
-Write-Output "Preparing email content..."
+$brandingMailParams = @{}
 
-# Generate statistics
-$totalViolations = $thresholdViolations.Count
-$belowMinCount = ($thresholdViolations | Where-Object { $_.ViolationType -eq "Below Minimum" }).Count
-$aboveMaxCount = ($thresholdViolations | Where-Object { $_.ViolationType -eq "Above Maximum" }).Count
-$notFoundCount = $notFoundSKUs.Count
+# Only send an email when it is selected and there are violations or SKUs that were not found
+if (-not $sendEmail) {
+    Write-RjRbLog -Message "Email delivery not selected - email report skipped" -Verbose
+}
+elseif ($totalViolations -eq 0 -and $notFoundCount -eq 0) {
+    Write-Output ""
+    Write-Output "No violations or configuration issues detected - email not sent."
+    Write-RjRbLog -Message "All licenses are within configured thresholds and no SKUs are missing" -Verbose
+}
+else {
+    Write-Output ""
+    Write-Output "## Sending the email report to '$EmailTo'..."
 
-# Build warning section for SKUs not found
-$skuWarningSection = ""
-if ($notFoundCount -gt 0) {
-    $skuList = ($notFoundSKUs | ForEach-Object { "- $_" }) -join "`n"
-    $skuWarningSection = @"
+    $emailSubject = "License Threshold Report - $tenantDisplayName - $(Get-Date -Format 'yyyy-MM-dd')"
 
-## ⚠️ Configuration Issues
+    # Build warning section for SKUs not found
+    $skuWarningSection = ""
+    if ($notFoundCount -gt 0) {
+        $skuList = ($notFoundSKUs | ForEach-Object { "- $($_.FriendlyName) ($($_.SKUPartNumber))" }) -join "`n"
+        $skuWarningSection = @"
+
+## Configuration Issues
 
 **Warning:** $notFoundCount SKU(s) could not be found in the tenant:
 
@@ -635,10 +729,10 @@ $skuList
 **Recommendation:** Please review the license configuration in the runbook customization.
 
 "@
-}
+    }
 
-# Create markdown content for email
-$markdownContent = @"
+    # Create markdown content for email
+    $markdownContent = @"
 # License Threshold Report
 
 This report provides information about licenses that are outside configured thresholds in your Entra ID tenant.
@@ -672,14 +766,13 @@ $(($thresholdViolations | ForEach-Object {
 ### Violation Details
 
 $(($thresholdViolations | ForEach-Object {
-    $statusEmoji = if ($_.ViolationType -eq "Below Minimum") { "⚠️" } else { "📈" }
     $recommendation = if ($_.ViolationType -eq "Below Minimum") {
         "**Action Required:** Consider purchasing additional licenses to avoid service interruptions."
     } else {
         "**Information:** You have more licenses available than the maximum threshold. This may indicate over-provisioning."
     }
 @"
-#### $statusEmoji $($_.FriendlyName) ($($_.SKUPartNumber))
+#### $($_.FriendlyName) ($($_.SKUPartNumber))
 - **Violation Type:** $($_.ViolationType)
 - **Available Licenses:** $($_.AvailableLicenses)
 - **Threshold Value:** $($_.ThresholdValue)
@@ -768,28 +861,7 @@ if ($notFoundCount -gt 0) {
 *This email was automatically generated. Please do not reply to this email.*
 "@
 
-#endregion Prepare Email Content
-
-########################################################
-#region     Send Email Report
-#
-########################################################
-
-# Only send email if requested and there are violations or SKUs not found
-$brandingMailParams = @{}
-if ($EmailTo -and ($totalViolations -gt 0 -or $notFoundCount -gt 0)) {
-    Write-Output "Sending email report..."
-    Write-Output ""
-
-    $emailSubject = "License Threshold Report - $tenantDisplayName - $(Get-Date -Format 'yyyy-MM-dd')"
-
-    # Resolve optional tenant email branding once per run (never fails the send)
-    $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
-
-    # Send email (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSV is too large)
-    try {
-        if ($reportFiles.Count -gt 0) {
-            $markdownFallback = @"
+    $markdownFallback = @"
 # License Threshold Report
 
 This report provides information about licenses that are outside configured thresholds in your Entra ID tenant.
@@ -810,68 +882,97 @@ $($skuWarningSection)
 
 - **License_Threshold_Violations.xlsx**: Formatted Excel workbook with all threshold violations
 
-> **Note:** The CSV file was not attached because it exceeds the email attachment size limit. The Excel workbook contains the complete data. Enable the download link option (CreateDownloadLink) to obtain the raw CSV file.
+> **Note:** The CSV file was not attached because it exceeds the email attachment size limit. The Excel workbook contains the complete data. Choose a report delivery with a download link to obtain the raw CSV file.
 
 ---
 
 *This email was automatically generated. Please do not reply to this email.*
 "@
 
-            $guardParams = @{
-                EmailFrom         = $EmailFrom
-                EmailTo           = $EmailTo
-                Subject           = $emailSubject
-                MarkdownContent   = $markdownContent
-                TenantDisplayName = $tenantDisplayName
-                ReportVersion     = $Version
-            }
-            if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxPath) {
-                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
-            }
-            else {
-                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
-            }
+    # Resolve optional tenant email branding once per run (never fails the send)
+    $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
+
+    try {
+        $emailParams = @{
+            EmailFrom             = $EmailFrom
+            EmailTo               = $EmailTo
+            Subject               = $emailSubject
+            MarkdownContent       = $markdownContent
+            TenantDisplayName     = $tenantDisplayName
+            ReportVersion         = $Version
+            UseNativeGraphRequest = $true
+        }
+        if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxPath -and (Test-Path -Path $xlsxPath)) {
+            # Both formats attached; the built-in size guard falls back to the workbook alone if the pair is too large
+            Send-RjRbReportEmail @emailParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
         }
         else {
-            Send-RjReportEmail -EmailFrom $EmailFrom `
-                               -EmailTo $EmailTo `
-                               -Subject $emailSubject `
-                               -MarkdownContent $markdownContent `
-                               -TenantDisplayName $tenantDisplayName `
-                               -ReportVersion $Version `
-                               @brandingMailParams
-
-            Write-Output "Email report sent successfully"
+            Send-RjRbReportEmail @emailParams @brandingMailParams -Attachments $reportFiles
         }
+        Write-RjRbLog -Message "Email report sent to: $EmailTo" -Verbose
+        Write-Output "Email report sent to '$EmailTo'."
     }
     catch {
-        Write-Error "Failed to send email report: $_"
+        Write-Error "Failed to send the email report: $($_.Exception.Message)" -ErrorAction Continue
         throw
     }
-}
-elseif (-not $EmailTo) {
-    Write-Output "No recipient email address provided - email not sent"
-}
-else {
-    Write-Output "No violations or configuration issues detected - email not sent"
-    Write-RjRbLog -Message "All licenses are within configured thresholds and no SKUs are missing" -Verbose
 }
 
 #endregion Send Email Report
 
 ########################################################
-#region     Cleanup
-#
+#region     Structured Output (Output Data)
 ########################################################
 
-# Clean up temporary files
-try {
-    Remove-Item -Path $tempDir -Recurse -Force
-    Write-RjRbLog -Message "Temporary files cleaned up successfully" -Verbose
+# Emitted last so the tables are not interleaved with the progress output. Every table has its own
+# RjTableTitle marker and its own column set; a marker is only written when rows follow it.
+Write-Output ""
+
+$summaryValues = [ordered]@{
+    "License configurations checked" = $inputData.Count
+    "Within thresholds"              = $withinCount
+    "Below minimum threshold"        = $belowMinCount
+    "Above maximum threshold"        = $aboveMaxCount
+    "SKUs not found in the tenant"   = $notFoundCount
 }
-catch {
-    Write-Warning "Failed to clean up temporary directory: $_"
+$summaryRows = @(foreach ($metric in $summaryValues.Keys) {
+        [PSCustomObject]@{ Metric = $metric; Value = [int]$summaryValues[$metric] }
+    })
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
+Write-Output $summaryRows
+
+if ($thresholdViolations.Count -gt 0) {
+    Write-Output "$($thresholdViolations.Count) license(s) outside their thresholds"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Threshold violations" })
+    Write-Output @($thresholdViolations | Select-Object -Property FriendlyName, SKUPartNumber, ViolationType, AvailableLicenses, ThresholdValue, MinThreshold, MaxThreshold, TotalLicenses, UsedLicenses)
 }
+else {
+    Write-Output "No license is outside its thresholds."
+}
+
+if ($notFoundSKUs.Count -gt 0) {
+    Write-Output "$($notFoundSKUs.Count) configured SKU(s) not found in the tenant"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "SKUs not found" })
+    Write-Output @($notFoundSKUs | Select-Object -Property FriendlyName, SKUPartNumber)
+}
+else {
+    Write-Output "Every configured SKU exists in the tenant."
+}
+
+if ($withinThresholds.Count -gt 0) {
+    Write-Output "$($withinThresholds.Count) license(s) within their thresholds"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Within thresholds" })
+    Write-Output @($withinThresholds | Select-Object -Property FriendlyName, SKUPartNumber, AvailableLicenses, MinThreshold, MaxThreshold, TotalLicenses, UsedLicenses)
+}
+else {
+    Write-Output "No license is within its thresholds."
+}
+
+#endregion Structured Output (Output Data)
+
+########################################################
+#region     Cleanup
+########################################################
 
 # Remove the downloaded branding images, if any were used.
 foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
@@ -880,7 +981,14 @@ foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
     }
 }
 
-Write-RjRbLog -Message "License threshold email report completed successfully" -Verbose
+if ($tempDir -and (Test-Path -Path $tempDir)) {
+    Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+    Write-RjRbLog -Message "Removed temporary export directory: $tempDir" -Verbose
+}
+
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
 
 Write-Output ""
 Write-Output "Done!"

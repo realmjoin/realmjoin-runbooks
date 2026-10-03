@@ -201,7 +201,7 @@ if ($NotifyUser) {
         Connect-RjRbGraph | Out-Null
     }
     catch {
-        Write-Error "Failed to initialize the RealmJoin Graph context required for sending the notification email via Send-RjReportEmail. Error: $($_.Exception.Message)" -ErrorAction Continue
+        Write-Error "Failed to initialize the RealmJoin Graph context required for sending the notification email via Send-RjRbReportEmail. Error: $($_.Exception.Message)" -ErrorAction Continue
         throw "RealmJoin Graph connection failed."
     }
 }
@@ -515,7 +515,7 @@ IT Administration
     $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
 
     try {
-        Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $CurrentMail -Subject $subject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version @brandingMailParams
+        Send-RjRbReportEmail -EmailFrom $EmailFrom -EmailTo $CurrentMail -Subject $subject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version @brandingMailParams
         Write-Output "Notification email sent to $CurrentMail."
     }
     catch {

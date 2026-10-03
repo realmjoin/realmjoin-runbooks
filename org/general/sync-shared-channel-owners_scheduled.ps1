@@ -1,235 +1,179 @@
 <#
-    .SYNOPSIS
-    Make a group's members owners of mapped teams and shared channels
+	.SYNOPSIS
+	Make a group's members owners of mapped teams and shared channels
 
-    .DESCRIPTION
-    Shared channels do not inherit the owners of their team. For every team named in the mapping, the members of the mapped security group are made owners of the team and of each shared channel it hosts. It only adds, never removes; new shared channels are picked up on the next run. A dry run shows the changes without applying them, and the report can be sent by email or provided as a download link. Details on the options are in the runbook documentation (docs.realmjoin.com).
+	.DESCRIPTION
+	Shared channels do not inherit the owners of their team. For every team named in the mapping, the members of the mapped security group are made owners of the team and of each shared channel it hosts. It only adds, never removes; new shared channels are picked up on the next run. A dry run shows the changes without applying them. The report can be sent by email or provided as a download link.
 
-    .PARAMETER TeamOwnerGroupMapping
-    List of team names with the security group whose members become owners. Taken from the tenant setting SharedChannelOwners.Mapping.
+	.PARAMETER TeamOwnerGroupMapping
+	List of team names with the security group whose members become owners. Taken from the tenant setting SharedChannelOwners.Mapping.
 
-    .PARAMETER IncludeTeamOwners
-    Also makes the group members owners and members of the team itself, which is required for owning its channels.
+	.PARAMETER IncludeTeamOwners
+	Also makes the group members owners and members of the team itself, which is required for owning its channels.
 
-    .PARAMETER WhatIfMode
-    Only logs what would change without writing anything.
+	.PARAMETER WhatIfMode
+	Only logs what would change without writing anything.
 
-    .PARAMETER SendEmailReport
-    Send the report by email after the run.
+	.PARAMETER SendEmailReport
+	Send the report to the recipient email address.
 
-    .PARAMETER EmailTo
-    Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
+	.PARAMETER EmailTo
+	Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
-    .PARAMETER EmailFrom
-    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
+	.PARAMETER EmailFrom
+	Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
-    .PARAMETER BrandingHeaderImageUrl
-    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
+	.PARAMETER BrandingHeaderImageUrl
+	Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
-    .PARAMETER BrandingFooterImageUrl
-    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
+	.PARAMETER BrandingFooterImageUrl
+	Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
-    .PARAMETER BrandingFooterLink
-    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
+	.PARAMETER BrandingFooterLink
+	Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
-    .PARAMETER BrandingAccentColor
-    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
+	.PARAMETER BrandingAccentColor
+	Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
-    .PARAMETER BrandingTextColor
-    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
+	.PARAMETER BrandingTextColor
+	Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
-    .PARAMETER ReportFileFormat
-    Deliver the report as CSV, as an Excel workbook, or both.
+	.PARAMETER ReportFileFormat
+	Deliver the report as CSV, as an Excel workbook, or both.
 
-    .PARAMETER CreateDownloadLink
-    Also upload the report and return a download link that expires after a few days.
+	.PARAMETER CreateDownloadLink
+	Also upload the report and return a download link that expires after a few days.
 
-    .PARAMETER ContainerName
-    Storage container the report files are uploaded to. Set per runbook.
+	.PARAMETER ContainerName
+	Storage container the report files are uploaded to. Set per runbook.
 
-    .PARAMETER ResourceGroupName
-    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
+	.PARAMETER ResourceGroupName
+	Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
-    .PARAMETER StorageAccountName
-    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
+	.PARAMETER StorageAccountName
+	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
-    .PARAMETER LinkExpiryDays
-    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
+	.PARAMETER LinkExpiryDays
+	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
+	.PARAMETER CallerName
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
-    .INPUTS
-    RunbookCustomization: {
-        "ParameterList": [
-            {
-                "Name": "TeamOwnerGroupMapping",
-                "Hide": true
-            },
-            {
-                "Name": "IncludeTeamOwners",
-                "DisplayName": "Also make them team owners?"
-            },
-            {
-                "Name": "WhatIfMode",
-                "DisplayName": "Dry run?"
-            },
-            {
-                "DisplayName": "Report delivery",
-                "DisplayAfter": "WhatIfMode",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "No report",
-                            "ParameterValue": "No report",
-                            "Customization": {
-                                "Default": {
-                                    "SendEmailReport": false,
-                                    "CreateDownloadLink": false
-                                },
-                                "Hide": [
-                                    "EmailTo",
-                                    "ReportFileFormat"
-                                ]
-                            }
-                        },
-                        {
-                            "Display": "Email report",
-                            "ParameterValue": "Email report",
-                            "Customization": {
-                                "Default": {
-                                    "SendEmailReport": true,
-                                    "CreateDownloadLink": false
-                                },
-                                "Show": [
-                                    "EmailTo",
-                                    "ReportFileFormat"
-                                ],
-                                "Mandatory": [
-                                    "EmailTo"
-                                ]
-                            }
-                        },
-                        {
-                            "Display": "Report download link",
-                            "ParameterValue": "Report download link",
-                            "Customization": {
-                                "Default": {
-                                    "SendEmailReport": false,
-                                    "CreateDownloadLink": true
-                                },
-                                "Show": [
-                                    "ReportFileFormat"
-                                ],
-                                "Hide": [
-                                    "EmailTo"
-                                ]
-                            }
-                        },
-                        {
-                            "Display": "Email report & download link",
-                            "ParameterValue": "Email report & download link",
-                            "Customization": {
-                                "Default": {
-                                    "SendEmailReport": true,
-                                    "CreateDownloadLink": true
-                                },
-                                "Show": [
-                                    "EmailTo",
-                                    "ReportFileFormat"
-                                ],
-                                "Mandatory": [
-                                    "EmailTo"
-                                ]
-                            }
-                        }
-                    ]
-                },
-                "Default": "No report"
-            },
-            {
-                "Name": "SendEmailReport",
-                "Hide": true
-            },
-            {
-                "Name": "EmailTo",
-                "DisplayName": "Recipient email address(es)",
-                "Hide": true
-            },
-            {
-                "Name": "EmailFrom",
-                "Hide": true
-            },
-            {
-                "Name": "BrandingHeaderImageUrl",
-                "Hide": true
-            },
-            {
-                "Name": "BrandingFooterImageUrl",
-                "Hide": true
-            },
-            {
-                "Name": "BrandingFooterLink",
-                "Hide": true
-            },
-            {
-                "Name": "BrandingAccentColor",
-                "Hide": true
-            },
-            {
-                "Name": "BrandingTextColor",
-                "Hide": true
-            },
-            {
-                "Name": "CreateDownloadLink",
-                "Hide": true
-            },
-            {
-                "Name": "ReportFileFormat",
-                "DisplayName": "Report file format",
-                "DisplayAfter": "EmailTo",
-                "DefaultValue": "CSV & XLSX",
-                "Hide": true,
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "CSV & XLSX",
-                            "ParameterValue": "CSV & XLSX"
-                        },
-                        {
-                            "Display": "CSV only",
-                            "ParameterValue": "CSV only"
-                        },
-                        {
-                            "Display": "XLSX only",
-                            "ParameterValue": "XLSX only"
-                        }
-                    ],
-                    "ShowValue": false
-                }
-            },
-            {
-                "Name": "ContainerName",
-                "Hide": true
-            },
-            {
-                "Name": "ResourceGroupName",
-                "Hide": true
-            },
-            {
-                "Name": "StorageAccountName",
-                "Hide": true
-            },
-            {
-                "Name": "LinkExpiryDays",
-                "Hide": true
-            },
-            {
-                "Name": "CallerName",
-                "Hide": true
-            }
-        ]
-    }
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"TeamOwnerGroupMapping": {
+				"Hide": true
+			},
+			"IncludeTeamOwners": {
+				"DisplayName": "Also make them team owners?"
+			},
+			"WhatIfMode": {
+				"DisplayName": "Dry run?"
+			},
+			"SendEmailReport": {
+				"Hide": true
+			},
+			"EmailTo": {
+				"DisplayName": "Recipient email address(es)",
+				"Hide": true
+			},
+			"EmailFrom": {
+				"Hide": true
+			},
+			"BrandingHeaderImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterLink": {
+				"Hide": true
+			},
+			"BrandingAccentColor": {
+				"Hide": true
+			},
+			"BrandingTextColor": {
+				"Hide": true
+			},
+			"ReportFileFormat": {
+				"DisplayName": "Report file format",
+				"Hide": true,
+				"Select": {
+					"Options": [
+						{ "Display": "CSV & XLSX", "ParameterValue": "CSV & XLSX" },
+						{ "Display": "CSV only", "ParameterValue": "CSV only" },
+						{ "Display": "XLSX only", "ParameterValue": "XLSX only" }
+					],
+					"ShowValue": false
+				}
+			},
+			"CreateDownloadLink": {
+				"Hide": true
+			},
+			"ContainerName": {
+				"Hide": true
+			},
+			"ResourceGroupName": {
+				"Hide": true
+			},
+			"StorageAccountName": {
+				"Hide": true
+			},
+			"LinkExpiryDays": {
+				"Hide": true
+			},
+			"CallerName": {
+				"Hide": true
+			}
+		},
+		"ParameterList": [
+			{
+				"DisplayName": "Report delivery",
+				"DisplayAfter": "WhatIfMode",
+				"Select": {
+					"Options": [
+						{
+							"Display": "Output Data only",
+							"ParameterValue": "Output Data only",
+							"Customization": {
+								"Default": { "SendEmailReport": false, "CreateDownloadLink": false },
+								"Hide": [ "EmailTo", "ReportFileFormat" ]
+							}
+						},
+						{
+							"Display": "Also email the report",
+							"ParameterValue": "Also email the report",
+							"Customization": {
+								"Default": { "SendEmailReport": true, "CreateDownloadLink": false },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also create a download link",
+							"ParameterValue": "Also create a download link",
+							"Customization": {
+								"Default": { "SendEmailReport": false, "CreateDownloadLink": true },
+								"Show": [ "ReportFileFormat" ],
+								"Hide": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also email & download link",
+							"ParameterValue": "Also email & download link",
+							"Customization": {
+								"Default": { "SendEmailReport": true, "CreateDownloadLink": true },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						}
+					]
+				},
+				"Default": "Output Data only"
+			}
+		]
+	}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
@@ -293,8 +237,7 @@ param(
 )
 
 ########################################################
-#region     Function declaration
-##
+#region     Function Definitions
 ########################################################
 
 function ConvertTo-MappingArray {
@@ -321,22 +264,56 @@ function ConvertTo-MappingArray {
 }
 
 function Get-GraphPagedResult {
+    <#
+        .SYNOPSIS
+        Retrieves all items from a paginated Microsoft Graph API endpoint.
+
+        .DESCRIPTION
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
+
+        .PARAMETER Uri
+        The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
+
+        .EXAMPLE
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
+    #>
     param(
-        [Parameter(Mandatory = $true)]
-        [string] $Uri
+        [string]$Uri
     )
 
-    $results = @()
+    $allResults = [System.Collections.Generic.List[object]]::new()
     $nextLink = $Uri
+    $pageCount = 0
+
     do {
-        $response = Invoke-MgGraphRequest -Method GET -Uri $nextLink
-        if ($response.value) {
-            $results += $response.value
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
         }
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
         $nextLink = $response.'@odata.nextLink'
     } while ($nextLink)
 
-    return $results
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
 }
 
 function Get-GroupTransitiveUser {
@@ -349,8 +326,9 @@ function Get-GroupTransitiveUser {
     return Get-GraphPagedResult -Uri $uri
 }
 
-
 function Add-ChannelOwner {
+    # Ensures one user is owner of one shared channel. Returns "skip" (already owner), "promote" or "add";
+    # with DryRun nothing is written and the action that would be taken is returned.
     param(
         [Parameter(Mandatory = $true)] [string] $TeamId,
         [Parameter(Mandatory = $true)] [string] $ChannelId,
@@ -371,7 +349,6 @@ function Add-ChannelOwner {
     if ($existing) {
         # Already a member, promote to owner via PATCH
         if ($DryRun) {
-            "##   [WhatIf] Would promote '$UserUpn' to owner"
             return "promote"
         }
         $patchUri = "$membersUri/$([uri]::EscapeDataString($existing.MembershipId))"
@@ -385,7 +362,6 @@ function Add-ChannelOwner {
 
     # Not a member yet - add directly as owner
     if ($DryRun) {
-        "##   [WhatIf] Would add '$UserUpn' as owner"
         return "add"
     }
 
@@ -419,16 +395,15 @@ function Add-ChannelOwner {
     }
 }
 
-#endregion
+#endregion Function Definitions
 
 ########################################################
 #region     RJ Log Part
-##
 ########################################################
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.3.0"
+$Version = "1.4.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
@@ -452,70 +427,55 @@ if ($CreateDownloadLink) {
 }
 Write-RjRbLog -Message "TeamOwnerGroupMapping (raw type): $($TeamOwnerGroupMapping.GetType().Name)" -Verbose
 
-#endregion
+#endregion RJ Log Part
 
 ########################################################
-#region     Connect Part
-##
+#region     Parameter Validation
 ########################################################
 
-Write-Output "Initiate MGGraph Session..."
-try {
-    $VerbosePreference = "SilentlyContinue"
-    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
-    $VerbosePreference = "Continue"
+Write-Output ""
+Write-Output "Parameter Validation"
+Write-Output "---------------------"
+
+# SendEmailReport already existed before the current "Report delivery" labels, so every schedule passes
+# it explicitly and no fallback on the recipient is needed.
+$sendEmail = $SendEmailReport
+
+# Email delivery needs a recipient
+if ($sendEmail -and -not $EmailTo) {
+    Write-Error "Email delivery is selected but no recipient email address was provided." -ErrorAction Continue
+    throw "Missing recipient email address (EmailTo)"
 }
-catch {
-    Write-Error "MGGraph Connect failed - stopping script"
-    throw ("Graph connection failed")
+
+# A configured sender address is required before any mail can be sent
+if ($sendEmail -and -not $EmailFrom) {
+    Write-Error "The sender email address is missing. Configure the tenant setting RJReport.EmailSender in the runbook customization (https://docs.realmjoin.com/automation/runbooks/runbook-report-settings)." -ErrorAction Continue
+    throw "Missing email sender configuration (RJReport.EmailSender)"
 }
 
-#endregion
-
-########################################################
-#region     Main Part
-##
-########################################################
+# A target storage account is required to create a download link
+if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
+    Write-Error "A target storage account is required to create a download link. Configure the RJReport.StorageAccount.* tenant settings in the runbook customization (https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) or pass ResourceGroupName and StorageAccountName when starting the runbook." -ErrorAction Continue
+    throw "Missing storage account configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)"
+}
 
 # Normalize and validate the mapping (accepts structured sub-settings or a JSON string)
 try {
-    $mapping = ConvertTo-MappingArray -Raw $TeamOwnerGroupMapping
+    $mapping = @(ConvertTo-MappingArray -Raw $TeamOwnerGroupMapping)
 }
 catch {
-    "## Invalid SharedChannelOwners.Mapping setting - expected an array of { TeamName, OwnerGroupId }."
-    "## See this runbook's source (.NOTES) for the expected format."
-    throw ("Invalid mapping")
+    Write-Error "The setting SharedChannelOwners.Mapping is invalid - expected an array of { TeamName, OwnerGroupId }. See the runbook documentation for the expected format. Error: $($_.Exception.Message)" -ErrorAction Continue
+    throw "Invalid mapping"
 }
 
-if (-not $mapping -or $mapping.Count -eq 0) {
-    "## No mapping configured. Set the org Setting 'SharedChannelOwners.Mapping'."
-    "## See this runbook's source (.EXAMPLE) for the expected format."
-    throw ("Empty mapping")
+if ($mapping.Count -eq 0) {
+    Write-Error "No mapping is configured. Set the org setting SharedChannelOwners.Mapping; the runbook documentation shows the expected format." -ErrorAction Continue
+    throw "Empty mapping"
 }
 
-if ($WhatIfMode) {
-    "## WhatIf mode is ON - no changes will be written."
-    ""
-}
-
-$mode = if ($WhatIfMode) { "WhatIf" } else { "Live" }
-
-# Validate report configuration early (fail fast before doing the work)
-if ($SendEmailReport) {
-    if (-not $EmailTo) {
-        "## SendEmailReport is enabled but no EmailTo was provided."
-        throw ("EmailTo missing")
-    }
-    if (-not $EmailFrom) {
-        "## SendEmailReport is enabled but no sender is configured (org Setting 'RJReport.EmailSender')."
-        throw ("EmailFrom missing")
-    }
-}
-if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
-    "## CreateDownloadLink is enabled but no target storage account is configured."
-    "## Configure the RJReport.StorageAccount.* settings or pass ResourceGroupName and StorageAccountName."
-    throw ("Storage account configuration missing")
-}
+# Rows for the Output Data tables and the console summary
+$skippedRows = [System.Collections.Generic.List[object]]::new()
+$alreadyCorrectRows = [System.Collections.Generic.List[object]]::new()
 
 # Build normalized mapping entries (trimmed team names), skipping invalid ones
 $mappingEntries = @()
@@ -523,20 +483,91 @@ foreach ($entry in $mapping) {
     $teamName = ([string]$entry.TeamName).Trim()
     $ownerGroupId = [string]$entry.OwnerGroupId
     if (-not $teamName -or -not $ownerGroupId) {
-        "## Skipping invalid mapping entry (missing TeamName or OwnerGroupId)."
+        Write-Output "WARNING: Skipping an invalid mapping entry (missing TeamName or OwnerGroupId)."
+        $skippedRows.Add([PSCustomObject]@{ Team = $teamName; Channel = ""; User = ""; Reason = "Invalid mapping entry (missing TeamName or OwnerGroupId)" })
         continue
     }
     $mappingEntries += [PSCustomObject]@{ TeamName = $teamName; OwnerGroupId = $ownerGroupId }
 }
 
 if ($mappingEntries.Count -eq 0) {
-    "## No valid mapping entries."
-    throw ("No valid mapping entries")
+    Write-Error "The setting SharedChannelOwners.Mapping contains no valid entry (each entry needs TeamName and OwnerGroupId)." -ErrorAction Continue
+    throw "No valid mapping entries"
 }
 
-"## Configured mappings (exact team name -> owner group):"
+$mode = if ($WhatIfMode) { "WhatIf" } else { "Live" }
+if ($WhatIfMode) {
+    Write-Output "Dry run: no changes will be written."
+}
+Write-Output "Parameter validation passed."
+
+#endregion Parameter Validation
+
+########################################################
+#region     Connect Part
+########################################################
+
+Write-Output ""
+Write-Output "Connecting to Microsoft Graph..."
+try {
+    $VerbosePreference = "SilentlyContinue"
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+    $VerbosePreference = "Continue"
+}
+catch {
+    Write-Error "Failed to connect to Microsoft Graph. Ensure the managed identity is configured correctly. Error: $($_.Exception.Message)" -ErrorAction Continue
+    throw "Graph connection failed"
+}
+
+# Tenant display name for the email subject (needs Organization.Read.All, which is granted for the email report)
+$tenantDisplayName = ""
+if ($sendEmail) {
+    try {
+        $organizationResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization?`$select=displayName" -Method GET -ErrorAction Stop
+        if ($organizationResponse.value -and $organizationResponse.value.Count -gt 0) {
+            $tenantDisplayName = $organizationResponse.value[0].displayName
+        }
+    }
+    catch {
+        Write-RjRbLog -Message "Could not resolve tenant display name: $($_.Exception.Message)" -Verbose
+    }
+}
+
+#endregion Connect Part
+
+########################################################
+#region     StatusQuo & Preflight-Check Part
+########################################################
+
+Write-Output ""
+Write-Output "Get StatusQuo"
+Write-Output "---------------------"
+
+# Resolve the owner group names once, so the output shows names next to the configured object IDs
+$ownerGroupNames = @{}
+# Owner groups that cannot be used (deleted or unreadable); their teams are skipped instead of ending the run
+$ownerGroupErrors = @{}
+foreach ($ownerGroupId in @($mappingEntries | ForEach-Object { $_.OwnerGroupId } | Sort-Object -Unique)) {
+    $ownerGroupNames[$ownerGroupId] = $ownerGroupId
+    try {
+        $ownerGroup = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/groups/$([uri]::EscapeDataString($ownerGroupId))?`$select=id,displayName" -Method GET -ErrorAction Stop
+        if ($ownerGroup.displayName) {
+            $ownerGroupNames[$ownerGroupId] = "$($ownerGroup.displayName) ($ownerGroupId)"
+        }
+    }
+    catch {
+        $errorText = "$($_.Exception.Message)"
+        Write-RjRbLog -Message "Could not resolve the display name of owner group '$ownerGroupId': $errorText" -Verbose
+        if ($errorText -match 'NotFound|404|does not exist') {
+            $ownerGroupErrors[$ownerGroupId] = "Owner group '$ownerGroupId' not found"
+            Write-Output "WARNING: Owner group '$ownerGroupId' does not exist - the teams mapped to it are skipped."
+        }
+    }
+}
+
+Write-Output "Configured mappings (exact team name -> owner group):"
 foreach ($me in $mappingEntries) {
-    "##   '$($me.TeamName)' -> owner group '$($me.OwnerGroupId)'"
+    Write-Output "  '$($me.TeamName)' -> owner group '$($ownerGroupNames[$me.OwnerGroupId])'"
 }
 
 # Resolve each mapping entry to the team(s) with that exact display name. (displayName is not guaranteed
@@ -549,27 +580,38 @@ foreach ($me in $mappingEntries) {
     $resolvedMappings += [PSCustomObject]@{ Entry = $me; Teams = $teams }
 }
 
-# In WhatIf mode, show up-front which teams would be processed (and which configured names were not found)
+# Show up front which teams will be processed and which configured names were not found
+Write-Output ""
+Write-Output "Teams to process:"
+$hasTeamsToProcess = $false
+foreach ($r in $resolvedMappings) {
+    foreach ($team in ($r.Teams | Sort-Object displayName)) {
+        $hasTeamsToProcess = $true
+        Write-Output "  - '$($team.displayName)' [visibility: $($team.visibility)] -> owner group '$($ownerGroupNames[$r.Entry.OwnerGroupId])'"
+    }
+}
+if (-not $hasTeamsToProcess) {
+    Write-Output "  (none)"
+}
+$notFoundNames = @($resolvedMappings | Where-Object { $_.Teams.Count -eq 0 } | ForEach-Object { $_.Entry.TeamName })
+if ($notFoundNames.Count -gt 0) {
+    Write-Output "Configured team names not found:"
+    foreach ($name in ($notFoundNames | Sort-Object)) {
+        Write-Output "  - '$name'"
+    }
+}
+
+#endregion StatusQuo & Preflight-Check Part
+
+########################################################
+#region     Main Part
+########################################################
+
+Write-Output ""
+Write-Output "Sync Owners"
+Write-Output "---------------------"
 if ($WhatIfMode) {
-    "## Teams that WOULD be processed:"
-    $wouldProcess = $false
-    foreach ($r in $resolvedMappings) {
-        foreach ($team in ($r.Teams | Sort-Object displayName)) {
-            $wouldProcess = $true
-            "##   - '$($team.displayName)' [visibility: $($team.visibility)] -> owner group '$($r.Entry.OwnerGroupId)'"
-        }
-    }
-    if (-not $wouldProcess) {
-        "##   (none)"
-    }
-    $notFoundNames = @($resolvedMappings | Where-Object { $_.Teams.Count -eq 0 } | ForEach-Object { $_.Entry.TeamName })
-    if ($notFoundNames.Count -gt 0) {
-        "## Configured team names not found:"
-        foreach ($name in ($notFoundNames | Sort-Object)) {
-            "##   - '$name'"
-        }
-    }
-    ""
+    Write-Output "Dry run - the changes below are not written."
 }
 
 # Aggregate counters
@@ -580,23 +622,24 @@ $totalTeams = 0
 $totalTeamOwnersAdded = 0
 $totalTeamMembersAdded = 0
 
-# Report data (filled regardless; only emitted when SendEmailReport is on)
+# Report data: one row per team for the report files, one row per change for the files and the Output Data
 $teamReportRows = @()
 $actionRows = @()
 
-# Cache resolved owner users per owner group (avoid re-querying the same group)
+# Cache resolved owner users and guests per owner group (avoid re-querying the same group)
 $ownerUsersCache = @{}
+$guestUsersCache = @{}
 
 # Flatten resolved mappings to (team, owner-group) pairs; record configured names that matched no team
 $teamsToProcess = @()
 foreach ($r in $resolvedMappings) {
     if ($r.Teams.Count -eq 0) {
-        "## Team '$($r.Entry.TeamName)' not found."
         $teamReportRows += [PSCustomObject]@{
             Team                  = $r.Entry.TeamName
             TeamId                = ""
             Visibility            = ""
             MatchedTeamName       = $r.Entry.TeamName
+            OwnerGroup            = $ownerGroupNames[$r.Entry.OwnerGroupId]
             OwnerGroupId          = $r.Entry.OwnerGroupId
             OwnerUserCount        = 0
             SharedChannels        = 0
@@ -607,6 +650,7 @@ foreach ($r in $resolvedMappings) {
             Status                = "Team not found"
             Mode                  = $mode
         }
+        $skippedRows.Add([PSCustomObject]@{ Team = $r.Entry.TeamName; Channel = ""; User = ""; Reason = "Team not found" })
         continue
     }
     foreach ($team in $r.Teams) {
@@ -618,23 +662,61 @@ foreach ($item in $teamsToProcess) {
     $team = $item.Team
     $me = $item.Entry
     $teamId = $team.id
+    $ownerGroupLabel = $ownerGroupNames[$me.OwnerGroupId]
 
-    "## Team '$($team.displayName)' ($teamId) -> owner group '$($me.OwnerGroupId)'"
+    Write-Output ""
+    Write-Output "Team '$($team.displayName)' -> owner group '$ownerGroupLabel'"
     $totalTeams++
 
-    # Resolve desired owners (transitive users of the owner group), excluding guests; cached per group
-    if (-not $ownerUsersCache.ContainsKey($me.OwnerGroupId)) {
-        $ownerUsersCache[$me.OwnerGroupId] = @(Get-GroupTransitiveUser -GroupId $me.OwnerGroupId | Where-Object { $_.userType -ne "Guest" })
-        Write-RjRbLog -Message "Resolved $($ownerUsersCache[$me.OwnerGroupId].Count) owner user(s) for group '$($me.OwnerGroupId)'." -Verbose
+    # Resolve desired owners (transitive users of the owner group), excluding guests; cached per group.
+    # A deleted or unreadable owner group skips its teams instead of ending the whole run.
+    if (-not $ownerUsersCache.ContainsKey($me.OwnerGroupId) -and -not $ownerGroupErrors.ContainsKey($me.OwnerGroupId)) {
+        try {
+            $groupUsers = @(Get-GroupTransitiveUser -GroupId $me.OwnerGroupId)
+            $ownerUsersCache[$me.OwnerGroupId] = @($groupUsers | Where-Object { $_.userType -ne "Guest" })
+            $guestUsersCache[$me.OwnerGroupId] = @($groupUsers | Where-Object { $_.userType -eq "Guest" })
+            Write-RjRbLog -Message "Resolved $($ownerUsersCache[$me.OwnerGroupId].Count) owner user(s) for group '$ownerGroupLabel'." -Verbose
+        }
+        catch {
+            $errorText = "$($_.Exception.Message)"
+            $ownerGroupErrors[$me.OwnerGroupId] = if ($errorText -match 'NotFound|404|does not exist') { "Owner group '$ownerGroupLabel' not found" } else { "Owner group '$ownerGroupLabel' could not be read: $errorText" }
+            Write-RjRbLog -Message "Reading the members of owner group '$ownerGroupLabel' failed: $errorText" -Verbose
+        }
     }
-    $ownerUsers = $ownerUsersCache[$me.OwnerGroupId]
-    if ($ownerUsers.Count -eq 0) {
-        "##   Owner group '$($me.OwnerGroupId)' has no (non-guest) user members - skipping team."
+    if ($ownerGroupErrors.ContainsKey($me.OwnerGroupId)) {
+        Write-Output "  WARNING: $($ownerGroupErrors[$me.OwnerGroupId]) - skipping the team."
         $teamReportRows += [PSCustomObject]@{
             Team                  = $team.displayName
             TeamId                = $teamId
             Visibility            = $team.visibility
             MatchedTeamName       = $me.TeamName
+            OwnerGroup            = $ownerGroupLabel
+            OwnerGroupId          = $me.OwnerGroupId
+            OwnerUserCount        = 0
+            SharedChannels        = 0
+            TeamMembersAdded      = 0
+            TeamOwnersAdded       = 0
+            ChannelOwnersAdded    = 0
+            ChannelOwnersPromoted = 0
+            Status                = "Skipped (owner group not readable)"
+            Mode                  = $mode
+        }
+        $skippedRows.Add([PSCustomObject]@{ Team = $team.displayName; Channel = ""; User = ""; Reason = $ownerGroupErrors[$me.OwnerGroupId] })
+        continue
+    }
+    $ownerUsers = $ownerUsersCache[$me.OwnerGroupId]
+    foreach ($guest in $guestUsersCache[$me.OwnerGroupId]) {
+        $skippedRows.Add([PSCustomObject]@{ Team = $team.displayName; Channel = ""; User = $guest.userPrincipalName; Reason = "Guest user, skipped (guests cannot belong to a shared channel)" })
+    }
+
+    if ($ownerUsers.Count -eq 0) {
+        Write-Output "  Owner group has no (non-guest) user members - skipping the team."
+        $teamReportRows += [PSCustomObject]@{
+            Team                  = $team.displayName
+            TeamId                = $teamId
+            Visibility            = $team.visibility
+            MatchedTeamName       = $me.TeamName
+            OwnerGroup            = $ownerGroupLabel
             OwnerGroupId          = $me.OwnerGroupId
             OwnerUserCount        = 0
             SharedChannels        = 0
@@ -645,6 +727,7 @@ foreach ($item in $teamsToProcess) {
             Status                = "Skipped (owner group empty)"
             Mode                  = $mode
         }
+        $skippedRows.Add([PSCustomObject]@{ Team = $team.displayName; Channel = ""; User = ""; Reason = "Owner group '$ownerGroupLabel' has no (non-guest) user members" })
         continue
     }
 
@@ -661,10 +744,15 @@ foreach ($item in $teamsToProcess) {
         $existingMemberIds = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/groups/$teamId/members`?`$select=id" | ForEach-Object { $_.id })
 
         foreach ($u in $ownerUsers) {
+            if (($existingMemberIds -contains $u.id) -and ($existingOwnerIds -contains $u.id)) {
+                $alreadyCorrectRows.Add([PSCustomObject]@{ Team = $team.displayName; Scope = "Team"; Channel = ""; User = $u.userPrincipalName; Status = "Already team owner and member" })
+                continue
+            }
+
             # Team membership is the prerequisite for channel ownership - ensure it first
             if ($existingMemberIds -notcontains $u.id) {
                 if ($WhatIfMode) {
-                    "##     [WhatIf] Would add '$($u.userPrincipalName)' as team member"
+                    Write-Output "  [WhatIf] Would add '$($u.userPrincipalName)' as team member"
                     $teamMembersAddedThis++
                     $totalTeamMembersAdded++
                     $actionRows += [PSCustomObject]@{ Team = $team.displayName; TeamId = $teamId; Scope = "Team"; Channel = ""; UserUpn = $u.userPrincipalName; UserId = $u.id; Action = "Add member"; Mode = $mode }
@@ -676,15 +764,18 @@ foreach ($item in $teamsToProcess) {
                         $teamMembersAddedThis++
                         $totalTeamMembersAdded++
                         $actionRows += [PSCustomObject]@{ Team = $team.displayName; TeamId = $teamId; Scope = "Team"; Channel = ""; UserUpn = $u.userPrincipalName; UserId = $u.id; Action = "Add member"; Mode = $mode }
+                        Write-Output "  + Added '$($u.userPrincipalName)' as team member"
                     }
                     catch {
+                        Write-Output "  WARNING: Could not add '$($u.userPrincipalName)' as team member: $($_.Exception.Message)"
                         Write-RjRbLog -Message "Could not add '$($u.userPrincipalName)' as team member: $_" -Verbose
+                        $skippedRows.Add([PSCustomObject]@{ Team = $team.displayName; Channel = ""; User = $u.userPrincipalName; Reason = "Could not add as team member: $($_.Exception.Message)" })
                     }
                 }
             }
             if ($existingOwnerIds -notcontains $u.id) {
                 if ($WhatIfMode) {
-                    "##     [WhatIf] Would add '$($u.userPrincipalName)' as team owner"
+                    Write-Output "  [WhatIf] Would add '$($u.userPrincipalName)' as team owner"
                     $teamOwnersAddedThis++
                     $totalTeamOwnersAdded++
                     $actionRows += [PSCustomObject]@{ Team = $team.displayName; TeamId = $teamId; Scope = "Team"; Channel = ""; UserUpn = $u.userPrincipalName; UserId = $u.id; Action = "Add owner"; Mode = $mode }
@@ -696,9 +787,12 @@ foreach ($item in $teamsToProcess) {
                         $teamOwnersAddedThis++
                         $totalTeamOwnersAdded++
                         $actionRows += [PSCustomObject]@{ Team = $team.displayName; TeamId = $teamId; Scope = "Team"; Channel = ""; UserUpn = $u.userPrincipalName; UserId = $u.id; Action = "Add owner"; Mode = $mode }
+                        Write-Output "  + Added '$($u.userPrincipalName)' as team owner"
                     }
                     catch {
+                        Write-Output "  WARNING: Could not add '$($u.userPrincipalName)' as team owner: $($_.Exception.Message)"
                         Write-RjRbLog -Message "Could not add '$($u.userPrincipalName)' as team owner: $_" -Verbose
+                        $skippedRows.Add([PSCustomObject]@{ Team = $team.displayName; Channel = ""; User = $u.userPrincipalName; Reason = "Could not add as team owner: $($_.Exception.Message)" })
                     }
                 }
             }
@@ -711,14 +805,14 @@ foreach ($item in $teamsToProcess) {
     $sharedChannels = @(Get-GraphPagedResult -Uri $channelsUri)
 
     if ($sharedChannels.Count -eq 0) {
-        "##     No shared channels."
+        Write-Output "  No shared channels."
     }
     else {
         foreach ($channel in $sharedChannels) {
             $channelId = $channel.id
             $totalChannels++
             $teamChannelsThis++
-            "##     Shared channel '$($channel.displayName)'"
+            Write-Output "  Shared channel '$($channel.displayName)'"
 
             # Index current channel members by userId
             $existingMembers = @{}
@@ -740,19 +834,25 @@ foreach ($item in $teamsToProcess) {
                             $totalOwnersAdded++
                             $channelOwnersAddedThis++
                             $actionRows += [PSCustomObject]@{ Team = $team.displayName; TeamId = $teamId; Scope = "Channel"; Channel = $channel.displayName; UserUpn = $u.userPrincipalName; UserId = $u.id; Action = "Add owner"; Mode = $mode }
-                            if (-not $WhatIfMode) { "##       + Added owner '$($u.userPrincipalName)'" }
+                            if ($WhatIfMode) { Write-Output "    [WhatIf] Would add '$($u.userPrincipalName)' as owner" }
+                            else { Write-Output "    + Added owner '$($u.userPrincipalName)'" }
                         }
                         "promote" {
                             $totalPromoted++
                             $channelPromotedThis++
                             $actionRows += [PSCustomObject]@{ Team = $team.displayName; TeamId = $teamId; Scope = "Channel"; Channel = $channel.displayName; UserUpn = $u.userPrincipalName; UserId = $u.id; Action = "Promote to owner"; Mode = $mode }
-                            if (-not $WhatIfMode) { "##       ~ Promoted '$($u.userPrincipalName)' to owner" }
+                            if ($WhatIfMode) { Write-Output "    [WhatIf] Would promote '$($u.userPrincipalName)' to owner" }
+                            else { Write-Output "    ~ Promoted '$($u.userPrincipalName)' to owner" }
+                        }
+                        "skip" {
+                            $alreadyCorrectRows.Add([PSCustomObject]@{ Team = $team.displayName; Scope = "Channel"; Channel = $channel.displayName; User = $u.userPrincipalName; Status = "Already channel owner" })
                         }
                     }
                 }
                 catch {
-                    "##       ! Failed to ensure owner '$($u.userPrincipalName)': $($_.Exception.Message)"
-                    Write-RjRbLog -Message "Failed owner sync for '$($u.userPrincipalName)' in channel '$channelId': $_" -Verbose
+                    Write-Output "    WARNING: Could not make '$($u.userPrincipalName)' an owner: $($_.Exception.Message)"
+                    Write-RjRbLog -Message "Failed owner sync for '$($u.userPrincipalName)' in channel '$($channel.displayName)': $_" -Verbose
+                    $skippedRows.Add([PSCustomObject]@{ Team = $team.displayName; Channel = $channel.displayName; User = $u.userPrincipalName; Reason = "Could not make channel owner: $($_.Exception.Message)" })
                 }
             }
         }
@@ -764,6 +864,7 @@ foreach ($item in $teamsToProcess) {
         TeamId                = $teamId
         Visibility            = $team.visibility
         MatchedTeamName       = $me.TeamName
+        OwnerGroup            = $ownerGroupLabel
         OwnerGroupId          = $me.OwnerGroupId
         OwnerUserCount        = $ownerUsers.Count
         SharedChannels        = $teamChannelsThis
@@ -776,46 +877,50 @@ foreach ($item in $teamsToProcess) {
     }
 }
 
-""
-"## Done. Teams processed: $totalTeams | Shared channels processed: $totalChannels | Team owners added: $totalTeamOwnersAdded | Team members added: $totalTeamMembersAdded | Channel owners added: $totalOwnersAdded | Promoted to owner: $totalPromoted"
+Write-Output ""
+Write-Output "Summary"
+Write-Output "---------------------"
+Write-Output "Teams processed: $totalTeams"
+Write-Output "Shared channels processed: $totalChannels"
+Write-Output "Team members added: $totalTeamMembersAdded"
+Write-Output "Team owners added: $totalTeamOwnersAdded"
+Write-Output "Channel owners added: $totalOwnersAdded"
+Write-Output "Promoted to channel owner: $totalPromoted"
+Write-Output "Already correct: $($alreadyCorrectRows.Count)"
+Write-Output "Skipped: $($skippedRows.Count)"
 if ($WhatIfMode) {
-    "## (WhatIf mode - counts reflect what WOULD have been changed.)"
+    Write-Output "Dry run - the counts show what would have been changed."
 }
 
-#endregion
+#endregion Main Part
 
 ########################################################
-#region     Report (email and/or download link)
-##
+#region     Report File Export
 ########################################################
 
-if ($SendEmailReport -or $CreateDownloadLink) {
+$reportFiles = @()
+$xlsxPath = $null
+$tempDir = $null
+$teamsCsvPath = $null
+$actionsCsvPath = $null
+
+# Sort once so the Output Data tables, the CSV and the XLSX exports use identical data
+$teamReportRows = @($teamReportRows | Sort-Object Team)
+$actionRows = @($actionRows | Sort-Object Team, Scope, Channel, UserUpn)
+
+# Report files are only needed when they are attached to an email and/or uploaded for a download link
+if ($sendEmail -or $CreateDownloadLink) {
     Write-Output ""
     Write-Output "## Preparing report..."
 
-    # Tenant display name for the report footer/subject
-    $tenantDisplayName = ""
-    try {
-        $org = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/organization?`$select=displayName"
-        $tenantDisplayName = @($org.value).displayName | Select-Object -First 1
-    }
-    catch {
-        Write-RjRbLog -Message "Could not resolve tenant display name: $_" -Verbose
-    }
-
     $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-    $basePath = (Get-Location).Path
-
-    # Sort once so the CSV and XLSX exports use identical data
-    $teamReportRows = @($teamReportRows | Sort-Object Team)
-    $actionRows = @($actionRows | Sort-Object Team, Scope, Channel, UserUpn)
-
-    $reportFiles = @()
-    $xlsxPath = $null
+    $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "SharedChannelOwners_$timestamp"
+    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+    Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
 
     if ($ReportFileFormat -ne 'XLSX only') {
         # CSV 1: per-team summary
-        $teamsCsvPath = Join-Path -Path $basePath -ChildPath "${timestamp}_SharedChannelOwners_Teams.csv"
+        $teamsCsvPath = Join-Path -Path $tempDir -ChildPath "${timestamp}_SharedChannelOwners_Teams.csv"
         if ($teamReportRows.Count -gt 0) {
             $teamReportRows | Export-Csv -Path $teamsCsvPath -NoTypeInformation -Encoding UTF8
         }
@@ -826,7 +931,7 @@ if ($SendEmailReport -or $CreateDownloadLink) {
         $reportFiles += $teamsCsvPath
 
         # CSV 2: per-change detail
-        $actionsCsvPath = Join-Path -Path $basePath -ChildPath "${timestamp}_SharedChannelOwners_Changes.csv"
+        $actionsCsvPath = Join-Path -Path $tempDir -ChildPath "${timestamp}_SharedChannelOwners_Changes.csv"
         if ($actionRows.Count -gt 0) {
             $actionRows | Export-Csv -Path $actionsCsvPath -NoTypeInformation -Encoding UTF8
         }
@@ -839,7 +944,7 @@ if ($SendEmailReport -or $CreateDownloadLink) {
     if ($ReportFileFormat -ne 'CSV only') {
         # XLSX: both datasets in a single Excel workbook (one worksheet per dataset) with an "Info" cover sheet.
         # Export-RjRbXlsx handles empty datasets itself (writes a "No data available" sheet).
-        $xlsxPath = Join-Path -Path $basePath -ChildPath "${timestamp}_SharedChannelOwners_Report.xlsx"
+        $xlsxPath = Join-Path -Path $tempDir -ChildPath "${timestamp}_SharedChannelOwners_Report.xlsx"
         $workbookCoverSheet = [ordered]@{
             Title             = 'Shared Channel Owner Sync'
             Generated         = "$((Get-Date).ToUniversalTime().ToString('yyyy-MM-dd HH:mm')) UTC"
@@ -852,12 +957,23 @@ if ($SendEmailReport -or $CreateDownloadLink) {
         $reportFiles += $xlsxPath
     }
 
-    # Upload + download link (optional)
-    $downloadLinks = @()
-    if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
-        Write-Output "## Uploading report to storage account..."
-        # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
-        # transparently connects the managed identity if no Az context is active.
+    Write-Output "Report file export completed: $($reportFiles.Count) file(s) created."
+}
+
+#endregion Report File Export
+
+########################################################
+#region     Upload / Download Link
+########################################################
+
+$downloadLinks = @()
+if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
+    Write-Output ""
+    Write-Output "## Uploading the report file(s) to the storage account..."
+
+    # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
+    # transparently connects the managed identity if no Az context is active.
+    try {
         $uploadResults = Publish-RjRbFilesToStorageContainer `
             -FilePaths $reportFiles `
             -ContainerName $ContainerName `
@@ -865,45 +981,62 @@ if ($SendEmailReport -or $CreateDownloadLink) {
             -StorageAccountName $StorageAccountName `
             -LinkExpiryDays $LinkExpiryDays `
             -AddBlobNamePrefix $true
-
-        foreach ($uploadResult in $uploadResults) {
-            $downloadLinks += [PSCustomObject]@{
-                FileName = $uploadResult.BlobName
-                SASLink  = $uploadResult.SASLink
-                Expiry   = $uploadResult.EndTime
-            }
-            Write-Output "## Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
-            $uploadResult.SASLink | Out-String | Write-Output
-        }
+    }
+    catch {
+        Write-Error "Failed to upload the report file(s) to storage account '$StorageAccountName': $($_.Exception.Message). The managed identity needs the 'Storage Account Contributor' role on the storage account." -ErrorAction Continue
+        throw
     }
 
-    # Email report (optional)
-    if ($SendEmailReport) {
-        Write-Output "## Preparing email report for '$EmailTo'..."
-
-        # Per-mapping team counts for the body
-        $mappingSummaryLines = foreach ($me in $mappingEntries) {
-            $cnt = @($teamReportRows | Where-Object { $_.MatchedTeamName -eq $me.TeamName -and $_.Status -eq "Processed" }).Count
-            "| ``$($me.TeamName)`` | $($me.OwnerGroupId) | $cnt |"
+    foreach ($uploadResult in $uploadResults) {
+        $downloadLinks += [PSCustomObject]@{
+            FileName = $uploadResult.BlobName
+            SASLink  = $uploadResult.SASLink
+            Expiry   = $uploadResult.EndTime
         }
+        Write-Output ""
+        Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
+        $uploadResult.SASLink | Out-String | Write-Output
+    }
+}
 
-        $modeNote = if ($WhatIfMode) { "**WhatIf / dry run** - the figures below reflect changes that *would* have been made; nothing was written." } else { "Live run - the figures below reflect changes that were applied." }
+#endregion Upload / Download Link
 
-        # Optional download-link section (when CreateDownloadLink produced links)
-        $downloadSection = ""
-        if ($downloadLinks.Count -gt 0) {
-            $linkLines = foreach ($dl in $downloadLinks) {
-                "- [$($dl.FileName)]($($dl.SASLink)) (expires $($dl.Expiry))"
-            }
-            $downloadSection = @"
+########################################################
+#region     Send Email Report
+########################################################
+
+$brandingMailParams = @{}
+
+if (-not $sendEmail) {
+    Write-RjRbLog -Message "Email delivery not selected - email report skipped" -Verbose
+}
+else {
+    Write-Output ""
+    Write-Output "## Preparing the email report for '$EmailTo'..."
+
+    # Per-mapping team counts for the body
+    $mappingSummaryLines = foreach ($me in $mappingEntries) {
+        $cnt = @($teamReportRows | Where-Object { $_.MatchedTeamName -eq $me.TeamName -and $_.Status -eq "Processed" }).Count
+        "| ``$($me.TeamName)`` | $($ownerGroupNames[$me.OwnerGroupId]) | $cnt |"
+    }
+
+    $modeNote = if ($WhatIfMode) { "**WhatIf / dry run** - the figures below reflect changes that *would* have been made; nothing was written." } else { "Live run - the figures below reflect changes that were applied." }
+
+    # Optional download-link section (when the download link option produced links)
+    $downloadSection = ""
+    if ($downloadLinks.Count -gt 0) {
+        $linkLines = foreach ($dl in $downloadLinks) {
+            "- [$($dl.FileName)]($($dl.SASLink)) (expires $($dl.Expiry))"
+        }
+        $downloadSection = @"
 
 ## Download links
 
 $($linkLines -join "`n")
 "@
-        }
+    }
 
-        $markdownContent = @"
+    $markdownContent = @"
 # Shared Channel Owner Sync
 
 $modeNote
@@ -919,6 +1052,8 @@ $modeNote
 | Team members added | $totalTeamMembersAdded |
 | Channel owners added | $totalOwnersAdded |
 | Channel owners promoted | $totalPromoted |
+| Already correct | $($alreadyCorrectRows.Count) |
+| Skipped | $($skippedRows.Count) |
 
 ## Mappings
 
@@ -928,7 +1063,7 @@ $($mappingSummaryLines -join "`n")
 $downloadSection
 ## Attachments
 
-$(if ($ReportFileFormat -ne 'XLSX only') { "- **$([IO.Path]::GetFileName($teamsCsvPath))** - one row per processed team (visibility, matched prefix, owner group, channel count, owners/members added/promoted)." })
+$(if ($ReportFileFormat -ne 'XLSX only') { "- **$([IO.Path]::GetFileName($teamsCsvPath))** - one row per processed team (visibility, matched team name, owner group, channel count, owners/members added/promoted)." })
 $(if ($ReportFileFormat -ne 'XLSX only') { "- **$([IO.Path]::GetFileName($actionsCsvPath))** - one row per individual change (team/channel scope, user, action)." })
 $(if ($ReportFileFormat -ne 'CSV only') { "- **$([IO.Path]::GetFileName($xlsxPath))** - both datasets as a formatted Excel workbook (Teams and Changes worksheets)." })
 
@@ -937,7 +1072,7 @@ $(if ($ReportFileFormat -ne 'CSV only') { "- **$([IO.Path]::GetFileName($xlsxPat
 *This email was automatically generated. Please do not reply to this email.*
 "@
 
-        $markdownFallback = @"
+    $markdownFallback = @"
 # Shared Channel Owner Sync
 
 $modeNote
@@ -953,48 +1088,136 @@ $modeNote
 | Team members added | $totalTeamMembersAdded |
 | Channel owners added | $totalOwnersAdded |
 | Channel owners promoted | $totalPromoted |
+| Already correct | $($alreadyCorrectRows.Count) |
+| Skipped | $($skippedRows.Count) |
 
 ## Attachments
 
 - **$([IO.Path]::GetFileName($xlsxPath))** - both datasets as a formatted Excel workbook (Teams and Changes worksheets).
 
-> **Note:** The CSV files were not attached because they exceed the email attachment size limit. The Excel workbook contains the complete data. Enable the download link option (CreateDownloadLink) to obtain the raw CSV files.
+> **Note:** The CSV files were not attached because they exceed the email attachment size limit. The Excel workbook contains the complete data. Choose a report delivery with a download link to obtain the raw CSV files.
 
 ---
 
 *This email was automatically generated. Please do not reply to this email.*
 "@
 
-        $emailSubject = "Shared Channel Owner Sync - $totalTeams team(s), $totalChannels channel(s)$(if ($WhatIfMode) { ' [WhatIf]' }) - $tenantDisplayName".Trim()
+    $emailSubject = "Shared Channel Owner Sync - $totalTeams team(s), $totalChannels channel(s)$(if ($WhatIfMode) { ' [WhatIf]' }) - $tenantDisplayName".Trim()
 
-        # Send email (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSVs are too large)
-        Write-Output "Sending report to '$EmailTo'..."
-        # Resolve optional tenant email branding once per run (never fails the send)
-        $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
+    # Resolve optional tenant email branding once per run (never fails the send)
+    $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
 
-        try {
-            $guardParams = @{
-                EmailFrom         = $EmailFrom
-                EmailTo           = $EmailTo
-                Subject           = $emailSubject
-                MarkdownContent   = $markdownContent
-                TenantDisplayName = $tenantDisplayName
-                ReportVersion     = $Version
-            }
-            $guardParams.UseNativeGraphRequest = $true
-            if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxPath) {
-                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
-            }
-            else {
-                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
-            }
-            Write-RjRbLog -Message "Email report sent to: $EmailTo" -Verbose
+    # Send email (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSVs are too large)
+    try {
+        $emailParams = @{
+            EmailFrom             = $EmailFrom
+            EmailTo               = $EmailTo
+            Subject               = $emailSubject
+            MarkdownContent       = $markdownContent
+            TenantDisplayName     = $tenantDisplayName
+            ReportVersion         = $Version
+            UseNativeGraphRequest = $true
         }
-        catch {
-            Write-Error "Failed to send email report: $($_.Exception.Message)" -ErrorAction Continue
-            throw
+        if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxPath -and (Test-Path -Path $xlsxPath)) {
+            Send-RjRbReportEmail @emailParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
         }
+        else {
+            Send-RjRbReportEmail @emailParams @brandingMailParams -Attachments $reportFiles
+        }
+        Write-RjRbLog -Message "Email report sent to: $EmailTo" -Verbose
+        Write-Output "Email report sent to '$EmailTo'."
+    }
+    catch {
+        Write-Error "Failed to send the email report: $($_.Exception.Message)" -ErrorAction Continue
+        throw
     }
 }
 
-#endregion
+#endregion Send Email Report
+
+########################################################
+#region     Structured Output (Output Data)
+########################################################
+
+# Emitted last so the tables are not interleaved with the progress output. Every table has its own
+# RjTableTitle marker and its own column set; a marker is only written when rows follow it.
+Write-Output ""
+
+$summaryValues = [ordered]@{
+    "Mapping entries"           = $mappingEntries.Count
+    "Teams processed"           = $totalTeams
+    "Shared channels processed" = $totalChannels
+}
+if ($WhatIfMode) {
+    $summaryValues["Team members to add"] = $totalTeamMembersAdded
+    $summaryValues["Team owners to add"] = $totalTeamOwnersAdded
+    $summaryValues["Channel owners to add"] = $totalOwnersAdded
+    $summaryValues["Members to promote to channel owner"] = $totalPromoted
+}
+else {
+    $summaryValues["Team members added"] = $totalTeamMembersAdded
+    $summaryValues["Team owners added"] = $totalTeamOwnersAdded
+    $summaryValues["Channel owners added"] = $totalOwnersAdded
+    $summaryValues["Promoted to channel owner"] = $totalPromoted
+}
+$summaryValues["Already correct"] = $alreadyCorrectRows.Count
+$summaryValues["Skipped"] = $skippedRows.Count
+$summaryRows = @(foreach ($metric in $summaryValues.Keys) {
+        [PSCustomObject]@{ Metric = $metric; Value = [int]$summaryValues[$metric] }
+    })
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
+Write-Output $summaryRows
+
+if ($actionRows.Count -gt 0) {
+    Write-Output "$($actionRows.Count) $(if ($WhatIfMode) { 'planned change(s), dry run' } else { 'change(s)' })"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Changes" })
+    Write-Output @($actionRows | Select-Object -Property Team, Scope, Channel, @{ Name = "User"; Expression = { $_.UserUpn } }, Action, Mode)
+}
+else {
+    Write-Output "No changes - every owner was already in place."
+}
+
+if ($skippedRows.Count -gt 0) {
+    Write-Output "$($skippedRows.Count) skipped"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Skipped" })
+    Write-Output @($skippedRows | Select-Object -Property Team, Channel, User, Reason)
+}
+else {
+    Write-Output "Nothing skipped."
+}
+
+if ($alreadyCorrectRows.Count -gt 0) {
+    Write-Output "$($alreadyCorrectRows.Count) owner assignment(s) already correct"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Already correct" })
+    Write-Output @($alreadyCorrectRows | Select-Object -Property Team, Scope, Channel, User, Status)
+}
+else {
+    Write-Output "No owner assignment was already in place."
+}
+
+#endregion Structured Output (Output Data)
+
+########################################################
+#region     Cleanup
+########################################################
+
+# Remove the downloaded branding images, if any were used.
+foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
+    if ($brandingMailParams -and $brandingMailParams.ContainsKey($brandingKey) -and (Test-Path -LiteralPath $brandingMailParams[$brandingKey])) {
+        Remove-Item -LiteralPath $brandingMailParams[$brandingKey] -Force -ErrorAction SilentlyContinue
+    }
+}
+
+if ($tempDir -and (Test-Path -Path $tempDir)) {
+    Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+    Write-RjRbLog -Message "Removed temporary export directory: $tempDir" -Verbose
+}
+
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
+
+Write-Output ""
+Write-Output "Done!"
+
+#endregion Cleanup

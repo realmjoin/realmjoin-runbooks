@@ -189,8 +189,8 @@
 							}
 						},
 						{
-							"Display": "Email report",
-							"ParameterValue": "Email report",
+							"Display": "Also email the report",
+							"ParameterValue": "Also email the report",
 							"Customization": {
 								"Default": { "SendEmailReport": true, "CreateDownloadLink": false },
 								"Show": [ "EmailTo", "ReportFileFormat" ],
@@ -198,8 +198,8 @@
 							}
 						},
 						{
-							"Display": "Report download link",
-							"ParameterValue": "Report download link",
+							"Display": "Also create a download link",
+							"ParameterValue": "Also create a download link",
 							"Customization": {
 								"Default": { "SendEmailReport": false, "CreateDownloadLink": true },
 								"Show": [ "ReportFileFormat" ],
@@ -207,8 +207,8 @@
 							}
 						},
 						{
-							"Display": "Email report & download link",
-							"ParameterValue": "Email report & download link",
+							"Display": "Also email & download link",
+							"ParameterValue": "Also email & download link",
 							"Customization": {
 								"Default": { "SendEmailReport": true, "CreateDownloadLink": true },
 								"Show": [ "EmailTo", "ReportFileFormat" ],
@@ -1269,7 +1269,6 @@ $summaryTable
 
 # Emitted last so the tables are not interleaved with the progress output. Every table has its own
 # RjTableTitle marker and its own column set; a marker is only written when rows follow it.
-$maxTableRows = 250
 Write-Output ""
 
 $summaryValues = [ordered]@{
@@ -1299,10 +1298,10 @@ $categoryTables = @(
 
 foreach ($table in $categoryTables) {
     if (-not $table.Enabled) { continue }
-    $rows = @($results | Where-Object $table.Filter | Select-Object -First $maxTableRows -Property $table.Columns)
+    $rows = @($results | Where-Object $table.Filter | Select-Object -Property $table.Columns)
     $total = @($results | Where-Object $table.Filter).Count
     if ($rows.Count -gt 0) {
-        Write-Output "$total device(s): $($table.Title)$(if ($total -gt $maxTableRows) { ", showing the first $maxTableRows" })"
+        Write-Output "$total device(s): $($table.Title)"
         Write-Output ([PSCustomObject]@{ RjTableTitle = $table.Title })
         Write-Output $rows
     }

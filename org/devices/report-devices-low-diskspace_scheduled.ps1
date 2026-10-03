@@ -1,204 +1,242 @@
 <#
-    .SYNOPSIS
-    Report devices that are running out of disk space
+	.SYNOPSIS
+	Report devices that are running out of disk space
 
-    .DESCRIPTION
-    Lists Intune devices whose free disk space is below a limit, either a fixed number of gigabytes or a percentage of the disk. Each device is rated Warning or Critical depending on how far below it is. The list can be narrowed by platform, manufacturer and model. The report can be sent by email or provided as a download link.
+	.DESCRIPTION
+	Lists Intune devices whose free disk space is below a limit, either a fixed number of gigabytes or a percentage of the disk. Each device is rated Warning or Critical depending on how far below it is. The list can be narrowed by platform, manufacturer and model. The report can be sent by email or provided as a download link.
 
-    .PARAMETER ThresholdType
-    By a fixed amount of free gigabytes or by the percentage of free space on the disk.
+	.PARAMETER ThresholdType
+	By a fixed amount of free gigabytes or by the percentage of free space on the disk.
 
-    .PARAMETER FreeSpaceThresholdGB
-    Devices with less free space than this many gigabytes are reported.
+	.PARAMETER FreeSpaceThresholdGB
+	Devices with less free space than this many gigabytes are reported.
 
-    .PARAMETER FreeSpacePercentThreshold
-    Devices with less free space than this percentage of the disk are reported.
+	.PARAMETER FreeSpacePercentThreshold
+	Devices with less free space than this percentage of the disk are reported.
 
-    .PARAMETER Windows
-    Includes Windows devices.
+	.PARAMETER Windows
+	Includes Windows devices.
 
-    .PARAMETER MacOS
-    Includes macOS devices.
+	.PARAMETER MacOS
+	Includes macOS devices.
 
-    .PARAMETER iOS
-    Includes iOS and iPadOS devices.
+	.PARAMETER iOS
+	Includes iOS and iPadOS devices.
 
-    .PARAMETER Android
-    Includes Android devices.
+	.PARAMETER Android
+	Includes Android devices.
 
-    .PARAMETER ManufacturerFilter
-    Only these manufacturers, separated by commas; Dell also matches Dell Inc. Leave empty for all.
+	.PARAMETER ManufacturerFilter
+	Only these manufacturers, separated by commas; Dell also matches Dell Inc. Leave empty for all.
 
-    .PARAMETER ModelFilter
-    Only these models, separated by commas; Surface also matches Surface Laptop 3. Leave empty for all.
+	.PARAMETER ModelFilter
+	Only these models, separated by commas; Surface also matches Surface Laptop 3. Leave empty for all.
 
-    .PARAMETER EmailTo
-    Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
+	.PARAMETER EmailFrom
+	Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
-    .PARAMETER EmailFrom
-    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
+	.PARAMETER BrandingHeaderImageUrl
+	Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
-    .PARAMETER BrandingHeaderImageUrl
-    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
+	.PARAMETER BrandingFooterImageUrl
+	Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
-    .PARAMETER BrandingFooterImageUrl
-    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
+	.PARAMETER BrandingFooterLink
+	Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
-    .PARAMETER BrandingFooterLink
-    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
+	.PARAMETER BrandingAccentColor
+	Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
-    .PARAMETER BrandingAccentColor
-    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
+	.PARAMETER BrandingTextColor
+	Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
-    .PARAMETER BrandingTextColor
-    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
+	.PARAMETER ReportFileFormat
+	Deliver the report as CSV, as an Excel workbook, or both.
 
-    .PARAMETER ReportFileFormat
-    Deliver the report as CSV, as an Excel workbook, or both.
+	.PARAMETER CreateDownloadLink
+	Also upload the report and return a download link that expires after a few days.
 
-    .PARAMETER CreateDownloadLink
-    Also upload the report and return a download link that expires after a few days.
+	.PARAMETER ContainerName
+	Storage container the report files are uploaded to. Set per runbook.
 
-    .PARAMETER ContainerName
-    Storage container the report files are uploaded to. Set per runbook.
+	.PARAMETER ResourceGroupName
+	Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
-    .PARAMETER ResourceGroupName
-    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
+	.PARAMETER StorageAccountName
+	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
-    .PARAMETER StorageAccountName
-    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
+	.PARAMETER LinkExpiryDays
+	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
-    .PARAMETER LinkExpiryDays
-    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
+	.PARAMETER SendEmailReport
+	Send the report to the recipient email address.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
+	.PARAMETER EmailTo
+	Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
-    .INPUTS
-    RunbookCustomization: {
-        "Parameters": {
-            "ThresholdType": {
-                "DisplayName": "How should low disk space be determined?",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Free space below a fixed size (GB)",
-                            "Customization": {
-                                "Show": [
-                                    "FreeSpaceThresholdGB"
-                                ],
-                                "Hide": [
-                                    "FreeSpacePercentThreshold"
-                                ]
-                            },
-                            "ParameterValue": "Free space in GB"
-                        },
-                        {
-                            "Display": "Free space below a percentage of the disk size (%)",
-                            "Customization": {
-                                "Show": [
-                                    "FreeSpacePercentThreshold"
-                                ],
-                                "Hide": [
-                                    "FreeSpaceThresholdGB"
-                                ]
-                            },
-                            "ParameterValue": "Free space in percent"
-                        }
-                    ],
-                    "ShowValue": false
-                }
-            },
-            "FreeSpaceThresholdGB": {
-                "DisplayName": "Free space limit (GB)"
-            },
-            "FreeSpacePercentThreshold": {
-                "DisplayName": "Free space limit (%)",
-                "Hide": true
-            },
-            "Windows": {
-                "DisplayName": "Include Windows devices?"
-            },
-            "MacOS": {
-                "DisplayName": "Include macOS devices?"
-            },
-            "iOS": {
-                "DisplayName": "Include iOS/iPadOS devices?"
-            },
-            "Android": {
-                "DisplayName": "Include Android devices?"
-            },
-            "ManufacturerFilter": {
-                "DisplayName": "Manufacturer filter"
-            },
-            "ModelFilter": {
-                "DisplayName": "Model filter"
-            },
-            "CallerName": {
-                "Hide": true
-            },
-            "EmailTo": {
-                "DisplayName": "Recipient email address(es)"
-            },
-            "EmailFrom": {
-                "Hide": true
-            },
-            "BrandingHeaderImageUrl": {
-                "Hide": true
-            },
-            "BrandingFooterImageUrl": {
-                "Hide": true
-            },
-            "BrandingFooterLink": {
-                "Hide": true
-            },
-            "BrandingAccentColor": {
-                "Hide": true
-            },
-            "BrandingTextColor": {
-                "Hide": true
-            },
-            "ReportFileFormat": {
-                "DisplayName": "Report file format",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "CSV & XLSX",
-                            "ParameterValue": "CSV & XLSX"
-                        },
-                        {
-                            "Display": "CSV only",
-                            "ParameterValue": "CSV only"
-                        },
-                        {
-                            "Display": "XLSX only",
-                            "ParameterValue": "XLSX only"
-                        }
-                    ],
-                    "ShowValue": false
-                }
-            },
-            "CreateDownloadLink": {
-                "DisplayName": "Create a download link?",
-                "SelectSimple": {
-                    "Yes - upload report and return a download link": true,
-                    "No - do not create a download link": false
-                }
-            },
-            "ContainerName": {
-                "Hide": true
-            },
-            "ResourceGroupName": {
-                "Hide": true
-            },
-            "StorageAccountName": {
-                "Hide": true
-            },
-            "LinkExpiryDays": {
-                "Hide": true
-            }
-        }
-    }
+	.PARAMETER CallerName
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
+
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"ThresholdType": {
+				"DisplayName": "How should low disk space be determined?",
+				"Select": {
+					"Options": [
+						{
+							"Display": "Free space below a fixed size (GB)",
+							"Customization": {
+								"Show": [
+									"FreeSpaceThresholdGB"
+								],
+								"Hide": [
+									"FreeSpacePercentThreshold"
+								]
+							},
+							"ParameterValue": "Free space in GB"
+						},
+						{
+							"Display": "Free space below a percentage of the disk size (%)",
+							"Customization": {
+								"Show": [
+									"FreeSpacePercentThreshold"
+								],
+								"Hide": [
+									"FreeSpaceThresholdGB"
+								]
+							},
+							"ParameterValue": "Free space in percent"
+						}
+					],
+					"ShowValue": false
+				}
+			},
+			"FreeSpaceThresholdGB": {
+				"DisplayName": "Free space limit (GB)"
+			},
+			"FreeSpacePercentThreshold": {
+				"DisplayName": "Free space limit (%)",
+				"Hide": true
+			},
+			"Windows": {
+				"DisplayName": "Include Windows devices?"
+			},
+			"MacOS": {
+				"DisplayName": "Include macOS devices?"
+			},
+			"iOS": {
+				"DisplayName": "Include iOS/iPadOS devices?"
+			},
+			"Android": {
+				"DisplayName": "Include Android devices?"
+			},
+			"ManufacturerFilter": {
+				"DisplayName": "Manufacturer filter"
+			},
+			"ModelFilter": {
+				"DisplayName": "Model filter"
+			},
+			"CallerName": {
+				"Hide": true
+			},
+			"SendEmailReport": {
+				"Hide": true
+			},
+			"EmailTo": {
+				"DisplayName": "Recipient email address(es)",
+				"Hide": true
+			},
+			"EmailFrom": {
+				"Hide": true
+			},
+			"BrandingHeaderImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterLink": {
+				"Hide": true
+			},
+			"BrandingAccentColor": {
+				"Hide": true
+			},
+			"BrandingTextColor": {
+				"Hide": true
+			},
+			"ReportFileFormat": {
+				"DisplayName": "Report file format",
+				"Hide": true,
+				"SelectSimple": {
+					"CSV & XLSX": "CSV & XLSX",
+					"CSV only": "CSV only",
+					"XLSX only": "XLSX only"
+				}
+			},
+			"CreateDownloadLink": {
+				"Hide": true
+			},
+			"ContainerName": {
+				"Hide": true
+			},
+			"ResourceGroupName": {
+				"Hide": true
+			},
+			"StorageAccountName": {
+				"Hide": true
+			},
+			"LinkExpiryDays": {
+				"Hide": true
+			}
+		},
+		"ParameterList": [
+			{
+				"DisplayName": "Report delivery",
+				"DisplayAfter": "ModelFilter",
+				"Select": {
+					"Options": [
+						{
+							"Display": "Output Data only",
+							"ParameterValue": "Output Data only",
+							"Customization": {
+								"Default": { "SendEmailReport": false, "CreateDownloadLink": false },
+								"Hide": [ "EmailTo", "ReportFileFormat" ]
+							}
+						},
+						{
+							"Display": "Also email the report",
+							"ParameterValue": "Also email the report",
+							"Customization": {
+								"Default": { "SendEmailReport": true, "CreateDownloadLink": false },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also create a download link",
+							"ParameterValue": "Also create a download link",
+							"Customization": {
+								"Default": { "SendEmailReport": false, "CreateDownloadLink": true },
+								"Show": [ "ReportFileFormat" ],
+								"Hide": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also email & download link",
+							"ParameterValue": "Also email & download link",
+							"Customization": {
+								"Default": { "SendEmailReport": true, "CreateDownloadLink": true },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						}
+					]
+				},
+				"Default": "Output Data only"
+			}
+		]
+	}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
@@ -241,6 +279,7 @@ param(
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" } )]
     [ValidateRange(1, 3650)]
     [int] $LinkExpiryDays = 6,
+    [bool] $SendEmailReport = $false,
     [Parameter(Mandatory = $false)]
     [string] $EmailTo,
     # CallerName is tracked purely for auditing purposes
@@ -252,18 +291,15 @@ param(
 #region     RJ Log Part
 ########################################################
 
-# Add Caller and Version in Verbose output
-if ($CallerName) {
-    Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
-}
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
-# Add Parameter in Verbose output
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
-Write-RjRbLog -Message "Email To: $EmailTo" -Verbose
-Write-RjRbLog -Message "Email From: $EmailFrom" -Verbose
+Write-RjRbLog -Message "SendEmailReport: $SendEmailReport" -Verbose
+Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
+Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
 Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
 Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
 Write-RjRbLog -Message "BrandingFooterLink: $BrandingFooterLink" -Verbose
@@ -287,22 +323,36 @@ if ($CreateDownloadLink) {
     Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
 }
 
-#endregion
+#endregion RJ Log Part
 
 ########################################################
 #region     Parameter Validation
 ########################################################
 
-# Validate Email Addresses (only if email is requested)
-if ($EmailTo -and -not $EmailFrom) {
-    Write-Warning -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://docs.realmjoin.com/automation/runbooks/runbook-report-settings" -Verbose
-    throw "This needs to be configured in the runbook customization. Documentation: https://docs.realmjoin.com/automation/runbooks/runbook-report-settings"
+Write-Output ""
+Write-Output "Parameter Validation"
+Write-Output "---------------------"
+
+# Schedules created before the "Report delivery" choice existed pass a recipient but no SendEmailReport.
+# For them the recipient alone keeps the email enabled; every newer run passes SendEmailReport explicitly.
+$sendEmail = if ($PSBoundParameters.ContainsKey('SendEmailReport')) { $SendEmailReport } else { [bool]$EmailTo }
+
+# Email delivery needs a recipient
+if ($sendEmail -and -not $EmailTo) {
+    Write-Error "Email delivery is selected but no recipient email address was provided." -ErrorAction Continue
+    throw "Missing recipient email address (EmailTo)"
+}
+
+# A configured sender address is required before any mail can be sent
+if ($sendEmail -and -not $EmailFrom) {
+    Write-Error "The sender email address is missing. Configure the tenant setting RJReport.EmailSender in the runbook customization (https://docs.realmjoin.com/automation/runbooks/runbook-report-settings)." -ErrorAction Continue
+    throw "Missing email sender configuration (RJReport.EmailSender)"
 }
 
 # A target storage account is required to create a download link
 if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
-    Write-Warning -Message "A target storage account is required to create a download link. Configure the RJReport.StorageAccount.* settings in the runbook customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) or pass ResourceGroupName and StorageAccountName when starting the runbook." -Verbose
-    throw "Missing Storage Account Configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)."
+    Write-Error "A target storage account is required to create a download link. Configure the RJReport.StorageAccount.* tenant settings in the runbook customization (https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) or pass ResourceGroupName and StorageAccountName when starting the runbook." -ErrorAction Continue
+    throw "Missing storage account configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)"
 }
 
 # At least one platform has to be evaluated
@@ -313,12 +363,15 @@ if ($iOS) { $selectedPlatforms += 'iOS/iPadOS' }
 if ($Android) { $selectedPlatforms += 'Android' }
 
 if ($selectedPlatforms.Count -eq 0) {
-    throw "All platform filters are disabled. Enable at least one platform (Windows, macOS, iOS/iPadOS, Android) to generate a report."
+    Write-Error "All platform filters are disabled. Enable at least one platform (Windows, macOS, iOS/iPadOS, Android) to generate a report." -ErrorAction Continue
+    throw "No platform selected"
 }
 
 $platformSummary = $selectedPlatforms -join ', '
+Write-Output "Included platforms: $($platformSummary)"
+Write-Output "Parameter validation passed."
 
-#endregion
+#endregion Parameter Validation
 
 ########################################################
 #region     Function Definitions
@@ -331,31 +384,50 @@ function Get-GraphPagedResult {
 
         .DESCRIPTION
         Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
-        by following the @odata.nextLink property in the response.
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
 
         .PARAMETER Uri
         The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
-        e.g., "https://graph.microsoft.com/v1.0/applications".
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
 
         .EXAMPLE
-        PS C:\> $allApps = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/applications"
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
     #>
     param(
         [string]$Uri
     )
 
-    $allResults = @()
+    $allResults = [System.Collections.Generic.List[object]]::new()
     $nextLink = $Uri
+    $pageCount = 0
 
     do {
-        $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
-        if ($response.value) {
-            $allResults += $response.value
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
         }
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
         $nextLink = $response.'@odata.nextLink'
     } while ($nextLink)
 
-    return $allResults
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
 }
 
 function ConvertTo-FilterList {
@@ -496,39 +568,38 @@ function Get-DiskSeverity {
     return 'Warning'
 }
 
-#endregion
+#endregion Function Definitions
 
 ########################################################
 #region     Connect Part
 ########################################################
 
-# Connect to Microsoft Graph
-Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+Write-Output ""
+Write-Output "Connecting to Microsoft Graph..."
+try {
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+}
+catch {
+    Write-Error "Failed to connect to Microsoft Graph. Ensure the managed identity is configured correctly. Error: $($_.Exception.Message)" -ErrorAction Continue
+    throw
+}
 
-# Get tenant information
-Write-Output "## Retrieving tenant information..."
+# Tenant display name for the console summary, the report file names and the email (needs Organization.Read.All)
 $tenantDisplayName = "Unknown Tenant"
 try {
-    $organizationUri = "https://graph.microsoft.com/v1.0/organization?`$select=displayName"
-    $organizationResponse = Invoke-MgGraphRequest -Uri $organizationUri -Method GET -ErrorAction Stop
+    $organizationResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization?`$select=displayName" -Method GET -ErrorAction Stop
 
     # /organization is a collection endpoint, the tenant is always the single entry in "value"
     if ($organizationResponse.value -and $organizationResponse.value.Count -gt 0) {
         $tenantDisplayName = $organizationResponse.value[0].displayName
-        Write-Output "## Tenant: $($tenantDisplayName)"
     }
+    Write-Output "Tenant: $($tenantDisplayName)"
 }
 catch {
     Write-RjRbLog -Message "Failed to retrieve tenant information: $($_.Exception.Message)" -Verbose
 }
 
-# Connect RJ RunbookHelper for email reporting
-Write-Output "Graph connection for RJ RunbookHelper..."
-Connect-RjRbGraph
-
-Write-Output ""
-
-#endregion
+#endregion Connect Part
 
 ########################################################
 #region     Data Collection
@@ -546,12 +617,12 @@ $thresholdTextPlain = $thresholdText -replace '\*\*', ''
 $manufacturerList = ConvertTo-FilterList -RawValue $ManufacturerFilter
 $modelList = ConvertTo-FilterList -RawValue $ModelFilter
 
-Write-Output "## Listing devices with $($thresholdTextPlain)"
-Write-Output "Included platforms: $($platformSummary)"
+Write-Output ""
+Write-Output "Get Devices With $($thresholdTextPlain)"
+Write-Output "---------------------"
 if ($manufacturerList.Count -gt 0) { Write-Output "Manufacturer filter: $($manufacturerList -join ', ')" }
 if ($modelList.Count -gt 0) { Write-Output "Model filter: $($modelList -join ', ')" }
-Write-Output "Note: This may take a while depending on the number of devices in your tenant."
-Write-Output ""
+Write-Output "Retrieving all managed devices. This may take a while depending on the number of devices in your tenant."
 
 # The storage properties cannot be used in an OData filter, and the platform selection is matched
 # against operatingSystem prefixes ("Windows*", "iPadOS*", "Android*", ...) that an "eq" based filter
@@ -576,8 +647,9 @@ $selectString = ($selectProperties -join ',')
 $devicesUri = "https://graph.microsoft.com/v1.0/deviceManagement/managedDevices?`$select=$selectString"
 $devices = Get-GraphPagedResult -Uri $devicesUri
 $totalDevicesScanned = ($devices | Measure-Object).Count
+Write-Output "Retrieved $($totalDevicesScanned) managed device(s)."
 
-#endregion
+#endregion Data Collection
 
 ########################################################
 #region     Data Processing
@@ -669,13 +741,10 @@ $flaggedDevices = @($flaggedDevices | Sort-Object -Property $deviceSortProperty)
 $criticalCount = ($flaggedDevices | Where-Object { $_.Severity -eq 'Critical' } | Measure-Object).Count
 $warningCount = ($flaggedDevices | Where-Object { $_.Severity -eq 'Warning' } | Measure-Object).Count
 
-#endregion
-
-########################################################
-#region     Output
-########################################################
-
-Write-Output "## Summary of devices with low disk space for $($tenantDisplayName):"
+Write-Output ""
+Write-Output "Summary of devices with low disk space for $($tenantDisplayName)"
+Write-Output "---------------------"
+Write-Output "Threshold: $($thresholdTextPlain)"
 Write-Output "Devices scanned: $($totalDevicesScanned)"
 Write-Output "Devices evaluated (after platform and hardware filters, with usable storage inventory): $($devicesEvaluated)"
 Write-Output "Devices without usable storage inventory (excluded): $($devicesWithoutStorageData)"
@@ -686,54 +755,147 @@ Write-Output "  Warning: $($warningCount)"
 foreach ($platform in $selectedPlatforms) {
     Write-Output "$($platform) devices below the threshold: $(Get-PlatformDeviceCount -Devices $flaggedDevices -Platform $platform)"
 }
+Write-RjRbLog -Message "Scanned: $totalDevicesScanned; evaluated: $devicesEvaluated; without storage inventory: $devicesWithoutStorageData; below the threshold: $($flaggedDevices.Count) (Critical: $criticalCount, Warning: $warningCount)" -Verbose
 
-Write-Output ""
+#endregion Data Processing
 
-if ($flaggedDevices.Count -eq 0) {
-    Write-Output "No devices found matching the low disk space criteria."
+########################################################
+#region     Report File Export
+########################################################
+
+$fileNameSuffix = if ($ThresholdType -eq 'Free space in percent') {
+    "$($FreeSpacePercentThreshold)Percent"
 }
 else {
-    Write-Output "## Detailed list of devices with low disk space:"
-    Write-Output ""
+    "$($FreeSpaceThresholdGB)GB"
+}
+# The tenant display name comes from Graph and may contain path separators or other characters that are
+# illegal in a file name, which would let the export fail or the upload write to an unintended path.
+$sanitizedTenantName = ($tenantDisplayName -replace '[\\/:*?"<>|]', '_') -replace '\s+', '_'
+$fileNameBase = "DevicesLowDiskspaceReport_$($sanitizedTenantName)_$($fileNameSuffix)"
+$tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "DevicesLowDiskspace_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+$csvFilePath = $null
+$xlsxFilePath = $null
+$reportFiles = @()
+$uploadResults = @()
+$reportFileMissing = $false
 
-    $displayDevices = @()
-    foreach ($device in $flaggedDevices) {
-        $displayDevices += [PSCustomObject]@{
-            FreeGB       = $device.FreeSpaceGB
-            FreePercent  = $device.FreePercent
-            TotalGB      = $device.TotalSpaceGB
-            Severity     = $device.Severity
-            DeviceName   = if ($device.DeviceName -and $device.DeviceName.Length -gt 15) { $device.DeviceName.Substring(0, 14) + ".." } elseif ($device.DeviceName) { $device.DeviceName } else { "N/A" }
-            Model        = if ($device.Model -and $device.Model.Length -gt 20) { $device.Model.Substring(0, 19) + ".." } elseif ($device.Model) { $device.Model } else { "N/A" }
-            PrimaryUser  = if ($device.PrimaryUser -and $device.PrimaryUser.Length -gt 20) { $device.PrimaryUser.Substring(0, 19) + ".." } elseif ($device.PrimaryUser) { $device.PrimaryUser } else { "N/A" }
-            LastSync     = $device.LastSync
+# Report files are only needed when they are attached to an email and/or uploaded for a download link
+if (($sendEmail -or $CreateDownloadLink) -and $flaggedDevices.Count -gt 0) {
+    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+    Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
+
+    # A write failure is only statement-terminating by default, so without -ErrorAction Stop the path of a
+    # file that was never written would still be attached to the email and handed to the upload.
+    if ($ReportFileFormat -ne 'XLSX only') {
+        $csvFilePath = Join-Path -Path $tempDir -ChildPath "$fileNameBase.csv"
+        try {
+            $flaggedDevices | Export-Csv -Path $csvFilePath -NoTypeInformation -Encoding UTF8 -ErrorAction Stop
+            $reportFiles += $csvFilePath
+            Write-RjRbLog -Message "Exported devices with low disk space to CSV: $($csvFilePath)" -Verbose
+        }
+        catch {
+            $csvFilePath = $null
+            $reportFileMissing = $true
+            Write-Output "WARNING: Writing the CSV report file failed - it is neither attached to the email nor uploaded. Error: $($_.Exception.Message)"
+        }
+    }
+    if ($ReportFileFormat -ne 'CSV only') {
+        $xlsxFilePath = Join-Path -Path $tempDir -ChildPath "$fileNameBase.xlsx"
+        $highlightRules = @(
+            @{ Column = 'Severity'; Value = 'Critical'; Color = 'Red' }
+            @{ Column = 'Severity'; Value = 'Warning'; Color = 'Yellow' }
+        )
+        try {
+            $flaggedDevices | Export-RjRbXlsx -Path $xlsxFilePath -WorksheetName "Low Disk Space" -HighlightRules $highlightRules -ErrorAction Stop
+            $reportFiles += $xlsxFilePath
+            Write-RjRbLog -Message "Exported devices with low disk space to XLSX: $($xlsxFilePath)" -Verbose
+        }
+        catch {
+            $xlsxFilePath = $null
+            $reportFileMissing = $true
+            Write-Output "WARNING: Writing the XLSX report file failed - it is neither attached to the email nor uploaded. Error: $($_.Exception.Message)"
         }
     }
 
-    $displayDevices | Format-Table -AutoSize
-}
-
-#endregion
-
-########################################################
-#region     Email Report Content
-########################################################
-
-if ($EmailTo) {
     Write-Output ""
-    Write-Output "## Preparing email report to send to $($EmailTo)"
+    Write-Output "Report file export completed: $($reportFiles.Count) file(s) created."
+}
+elseif ($flaggedDevices.Count -eq 0) {
+    Write-RjRbLog -Message "No device below the threshold - skipping the report file export" -Verbose
 }
 
-$filterSummary = @()
-if ($manufacturerList.Count -gt 0) { $filterSummary += "Manufacturer: $($manufacturerList -join ', ')" }
-if ($modelList.Count -gt 0) { $filterSummary += "Model: $($modelList -join ', ')" }
-$filterSummaryText = if ($filterSummary.Count -gt 0) { $filterSummary -join ' | ' } else { 'None' }
+#endregion Report File Export
 
-$markdownContent = if ($flaggedDevices.Count -eq 0) {
-    @"
+########################################################
+#region     Upload / Download Link
+########################################################
+
+if ($CreateDownloadLink) {
+    Write-Output ""
+    if ($reportFiles.Count -gt 0) {
+        Write-Output "## Uploading the report file(s) to the storage account..."
+
+        # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
+        # transparently connects the managed identity if no Az context is active.
+        # A missing role assignment on the storage account, a storage firewall or a transient ARM error must not
+        # cost the operator the email and the Output Data tables, so a failure here is recorded as an error of the
+        # job and the run continues instead of terminating.
+        try {
+            $uploadResults = Publish-RjRbFilesToStorageContainer `
+                -FilePaths $reportFiles `
+                -ContainerName $ContainerName `
+                -ResourceGroupName $ResourceGroupName `
+                -StorageAccountName $StorageAccountName `
+                -LinkExpiryDays $LinkExpiryDays `
+                -AddBlobNamePrefix $true
+
+            foreach ($uploadResult in $uploadResults) {
+                Write-Output ""
+                Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
+                $uploadResult.SASLink | Out-String | Write-Output
+            }
+        }
+        catch {
+            $uploadResults = @()
+            Write-Error "Upload to the storage account failed - no download link was created. Check that the managed identity has the 'Storage Account Contributor' role on '$($StorageAccountName)' and that the storage firewall allows the Automation account. Error: $($_.Exception.Message)" -ErrorAction Continue
+        }
+    }
+    elseif ($flaggedDevices.Count -eq 0) {
+        Write-Output "No report file was created because no device was below the threshold - download link skipped."
+    }
+    else {
+        Write-Output "No report file is available for upload - download link skipped."
+    }
+}
+
+#endregion Upload / Download Link
+
+########################################################
+#region     Send Email Report
+########################################################
+
+$brandingMailParams = @{}
+
+if (-not $sendEmail) {
+    Write-RjRbLog -Message "Email delivery not selected - email report skipped" -Verbose
+}
+else {
+    Write-Output ""
+    Write-Output "## Sending the email report to '$($EmailTo)'..."
+
+    $emailSubject = "Devices Low Disk Space Report - $($tenantDisplayName) - $($thresholdTextPlain)"
+
+    $filterSummary = @()
+    if ($manufacturerList.Count -gt 0) { $filterSummary += "Manufacturer: $($manufacturerList -join ', ')" }
+    if ($modelList.Count -gt 0) { $filterSummary += "Model: $($modelList -join ', ')" }
+    $filterSummaryText = if ($filterSummary.Count -gt 0) { $filterSummary -join ' | ' } else { 'None' }
+
+    $markdownContent = if ($flaggedDevices.Count -eq 0) {
+        @"
 # Devices Low Disk Space Report
 
-Great news — no managed device reported $($thresholdText) for the selected platforms.
+Great news - no managed device reported $($thresholdText) for the selected platforms.
 
 ## What We Checked
 
@@ -754,9 +916,9 @@ Great news — no managed device reported $($thresholdText) for the selected pla
 
 *This email was automatically generated. Please do not reply to this email.*
 "@
-}
-else {
-    @"
+    }
+    else {
+        @"
 # Devices Low Disk Space Report
 
 This report shows managed devices that reported $($thresholdText).
@@ -847,153 +1009,37 @@ The report file(s) attached to this email contain the full list of devices with 
 *This email was automatically generated. Please do not reply to this email.*
 
 "@
-}
+    }
 
-#endregion
+    # A missing report file is noted in the email body - otherwise the "Attachments" section would
+    # announce files the email does not carry.
+    if ($reportFileMissing) {
+        $markdownContent += "`n> **Note:** Not all report files could be created, so the attachment list of this email is incomplete. Please check the job log of this run.`n"
+    }
 
-########################################################
-#region     Export
-########################################################
-
-# Create report files in current location (only needed for the email report and/or download link)
-$fileNameSuffix = if ($ThresholdType -eq 'Free space in percent') {
-    "$($FreeSpacePercentThreshold)Percent"
-}
-else {
-    "$($FreeSpaceThresholdGB)GB"
-}
-# The tenant display name comes from Graph and may contain path separators or other characters that are
-# illegal in a file name, which would let the export fail or the upload write to an unintended path.
-$sanitizedTenantName = ($tenantDisplayName -replace '[\\/:*?"<>|]', '_') -replace '\s+', '_'
-$fileNameBase = "DevicesLowDiskspaceReport_$($sanitizedTenantName)_$($fileNameSuffix)"
-$csvFilePath = $null
-$xlsxFilePath = $null
-$reportFiles = @()
-$uploadResults = @()
-$reportFileMissing = $false
-if (($EmailTo -or $CreateDownloadLink) -and $flaggedDevices.Count -gt 0) {
-    # A write failure is only statement-terminating by default, so without -ErrorAction Stop the path of a
-    # file that was never written would still be attached to the email and handed to the upload.
-    if ($ReportFileFormat -ne 'XLSX only') {
-        $csvFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath "$fileNameBase.csv"
-        try {
-            $flaggedDevices | Export-Csv -Path $csvFilePath -NoTypeInformation -ErrorAction Stop
-            $reportFiles += $csvFilePath
-            Write-RjRbLog -Message "Exported devices with low disk space to CSV: $($csvFilePath)" -Verbose
+    # Send-RjRbReportEmail uses the fallback body for the reduced attachment set and also as the safety net
+    # after a failed first send, so it must not name the size limit as the only possible cause.
+    # The download links already exist at this point and are offered instead of asking for an
+    # option that may well be enabled.
+    $fallbackDownloadSection = if ($uploadResults.Count -gt 0) {
+        $downloadLinkLines = foreach ($uploadResult in $uploadResults) {
+            "- [$($uploadResult.BlobName)]($($uploadResult.SASLink)) (expires $($uploadResult.EndTime))"
         }
-        catch {
-            $csvFilePath = $null
-            $reportFileMissing = $true
-            Write-Warning "Writing the CSV report file failed - it is neither attached to the email nor uploaded. Error: $($_.Exception.Message)"
-        }
-    }
-    if ($ReportFileFormat -ne 'CSV only') {
-        $xlsxFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath "$fileNameBase.xlsx"
-        $highlightRules = @(
-            @{ Column = 'Severity'; Value = 'Critical'; Color = 'Red' }
-            @{ Column = 'Severity'; Value = 'Warning'; Color = 'Yellow' }
-        )
-        try {
-            $flaggedDevices | Export-RjRbXlsx -Path $xlsxFilePath -WorksheetName "Low Disk Space" -HighlightRules $highlightRules -ErrorAction Stop
-            $reportFiles += $xlsxFilePath
-            Write-RjRbLog -Message "Exported devices with low disk space to XLSX: $($xlsxFilePath)" -Verbose
-        }
-        catch {
-            $xlsxFilePath = $null
-            $reportFileMissing = $true
-            Write-Warning "Writing the XLSX report file failed - it is neither attached to the email nor uploaded. Error: $($_.Exception.Message)"
-        }
-    }
-}
-
-# The email body is composed before the export, so a missing report file is noted here - otherwise the
-# "Attachments" section would announce files the email does not carry.
-if ($reportFileMissing -and $EmailTo) {
-    $markdownContent += "`n> **Note:** Not all report files could be created, so the attachment list of this email is incomplete. Please check the job log of this run.`n"
-}
-
-# Upload / Download Link (optional)
-if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
-    Write-Output ""
-    Write-Output "## Uploading report to storage account..."
-
-    # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
-    # transparently connects the managed identity if no Az context is active.
-    # The upload is an optional convenience: a missing role assignment on the storage account, a storage
-    # firewall or a transient ARM error must not cost the operator the report itself, so a failure here is
-    # reported and the run continues to the email delivery instead of terminating the job.
-    try {
-        $uploadResults = Publish-RjRbFilesToStorageContainer `
-            -FilePaths $reportFiles `
-            -ContainerName $ContainerName `
-            -ResourceGroupName $ResourceGroupName `
-            -StorageAccountName $StorageAccountName `
-            -LinkExpiryDays $LinkExpiryDays `
-            -AddBlobNamePrefix $true
-
-        foreach ($uploadResult in $uploadResults) {
-            Write-Output ""
-            Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
-            $uploadResult.SASLink | Out-String | Write-Output
-        }
-    }
-    catch {
-        $uploadResults = @()
-        Write-Output ""
-        Write-Warning "Upload to the storage account failed - the report is delivered without a download link. Check that the managed identity has the 'Storage Account Contributor' role on '$($StorageAccountName)' and that the storage firewall allows the Automation account. Error: $($_.Exception.Message)"
-    }
-}
-elseif ($CreateDownloadLink) {
-    Write-Output ""
-    if ($flaggedDevices.Count -eq 0) {
-        Write-Output "No report file was created because no device was below the threshold - download link skipped."
-    }
-    else {
-        Write-Output "No report file is available for upload - download link skipped."
-    }
-}
-
-#endregion
-
-########################################################
-#region     Email Report
-########################################################
-
-# Send email report (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSV is too large)
-$emailSubject = "Devices Low Disk Space Report - $($tenantDisplayName) - $($thresholdTextPlain)"
-
-$brandingMailParams = @{}
-if ($EmailTo) {
-    Write-Output "Sending report to '$($EmailTo)'..."
-
-    # Resolve optional tenant email branding once per run (never fails the send)
-    $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
-
-    try {
-        if ($reportFiles.Count -gt 0) {
-            # Send-RjRbReportEmail uses this body for the reduced attachment set and also as the safety net
-            # after a failed first send, so it must not name the size limit as the only possible cause.
-            # The download links already exist at this point and are offered instead of asking for an
-            # option that may well be enabled.
-            $fallbackDownloadSection = if ($uploadResults.Count -gt 0) {
-                $downloadLinkLines = foreach ($uploadResult in $uploadResults) {
-                    "- [$($uploadResult.BlobName)]($($uploadResult.SASLink)) (expires $($uploadResult.EndTime))"
-                }
-                @"
+        @"
 
 ## Download Links
 
 $($downloadLinkLines -join "`n")
 "@
-            }
-            elseif (-not $CreateDownloadLink) {
-                "`n> Enable the download link option (CreateDownloadLink) to receive all report files as download links."
-            }
-            else {
-                ""
-            }
+    }
+    elseif (-not $CreateDownloadLink) {
+        "`n> Choose a report delivery with a download link to receive all report files as download links."
+    }
+    else {
+        ""
+    }
 
-            $markdownFallback = @"
+    $markdownFallback = @"
 # Devices Low Disk Space Report
 
 This report shows managed devices that reported $($thresholdText).
@@ -1016,61 +1062,90 @@ $($fallbackDownloadSection)
 *This email was automatically generated. Please do not reply to this email.*
 "@
 
-            $guardParams = @{
-                EmailFrom         = $EmailFrom
-                EmailTo           = $EmailTo
-                Subject           = $emailSubject
-                MarkdownContent   = $markdownContent
-                TenantDisplayName = $tenantDisplayName
-                ReportVersion     = $Version
-            }
-            if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFilePath) {
-                Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
-            }
-            else {
-                Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
-            }
+    # Resolve optional tenant email branding once per run (never fails the send)
+    $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
+
+    try {
+        $emailParams = @{
+            EmailFrom             = $EmailFrom
+            EmailTo               = $EmailTo
+            Subject               = $emailSubject
+            MarkdownContent       = $markdownContent
+            TenantDisplayName     = $tenantDisplayName
+            ReportVersion         = $Version
+            UseNativeGraphRequest = $true
+        }
+        if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFilePath -and (Test-Path -Path $xlsxFilePath)) {
+            # Both formats attached; the built-in size guard falls back to the workbook alone if the pair is too large
+            Send-RjRbReportEmail @emailParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
+        }
+        elseif ($reportFiles.Count -gt 0) {
+            Send-RjRbReportEmail @emailParams @brandingMailParams -Attachments $reportFiles
         }
         else {
-            Send-RjRbReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version @brandingMailParams
+            Send-RjRbReportEmail @emailParams @brandingMailParams
         }
 
         # Send-RjRbReportEmail sends one email per recipient and only throws when every single one failed,
         # so a returning call proves delivery to at least one recipient, not to all of them.
         Write-RjRbLog -Message "Email report send completed for: $($EmailTo)" -Verbose
-        Write-Output "Low disk space report generated and sent"
-        Write-Output "Recipient(s): $($EmailTo) - a recipient that could not be reached is reported as an error above"
-        Write-Output "Devices below the threshold: $($flaggedDevices.Count)"
-        Write-Output "Threshold: $($thresholdTextPlain)"
+        Write-Output "Email report sent to '$($EmailTo)' - a recipient that could not be reached is reported as an error above."
     }
     catch {
-        Write-Output "Error sending email: $_"
-        Write-RjRbLog -Message "Error sending email: $_" -Verbose
-        throw "Failed to send email report: $($_.Exception.Message)"
+        Write-Error "Failed to send the email report: $($_.Exception.Message)" -ErrorAction Continue
+        throw
     }
 }
-else {
-    Write-RjRbLog -Message "No recipient email address provided - email report skipped" -Verbose
+
+#endregion Send Email Report
+
+########################################################
+#region     Structured Output (Output Data)
+########################################################
+
+# Emitted last so the tables are not interleaved with the progress output. Every table has its own
+# RjTableTitle marker; a marker is only written when rows follow it.
+Write-Output ""
+
+$summaryValues = [ordered]@{
+    "Devices scanned"                      = $totalDevicesScanned
+    "Devices evaluated"                    = $devicesEvaluated
+    "Without storage inventory (excluded)" = $devicesWithoutStorageData
+    "Below the threshold"                  = $flaggedDevices.Count
+    "Critical"                             = $criticalCount
+    "Warning"                              = $warningCount
+}
+foreach ($platform in $selectedPlatforms) {
+    $summaryValues["$platform below the threshold"] = Get-PlatformDeviceCount -Devices $flaggedDevices -Platform $platform
+}
+$summaryRows = @(foreach ($metric in $summaryValues.Keys) {
+        [PSCustomObject]@{ Metric = $metric; Value = [int]$summaryValues[$metric] }
+    })
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
+Write-Output $summaryRows
+
+# One table per rating, worst devices first
+$severityTables = @(
+    @{ Severity = "Critical"; Title = "Critical devices" }
+    @{ Severity = "Warning"; Title = "Warning devices" }
+)
+foreach ($table in $severityTables) {
+    $severityDevices = @($flaggedDevices | Where-Object { $_.Severity -eq $table.Severity })
+    if ($severityDevices.Count -gt 0) {
+        Write-Output "$($severityDevices.Count) device(s) rated $($table.Severity)"
+        Write-Output ([PSCustomObject]@{ RjTableTitle = $table.Title })
+        Write-Output @($severityDevices | Select-Object -Property DeviceName, PrimaryUser, OperatingSystem, OSVersion, Manufacturer, Model, FreeSpaceGB, FreePercent, TotalSpaceGB, LastSync)
+    }
+    else {
+        Write-Output "No devices rated $($table.Severity)."
+    }
 }
 
-#endregion
+#endregion Structured Output (Output Data)
 
 ########################################################
 #region     Cleanup
 ########################################################
-
-# Remove the temporary report files, if any were created.
-foreach ($reportFilePath in $reportFiles) {
-    if ($reportFilePath -and (Test-Path -Path $reportFilePath)) {
-        try {
-            Remove-Item -Path $reportFilePath -Force -ErrorAction Stop
-            Write-RjRbLog -Message "Removed temporary report file: $reportFilePath" -Verbose
-        }
-        catch {
-            Write-RjRbLog -Message "Failed to remove temporary report file '$reportFilePath': $($_.Exception.Message)" -Verbose
-        }
-    }
-}
 
 # Remove the downloaded branding images, if any were used.
 foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
@@ -1079,4 +1154,17 @@ foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
     }
 }
 
-#endregion
+# Remove the temporary report files, if any were created.
+if ($tempDir -and (Test-Path -Path $tempDir)) {
+    Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+    Write-RjRbLog -Message "Removed temporary export directory: $tempDir" -Verbose
+}
+
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
+
+Write-Output ""
+Write-Output "Done!"
+
+#endregion Cleanup
