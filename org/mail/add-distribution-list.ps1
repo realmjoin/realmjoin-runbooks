@@ -1,30 +1,30 @@
 <#
     .SYNOPSIS
-    Create a classic distribution group
+    Create a classic Exchange Online distribution group
 
     .DESCRIPTION
-    Creates a classic Exchange Online distribution group with optional owner configuration. If no primary SMTP address is provided, the default verified domain is used.
+    Creates a classic distribution group in Exchange Online, optionally as a room list, with an owner, or open to external senders. Without an email address the alias at the default domain of the tenant is used.
 
     .PARAMETER Alias
-    Mail alias (mail nickname) for the distribution group.
+    Short name that becomes the part of the email address in front of the @ sign, for example MKTG for the marketing team.
 
     .PARAMETER PrimarySMTPAddress
-    Optional primary SMTP address for the distribution group.
+    Address the group sends and receives with. Leave empty to use the alias at the default domain.
 
     .PARAMETER GroupName
-    Optional display name for the distribution group; defaults to the alias.
+    Name shown in the address book. Leave empty to use the alias.
 
     .PARAMETER Owner
-    Optional owner who can manage the group.
+    User who manages the members of the group. Leave empty for none.
 
     .PARAMETER Roomlist
-    If set to true, the distribution group is created as a room list.
+    Creates the group as a room list, so its rooms can be picked together in the Outlook room finder.
 
     .PARAMETER AllowExternalSenders
-    If set to true, the group can receive email from external senders.
+    Lets people outside the organization send email to the group.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -33,22 +33,22 @@
                 "Hide": true
             },
             "Alias": {
-                "DisplayName": "Alias: A shorter, more concise name for the Distribution List that is usually the first part of the email address (in front of the \"@\" sign). \nExample: \"MarketingTeam@company.com\" could have an alias \"MKTG\" for convenience."
+                "DisplayName": "Alias"
             },
             "GroupName": {
-                "DisplayName": "Group Name: As displayed in the address book of your mailing system for easier searching."
+                "DisplayName": "Group name"
             },
             "Owner": {
-                "DisplayName": "Group Owner: User that will manage the members of the Distribution List (add, remove, etc.)."
+                "DisplayName": "Group owner"
             },
             "PrimarySMTPAddress": {
-                "DisplayName": "Desired email address: Primary email address of the Distribution List that will be used to send emails from. If left unfilled will use the default domain as a primary SMTP address."
+                "DisplayName": "Email address"
             },
             "Roomlist": {
-                "DisplayName": "Create as Roomlist"
+                "DisplayName": "Create as a room list?"
             },
             "AllowExternalSenders": {
-                "DisplayName": "Can receive external mail"
+                "DisplayName": "Allow external senders?"
             }
         }
     }

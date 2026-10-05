@@ -1,71 +1,69 @@
 <#
 	.SYNOPSIS
-	Report Intune enrollment readiness for a set of users
+	Report which users can enroll devices in Intune
 
 	.DESCRIPTION
-	Analyzes whether each user in a selected user set can enroll a device in Microsoft Intune by checking account status, Intune licensing, device enrollment limits, authentication methods, and Conditional Access policies that explicitly target device registration or Intune enrollment; policies requiring compliant devices via "All resources" are exempted per Microsoft Entra design. Platform-scoped policies and browser-only client-app constraints are evaluated against the selected enrollment platform. Results are exported as CSV and/or XLSX with optional email delivery.
-
-	.NOTES
-	Interpretation notes:
-	- Checks performed per user: account state, Intune license and service plan, tenant MDM authority,
-	  device enrollment limit, platform restrictions, registered authentication methods, Conditional
-	  Access policies, and optionally pilot group membership.
-	- Conditional Access is evaluated as a static "What If" against the enrollment sign-in for each
-	  user's EnrollmentPlatform; Entra's own What If tool remains the authority.
-	- Compliant-device requirements on "All resources" policies do not block enrollment (documented
-	  Entra exemption); only policies targeting device registration or the Intune enrollment apps are
-	  treated as strict gates.
-	- Not evaluated statically: named locations, device filters, sign-in frequency, and terms of use.
-	- Expired or already-used Temporary Access Passes are not counted as usable methods.
-
-	Prerequisites:
-	- Requires the RJReport.EmailSender setting for email delivery, and at least one of UserName or
-	  GroupName (memberships resolved transitively).
+	Checks for a set of users, given directly or through a group, whether they can enroll a device in Intune. Each user is reported as Ready, Ready with warnings or Not ready, with the blockers found. The check covers account status, Intune license, enrollment limit, authentication methods and Conditional Access policies that target device registration or enrollment. Nothing is changed. The report can be sent by email or provided as a download link.
 
 	.PARAMETER UserName
-	User principal names of users to check for Intune enrollment readiness. Select one or more users. At least one of UserName or GroupName must be supplied; both may be combined.
+	Each picked user is checked on its own. Leave empty to check only the members of the group.
 
 	.PARAMETER GroupName
-	Display name of a group whose members to check for Intune enrollment readiness. Group membership is resolved transitively, including nested groups. At least one of UserName or GroupName must be supplied; both may be combined.
+	Group whose members are checked, nested groups included. Can be combined with individual users.
 
 	.PARAMETER EnrollmentPlatform
-	Device platform assumed during Conditional Access evaluation. Platform-scoped policies that do not cover this platform are ruled out. When set to 'All', the script evaluates every platform and reports results per platform.
+	Platform of the device the users want to enroll. Conditional Access policies scoped to other platforms are ignored; All platforms checks every platform and reports each one.
 
 	.PARAMETER CheckPilotGroupMembership
-	If set to true, the report includes a column showing pilot group membership for each user. Users who are not members are marked "Not ready" with the reason "Not a member of the pilot group"; if the group cannot be found or verified, a warning is issued.
+	Adds a column with the pilot group membership; non-members are reported as Not ready.
 
 	.PARAMETER PilotGroupDisplayName
-	Display name of the pilot group to check membership against when CheckPilotGroupMembership is enabled. Default is "col - All Users - Pilot (users)". This can be overridden per run or configured via runbook customization.
+	Members of this group count as pilot users. The group is looked up by its display name.
 
 	.PARAMETER EmailFrom
-	The sender email address for report delivery. Configured as a tenant setting; leave empty if no email report is requested.
+	Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
 	.PARAMETER BrandingHeaderImageUrl
-	URL of a custom header image for report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding.
+	Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
 	.PARAMETER BrandingFooterImageUrl
-	URL of a custom footer image for report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding.
+	Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
 	.PARAMETER BrandingFooterLink
-	Link target applied to the footer image in report emails, for example the company website. Configured as a tenant setting; leave empty to use the default RealmJoin branding.
+	Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
 	.PARAMETER BrandingAccentColor
-	Accent color used for headings and highlights in report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding.
+	Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
 	.PARAMETER BrandingTextColor
-	Body text color used in report emails. Configured as a tenant setting; leave empty to use the default RealmJoin branding.
+	Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
 	.PARAMETER SendEmailReport
-	If set to true, the report is sent as an email to the address specified by EmailTo. If false, the report is generated but not emailed.
+	Send the report to the recipient email address.
 
 	.PARAMETER EmailTo
-	Recipient email address or multiple comma-separated addresses for the report email. Required when SendEmailReport is set to true. Each recipient receives an individual email for privacy.
+	Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
 	.PARAMETER ReportFileFormat
-	File format for the generated report: CSV only, CSV & XLSX (both files), or XLSX only.
+	Deliver the report as CSV, as an Excel workbook, or both.
+
+	.PARAMETER CreateDownloadLink
+	Also upload the report and return a download link that expires after a few days.
+
+	.PARAMETER ContainerName
+	Storage container the report files are uploaded to. Set per runbook.
+
+	.PARAMETER ResourceGroupName
+	Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
+
+	.PARAMETER StorageAccountName
+	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
+
+	.PARAMETER LinkExpiryDays
+	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
 	.PARAMETER CallerName
-	Name of the user or system that started the runbook. Tracked for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
@@ -74,7 +72,7 @@
 				"DisplayName": "Users to check"
 			},
 			"GroupName": {
-				"DisplayName": "Group to check (members)"
+				"DisplayName": "Group to check"
 			},
 			"EnrollmentPlatform": {
 				"DisplayName": "Platform to enroll",
@@ -87,10 +85,10 @@
 				}
 			},
 			"CheckPilotGroupMembership": {
-				"DisplayName": "Check pilot group membership"
+				"DisplayName": "Check pilot group membership?"
 			},
 			"PilotGroupDisplayName": {
-				"DisplayName": "Pilot group display name"
+				"DisplayName": "Pilot group name"
 			},
 			"EmailFrom": {
 				"Hide": true
@@ -113,8 +111,13 @@
 			"BrandingTextColor": {
 				"Hide": true
 			},
+			"EmailTo": {
+				"DisplayName": "Recipient email address(es)",
+				"Hide": true
+			},
 			"ReportFileFormat": {
 				"DisplayName": "Report file format",
+				"Hide": true,
 				"Select": {
 					"Options": [
 						{ "Display": "CSV & XLSX", "ParameterValue": "CSV & XLSX" },
@@ -124,6 +127,21 @@
 					"ShowValue": false
 				}
 			},
+			"CreateDownloadLink": {
+				"Hide": true
+			},
+			"ContainerName": {
+				"Hide": true
+			},
+			"ResourceGroupName": {
+				"Hide": true
+			},
+			"StorageAccountName": {
+				"Hide": true
+			},
+			"LinkExpiryDays": {
+				"Hide": true
+			},
 			"CallerName": {
 				"Hide": true
 			}
@@ -131,26 +149,47 @@
 		"ParameterList": [
 			{
 				"DisplayName": "Report delivery",
-				"DisplayAfter": "BrandingTextColor",
+				"DisplayAfter": "PilotGroupDisplayName",
 				"Select": {
 					"Options": [
 						{
-							"Display": "No email report",
+							"Display": "Output Data only",
+							"ParameterValue": "Output Data only",
 							"Customization": {
-								"Default": { "SendEmailReport": false },
+								"Default": { "SendEmailReport": false, "CreateDownloadLink": false },
 								"Hide": [ "EmailTo", "ReportFileFormat" ]
 							}
 						},
 						{
-							"Display": "Email report",
+							"Display": "Also email the report",
+							"ParameterValue": "Also email the report",
 							"Customization": {
-								"Default": { "SendEmailReport": true },
+								"Default": { "SendEmailReport": true, "CreateDownloadLink": false },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also create a download link",
+							"ParameterValue": "Also create a download link",
+							"Customization": {
+								"Default": { "SendEmailReport": false, "CreateDownloadLink": true },
+								"Show": [ "ReportFileFormat" ],
+								"Hide": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also email & download link",
+							"ParameterValue": "Also email & download link",
+							"Customization": {
+								"Default": { "SendEmailReport": true, "CreateDownloadLink": true },
 								"Show": [ "EmailTo", "ReportFileFormat" ],
 								"Mandatory": [ "EmailTo" ]
 							}
 						}
 					]
-				}
+				},
+				"Default": "Output Data only"
 			}
 		]
 	}
@@ -159,12 +198,13 @@
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Users to check" } )]
     [String[]]$UserName = @(),
 
-    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Group to check (members)" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Group to check" } )]
     [String]$GroupName = "",
 
     [ValidateSet('Windows', 'iOS', 'Android', 'macOS', 'All')]
@@ -174,22 +214,22 @@ param(
 
     [string]$PilotGroupDisplayName = "col - All Users - Pilot (users)",
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
     [string]$EmailFrom,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" } )]
     [string]$BrandingHeaderImageUrl,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" } )]
     [string]$BrandingFooterImageUrl,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" } )]
     [string]$BrandingFooterLink,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" } )]
     [string]$BrandingAccentColor,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" } )]
     [string]$BrandingTextColor,
 
     [bool]$SendEmailReport = $false,
@@ -198,6 +238,20 @@ param(
 
     [ValidateSet('CSV only', 'CSV & XLSX', 'XLSX only')]
     [string]$ReportFileFormat = 'CSV & XLSX',
+
+    [bool]$CreateDownloadLink = $false,
+
+    [string]$ContainerName = "report-intune-enrollment-readiness",
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" })]
+    [string]$ResourceGroupName,
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" })]
+    [string]$StorageAccountName,
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" })]
+    [ValidateRange(1, 3650)]
+    [int]$LinkExpiryDays = 6,
 
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
@@ -209,7 +263,7 @@ param(
 ########################################################
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.1.0"
 Write-RjRbLog -Message "RealmJoin Runbook: Report Intune Enrollment Readiness. Version: $Version" -Verbose
 
 Write-RjRbLog -Message "UserName: $(($UserName | Measure-Object).Count) user(s) selected" -Verbose
@@ -221,6 +275,13 @@ Write-RjRbLog -Message "PilotGroupDisplayName: $PilotGroupDisplayName" -Verbose
 Write-RjRbLog -Message "SendEmailReport: $SendEmailReport" -Verbose
 Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
 Write-RjRbLog -Message "ReportFileFormat: $ReportFileFormat" -Verbose
+Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
+if ($CreateDownloadLink) {
+    Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
+    Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
+    Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+    Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
+}
 Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
 Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
 Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
@@ -249,17 +310,26 @@ if ($CheckPilotGroupMembership -and [string]::IsNullOrWhiteSpace($PilotGroupDisp
     throw "PilotGroupDisplayName is required when CheckPilotGroupMembership is enabled"
 }
 
-# A sender address is required before any mail can be sent
-if (($SendEmailReport -or $EmailTo) -and -not $EmailFrom) {
-    Write-Warning -Message "The sender email address is required. Configure it in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md"
-    Write-Error -Message "Missing email sender configuration (RJReport.EmailSender)." -ErrorAction Continue
-    throw "Missing email sender configuration (RJReport.EmailSender)."
+# SendEmailReport already existed before the "Report delivery" choice offered the download link, so
+# every schedule passes it explicitly and no fallback on the recipient is needed.
+$sendEmail = $SendEmailReport
+
+# Email delivery needs a recipient
+if ($sendEmail -and -not $EmailTo) {
+    Write-Error "Email delivery is selected but no recipient email address was provided." -ErrorAction Continue
+    throw "Missing recipient email address (EmailTo)"
 }
 
-# A recipient is required if the email report was switched on
-if ($SendEmailReport -and (-not $EmailTo)) {
-    Write-Error -Message "SendEmailReport is enabled but no EmailTo address was provided." -ErrorAction Continue
-    throw "Missing email recipient (EmailTo) while SendEmailReport is enabled."
+# A configured sender address is required before any mail can be sent
+if ($sendEmail -and -not $EmailFrom) {
+    Write-Error "The sender email address is missing. Configure the tenant setting RJReport.EmailSender in the runbook customization (https://docs.realmjoin.com/automation/runbooks/runbook-report-settings)." -ErrorAction Continue
+    throw "Missing email sender configuration (RJReport.EmailSender)"
+}
+
+# A target storage account is required to create a download link
+if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
+    Write-Error "A target storage account is required to create a download link. Configure the RJReport.StorageAccount.* tenant settings in the runbook customization (https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) or pass ResourceGroupName and StorageAccountName when starting the runbook." -ErrorAction Continue
+    throw "Missing storage account configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)"
 }
 #endregion Parameter Validation
 
@@ -874,20 +944,6 @@ catch {
     # means Organization.Read.All is missing on the managed identity.
     Write-RjRbLog -Message "WARNING: Failed to retrieve tenant information (continuing with 'Unknown Tenant'): $($_.Exception.Message). If this is a 403/Forbidden, grant the Organization.Read.All application permission to the Automation Account's managed identity." -Verbose
 }
-
-# "Email report" feature - Connect-RjRbGraph authenticates the sender identity used by Send-RjReportEmail
-if ($SendEmailReport) {
-    Write-Output "Graph connection for RJ RunbookHelper..."
-    try {
-        Connect-RjRbGraph
-    }
-    catch {
-        # Fatal only because SendEmailReport was requested; the report files themselves are unaffected
-        # by this failure since it happens before any data collection or export.
-        Write-Error "Failed to establish the RJ RunbookHelper Graph connection required for Send-RjReportEmail: $($_.Exception.Message). Verify the managed identity has the Mail.Send application permission granted (required for the optional report email)." -ErrorAction Continue
-        throw
-    }
-}
 #endregion Connect Part
 
 ########################################################
@@ -1478,27 +1534,40 @@ foreach ($user in $targetUsers) {
     # once per user and cache it: a tenant with many policies would otherwise re-query per policy.
     if (-not $userGroupCache.ContainsKey($user.id)) {
         try {
-            $memberOfResult = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($user.id)/transitiveMemberOf/microsoft.graph.group?`$select=id&`$top=999" -Method GET -ErrorAction Stop
-            $userGroupCache[$user.id] = @($memberOfResult.value | ForEach-Object { [string]$_.id })
+            $memberOfResult = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/users/$($user.id)/transitiveMemberOf/microsoft.graph.group?`$select=id&`$top=999")
+            $userGroupCache[$user.id] = @($memberOfResult | ForEach-Object { [string]$_.id })
         }
         catch {
-            $userGroupCache[$user.id] = @()
+            # $null marks a failed lookup, so the result row says that the CA evaluation is incomplete
+            $userGroupCache[$user.id] = $null
             Write-RjRbLog -Message "WARNING: Could not resolve group memberships for user '$($user.userPrincipalName)' when evaluating Conditional Access; policy scoping for this user may be incomplete: $($_.Exception.Message)" -Verbose
         }
     }
-    $userGroupIds = @($userGroupCache[$user.id])
+    if ($null -eq $userGroupCache[$user.id]) {
+        $userGroupIds = @()
+        $neutralWarnings += "Group memberships could not be read - Conditional Access policies scoped to groups were not fully evaluated"
+    }
+    else {
+        $userGroupIds = @($userGroupCache[$user.id])
+    }
 
     if (-not $userRoleCache.ContainsKey($user.id)) {
         try {
-            $roleResult = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($user.id)/transitiveMemberOf/microsoft.graph.directoryRole?`$select=roleTemplateId&`$top=999" -Method GET -ErrorAction Stop
-            $userRoleCache[$user.id] = @($roleResult.value | ForEach-Object { [string]$_.roleTemplateId } | Where-Object { $_ })
+            $roleResult = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/users/$($user.id)/transitiveMemberOf/microsoft.graph.directoryRole?`$select=roleTemplateId&`$top=999")
+            $userRoleCache[$user.id] = @($roleResult | ForEach-Object { [string]$_.roleTemplateId } | Where-Object { $_ })
         }
         catch {
-            $userRoleCache[$user.id] = @()
+            $userRoleCache[$user.id] = $null
             Write-RjRbLog -Message "WARNING: Could not resolve directory roles for user '$($user.userPrincipalName)'; Conditional Access policies scoped to roles may be missed: $($_.Exception.Message)" -Verbose
         }
     }
-    $userRoleTemplateIds = @($userRoleCache[$user.id])
+    if ($null -eq $userRoleCache[$user.id]) {
+        $userRoleTemplateIds = @()
+        $neutralWarnings += "Directory roles could not be read - Conditional Access policies scoped to roles were not fully evaluated"
+    }
+    else {
+        $userRoleTemplateIds = @($userRoleCache[$user.id])
+    }
 
     # Build display value for auth methods
     $authMethodDisplay = if ($mfaCapableAuthMethods.Count -gt 0) {
@@ -1708,57 +1777,11 @@ if ($topBlockingReasons.Count -gt 0) {
     }
 }
 
-# Output users not ready
+# The users per readiness status, with their blocking reasons and warnings, are listed in the Output Data
+# tables at the end of the run; the console keeps the counts only.
 $notReadyUsers = @($reportRows | Where-Object { $_.ReadinessStatus -eq "Not ready" })
-if ($notReadyUsers.Count -gt 0) {
-    Write-Output ""
-    Write-Output ("## Not ready ({0})" -f $notReadyUsers.Count)
-    Write-Output "---------------------"
-
-    $displayCount = [Math]::Min($notReadyUsers.Count, 50)
-    for ($i = 0; $i -lt $displayCount; $i++) {
-        $user = $notReadyUsers[$i]
-        $platformLabel = if ($platformsToCheck.Count -gt 1) { " [$($user.EnrollmentPlatform)]" } else { "" }
-        Write-Output ("  [X] {0} ({1}){2}" -f $user.DisplayName, $user.UserPrincipalName, $platformLabel)
-
-        # Split blocking reasons and indent each one
-        $reasons = @($user.BlockingReasons -split "; " | Where-Object { $_ -and $_.Trim() })
-        foreach ($reason in $reasons) {
-            Write-Output ("        {0}" -f $reason)
-        }
-    }
-
-    if ($notReadyUsers.Count -gt 50) {
-        $remainingCount = $notReadyUsers.Count - 50
-        Write-Output "  ... and $remainingCount more (see report file for full list)"
-    }
-}
-
-# Output users ready with warnings
 $warningUsers = @($reportRows | Where-Object { $_.ReadinessStatus -eq "Ready with warnings" })
-if ($warningUsers.Count -gt 0) {
-    Write-Output ""
-    Write-Output ("## Ready with warnings ({0})" -f $warningUsers.Count)
-    Write-Output "---------------------"
-
-    $displayCount = [Math]::Min($warningUsers.Count, 50)
-    for ($i = 0; $i -lt $displayCount; $i++) {
-        $user = $warningUsers[$i]
-        $platformLabel = if ($platformsToCheck.Count -gt 1) { " [$($user.EnrollmentPlatform)]" } else { "" }
-        Write-Output ("  [!] {0} ({1}){2}" -f $user.DisplayName, $user.UserPrincipalName, $platformLabel)
-
-        # Split warnings and indent each one
-        $warnings = @($user.Warnings -split "; " | Where-Object { $_ -and $_.Trim() })
-        foreach ($warning in $warnings) {
-            Write-Output ("        {0}" -f $warning)
-        }
-    }
-
-    if ($warningUsers.Count -gt 50) {
-        $remainingCount = $warningUsers.Count - 50
-        Write-Output "  ... and $remainingCount more (see report file for full list)"
-    }
-}
+$readyUsers = @($reportRows | Where-Object { $_.ReadinessStatus -eq "Ready" })
 
 # Check if all users are ready
 if ($notReadyUsers.Count -eq 0 -and $warningUsers.Count -eq 0) {
@@ -1777,37 +1800,31 @@ Write-RjRbLog -Message "Processed $($reportRows.Count) user/platform combination
 #region     Report File Export
 ########################################################
 $reportFiles = @()
-$tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "IntuneEnrollmentReadiness_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
-New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
-Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
+$xlsxFile = $null
+$tempDir = $null
 
-# Sanitise tenant display name for use in file paths (remove illegal characters)
-$sanitizedTenantName = $tenantDisplayName -replace '[\\/:*?"<>|]', '' | ForEach-Object { $_ -replace '\s+', '_' }
-if ([string]::IsNullOrWhiteSpace($sanitizedTenantName)) {
-    $sanitizedTenantName = "Tenant"
-}
+# Report files are only needed when they are attached to an email and/or uploaded for a download link
+if (($sendEmail -or $CreateDownloadLink) -and $reportRows.Count -gt 0) {
+    $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "IntuneEnrollmentReadiness_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+    Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
 
-if ($ReportFileFormat -ne 'XLSX only') {
-    if ($reportRows.Count -gt 0) {
-        $fileName = Join-Path $tempDir "intune-enrollment-readiness_$($sanitizedTenantName)_$(Get-Date -Format 'yyyyMMdd').csv"
+    # Sanitise tenant display name for use in file names (remove illegal characters, spaces become underscores)
+    $sanitizedTenantName = $tenantDisplayName -replace '[\\/:*?"<>|]', '' | ForEach-Object { $_ -replace '\s+', '_' }
+    if ([string]::IsNullOrWhiteSpace($sanitizedTenantName)) {
+        $sanitizedTenantName = "Tenant"
+    }
+    $fileNameBase = "intune-enrollment-readiness_$($sanitizedTenantName)_$(Get-Date -Format 'yyyyMMdd')"
+
+    if ($ReportFileFormat -ne 'XLSX only') {
+        $fileName = Join-Path $tempDir "$fileNameBase.csv"
         $reportRows | Export-Csv -Path $fileName -NoTypeInformation -Encoding UTF8
         $reportFiles += $fileName
         Write-RjRbLog -Message "Exported $($reportRows.Count) items to: $fileName" -Verbose
     }
-    else {
-        Write-Output "No data found - skipping CSV export"
-    }
-}
 
-Write-Output "Report file export completed: $($reportFiles.Count) file(s) created"
-
-if ($ReportFileFormat -ne 'CSV only') {
-    if ($reportRows.Count -gt 0) {
-        # $tenantDisplayName may contain characters that are illegal in file names (e.g. '/', '\', ':') - sanitise before use
-        $sanitizedTenantName = $tenantDisplayName -replace '[\\/:*?"<>|]', '_'
-        $xlsxFile = Join-Path $tempDir "intune-enrollment-readiness_$($sanitizedTenantName)_$(Get-Date -Format 'yyyyMMdd').xlsx"
-
-        $notReadyRows = @($reportRows | Where-Object { $_.ReadinessStatus -eq 'Not ready' })
+    if ($ReportFileFormat -ne 'CSV only') {
+        $xlsxFile = Join-Path $tempDir "$fileNameBase.xlsx"
 
         $topBlockingReasonsText = if ($summaryStats.TopBlockingReasons -and $summaryStats.TopBlockingReasons.Count -gt 0) {
             ($summaryStats.TopBlockingReasons | ForEach-Object { "$($_.Reason) ($($_.Count))" }) -join '; '
@@ -1832,11 +1849,12 @@ if ($ReportFileFormat -ne 'CSV only') {
             $workbookCoverSheet['Per Platform'] = $summaryStats.PlatformBreakdown
         }
 
+        # The 'Not ready' worksheet holds the same rows as the Output Data table of that name
         $xlsxWorksheets = [ordered]@{
             'All Users' = $reportRows
         }
-        if ($notReadyRows.Count -gt 0) {
-            $xlsxWorksheets['Not Ready'] = $notReadyRows
+        if ($notReadyUsers.Count -gt 0) {
+            $xlsxWorksheets['Not ready'] = $notReadyUsers
         }
 
         Export-RjRbXlsx -Worksheets $xlsxWorksheets `
@@ -1851,16 +1869,63 @@ if ($ReportFileFormat -ne 'CSV only') {
         $reportFiles += $xlsxFile
         Write-RjRbLog -Message "Exported $($reportRows.Count) items to: $xlsxFile" -Verbose
     }
-    else {
-        Write-Output "No data found - skipping XLSX export"
-    }
+
+    Write-Output ""
+    Write-Output "Report file export completed: $($reportFiles.Count) file(s) created."
+}
+elseif ($reportRows.Count -eq 0) {
+    Write-RjRbLog -Message "No users in the report - skipping the report file export" -Verbose
 }
 #endregion Report File Export
 
 ########################################################
+#region     Upload / Download Link
+########################################################
+if ($CreateDownloadLink) {
+    Write-Output ""
+    if ($reportFiles.Count -gt 0) {
+        Write-Output "## Uploading the report file(s) to the storage account..."
+
+        # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
+        # transparently connects the managed identity if no Az context is active.
+        try {
+            $uploadResults = Publish-RjRbFilesToStorageContainer `
+                -FilePaths $reportFiles `
+                -ContainerName $ContainerName `
+                -ResourceGroupName $ResourceGroupName `
+                -StorageAccountName $StorageAccountName `
+                -LinkExpiryDays $LinkExpiryDays `
+                -AddBlobNamePrefix $true
+        }
+        catch {
+            Write-Error "Failed to upload the report file(s) to storage account '$StorageAccountName': $($_.Exception.Message). The managed identity needs the 'Storage Account Contributor' role on the storage account." -ErrorAction Continue
+            throw
+        }
+
+        foreach ($uploadResult in $uploadResults) {
+            Write-Output ""
+            Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
+            $uploadResult.SASLink | Out-String | Write-Output
+        }
+    }
+    else {
+        Write-Output "No users in the report - skipping the upload."
+    }
+}
+#endregion Upload / Download Link
+
+########################################################
 #region     Send Email Report
 ########################################################
-if ($SendEmailReport) {
+$brandingMailParams = @{}
+
+if (-not $sendEmail) {
+    Write-RjRbLog -Message "Email delivery not selected - email report skipped" -Verbose
+}
+else {
+    Write-Output ""
+    Write-Output "## Sending the email report to '$EmailTo'..."
+
     # Resolve optional tenant email branding once per run (never fails the send)
     $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
 
@@ -1931,24 +1996,27 @@ The full report was too large to attach in all requested formats; the Excel work
 
     try {
         $emailParams = @{
-            EmailFrom         = $EmailFrom
-            EmailTo           = $EmailTo
-            Subject           = $emailSubject
-            MarkdownContent   = $markdownContent
-            TenantDisplayName = $tenantDisplayName
-            ReportVersion     = $Version
+            EmailFrom             = $EmailFrom
+            EmailTo               = $EmailTo
+            Subject               = $emailSubject
+            MarkdownContent       = $markdownContent
+            TenantDisplayName     = $tenantDisplayName
+            ReportVersion         = $Version
+            UseNativeGraphRequest = $true
         }
 
         if ($reportFiles.Count -eq 0) {
-            Send-RjReportEmail @emailParams @brandingMailParams
+            Send-RjRbReportEmail @emailParams @brandingMailParams
         }
         elseif ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFile -and (Test-Path -Path $xlsxFile)) {
             # Both formats attached; fall back to the workbook alone if the pair is too large.
-            Send-RjReportEmail @emailParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFile) -FallbackMarkdownContent $markdownFallbackXlsxOnly
+            Send-RjRbReportEmail @emailParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFile) -FallbackMarkdownContent $markdownFallbackXlsxOnly
         }
         else {
-            Send-RjReportEmail @emailParams @brandingMailParams -Attachments $reportFiles
+            Send-RjRbReportEmail @emailParams @brandingMailParams -Attachments $reportFiles
         }
+        Write-RjRbLog -Message "Email report sent to: $EmailTo" -Verbose
+        Write-Output "Email report sent to '$EmailTo'."
     }
     catch {
         # The report files were already generated successfully at this point - only delivery by email
@@ -1965,6 +2033,82 @@ The full report was too large to attach in all requested formats; the Excel work
     }
 }
 #endregion Send Email Report
+
+########################################################
+#region     Structured Output (Output Data)
+########################################################
+# Emitted last so the tables are not interleaved with the progress output. Every table has its own
+# RjTableTitle marker and its own column set; a marker is only written when rows follow it.
+$rowNoun = if ($platformsToCheck.Count -gt 1) { "user/platform combination(s)" } else { "user(s)" }
+Write-Output ""
+
+$summaryValues = [ordered]@{}
+if ($platformsToCheck.Count -gt 1) {
+    $summaryValues["User/platform combinations evaluated"] = $reportRows.Count
+}
+else {
+    $summaryValues["Users evaluated"] = $reportRows.Count
+}
+$summaryValues["Ready"] = $readyCount
+$summaryValues["Ready with warnings"] = $readyWithWarningsCount
+$summaryValues["Not ready"] = $notReadyCount
+if ($platformsToCheck.Count -gt 1) {
+    foreach ($platform in $platformsToCheck) {
+        $counts = $platformCounts[$platform]
+        $summaryValues["$platform - ready"] = $counts.Ready
+        $summaryValues["$platform - ready with warnings"] = $counts.ReadyWithWarnings
+        $summaryValues["$platform - not ready"] = $counts.NotReady
+    }
+}
+$summaryRows = @(foreach ($metric in $summaryValues.Keys) {
+        [PSCustomObject]@{ Metric = $metric; Value = [int]$summaryValues[$metric] }
+    })
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
+Write-Output $summaryRows
+
+if ($topBlockingReasons.Count -gt 0) {
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Top blocking reasons" })
+    Write-Output @($topBlockingReasons | Select-Object -Property Reason, Count)
+}
+else {
+    Write-Output "No blocking reasons recorded."
+}
+
+# One table per readiness status, each with the columns that explain it. The pilot group column is only
+# added when the pilot group check is enabled.
+$pilotColumn = @()
+if ($CheckPilotGroupMembership) { $pilotColumn = @("InPilotGroup") }
+$notReadyColumns = @("DisplayName", "UserPrincipalName", "EnrollmentPlatform", "BlockingReasons", "Warnings", "IntuneLicensed", "RegisteredAuthMethods") + $pilotColumn
+$warningColumns = @("DisplayName", "UserPrincipalName", "EnrollmentPlatform", "Warnings", "IntuneLicenses", "RegisteredAuthMethods") + $pilotColumn
+$readyColumns = @("DisplayName", "UserPrincipalName", "EnrollmentPlatform", "IntuneLicenses", "RegisteredAuthMethods", "RegisteredDeviceCount", "DeviceEnrollmentLimit") + $pilotColumn
+
+if ($notReadyUsers.Count -gt 0) {
+    Write-Output "$($notReadyUsers.Count) $($rowNoun) not ready"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Not ready" })
+    Write-Output @($notReadyUsers | Select-Object -Property $notReadyColumns)
+}
+else {
+    Write-Output "No $($rowNoun) not ready."
+}
+
+if ($warningUsers.Count -gt 0) {
+    Write-Output "$($warningUsers.Count) $($rowNoun) ready with warnings"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Ready with warnings" })
+    Write-Output @($warningUsers | Select-Object -Property $warningColumns)
+}
+else {
+    Write-Output "No $($rowNoun) ready with warnings."
+}
+
+if ($readyUsers.Count -gt 0) {
+    Write-Output "$($readyUsers.Count) $($rowNoun) ready"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Ready" })
+    Write-Output @($readyUsers | Select-Object -Property $readyColumns)
+}
+else {
+    Write-Output "No $($rowNoun) ready."
+}
+#endregion Structured Output (Output Data)
 
 ########################################################
 #region     Cleanup

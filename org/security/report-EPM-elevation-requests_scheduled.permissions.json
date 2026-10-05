@@ -13,11 +13,19 @@
                     "Value": "Mail.Send",
                     "Optional": true,
                     "Feature": "Email report",
-                    "Reason": "Sends the report email with CSV/XLSX attachments via Send-RjReportEmail when EmailTo is configured"
+                    "Reason": "Sends the report email with CSV/XLSX attachments via Send-RjRbReportEmail when email delivery is selected"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Reads the tenant display name and ID for the email subject, the email body and the report file names"
                 }
             ]
         }
     ],
     "Roles": [],
-    "ManualPermissions": []
+    "ManualPermissions": [
+        "Azure Storage Account: 'Storage Account Contributor' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link options)"
+    ]
 }

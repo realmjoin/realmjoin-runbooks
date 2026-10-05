@@ -1,13 +1,34 @@
 # Enrolled Devices Report (Scheduled)
 
-Show recent first-time device enrollments
+Report first-time device enrollments of the last weeks
 
 ## Detailed description
-This runbook reports recent device enrollments based on a configurable time range.
-It can group results by a selected attribute and can optionally export the report as a CSV file.
+Lists devices that enrolled for the first time within the chosen number of weeks. They are grouped by an attribute of your choice, such as country or department, so you can see where new devices show up. The report can be exported as CSV to an Azure Storage account and downloaded from there.
 
 ## Where to find
 Org \ General \ Enrolled Devices Report_Scheduled
+
+## Configure the storage account for the CSV export
+
+The CSV export uploads the report to an Azure Storage account. Its resource group, name, region and performance tier come from the tenant settings below; the container name is taken from `EnrolledDevicesReport.Container`.
+
+```json
+{
+  "Settings": {
+    "EnrolledDevicesReport": {
+      "ResourceGroup": "rj-test-runbooks-01",
+      "StorageAccount": {
+        "Name": "rjrbexports01",
+        "Location": "West Europe",
+        "Sku": "Standard_LRS"
+      }
+    }
+  }
+}
+```
+
+For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
 
 ## Permissions
 ### Application permissions
@@ -23,7 +44,7 @@ Azure: Contributor on Storage Account
 
 ## Parameters
 ### Weeks
-Time range in weeks to include in the report.
+How many weeks back to look for first enrollments.
 
 | Property | Value |
 |----------|-------|
@@ -32,7 +53,7 @@ Time range in weeks to include in the report.
 | Type | Int32 |
 
 ### dataSource
-Data source used to determine the first enrollment date.
+Date of Autopilot profile assignment counts a device from the day its Autopilot profile was assigned, Date of Intune enrollment from the day it enrolled in Intune.
 
 | Property | Value |
 |----------|-------|
@@ -41,7 +62,7 @@ Data source used to determine the first enrollment date.
 | Type | Int32 |
 
 ### groupingSource
-Data source used to resolve the grouping attribute.
+Where the grouping attribute comes from: no grouping, Entra ID user or device properties, Intune device properties, or Autopilot device properties.
 
 | Property | Value |
 |----------|-------|
@@ -50,7 +71,7 @@ Data source used to resolve the grouping attribute.
 | Type | Int32 |
 
 ### groupingAttribute
-Attribute name used for grouping.
+Name of the attribute the devices are grouped by, for example country or department.
 
 | Property | Value |
 |----------|-------|
@@ -59,7 +80,7 @@ Attribute name used for grouping.
 | Type | String |
 
 ### exportCsv
-Please configure an Azure Storage Account to use this feature.
+Uploads the report as CSV to the storage account and returns a download link. Needs a configured storage account.
 
 | Property | Value |
 |----------|-------|
@@ -68,7 +89,7 @@ Please configure an Azure Storage Account to use this feature.
 | Type | Boolean |
 
 ### ContainerName
-Storage container name used for upload.
+Storage container the report is uploaded to. Taken from the tenant setting EnrolledDevicesReport.Container.
 
 | Property | Value |
 |----------|-------|
@@ -77,7 +98,7 @@ Storage container name used for upload.
 | Type | String |
 
 ### ResourceGroupName
-Resource group that contains the storage account.
+Resource group of the storage account. Taken from the tenant setting EnrolledDevicesReport.ResourceGroup.
 
 | Property | Value |
 |----------|-------|
@@ -86,7 +107,7 @@ Resource group that contains the storage account.
 | Type | String |
 
 ### StorageAccountName
-Storage account name used for upload.
+Storage account for the export. Taken from the tenant setting EnrolledDevicesReport.StorageAccount.Name.
 
 | Property | Value |
 |----------|-------|
@@ -95,7 +116,7 @@ Storage account name used for upload.
 | Type | String |
 
 ### StorageAccountLocation
-Azure region for the storage account.
+Azure region used when the storage account has to be created. Taken from the tenant setting EnrolledDevicesReport.StorageAccount.Location.
 
 | Property | Value |
 |----------|-------|
@@ -104,7 +125,7 @@ Azure region for the storage account.
 | Type | String |
 
 ### StorageAccountSku
-Storage account SKU.
+Performance tier used when the storage account has to be created. Taken from the tenant setting EnrolledDevicesReport.StorageAccount.Sku.
 
 | Property | Value |
 |----------|-------|

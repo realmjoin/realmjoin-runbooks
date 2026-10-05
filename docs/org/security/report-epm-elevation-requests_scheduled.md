@@ -1,21 +1,55 @@
 # Report EPM Elevation Requests (Scheduled)
 
-Generate report for Endpoint Privilege Management (EPM) elevation requests
+Report EPM elevation requests by status and age
 
 ## Detailed description
-Queries Microsoft Intune for EPM elevation requests with flexible filtering options.
-Supports filtering by multiple status types and time range.
-Sends an email report with summary statistics and detailed report file attachments.
-The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
-The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
-When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+Collects the Endpoint Privilege Management elevation requests from Intune, filtered by status and by how long ago they were created. The requests are listed per status with a summary of the counts. Intune keeps request details for 30 days, so older requests cannot be reported. The report can be sent by email or provided as a download link.
 
 ## Where to find
 Org \ Security \ Report EPM Elevation Requests_Scheduled
 
+## Purpose and use cases
+
+- Regular reporting of Endpoint Privilege Management (EPM) activities
+- Audit trail for approved and denied elevation requests
+- Analysis of expired requests to identify process bottlenecks
+- Identification of frequently requested applications for automatic elevation rules
+
+A monthly schedule is recommended.
+
+## Status types
+
+- **Pending:** awaits an admin decision (use **Monitor Pending EPM Requests** for time-critical alerting)
+- **Approved:** an admin approved the request, the user can proceed with the elevation
+- **Denied:** an admin rejected the request due to security or policy concerns
+- **Expired:** the request expired before an admin reviewed it, which may indicate slow response times
+- **Revoked:** a previously approved elevation was later revoked by an admin
+- **Completed:** the user successfully executed the elevated application after approval
+
+## Data retention and time ranges
+
+- Intune retains EPM request details for 30 days after creation.
+- For long-term analysis, archive the CSV exports outside of Intune.
+- The default filter covers the states Approved, Denied, Expired and Revoked over the last 30 days.
+
+## Output and report files
+
+- The Output Data tab of the run shows a *Summary* table with the counts and one table per selected status (for example *Approved requests*), oldest request first.
+- The report files hold every matching request with all details: timestamps, users, devices, applications, justifications and file hashes. They are generated as CSV and/or Excel (xlsx), depending on the selected report file format.
+- Emails are sent individually to each recipient for privacy.
+- No email is sent and no file is created when no request matches the filter criteria. Such a run completes normally; the Output Data tab still shows the summary.
+
+## Report delivery
+
+Report files are only generated when a delivery method is selected via the **Report delivery** option (email and/or download link). With *Output Data only* selected, the results are read directly in the Output Data tab of the RealmJoin portal, where each table can also be exported to Excel. Email delivery and download link generation are independent and can be combined.
+
+For the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
+
+Schedules that were created before the **Report delivery** option existed keep sending their email: a stored recipient alone still enables the email for them. When such a schedule is opened for editing, the option shows *Output Data only*; select the delivery again before saving, otherwise the schedule stops sending the report.
+
 ## Setup regarding email sending
 
-Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+Sending an email report is optional and only happens when *Also email the report* or *Also email & download link* is selected as report delivery; a recipient is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
@@ -25,53 +59,29 @@ See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/aut
 
 The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
-- **Footer link** – target of the footer image
-- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+- **Header and footer image** - public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** - target of the footer image
+- **Accent and text color** - 6-digit hex values, e.g. `#0052cc`
 
-When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email - the corresponding default is used instead.
 
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
-
-## Notes
-Runbook Type: Scheduled (recommended: monthly)
-
-Purpose & Use Cases:
-- Regular reporting of EPM activities
-- Audit trail for approved/denied elevation requests
-- Analysis of expired requests to identify process bottlenecks
-- Identification of frequently requested applications for automatic elevation rules
-
-Status Types Explained:
-- Pending: Awaits admin decision (use monitor-pending-EPM-requests for time-critical alerting)
-- Approved: Admin approved the request, user can proceed with elevation
-- Denied: Admin rejected the request due to security/policy concerns
-- Expired: Request expired before admin review (may indicate slow response times)
-- Revoked: Previously approved elevation was later revoked by admin
-- Completed: User successfully executed the elevated application after approval
-
-Data Retention & Time Ranges:
-- Intune retains EPM request details for 30 days after creation
-- For long-term analysis, archive CSV exports outside of Intune
-- Default filter (Approved/Denied/Expired/Revoked, 30 days)
-
-Email & Export Details:
-- Generates CSV and/or Excel (xlsx) report files with complete request details (see ReportFileFormat)
-- Emails sent individually to each recipient for privacy
-- No email sent when zero requests match the filter criteria
-- Report files include: timestamps, users, devices, applications, justifications, file hashes
 
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
   - DeviceManagementConfiguration.Read.All
   - Mail.Send *(optional: Email report)*
+  - Organization.Read.All *(optional: Email report)*
+
+### Permission notes
+Azure Storage Account: 'Storage Account Contributor' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link options)
 
 
 ## Parameters
 ### IncludeApproved
-Include requests with status "Approved" - Request has been approved by an administrator.
+Includes requests an administrator approved.
 
 | Property | Value |
 |----------|-------|
@@ -80,7 +90,7 @@ Include requests with status "Approved" - Request has been approved by an admini
 | Type | Boolean |
 
 ### IncludeDenied
-Include requests with status "Denied" - Request was rejected by an administrator.
+Includes requests an administrator rejected.
 
 | Property | Value |
 |----------|-------|
@@ -89,7 +99,7 @@ Include requests with status "Denied" - Request was rejected by an administrator
 | Type | Boolean |
 
 ### IncludeExpired
-Include requests with status "Expired" - Request expired before approval/denial.
+Includes requests that expired before a decision was made.
 
 | Property | Value |
 |----------|-------|
@@ -98,7 +108,7 @@ Include requests with status "Expired" - Request expired before approval/denial.
 | Type | Boolean |
 
 ### IncludeRevoked
-Include requests with status "Revoked" - Previously approved request was revoked.
+Includes requests whose approval was withdrawn later.
 
 | Property | Value |
 |----------|-------|
@@ -107,7 +117,7 @@ Include requests with status "Revoked" - Previously approved request was revoked
 | Type | Boolean |
 
 ### IncludePending
-Include requests with status "Pending" - Awaiting approval decision.
+Includes requests that are still waiting for a decision.
 
 | Property | Value |
 |----------|-------|
@@ -116,7 +126,7 @@ Include requests with status "Pending" - Awaiting approval decision.
 | Type | Boolean |
 
 ### IncludeCompleted
-Include requests with status "Completed" - Request was approved and executed successfully.
+Includes requests that were approved and used.
 
 | Property | Value |
 |----------|-------|
@@ -125,8 +135,7 @@ Include requests with status "Completed" - Request was approved and executed suc
 | Type | Boolean |
 
 ### MaxAgeInDays
-Filter requests created within the last X days (default: 30).
-Note: Request details are retained in Intune for 30 days after creation.
+Only requests created within this many days are reported. Intune keeps request details for 30 days, so a larger value is reduced to 30.
 
 | Property | Value |
 |----------|-------|
@@ -134,9 +143,17 @@ Note: Request details are retained in Intune for 30 days after creation.
 | Required | false |
 | Type | Int32 |
 
+### SendEmailReport
+Send the report to the recipient email address.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
 ### EmailTo
-Can be a single address or multiple comma-separated addresses (string).
-The function sends individual emails to each recipient for privacy reasons.
+Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
 | Property | Value |
 |----------|-------|
@@ -145,7 +162,7 @@ The function sends individual emails to each recipient for privacy reasons.
 | Type | String |
 
 ### EmailFrom
-The sender email address. This needs to be configured in the runbook customization.
+Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
 | Property | Value |
 |----------|-------|
@@ -154,8 +171,7 @@ The sender email address. This needs to be configured in the runbook customizati
 | Type | String |
 
 ### BrandingHeaderImageUrl
-Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -164,8 +180,7 @@ Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, th
 | Type | String |
 
 ### BrandingFooterImageUrl
-Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -174,8 +189,7 @@ Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, th
 | Type | String |
 
 ### BrandingFooterLink
-Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-When empty, the default link (https://www.realmjoin.com) is used.
+Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -184,8 +198,7 @@ When empty, the default link (https://www.realmjoin.com) is used.
 | Type | String |
 
 ### BrandingAccentColor
-Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -194,8 +207,7 @@ Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or inv
 | Type | String |
 
 ### BrandingTextColor
-Optional text color override (6-digit hex) for the report email template.
-Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -204,7 +216,7 @@ Sourced from the RJReport.Branding.TextColor tenant setting. When empty or inval
 | Type | String |
 
 ### ReportFileFormat
-Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+Deliver the report as CSV, as an Excel workbook, or both.
 
 | Property | Value |
 |----------|-------|
@@ -213,7 +225,7 @@ Controls which report file formats are generated and delivered: "CSV only", "CSV
 | Type | String |
 
 ### CreateDownloadLink
-If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+Also upload the report and return a download link that expires after a few days.
 
 | Property | Value |
 |----------|-------|
@@ -222,7 +234,7 @@ If enabled, the report files are uploaded to an Azure Storage Account and time-l
 | Type | Boolean |
 
 ### ContainerName
-Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+Storage container the report files are uploaded to. Set per runbook.
 
 | Property | Value |
 |----------|-------|
@@ -231,7 +243,7 @@ Storage container name used for the upload. Configured per runbook (not a global
 | Type | String |
 
 ### ResourceGroupName
-Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
 | Property | Value |
 |----------|-------|
@@ -240,7 +252,7 @@ Resource group that contains the storage account. Sourced from the RJReport tena
 | Type | String |
 
 ### StorageAccountName
-Storage account name used for the upload. Sourced from the RJReport tenant settings.
+Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
 | Property | Value |
 |----------|-------|
@@ -249,7 +261,7 @@ Storage account name used for the upload. Sourced from the RJReport tenant setti
 | Type | String |
 
 ### LinkExpiryDays
-Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
 | Property | Value |
 |----------|-------|

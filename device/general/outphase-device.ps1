@@ -1,126 +1,124 @@
-﻿<#
+<#
     .SYNOPSIS
-    Remove/Outphase a windows device
+    Wipe this Windows device and clean up Intune, Autopilot and Entra ID
 
     .DESCRIPTION
-    Remove/Outphase a windows device. You can choose if you want to wipe the device and/or delete it from Intune and AutoPilot.
-    Optionally, the device can be tagged in Microsoft Defender for Endpoint to mark it as excluded from remediation.
-    NOTE: The Exclusion Tag is applied to the device, but it only appears in the Defender portal's "Tags" filter once it has been created once via the portal (Device > Manage tags > "Create new tag").
+    Takes this Windows device out of service. You choose whether the device is wiped or only deleted from Intune, and whether it leaves the Autopilot database. Its Entra ID object can be deleted, disabled or kept. Optionally the device is tagged in Microsoft Defender for Endpoint so rules that use the tag can exclude it from automated remediation. A wipe removes all user and enrollment data from the device and cannot be undone.
 
     .PARAMETER DeviceId
-    The device ID of the target device.
+    Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
     .PARAMETER intuneAction
-    Determines the Intune action to perform (wipe, delete, or none).
+    Completely wipe erases all user and enrollment data on the device. Delete from Intune only removes the device record, for devices that are already wiped or destroyed. Do not wipe or remove leaves Intune untouched.
 
     .PARAMETER aadAction
-    Determines the Entra ID (Azure AD) action to perform (delete, disable, or none).
+    Delete removes the device object from Entra ID, Disable keeps it but blocks sign-ins from the device, and Keep leaves Entra ID untouched.
 
     .PARAMETER wipeDevice
-    If set to true, triggers a wipe action in Intune.
+    Legacy switch kept for compatibility. The choice under "Intune action" decides whether the device is wiped.
 
     .PARAMETER removeIntuneDevice
-    If set to true, deletes the Intune device object.
+    Legacy switch kept for compatibility. The choice under "Intune action" decides whether the Intune record is deleted.
 
     .PARAMETER removeAutopilotDevice
-    "Delete device from AutoPilot database?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device from the AutoPilot database, which also allows the device to leave the tenant. If set to false, the device will remain in the AutoPilot database and can be re-assigned to another user/device in the tenant.
+    Removing the device from the Autopilot database lets it leave the tenant and be registered elsewhere. Keeping it allows a later redeployment in this tenant.
 
     .PARAMETER removeAADDevice
-    "Delete device from EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will delete the device object from Entra ID (Azure AD). If set to false, the device object will remain in Entra ID (Azure AD).
+    Legacy switch kept for compatibility. The choice under "Entra ID object" decides whether the Entra ID object is deleted.
 
     .PARAMETER disableAADDevice
-    "Disable device in EntraID?" (final value: true) or "Keep device / do not care" (final value: false) can be selected as action to perform. If set to true, the runbook will disable the device object in Entra ID (Azure AD). If set to false, the device object will remain enabled in Entra ID (Azure AD).
+    Legacy switch kept for compatibility. The choice under "Entra ID object" decides whether the Entra ID object is disabled.
 
     .PARAMETER excludeFromDefender
-    If set to true, the device will be tagged in Microsoft Defender for Endpoint with the specified exclusion tag. If set to false, the Defender step will be skipped entirely.
+    Tags the device in Microsoft Defender for Endpoint with the exclusion tag so rules that use the tag can exclude it from automated remediation. Skip leaves Defender untouched.
 
     .PARAMETER defenderExclusionTag
-    The tag that will be added to the device in Microsoft Defender for Endpoint to mark it as excluded. Defaults to "ExcludeFromRemediation".
+    Tag name written to the device in Defender for Endpoint, for use in your exclusion rules.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
-    "Parameters": {
-        "DeviceId": {
-            "Hide": true
-        },
-        "intuneAction": {
-            "DisplayName": "Wipe this device?",
-            "Select": {
-                "Options": [
-                    {
-                        "Display": "Completely wipe device (not keeping user or enrollment data)",
-                        "Value": 2
-                    },
-                    {
-                        "Display": "Delete device from Intune (only if device is already wiped or destroyed)",
-                        "Value": 1
-                    },
-                    {
-                        "Display": "Do not wipe or remove device from Intune",
-                        "Value": 0
-                    }
-                ],
-                "ShowValue": false
+        "Parameters": {
+            "DeviceId": {
+                "Hide": true
+            },
+            "intuneAction": {
+                "DisplayName": "Intune action",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Completely wipe device (not keeping user or enrollment data)",
+                            "Value": 2
+                        },
+                        {
+                            "Display": "Delete device from Intune (only if device is already wiped or destroyed)",
+                            "Value": 1
+                        },
+                        {
+                            "Display": "Do not wipe or remove device from Intune",
+                            "Value": 0
+                        }
+                    ],
+                    "ShowValue": false
+                }
+            },
+            "wipeDevice": {
+                "Hide": true
+            },
+            "removeIntuneDevice": {
+                "Hide": true
+            },
+            "removeAutopilotDevice": {
+                "DisplayName": "Delete device from Autopilot database?",
+                "SelectSimple": {
+                    "Remove from Autopilot (the device can leave the tenant)": true,
+                    "Keep the device in Autopilot": false
+                }
+            },
+            "aadAction": {
+                "DisplayName": "Entra ID object",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "Delete device in Entra ID",
+                            "Value": 2
+                        },
+                        {
+                            "Display": "Disable device in Entra ID",
+                            "Value": 1
+                        },
+                        {
+                            "Display": "Keep the Entra ID device",
+                            "Value": 0
+                        }
+                    ],
+                    "ShowValue": false
+                }
+            },
+            "removeAADDevice": {
+                "Hide": true
+            },
+            "disableAADDevice": {
+                "Hide": true
+            },
+            "excludeFromDefender": {
+                "DisplayName": "Tag as excluded in Defender for Endpoint?",
+                "SelectSimple": {
+                    "Tag device as excluded in Defender for Endpoint": true,
+                    "Skip Defender operations": false
+                }
+            },
+            "defenderExclusionTag": {
+                "DisplayName": "Defender exclusion tag",
+                "Default": "ExcludeFromRemediation"
+            },
+            "CallerName": {
+                "Hide": true
             }
-        },
-        "wipeDevice": {
-            "Hide": true
-        },
-        "removeIntuneDevice": {
-            "Hide": true
-        },
-        "removeAutopilotDevice": {
-            "DisplayName": "Delete device from AutoPilot database?",
-            "SelectSimple": {
-                "Remove the device from AutoPilot (the device can leave the tenant)": true,
-                "Keep device / do not care": false
-            }
-        },
-        "aadAction": {
-            "DisplayName": "Delete device from EntraID?",
-            "Select": {
-                "Options": [
-                    {
-                        "Display": "Delete device in EntraID",
-                        "Value": 2
-                    },
-                    {
-                        "Display": "Disable device in EntraID",
-                        "Value": 1
-                    },
-                    {
-                        "Display": "Do not delete EntraID device / do not care",
-                        "Value": 0
-                    }
-                ],
-                "ShowValue": false
-            }
-        },
-        "removeAADDevice": {
-            "Hide": true
-        },
-        "disableAADDevice": {
-            "Hide": true
-        },
-        "excludeFromDefender": {
-            "DisplayName": "Exclude device from Defender for Endpoint?",
-            "SelectSimple": {
-                "Tag device as excluded in Defender for Endpoint": true,
-                "Skip Defender operations": false
-            }
-        },
-        "defenderExclusionTag": {
-            "DisplayName": "Defender Exclusion Tag",
-            "Default": "ExcludeFromRemediation"
-        },
-        "CallerName": {
-            "Hide": true
         }
     }
-}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }

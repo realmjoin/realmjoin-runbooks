@@ -1,134 +1,293 @@
 <#
-    .SYNOPSIS
-    Create an equipment mailbox
+	.SYNOPSIS
+	Create an equipment mailbox with optional booking delegates
 
-    .DESCRIPTION
-    Creates an Exchange Online equipment mailbox and optionally configures delegate access and calendar processing. If requested, the associated Entra ID user account is disabled after creation.
+	.DESCRIPTION
+	Creates an equipment mailbox in Exchange Online, for example for a projector or a pool car, so it can be booked in meeting requests. Without booking delegates the equipment accepts requests automatically when it is free. With booking delegates every request waits for their approval; they get no access to the mailbox itself. The user account behind the mailbox can be disabled.
 
-    .PARAMETER MailboxName
-    Alias (mail nickname) for the equipment mailbox.
+	.PARAMETER MailboxName
+	Alias of the mailbox, which becomes the part of the email address in front of the @ sign.
 
-    .PARAMETER DisplayName
-    Optional display name for the equipment mailbox.
+	.PARAMETER DisplayName
+	Name shown in the address book. Leave empty to use the alias.
 
-    .PARAMETER DelegateTo
-    Optional user who receives delegated access to the mailbox.
+	.PARAMETER DelegateTo
+	Users who approve or decline every booking request for the equipment. Leave empty to accept requests automatically when the equipment is free.
 
-    .PARAMETER AutoAccept
-    If set to true, meeting requests are automatically accepted.
+	.PARAMETER DisableUser
+	Blocks sign-in for the user account behind the mailbox. Booking keeps working.
 
-    .PARAMETER AutoMapping
-    If set to true, the mailbox is automatically mapped in Outlook for the delegate.
+	.PARAMETER CallerName
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
-    .PARAMETER DisableUser
-    If set to true, the associated Entra ID user account is disabled.
-
-    .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
-
-    .INPUTS
-    RunbookCustomization: {
-        "Parameters": {
-            "CallerName": {
-                "Hide": true
-            },
-            "AutoAccept": {
-                "DisplayName": "Automatically accept meeting requests"
-            },
-            "AutoMapping": {
-                "DisplayName": "Automatically map mailbox in Outlook"
-            },
-            "DisableUser": {
-                "DisplayName": "Disable AAD User"
-            }
-        }
-    }
-
+	.INPUTS
+	RunbookCustomization: {
+	    "Parameters": {
+	        "MailboxName": {
+	            "DisplayName": "Alias"
+	        },
+	        "DisplayName": {
+	            "DisplayName": "Display name"
+	        },
+	        "DisableUser": {
+	            "DisplayName": "Block sign-in for the mailbox account?"
+	        },
+	        "CallerName": {
+	            "Hide": true
+	        }
+	    }
+	}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
 #Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.2" }
 
 param (
     [Parameter(Mandatory = $true)]
     [string] $MailboxName,
     [string] $DisplayName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
-    [string] $DelegateTo,
-    [bool] $AutoAccept = $false,
-    [bool] $AutoMapping = $false,
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -Attribute userPrincipalName -DisplayName "Booking delegates" -Filter "userType eq 'Member'" } )]
+    [string[]] $DelegateTo,
     [bool] $DisableUser = $true,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
 
+########################################################
+#region     RJ Log Part
+########################################################
+
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.1"
+$Version = "2.0.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
+
+Write-RjRbLog -Message "Submitted parameters:" -Verbose
+Write-RjRbLog -Message "MailboxName: $MailboxName" -Verbose
+Write-RjRbLog -Message "DisplayName: $DisplayName" -Verbose
+Write-RjRbLog -Message "DelegateTo: $($DelegateTo -join ', ')" -Verbose
+Write-RjRbLog -Message "DisableUser: $DisableUser" -Verbose
+
+#endregion RJ Log Part
+
+########################################################
+#region     Parameter Validation
+########################################################
+
+$MailboxName = $MailboxName.Trim()
+if ([string]::IsNullOrWhiteSpace($MailboxName)) {
+    Write-Error "The alias of the equipment mailbox is empty." -ErrorAction Continue
+    throw "Empty alias"
+}
+
+# The portal multi-user picker may pass empty entries; de-duplicate case-insensitively
+$delegateList = @($DelegateTo | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | ForEach-Object { $_.Trim() } | Sort-Object -Unique)
+
+#endregion Parameter Validation
+
+########################################################
+#region     Connect Part
+########################################################
+
+Write-Output "Connect to Exchange Online..."
 
 try {
     Connect-RjRbExchangeOnline
+}
+catch {
+    Write-Error "Exchange Online connection failed: $($_.Exception.Message)" -ErrorAction Continue
+    throw
+}
 
-    $invokeParams = @{
-        Name      = $MailboxName
-        Alias     = $MailboxName
-        Equipment = $true
+if ($DisableUser) {
+    try {
+        Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+    }
+    catch {
+        Write-Error "Microsoft Graph connection failed: $($_.Exception.Message)" -ErrorAction Continue
+        Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+        throw
+    }
+}
+
+#endregion Connect Part
+
+########################################################
+#region     StatusQuo & Preflight-Check Part
+########################################################
+
+Write-Output ""
+Write-Output "Preflight-Check"
+Write-Output "---------------------"
+
+try {
+    $existingRecipient = Get-EXORecipient -Filter "Alias -eq '$($MailboxName -replace "'", "''")'" -ResultSize 1 -ErrorAction Stop
+    if ($existingRecipient) {
+        throw "The alias '$MailboxName' is already used by '$($existingRecipient.PrimarySmtpAddress)'."
     }
 
-    if ($DisplayName) {
-        $invokeParams += @{ DisplayName = $DisplayName }
-    }
-
-    # Create the mailbox
-    $mailbox = New-Mailbox @invokeParams
-
-    $found = $false
-    while (-not $found) {
-        $mailbox = Get-Mailbox -Identity $MailboxName -ErrorAction SilentlyContinue
-        if ($null -eq $mailbox) {
-            ".. Waiting for mailbox to be created..."
-            Start-Sleep -Seconds 5
-        }
-        else {
-            $found = $true
-        }
-    }
-
-    if ($DelegateTo) {
-        # "Grant SendOnBehalf"
-        $mailbox | Set-Mailbox -GrantSendOnBehalfTo $DelegateTo | Out-Null
-        # "Grant FullAccess"
-        $mailbox | Add-MailboxPermission -User $DelegateTo -AccessRights FullAccess -InheritanceType All -AutoMapping $AutoMapping -confirm:$false | Out-Null
-        # Calendar delegation
-        Set-CalendarProcessing -Identity $MailboxName -ResourceDelegates $DelegateTo
-    }
-
-    if ($AutoAccept) {
-        Set-CalendarProcessing -Identity $MailboxName -AutomateProcessing "AutoAccept"
-    }
-
-    if ($DisableUser) {
-        # Deactive the user account using the Graph API
-        $user = $null
-        $retryCount = 0
-        while (($null -eq $user) -and ($retryCount -lt 10)) {
-            $user = Invoke-RjRbRestMethodGraph -Resource "/users" -Method Get -OdFilter "mailNickname eq '$MailboxName'" -ErrorAction Stop
-            if ($null -eq $user) {
-                $retryCount++
-                ".. Waiting for user object to be created..."
-                Start-Sleep -Seconds 5
+    # Booking delegates need a mailbox to receive the requests they approve. Resolve them before anything
+    # is created, so an invalid selection leaves no half-configured mailbox behind.
+    $delegateAddresses = @(foreach ($delegate in $delegateList) {
+            try {
+                [string](Get-EXOMailbox -Identity $delegate -ErrorAction Stop).PrimarySmtpAddress
             }
+            catch {
+                throw "Booking delegate '$delegate' has no mailbox in Exchange Online."
+            }
+        })
+    $delegateAddresses = @($delegateAddresses | Sort-Object -Unique)
+}
+catch {
+    Write-Error "Preflight check failed: $($_.Exception.Message)" -ErrorAction Continue
+    Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+    if (Get-MgContext -ErrorAction SilentlyContinue) {
+        Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+    }
+    throw
+}
+
+Write-Output "Alias '$MailboxName' is available."
+if ($delegateAddresses.Count -gt 0) {
+    Write-Output "Booking delegates: $($delegateAddresses -join ', ')"
+}
+else {
+    Write-Output "No booking delegates - the equipment accepts requests automatically when it is free."
+}
+
+#endregion StatusQuo & Preflight-Check Part
+
+########################################################
+#region     Main Part
+########################################################
+
+Write-Output ""
+Write-Output "Create equipment mailbox"
+Write-Output "---------------------"
+
+try {
+    $newMailboxParams = @{
+        Name        = $MailboxName
+        Alias       = $MailboxName
+        Equipment   = $true
+        ErrorAction = "Stop"
+    }
+    if ($DisplayName) {
+        $newMailboxParams.DisplayName = $DisplayName
+    }
+    $mailbox = New-Mailbox @newMailboxParams
+    # All further cmdlets address the mailbox by its primary SMTP address, which is unique - the alias
+    # can also match the name of another recipient.
+    $mailboxAddress = [string]$mailbox.PrimarySmtpAddress
+    Write-Output "Equipment mailbox '$mailboxAddress' created."
+}
+catch {
+    Write-Error "Creating the equipment mailbox '$MailboxName' failed: $($_.Exception.Message)" -ErrorAction Continue
+    Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+    if (Get-MgContext -ErrorAction SilentlyContinue) {
+        Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+    }
+    throw
+}
+
+# Booking delegates are set only through the calendar processing - the same as "Select delegates who can
+# accept or decline booking requests" in the Exchange admin center. They need no full access, and Exchange
+# grants them Send on Behalf itself.
+$calendarParams = @{
+    AutomateProcessing = "AutoAccept"
+    ErrorAction        = "Stop"
+}
+if ($delegateAddresses.Count -gt 0) {
+    $calendarParams.AllBookInPolicy = $false
+    $calendarParams.AllRequestInPolicy = $true
+    $calendarParams.ResourceDelegates = $delegateAddresses
+}
+else {
+    $calendarParams.AllBookInPolicy = $true
+}
+
+# A new mailbox takes a moment until its calendar can be configured
+$maxAttempts = 12
+for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+    try {
+        Set-CalendarProcessing -Identity $mailboxAddress @calendarParams
+        break
+    }
+    catch {
+        if ($attempt -eq $maxAttempts) {
+            Write-Error "Configuring the calendar processing of '$mailboxAddress' failed: $($_.Exception.Message)" -ErrorAction Continue
+            Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+            if (Get-MgContext -ErrorAction SilentlyContinue) {
+                Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+            }
+            throw
         }
-        $body = @{
-            accountEnabled = $false
+        Write-Output ".. Waiting for the mailbox to be ready ($attempt/$maxAttempts)..."
+        Start-Sleep -Seconds 10
+    }
+}
+
+if ($delegateAddresses.Count -gt 0) {
+    Write-Output "Booking requests now wait for the approval of: $($delegateAddresses -join ', ')"
+}
+else {
+    Write-Output "Booking requests are accepted automatically when the equipment is free."
+}
+
+if ($DisableUser) {
+    # The user account appears in Entra ID shortly after the mailbox
+    $graphUser = $null
+    $userKey = if ($mailbox.ExternalDirectoryObjectId) { [string]$mailbox.ExternalDirectoryObjectId } else { [string]$mailbox.UserPrincipalName }
+    for ($attempt = 1; ($attempt -le $maxAttempts) -and (-not $graphUser); $attempt++) {
+        try {
+            $graphUser = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$([uri]::EscapeDataString($userKey))?`$select=id,userPrincipalName,accountEnabled" -Method GET -ErrorAction Stop
         }
-        Invoke-RjRbRestMethodGraph -Resource "/users/$($user.id)" -Method Patch -Body $body -ErrorAction Stop
+        catch {
+            Write-Output ".. Waiting for the user account in Entra ID ($attempt/$maxAttempts)..."
+            Start-Sleep -Seconds 10
+        }
     }
 
-    "## Equipment Mailbox '$MailboxName' has been created."
+    if (-not $graphUser) {
+        Write-RjRbLog -Message "WARNING: The user account of '$mailboxAddress' did not appear in Entra ID in time and was not blocked. Block its sign-in in Entra ID." -Verbose
+        Write-Error "The user account of '$mailboxAddress' was not found in Entra ID, sign-in was not blocked." -ErrorAction Continue
+    }
+    elseif (-not $graphUser.accountEnabled) {
+        Write-Output "Sign-in of '$($graphUser.userPrincipalName)' is already blocked."
+    }
+    else {
+        try {
+            Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($graphUser.id)" -Method PATCH -Body @{ accountEnabled = $false } -ErrorAction Stop | Out-Null
+            Write-Output "Sign-in of '$($graphUser.userPrincipalName)' blocked."
+        }
+        catch {
+            Write-Error "Blocking the sign-in of '$($graphUser.userPrincipalName)' failed: $($_.Exception.Message)" -ErrorAction Continue
+            Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+            if (Get-MgContext -ErrorAction SilentlyContinue) {
+                Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+            }
+            throw
+        }
+    }
 }
-finally {
-    Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+
+Write-Output ""
+Write-Output "Equipment mailbox '$mailboxAddress' has been created."
+
+#endregion Main Part
+
+########################################################
+#region     Cleanup
+########################################################
+
+Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
 }
+
+Write-Output ""
+Write-Output "Done!"
+
+#endregion Cleanup

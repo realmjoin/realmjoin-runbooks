@@ -1,10 +1,9 @@
 # Set Teams Phone
 
-Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
+Assign a phone number and voice policies to this user
 
 ## Detailed description
-Assign a phone number to a Microsoft Teams enabled user, enable calling and Grant specific Microsoft Teams policies.
-If the policy name of a policy is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+Assigns a phone number to this Teams user and optionally sets the voice routing policy, dial plan, calling policy and IP phone policy. Only the policies you fill in are changed. Enter Global (Org Wide Default) to remove an assignment and fall back to the tenant default.
 
 ## Where to find
 User \ Phone \ Set Teams Phone
@@ -20,7 +19,7 @@ User \ Phone \ Set Teams Phone
 
 ## Parameters
 ### UserName
-User principal name of the target user.
+User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|
@@ -29,7 +28,7 @@ User principal name of the target user.
 | Type | String |
 
 ### PhoneNumber
-Phone number which should be assigned to the user. The number must be in E.164 format (e.g. +49123456789).
+Number to assign, in E.164 format such as +49123456789.
 
 | Property | Value |
 |----------|-------|
@@ -38,7 +37,7 @@ Phone number which should be assigned to the user. The number must be in E.164 f
 | Type | String |
 
 ### OnlineVoiceRoutingPolicy
-Name of the Online Voice Routing Policy to assign. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+Voice routing policy to assign. Leave empty to keep the current one, or enter Global (Org Wide Default) to reset it.
 
 | Property | Value |
 |----------|-------|
@@ -47,7 +46,7 @@ Name of the Online Voice Routing Policy to assign. If the policy name is left bl
 | Type | String |
 
 ### TenantDialPlan
-Name of the Tenant Dial Plan to assign. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+Dial plan to assign. Leave empty to keep the current one, or enter Global (Org Wide Default) to reset it.
 
 | Property | Value |
 |----------|-------|
@@ -56,7 +55,7 @@ Name of the Tenant Dial Plan to assign. If the policy name is left blank, the co
 | Type | String |
 
 ### TeamsCallingPolicy
-Name of the Teams Calling Policy to assign. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+Calling policy to assign. Leave empty to keep the current one, or enter Global (Org Wide Default) to reset it.
 
 | Property | Value |
 |----------|-------|
@@ -65,7 +64,7 @@ Name of the Teams Calling Policy to assign. If the policy name is left blank, th
 | Type | String |
 
 ### TeamsIPPhonePolicy
-Name of the Teams IP Phone Policy to assign. If the policy name is left blank, the corresponding policy will not be changed. To clear the policies assignment, the value "Global (Org Wide Default)" has to be entered.
+IP phone policy to assign, typically for common area phones. Leave empty to keep the current one, or enter Global (Org Wide Default) to reset it.
 
 | Property | Value |
 |----------|-------|

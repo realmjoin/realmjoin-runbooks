@@ -1,3 +1,10 @@
+## Common use cases
+
+- Recurring reminders to users whose devices are about to run out of disk space, before updates and app installations start to fail
+- Two-stage campaigns: report all devices below the threshold to administrators with **Report Devices Low Diskspace**, and notify only the users with critical devices via `NotifyOnSeverity`
+- Staged rollouts per department or pilot group via the user and device group scope options
+- Excluding service or shared accounts via the exclude group
+
 ## Data freshness and limitations
 
 The free and total disk space values are read from the Intune hardware inventory of each managed device. This inventory is refreshed with the regular device check-in, so the runbook sees the state of the last successful inventory rather than the current state of the device. To avoid notifying users based on outdated numbers, devices whose last Intune sync is older than `MaxInventoryAgeDays` (default 14 days) are skipped and counted separately. Devices without a last sync date are treated as outdated as well. Set the parameter to `0` to disable this check.
@@ -27,6 +34,8 @@ Recipients are resolved via Microsoft Graph: the primary user of a device is loo
 `SimulationMode` lists the affected users, their devices and the intended recipients in the console output without sending any email. Use it to validate thresholds and scope filters before the first productive run.
 
 `OverrideEmailRecipient` redirects **ALL** notifications to the given address (comma-separated for multiple recipients) instead of the end users. A warning is logged on every run while the override is active, and each redirected email states the affected user in the subject and body. Use this for testing the email content or for routing everything to a shared mailbox.
+
+Keep in mind that the override mailbox then receives one email per affected user, all sent within a few seconds and with urgent subject lines. Mail filters may classify such a burst of similar emails as bulk or spam and move it to the junk folder or the quarantine, in particular when the override mailbox belongs to another tenant. The runbook only sees that Microsoft Graph accepted each email and reports it as sent; what the receiving side does afterwards is not visible in the job output. If the emails do not arrive, check the junk folder and the quarantine of the override mailbox and run a message trace for the sender address. A mailbox in the same tenant is the more reliable test target.
 
 ## Scoping options
 

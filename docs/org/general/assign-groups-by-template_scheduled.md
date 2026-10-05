@@ -1,13 +1,69 @@
 # Assign Groups By Template (Scheduled)
 
-Assign cloud-only groups to many users based on a predefined template
+Add the users of a group to a predefined set of groups
 
 ## Detailed description
-This runbook adds users from a source group to one or more target groups.
-Target groups are provided via a template-driven string and can be resolved by group ID or display name.
+Adds every user of a source group to the target groups of a template, on a schedule, so a whole population gets the same group set. Users in an exclusion group are skipped. The templates are defined in the runbook customization.
 
 ## Where to find
 Org \ General \ Assign Groups By Template_Scheduled
+
+## Define the templates via runbook customization
+
+The templates decide which target groups the users of the source group join. Each template presets the group list (`GroupsString`) and whether that list holds object IDs (`UseDisplaynames` = `false`) or display names (`true`).
+
+```json
+{
+    "Templates": {
+        "Options": [
+            {
+                "$id": "GroupsTemplates",
+                "$values": [
+                    {
+                        "Display": "Template 1 (UseDisplaynames=false)",
+                        "Customization": {
+                            "Default": {
+                                "GroupsString": "c1f8e69f-e6c0-4e7e-b49d-241046958aa3,98c19df0-0bc1-4236-92b9-12559e1127d3",
+                                "UseDisplaynames": false
+                            }
+                        }
+                    },
+                    {
+                        "Display": "Template 2 (UseDisplaynames=true)",
+                        "Customization": {
+                            "Default": {
+                                "GroupsString": "app - Microsoft VC Redistributable 2013,app - VLC Player",
+                                "UseDisplaynames": true
+                            }
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    "Runbooks": {
+        "rjgit-org_general_assign-groups-by-template_scheduled": {
+            "ParameterList": [
+                {
+                    "Name": "GroupsTemplate",
+                    "Select": {
+                        "Options": {
+                            "$ref": "GroupsTemplates"
+                        }
+                    }
+                },
+                {
+                    "Name": "UseDisplaynames",
+                    "Default": false
+                }
+            ]
+        }
+    }
+}
+```
+
+For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
 
 ## Permissions
 ### Application permissions
@@ -18,7 +74,7 @@ Org \ General \ Assign Groups By Template_Scheduled
 
 ## Parameters
 ### SourceGroupId
-Object ID of the source group containing users to process.
+Every user in this group is processed.
 
 | Property | Value |
 |----------|-------|
@@ -27,7 +83,7 @@ Object ID of the source group containing users to process.
 | Type | String |
 
 ### ExclusionGroupId
-Optional object ID of a group whose users are excluded from processing.
+Users in this group are skipped. Leave empty to process all users.
 
 | Property | Value |
 |----------|-------|
@@ -36,7 +92,7 @@ Optional object ID of a group whose users are excluded from processing.
 | Type | String |
 
 ### GroupsTemplate
-Template selector used by the portal to populate the GroupsString parameter.
+Template that decides which groups the users join. The available templates are set up in the runbook customization.
 
 | Property | Value |
 |----------|-------|
@@ -45,7 +101,7 @@ Template selector used by the portal to populate the GroupsString parameter.
 | Type | String |
 
 ### GroupsString
-Comma-separated list of target groups (IDs or display names depending on UseDisplaynames).
+Target groups, separated by commas. Usually filled in by the selected template.
 
 | Property | Value |
 |----------|-------|
@@ -54,7 +110,7 @@ Comma-separated list of target groups (IDs or display names depending on UseDisp
 | Type | String |
 
 ### UseDisplaynames
-If set to true, GroupsString contains display names; otherwise it contains object IDs.
+Turn on when the group list holds display names instead of object IDs. Can be preset per template.
 
 | Property | Value |
 |----------|-------|

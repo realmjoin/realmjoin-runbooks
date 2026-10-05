@@ -1,15 +1,15 @@
 <#
 	.SYNOPSIS
-	Display macOS FileVault recovery key
+	Show the FileVault recovery key of this Mac
 
 	.DESCRIPTION
-	Retrieves and displays the FileVault recovery key for a macOS device enrolled in Intune. This key is used to unlock the device if the user forgets their password or the device becomes locked.
+	Shows the FileVault recovery key that Intune has stored for this macOS device. Use it to unlock the Mac when the user has forgotten the password or the device is locked. Nothing is changed.
 
 	.PARAMETER DeviceId
-	The Azure AD Device ID of the macOS device
+	Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
 	.PARAMETER CallerName
-	The name of the person running this runbook
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {

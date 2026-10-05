@@ -1,15 +1,15 @@
 <#
     .SYNOPSIS
-    Microsoft Teams telephony offboarding
+    Remove Teams phone number and voice policies from this user
 
     .DESCRIPTION
-    Removes the assigned phone number and clears selected Teams voice policies for a Teams-enabled user. This fullfills the telephony offboarding scenarios.
+    Takes the assigned phone number away from this user and clears the Teams voice policies, so the user can no longer make or receive phone calls through Teams.
 
     .PARAMETER UserName
-    User which should be cleared. Could be filled with the user picker in the UI.
+    User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {

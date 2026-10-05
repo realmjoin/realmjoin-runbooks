@@ -1,28 +1,27 @@
 <#
     .SYNOPSIS
-    Add or remove a SmartScreen URL indicator in Microsoft Defender
+    Allow, warn or block a URL in Defender SmartScreen
 
     .DESCRIPTION
-    This runbook lists, adds, or removes URL indicators in Microsoft Defender.
-    It can allow, audit, warn, or block a given domain by creating an indicator entry.
+    Manages URL indicators in Microsoft Defender for Endpoint, which SmartScreen uses to allow, audit, warn about or block a domain. Lists the existing indicators, adds one for a domain, or removes all indicators for it.
 
     .PARAMETER Url
-    Domain name to manage, for example "exclusiondemo.com".
+    Domain to manage, for example exclusiondemo.com.
 
     .PARAMETER action
-    "List all URL indicators", "Add an URL indicator" or "Remove all indicator for this URL" could be selected as action to perform.
+    List shows all URL indicators, Add creates one for the domain, Remove deletes every indicator for it.
 
     .PARAMETER mode
-    Indicator mode to apply.
+    What SmartScreen does with the domain: allow it, only audit access, warn the user, or block it.
 
     .PARAMETER explanationTitle
-    Title used when creating an indicator.
+    Short title stored with the indicator.
 
     .PARAMETER explanationDescription
-    Description used when creating an indicator.
+    Reason stored with the indicator, for example who requested the exclusion.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -44,11 +43,11 @@
                             }
                         },
                         {
-                            "Display": "Add an URL indicator",
+                            "Display": "Add a URL indicator",
                             "Value": 1
                         },
                         {
-                            "Display": "Remove all indicator for this URL",
+                            "Display": "Remove all indicators for this URL",
                             "Value": 2,
                             "Customization": {
                                 "Hide": [
@@ -62,7 +61,7 @@
                 }
             },
             "mode": {
-                "DisplayName": "Allow, Audit, Warn or Block this URL?",
+                "DisplayName": "Allow, audit, warn or block?",
                 "SelectSimple": {
                     "Allow": 0,
                     "Audit": 1,

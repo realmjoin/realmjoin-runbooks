@@ -1,9 +1,9 @@
 # Manage Archive Mailbox
 
-Manage the Exchange Online archive mailbox for a user
+Enable, disable or check the archive mailbox of this user
 
 ## Detailed description
-Enables, disables, or retrieves the current status of the in-place archive mailbox for an Exchange Online user. Before any change the current state is verified so the script exits without making changes if the mailbox is already in the desired state. When enabling, any soft-deleted archive mailbox from within the last 30 days is automatically reconnected instead of creating a new one.
+Enables or disables the in-place archive mailbox of this user, or shows its current status. Nothing changes when the mailbox is already in the requested state. When enabling, an archive that was disabled within the last 30 days is reconnected instead of creating a new one.
 
 ## Where to find
 User \ Mail \ Manage Archive Mailbox
@@ -19,7 +19,7 @@ User \ Mail \ Manage Archive Mailbox
 
 ## Parameters
 ### UserName
-User principal name of the user whose archive mailbox should be managed.
+User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +28,7 @@ User principal name of the user whose archive mailbox should be managed.
 | Type | String |
 
 ### Action
-Action to perform: Enable, Disable, or GetStatus.
+Whether the archive is enabled, disabled or only its status shown. Set by the "Action" choice.
 
 | Property | Value |
 |----------|-------|

@@ -1,24 +1,24 @@
 <#
     .SYNOPSIS
-    Assign an OWA mailbox policy to a user
+    Assign an Outlook on the web policy to this user's mailbox
 
     .DESCRIPTION
-    Assigns an OWA mailbox policy to a mailbox in Exchange Online.
-    This can be used to enable or restrict features such as the ability to use email signatures in OWA or to enable the Bookings add-in for users who create Bookings appointments.
+    Assigns an Outlook on the web (OWA) mailbox policy to the mailbox of this user. Policies switch features on or off, for example email signatures in the web client or the Bookings add-in for people who create Bookings appointments. Get current assignment shows the policy in place without changing it.
 
     .PARAMETER UserName
-    User principal name of the target mailbox.
+    User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER OwaPolicyName
-    Name of the OWA mailbox policy to assign.
+    Policy to assign. Get current assignment only shows which policy the mailbox has today.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "OwaPolicyName": {
+                "DisplayName": "Policy",
                 "SelectSimple": {
                     "Default": "OwaMailboxPolicy-Default",
                     "No signatures": "OwaMailboxPolicy-NoSignatures",

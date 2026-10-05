@@ -1,9 +1,9 @@
 # Set Primary User
 
-Set a new primary user on a managed Intune device
+Set a new primary user on this device
 
 ## Detailed description
-This runbook assigns a new primary user to an Intune managed device. It resolves the Intune managed device from the Entra Object ID provided by the portal, retrieves the current primary user and device details, removes the existing user assignment, and then sets the specified user as the new primary user. The output shows the previous and new assignment for audit purposes.
+Assigns the chosen user as the new primary user of this device in Intune and replaces the current one. The output shows the previous and the new assignment.
 
 ## Where to find
 Device \ General \ Set Primary User
@@ -17,7 +17,7 @@ Device \ General \ Set Primary User
 
 ## Parameters
 ### DeviceId
-The Entra Object ID of the device. Pre-filled from the RealmJoin Portal and hidden in the UI.
+Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ The Entra Object ID of the device. Pre-filled from the RealmJoin Portal and hidd
 | Type | String |
 
 ### NewPrimaryUserId
-The user to assign as the new primary user of the device.
+User to assign. The current primary user is replaced; both are shown in the output.
 
 | Property | Value |
 |----------|-------|

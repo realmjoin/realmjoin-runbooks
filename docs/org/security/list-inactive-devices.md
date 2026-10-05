@@ -1,9 +1,9 @@
 # List Inactive Devices
 
-List or export inactive devices with no recent logon or Intune sync
+List devices with no recent sign-in or Intune sync
 
 ## Detailed description
-Collects devices based on either last interactive sign-in or last Intune sync date and lists them in the console. Optionally exports the results to a CSV file in Azure Storage.
+Lists the devices whose last Intune sync, or whose last sign-in recorded in Entra ID, is older than the chosen number of days. The result can be shown in the run output or exported as a CSV file to an Azure Storage account. Nothing is changed.
 
 ## Where to find
 Org \ Security \ List Inactive Devices
@@ -18,7 +18,7 @@ Org \ Security \ List Inactive Devices
 
 ## Parameters
 ### Days
-Number of days without sync or sign-in used to consider a device inactive.
+Devices with no sync or sign-in for at least this many days are listed.
 
 | Property | Value |
 |----------|-------|
@@ -27,7 +27,7 @@ Number of days without sync or sign-in used to consider a device inactive.
 | Type | Int32 |
 
 ### Sync
-If set to true, inactivity is based on last Intune sync; otherwise it is based on last interactive sign-in.
+Last Intune sync looks at managed devices and their last check-in; Last sign-in looks at Entra ID device objects and their approximate last sign-in date.
 
 | Property | Value |
 |----------|-------|
@@ -36,7 +36,7 @@ If set to true, inactivity is based on last Intune sync; otherwise it is based o
 | Type | Boolean |
 
 ### ExportToFile
-If set to true, exports the results to a CSV file in Azure Storage.
+List in the run output, or export to a CSV file in the storage account configured in the tenant settings.
 
 | Property | Value |
 |----------|-------|
@@ -45,7 +45,7 @@ If set to true, exports the results to a CSV file in Azure Storage.
 | Type | Boolean |
 
 ### ContainerName
-Name of the Azure Storage container to upload the CSV report to.
+Storage container the report files are uploaded to. Taken from the tenant setting InactiveDevices.Container.
 
 | Property | Value |
 |----------|-------|
@@ -54,7 +54,7 @@ Name of the Azure Storage container to upload the CSV report to.
 | Type | String |
 
 ### ResourceGroupName
-Name of the Azure Resource Group containing the Storage Account.
+Resource group of the storage account. Taken from the tenant setting InactiveDevices.ResourceGroup.
 
 | Property | Value |
 |----------|-------|
@@ -63,7 +63,7 @@ Name of the Azure Resource Group containing the Storage Account.
 | Type | String |
 
 ### StorageAccountName
-Name of the Azure Storage Account used for upload.
+Storage account for the export. Taken from the tenant setting InactiveDevices.StorageAccount.Name.
 
 | Property | Value |
 |----------|-------|
@@ -72,7 +72,7 @@ Name of the Azure Storage Account used for upload.
 | Type | String |
 
 ### StorageAccountLocation
-Azure region for the Storage Account if it needs to be created.
+Azure region used when the storage account has to be created. Taken from the tenant setting InactiveDevices.StorageAccount.Location.
 
 | Property | Value |
 |----------|-------|
@@ -81,7 +81,7 @@ Azure region for the Storage Account if it needs to be created.
 | Type | String |
 
 ### StorageAccountSku
-SKU name for the Storage Account if it needs to be created.
+Performance tier used when the storage account has to be created. Taken from the tenant setting InactiveDevices.StorageAccount.Sku.
 
 | Property | Value |
 |----------|-------|

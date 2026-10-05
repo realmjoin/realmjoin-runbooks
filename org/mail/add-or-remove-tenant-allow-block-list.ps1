@@ -1,42 +1,42 @@
-﻿<#
+<#
     .SYNOPSIS
-    Add or remove entries from the Tenant Allow/Block List
+    Add or remove a Tenant Allow/Block List entry
 
     .DESCRIPTION
-    Adds or removes entries from the Tenant Allow/Block List in Microsoft Defender for Office 365. The runbook supports senders, URLs, and file hashes and sets new entries to expire after 30 days by default.
+    Adds a sender, URL or file hash to the Tenant Allow/Block List of Defender for Office 365, or removes it again. New entries expire after the chosen number of days, so temporary exceptions clean themselves up.
 
     .PARAMETER Entry
-    The entry to add or remove (for example: domain, email address, URL, or file hash).
+    What to allow or block: a domain, an email address, a URL, or a file hash, matching the entry type.
 
     .PARAMETER ListType
-    Type of entry to manage.
+    Sender takes a domain or email address, URL a web address, File hash a SHA-256 hash.
 
     .PARAMETER Block
-    "Block List (block entry)" (final value: $true) or "Allow List (permit entry)" (final value: $false) can be selected as list type.
+    Block list rejects matching mail, URLs or files; Allow list lets them through even when Defender would filter them.
 
     .PARAMETER Remove
-    "Add entry to the list" (final value: $false) or "Remove entry from the list" (final value: $true) can be selected as action to perform.
+    Add the entry creates it with the chosen expiry; Remove the entry deletes the existing entry with the same value.
 
     .PARAMETER DaysToExpire
-    Number of days until a newly added entry expires.
+    Days until a new entry expires and is removed automatically.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "ParameterList": [
             {
                 "Name": "Entry",
-                "DisplayName": "Entry (Domain, Email, URL, or Hash)"
+                "DisplayName": "Entry"
             },
             {
                 "Name": "ListType",
-                "DisplayName": "Entry Type",
+                "DisplayName": "Entry type",
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Sender (Domain or Email)",
+                            "Display": "Sender (domain or email address)",
                             "ParameterValue": "Sender"
                         },
                         {
@@ -44,7 +44,7 @@
                             "ParameterValue": "Url"
                         },
                         {
-                            "Display": "File Hash",
+                            "Display": "File hash",
                             "ParameterValue": "FileHash"
                         }
                     ],
@@ -53,15 +53,15 @@
             },
             {
                 "Name": "Block",
-                "DisplayName": "List Type",
+                "DisplayName": "List",
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Allow List (permit entry)",
+                            "Display": "Allow list",
                             "ParameterValue": false
                         },
                         {
-                            "Display": "Block List (block entry)",
+                            "Display": "Block list",
                             "ParameterValue": true
                         }
                     ],
@@ -74,11 +74,11 @@
                 "Select": {
                     "Options": [
                         {
-                            "Display": "Add entry to the list",
+                            "Display": "Add the entry",
                             "ParameterValue": false
                         },
                         {
-                            "Display": "Remove entry from the list",
+                            "Display": "Remove the entry",
                             "ParameterValue": true
                         }
                     ],
@@ -87,7 +87,7 @@
             },
             {
                 "Name": "DaysToExpire",
-                "DisplayName": "Days to Expire"
+                "DisplayName": "Days until expiry"
             },
             {
                 "Name": "CallerName",

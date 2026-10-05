@@ -1,15 +1,15 @@
 <#
     .SYNOPSIS
-    Check if a device is onboarded to Windows Update for Business
+    Check whether this device is enrolled in Windows Update for Business
 
     .DESCRIPTION
-    This script checks if single device is onboarded to Windows Update for Business
+    Shows whether this device is registered as an updatable asset in the Windows Update for Business deployment service. Nothing is changed on the device.
 
     .PARAMETER DeviceId
-    DeviceId of the device to check.
+    Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -28,9 +28,9 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [string] $CallerName,
+    [string] $DeviceId,
     [Parameter(Mandatory = $true)]
-    [string] $DeviceId
+    [string] $CallerName
 )
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose

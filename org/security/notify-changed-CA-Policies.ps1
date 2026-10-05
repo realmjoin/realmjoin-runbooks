@@ -1,18 +1,18 @@
 <#
     .SYNOPSIS
-    Send notification email if Conditional Access policies have been created or modified in the last 24 hours.
+    Alert by email about Conditional Access policy changes
 
     .DESCRIPTION
-    Checks Conditional Access policies for changes in the last 24 hours and sends an email with a text attachment listing the changed policies. If no changes are detected, no email is sent.
+    Checks which Conditional Access policies were created or changed within the last 24 hours and sends an email with the list attached. Without changes, no email is sent. Nothing is changed in the tenant.
 
     .PARAMETER From
-    Sender email address used to send the notification.
+    User in the tenant the alert is sent as; needs a mailbox.
 
     .PARAMETER To
-    Recipient email address for the notification.
+    Gets the email with the list of changed policies.
 
     .PARAMETER CallerName
-    Caller name is tracked purely for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -21,10 +21,10 @@
                 "Hide": true
             },
             "From": {
-                "DisplayName": "Sender Mail Address"
+                "DisplayName": "Alert sender"
             },
             "To": {
-                "DisplayName": "Recipient Mail Address"
+                "DisplayName": "Alert recipient"
             }
         }
     }
@@ -35,10 +35,10 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "SenderMail" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Alert sender" } )]
     [string] $From,
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "RecipientMail" } )]
+    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Alert recipient" } )]
     [string] $To,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

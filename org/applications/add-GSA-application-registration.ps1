@@ -1,69 +1,57 @@
 <#
+    .SYNOPSIS
+    Create a Global Secure Access application with its access group
 
-.SYNOPSIS
-    Add a GSA application registration to Azure AD
+    .DESCRIPTION
+    Creates a Global Secure Access (GSA) application in Entra ID with its application segment (destination, ports, protocol) and connector group, plus a security group that controls who may use it. If the application already exists, only the segment, group and assignment are updated. Everything is validated before anything is created, and objects created in a failed run are removed again.
 
-.DESCRIPTION
-    This script creates a new Global Secure Access Application registration in Azure Active Directory (Entra ID) with comprehensive configuration options.
+    .PARAMETER name
+    Base name of the application. The final name is prefix plus name, for example GSA-MyApp.
 
-    In addition to the application, a security group for managing access to the application is created (naming scheme configurable
-    via Runbook Customization) and assigned to the application's service principal.
+    .PARAMETER prefix
+    Text put in front of the name. A space is inserted unless the prefix ends with a hyphen, underscore or space.
 
-    If the application already exists, the runbook runs in update mode: app creation is skipped and only the segment /
-    group / assignment steps are performed. All lookups (e.g. connector group) are validated BEFORE anything is created.
-    If a later step fails anyway, objects created in this run (application, group) are rolled back and removed.
-    Pre-existing objects (update mode) are never removed.
+    .PARAMETER groupPrefix
+    Text put in front of the access group name, independent of the application prefix. Usually preset in the runbook customization.
 
-.PARAMETER name
-    The base name of the Global Secure Access application to create. The final application name is built as "<prefix> <name>".
+    .PARAMETER groupSuffix
+    Text appended to the access group name, for example " (users)". Leave empty for none.
 
-.PARAMETER prefix
-    Prefix added to the application name. A space is inserted between prefix and name unless the prefix ends
-    with "-", "_" or a space. Example: prefix "GSA-" + name "MyApp" results in application "GSA-MyApp".
+    .PARAMETER applicationType
+    Enterprise App creates a new GSA application. Quick Access App adds the segment to the tenant's existing Quick Access app instead.
 
-.PARAMETER groupPrefix
-    Prefix for the security group name. The group name is built as "<groupPrefix><name><groupSuffix>" -
-    independent of the application prefix. Example: groupPrefix "App - Entra - GSA - " + name "MyApp"
-    results in group "App - Entra - GSA - MyApp". Default: "App - Entra - GSA - ".
+    .PARAMETER connectorGroup
+    Connector group that publishes the application. The available groups are set up in the runbook customization.
 
-.PARAMETER groupSuffix
-    Optional suffix for the security group name, e.g. " (users)". Default: empty.
+    .PARAMETER destinationHost
+    Where the application lives: a host name (example.com), a single IP (192.168.0.1), a CIDR range (192.168.0.1/24) or an IP range (192.168.0.1..192.168.0.20).
 
-.PARAMETER applicationType
-    The type of GSA application to create. Options: "nonwebapp" (Enterprise App) or "quickaccessapp" (Quick Access App).
+    .PARAMETER destinationType
+    Kind of destination, derived automatically from the format of the destination host.
 
-.PARAMETER connectorGroup
-    The connectorGroup to be used for the application. Must be defined in the Runbook Customization.
+    .PARAMETER ports
+    Ports to publish: a single port (443), several (80,443) or a range (8000-8080).
 
-.PARAMETER destinationHost
-    The destination host or IP range for the application. Supports formats: FQDN (example.com), single IP (192.168.0.1), CIDR notation (192.168.0.1/24), or IP range (192.168.0.1..192.168.0.20).
+    .PARAMETER protocol
+    TCP, UDP or both.
 
-.PARAMETER destinationType
-    The type of destination specified. Options: "fqdn", "ip", "ipRangeCidr", or "ipRange". Hidden in UI as it's automatically determined from destinationHost format.
-
-.PARAMETER ports
-    The port(s) to configure for the application. Supports single port (443), multiple ports (80,443), or port range (8000-8080).
-
-.PARAMETER protocol
-    The network protocol to use. Options: "tcp", "udp", or "tcp,udp". Default is "tcp".
-
-.PARAMETER CallerName
-    The name of the user executing the runbook. Used for auditing purposes. Hidden in UI.
+    .PARAMETER CallerName
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 .INPUTS
     RunbookCustomization: {
     "Parameters": {
         "name": {
-            "DisplayName": "Application Name (Must be unique)",
+            "DisplayName": "Application name",
             "Hide": false
         },
         "prefix": {
-            "DisplayName": "Application Name Prefix",
+            "DisplayName": "Application name prefix",
             "Default": "GSA-",
             "Hide": false
         },
         "groupPrefix": {
-            "DisplayName": "Group name prefix (admin-defined, change via Runbook Customization)",
+            "DisplayName": "Group name prefix",
             "Default": "App - Entra - GSA - ",
             "ReadOnly": true,
             "Hide": false
@@ -73,7 +61,7 @@
             "Hide": true
         },
         "applicationType": {
-            "DisplayName": "Application Type (Unique)",
+            "DisplayName": "Application type",
             "Default": "nonwebapp",
             "Select": {
                 "Options": [
@@ -93,18 +81,18 @@
             "Hide": true
         },
         "connectorGroup": {
-            "DisplayName": "Connector Group (Please define your connector groups in the Runbook Customization)",
+            "DisplayName": "Connector group",
             "Hide": false
         },
         "destinationHost": {
-            "DisplayName": "Destination Host or Range: example.com / 192.168.0.1 / 192.168.0.1/24 / 192.168.0.1..192.168.0.20",
+            "DisplayName": "Destination host or range",
             "Hide": false
         },
         "destinationType": {
             "Hide": true
         },
         "ports": {
-            "DisplayName": "Ports (e.g., 443 or 80,443 or 8000-8080)",
+            "DisplayName": "Ports",
             "Hide": false
         },
         "protocol": {

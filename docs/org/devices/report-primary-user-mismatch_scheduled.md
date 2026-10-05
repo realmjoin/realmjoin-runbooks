@@ -1,17 +1,104 @@
 # Report Primary User Mismatch (Scheduled)
 
-Compare primary user assignments in Intune against RealmJoin for Windows managed devices
+Compare primary users and logons between Intune and RealmJoin
 
 ## Detailed description
-For Windows managed devices, this scheduled report compares the primary user recorded in Intune against the primary user recorded in the RealmJoin customer API. It correlates the two datasets per device, flags any device where the primary user differs, and emails the differences with CSV and/or Excel (xlsx) attachments.
-The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
-The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
-When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+Compares, for Windows devices, the primary user recorded in Intune with the one recorded in RealmJoin and lists every device where they differ. It also checks who actually logs on to each device, using the logons Intune and the RealmJoin agent recorded, and lists devices whose primary user no longer does. Which categories are listed is set in the runbook customization. Only devices that synced with Intune recently are considered. The report can be sent by email or provided as a download link.
 
 ## Where to find
 Org \ Devices \ Report Primary User Mismatch_Scheduled
 
+## How it works
+
+The runbook reads two lists and matches them by the Entra device ID (with the Intune device ID as fallback):
+
+- **Intune**: all Windows devices that completed a sync within the last *Intune last sync within (days)*, with their primary user and the logons Intune recorded on the device. Devices that stopped syncing with Intune are left out on purpose; they belong in the **Report Stale Devices (Scheduled)** runbook.
+- **RealmJoin**: the device list of the RealmJoin customer API. For every device it carries the users the RealmJoin agent has reported as signed in, each with a *last seen* timestamp, and which of them RealmJoin treats as the primary user.
+
+For every device the runbook answers two questions: do the primary users agree, and does the primary user still log on? Each answer is a category; a device can be in several. Whether the RealmJoin agent itself still reports is a different question and answered by the **Report RealmJoin Agent Contact (Scheduled)** runbook.
+
+## Categories
+
+| Category | Meaning |
+| --- | --- |
+| `Mismatch` | The Intune primary user and the RealmJoin primary user differ. |
+| `PrimaryUserDeleted` | The Intune primary user was deleted from Entra ID. Intune then writes the user's object id in front of the user principal name; the runbook recognizes this and does not count it as a mismatch. |
+| `PrimaryUserNotLoggingOn` | Someone else logged on to the device, and the primary user did not within *Primary user must have logged on within (days)*. The device is probably used by a different person than the one recorded. |
+| `MissingInRealmJoin` | The device exists in Intune but RealmJoin does not know it, or knows it without a primary user. |
+| `MissingInIntune` | RealmJoin knows the device but it did not sync with Intune within the sync window. |
+
+Which categories are listed is set in the runbook customization; by default only `Mismatch` is on. Every category has its own table in the Output Data tab of the run, with the columns that explain the finding. The report files hold one row per device in the enabled categories with all columns, including a `Findings` column that names every category the device is in.
+
+### Where the logons come from
+
+Two sources are combined:
+
+- **Intune** records the most recent logons on a device with the user's object id and a timestamp. The runbook resolves the ids to user principal names; a user that no longer exists is shown as deleted.
+- **The RealmJoin agent** runs in the context of the signed-in user and reports to RealmJoin every 15 minutes while someone is signed in. Every report updates the *last seen* of that user on that device, so the RealmJoin users of a device are the people the agent saw signed in, each with their last time.
+
+The primary user counts as logging on when either source saw them within the logon window. `PrimaryUserNotLoggingOn` needs both: someone else was seen, and the primary user was not within the window. A device on which nobody was seen at all is shown as `Unknown` in the `PrimaryUserLogon` column and is never counted as not logging on.
+
+Shared devices where several people log on by design produce this finding for their primary user; exclude them with *Exclude devices from group*.
+
+### Device scope
+
+*Include devices from group* limits the comparison to the devices in that Entra ID group, *Exclude devices from group* skips the devices of a group. Both are optional and can be combined; a filter applies as soon as its group is selected.
+
+## Enabling categories
+
+The category switches are hidden in the portal and set in the runbook customization, so a schedule always reports the same set. A customization that enables the logon check in addition to the mismatches:
+
+```json
+"rjgit-org_devices_report-primary-user-mismatch_scheduled": {
+    "parameters": {
+        "IncludeMismatches": {
+            "Default": true
+        },
+        "IncludePrimaryUserDeleted": {
+            "Default": true
+        },
+        "IncludePrimaryUserNotLoggingOn": {
+            "Default": true
+        },
+        "PrimaryUserLogonDays": {
+            "Default": 30
+        }
+    }
+}
+```
+
+See the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization) for the syntax.
+
+## Report delivery
+
+Report files are only generated when a delivery method is selected via the **Report delivery** option (email and/or download link). With *Output Data only* selected, the results are read directly in the Output Data tab of the RealmJoin portal, where each table can also be exported to Excel. Email delivery and download link generation are independent and can be combined.
+
+For the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
+
+Schedules that were created before the **Report delivery** option existed keep sending their email: a stored recipient alone still enables the email for them. When such a schedule is opened for editing, the option shows *Output Data only*; select the delivery again before saving, otherwise the schedule stops sending the report.
+
+## Result without findings
+
+No email is sent and no file is created when no device falls into an enabled category. A run without findings completes normally and is not an error; the Output Data tab still shows the summary.
+
+## Setup regarding RealmJoin API credentials
+
+The runbook queries the RealmJoin customer API and needs a dedicated credential stored in the Azure Automation Account. The same credential serves every runbook that uses the API, so this is a one-time setup per Automation Account.
+
+1. **Get API credentials** - If you do not yet have RealmJoin API credentials, request them at support@realmjoin.com. The username has the form `t-<tenant id>`, the password is the API secret. A portal login does not work here.
+2. **Ask for the device users feature** - The device list of the customer API is a feature RealmJoin enables per tenant. Ask support to enable it together with the credentials; without it the API answers with HTTP 403 and the runbook stops with that message.
+3. **Open the Automation Account** - In the Azure portal, open the Automation Account used for runbooks.
+4. **Go to Shared Resources > Credentials** - In the left menu under *Shared Resources*, click *Credentials*.
+5. **Add a new credential** - Click *Add a credential*.
+6. **Name it exactly `RJAPI`** - The runbook looks up this name; any other name fails the credential lookup.
+7. **Enter the API username and secret** - Use the values from step 1.
+8. **Save** - Click *Create* and run the runbook again.
+
+The API allows 30 requests per minute per tenant and answers with HTTP 429 beyond that. The runbook needs one request per run and repeats a throttled request after a short delay, up to five times, before it gives up.
+
 ## Setup regarding email sending
+
+Sending an email report is optional and only happens when *Also email the report* or *Also email & download link* is selected as report delivery; a recipient is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
@@ -21,38 +108,21 @@ This process is described in detail in the [RealmJoin Report Settings documentat
 
 The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
-- **Footer link** – target of the footer image
-- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+- **Header and footer image** - public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** - target of the footer image
+- **Accent and text color** - 6-digit hex values, e.g. `#0052cc`
 
-When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email - the corresponding default is used instead.
 
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
-## Setup regarding RealmJoin API credentials
+## Notes and limitations
 
-This runbook queries the RealmJoin customer API and requires a dedicated credential stored in the Azure Automation Account.
+- Only Windows devices are compared: the RealmJoin agent runs on Windows, so RealmJoin has no primary user or logon data for other platforms.
+- The report is a snapshot per run. It does not keep the previous run and therefore does not report that a primary user *changed* between two runs; compare two report files for that.
+- The logons Intune records cover the most recent logons only, and the RealmJoin agent only sees users who were signed in while it ran. A user who logs on rarely can therefore show up as not logging on.
+- The primary user shown for RealmJoin is the one RealmJoin determined from the agent reports; it is not the Entra ID registered owner of the device.
 
-**Step-by-step setup:**
-
-1. **Get API credentials** — If you do not yet have RealmJoin API credentials, request them at support@realmjoin.com
-2. **Open the Automation Account** — In the Azure portal, navigate to the Automation Account used for runbooks
-3. **Go to Shared Resources > Credentials** — In the left menu under *Shared Resources*, click *Credentials*
-4. **Add a new credential** — Click *Add a credential*
-5. **Name it exactly `RJAPI`** — The runbook looks up this name; any deviation will cause the credential lookup to fail
-6. **Enter the RealmJoin API username and password** — Use the credentials from step 1
-7. **Save** — Click *Create* and re-run the runbook
-
-
-## Notes
-Prerequisites:
-- An Azure Automation Account shared credential named exactly "RJAPI" must be created manually
-  before scheduling. Set the username and password to match a RealmJoin customer API account
-  (see https://docs.realmjoin.com/dev-reference/realmjoin-api/authentication).
-- The Automation Account managed identity must have the following Graph application permissions
-  assigned: DeviceManagementManagedDevices.Read.All, Mail.Send, Organization.Read.All.
-- The RJReport.EmailSender setting must be configured with a valid sender address before the first run.
-- No email is sent when the two datasets are in sync; an empty run is not an error.
 
 ## Permissions
 ### Application permissions
@@ -60,12 +130,17 @@ Prerequisites:
   - DeviceManagementManagedDevices.Read.All
   - Directory.Read.All
   - Mail.Send *(optional: Email report)*
-  - Organization.Read.All
+  - Organization.Read.All *(optional: Email report)*
+
+### Permission notes
+RealmJoin customer API: an Automation Account credential named 'RJAPI' with the tenant's API username (t-<tenant id>) and secret, issued by RealmJoin support
+RealmJoin customer API: the device users feature of the API has to be enabled for the tenant by RealmJoin support (the device list answers with HTTP 403 otherwise)
+Azure Storage Account: 'Storage Account Contributor' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link options)
 
 
 ## Parameters
 ### SyncThresholdDays
-Number of days to look back for the Intune last-sync filter. Only Windows devices that have synced within this many days are evaluated.
+Only devices that synced with Intune within this many days are compared. Devices that stopped syncing altogether belong in the stale device report instead.
 
 | Property | Value |
 |----------|-------|
@@ -74,7 +149,7 @@ Number of days to look back for the Intune last-sync filter. Only Windows device
 | Type | Int32 |
 
 ### DeviceNamePrefix
-Optional device name prefix to filter the report to a specific subset of devices. Leave blank to include all devices.
+Only devices whose name starts with this text. Leave empty for all.
 
 | Property | Value |
 |----------|-------|
@@ -82,8 +157,17 @@ Optional device name prefix to filter the report to a specific subset of devices
 | Required | false |
 | Type | String |
 
+### PrimaryUserLogonDays
+The primary user counts as not logging on when someone else logged on to the device and the primary user did not within this many days.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 30 |
+| Required | false |
+| Type | Int32 |
+
 ### IncludeMismatches
-Include devices whose primary user differs between Intune and RealmJoin in the report. Enabled by default.
+Lists devices whose primary user differs between Intune and RealmJoin.
 
 | Property | Value |
 |----------|-------|
@@ -92,7 +176,7 @@ Include devices whose primary user differs between Intune and RealmJoin in the r
 | Type | Boolean |
 
 ### IncludeMissingInRealmJoin
-Include devices that exist in Intune but have no matching device in RealmJoin in the report. Disabled by default.
+Lists devices that exist in Intune but not in RealmJoin, or that RealmJoin knows without a primary user.
 
 | Property | Value |
 |----------|-------|
@@ -101,7 +185,7 @@ Include devices that exist in Intune but have no matching device in RealmJoin in
 | Type | Boolean |
 
 ### IncludeMissingInIntune
-Include devices that exist in RealmJoin but have no matching Intune device in the report. Disabled by default.
+Lists devices that exist in RealmJoin but did not sync with Intune within the sync window.
 
 | Property | Value |
 |----------|-------|
@@ -110,7 +194,7 @@ Include devices that exist in RealmJoin but have no matching Intune device in th
 | Type | Boolean |
 
 ### IncludePrimaryUserDeleted
-Include devices whose Intune primary user has been deleted from Entra ID in the report. Intune mangles the user principal name of a deleted user by prefixing its object id, which would otherwise show up as a false Mismatch. Enabled by default.
+Lists devices whose Intune primary user was deleted from Entra ID. Without this they would look like mismatches, because Intune rewrites the name of a deleted user.
 
 | Property | Value |
 |----------|-------|
@@ -118,8 +202,8 @@ Include devices whose Intune primary user has been deleted from Entra ID in the 
 | Required | false |
 | Type | Boolean |
 
-### UseDeviceScope
-Enable device scope filtering to include or exclude devices based on Entra device group membership.
+### IncludePrimaryUserNotLoggingOn
+Lists devices where other users log on but the primary user has not within "Primary user must have logged on within (days)". Uses the logons Intune and the RealmJoin agent recorded.
 
 | Property | Value |
 |----------|-------|
@@ -128,7 +212,7 @@ Enable device scope filtering to include or exclude devices based on Entra devic
 | Type | Boolean |
 
 ### IncludeDeviceGroup
-Only include devices that are members of this Entra device group in the report. Requires device scope filtering to be enabled.
+Only devices in this Entra ID group. Leave empty for all devices.
 
 | Property | Value |
 |----------|-------|
@@ -137,7 +221,7 @@ Only include devices that are members of this Entra device group in the report. 
 | Type | String |
 
 ### ExcludeDeviceGroup
-Exclude devices that are members of this Entra device group from the report. Requires device scope filtering to be enabled.
+Skips devices in this Entra ID group, for example shared devices where several people log on by design. Leave empty to skip none.
 
 | Property | Value |
 |----------|-------|
@@ -145,8 +229,17 @@ Exclude devices that are members of this Entra device group from the report. Req
 | Required | false |
 | Type | String |
 
+### SendEmailReport
+Send the report to the recipient email address.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
 ### EmailTo
-If specified, an email with the report will be sent to the provided address(es). Can be a single address or multiple comma-separated addresses.
+Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
 | Property | Value |
 |----------|-------|
@@ -155,7 +248,7 @@ If specified, an email with the report will be sent to the provided address(es).
 | Type | String |
 
 ### EmailFrom
-The sender email address. This is configured via the runbook customization setting and hidden in the portal.
+Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
 | Property | Value |
 |----------|-------|
@@ -164,6 +257,7 @@ The sender email address. This is configured via the runbook customization setti
 | Type | String |
 
 ### BrandingHeaderImageUrl
+Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -172,6 +266,7 @@ The sender email address. This is configured via the runbook customization setti
 | Type | String |
 
 ### BrandingFooterImageUrl
+Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -180,6 +275,7 @@ The sender email address. This is configured via the runbook customization setti
 | Type | String |
 
 ### BrandingFooterLink
+Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -188,6 +284,7 @@ The sender email address. This is configured via the runbook customization setti
 | Type | String |
 
 ### BrandingAccentColor
+Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -196,6 +293,7 @@ The sender email address. This is configured via the runbook customization setti
 | Type | String |
 
 ### BrandingTextColor
+Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -204,7 +302,7 @@ The sender email address. This is configured via the runbook customization setti
 | Type | String |
 
 ### ReportFileFormat
-Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+Deliver the report as CSV, as an Excel workbook, or both.
 
 | Property | Value |
 |----------|-------|
@@ -213,7 +311,7 @@ Controls which report file formats are generated and delivered: "CSV only", "CSV
 | Type | String |
 
 ### CreateDownloadLink
-If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+Also upload the report and return a download link that expires after a few days.
 
 | Property | Value |
 |----------|-------|
@@ -222,7 +320,7 @@ If enabled, the report files are uploaded to an Azure Storage Account and time-l
 | Type | Boolean |
 
 ### ContainerName
-Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+Storage container the report files are uploaded to. Set per runbook.
 
 | Property | Value |
 |----------|-------|
@@ -231,7 +329,7 @@ Storage container name used for the upload. Configured per runbook (not a global
 | Type | String |
 
 ### ResourceGroupName
-Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
 | Property | Value |
 |----------|-------|
@@ -240,7 +338,7 @@ Resource group that contains the storage account. Sourced from the RJReport tena
 | Type | String |
 
 ### StorageAccountName
-Storage account name used for the upload. Sourced from the RJReport tenant settings.
+Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
 | Property | Value |
 |----------|-------|
@@ -249,7 +347,7 @@ Storage account name used for the upload. Sourced from the RJReport tenant setti
 | Type | String |
 
 ### LinkExpiryDays
-Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
 | Property | Value |
 |----------|-------|

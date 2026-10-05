@@ -1,11 +1,9 @@
 # Restrict Or Release Code Execution
 
-Only allow Microsoft-signed code to run on a device, or remove an existing restriction.
+Restrict this device to Microsoft-signed code or lift the restriction
 
 ## Detailed description
-This runbook restricts code execution on a device via Microsoft Defender for Endpoint so that only Microsoft-signed code can run.
-Optionally, it can remove an existing restriction.
-Provide a short reason so the action is documented in the service.
+Restricts this device through Microsoft Defender for Endpoint so that only Microsoft-signed code can run, which blocks unsigned tools an attacker may have placed on it. It can also lift an existing restriction. Give a short reason; it is recorded with the action in Defender.
 
 ## Where to find
 Device \ Security \ Restrict Or Release Code Execution
@@ -19,7 +17,7 @@ Device \ Security \ Restrict Or Release Code Execution
 
 ## Parameters
 ### DeviceId
-The device ID of the target device.
+Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +26,7 @@ The device ID of the target device.
 | Type | String |
 
 ### Release
-"Restrict Code Execution" (final value: false) or "Remove Code Restriction" (final value: true) can be selected as action to perform. If set to false, the runbook will restrict code execution on the device in Defender for Endpoint. If set to true, it will remove an existing code execution restriction on the device in Defender for Endpoint.
+Restrict allows only Microsoft-signed code to run on the device. Remove lifts an existing restriction.
 
 | Property | Value |
 |----------|-------|
@@ -37,7 +35,7 @@ The device ID of the target device.
 | Type | Boolean |
 
 ### Comment
-A short reason for the (un)restriction action.
+Short reason for the restriction or its removal. It is stored with the action in Defender for Endpoint.
 
 | Property | Value |
 |----------|-------|

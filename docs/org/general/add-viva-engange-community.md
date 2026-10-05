@@ -1,10 +1,9 @@
 # Add Viva Engange Community
 
-Create a Viva Engage (Yammer) community
+Create a Viva Engage community with owners
 
 ## Detailed description
-This runbook creates a Viva Engage community via the Yammer REST API using a stored developer token.
-It can optionally assign owners and remove the initial API user from the resulting Microsoft 365 group.
+Creates a Viva Engage (Yammer) community with the given name, visibility and directory listing, and adds the named owners. The API user that creates the community can be removed from the resulting Microsoft 365 group once another owner exists.
 
 ## Where to find
 Org \ General \ Add Viva Engange Community
@@ -19,7 +18,7 @@ Org \ General \ Add Viva Engange Community
 
 ## Parameters
 ### CommunityName
-Name of the community to create. Maximum length is 264 characters.
+Name of the community, up to 264 characters.
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +27,7 @@ Name of the community to create. Maximum length is 264 characters.
 | Type | String |
 
 ### CommunityPrivate
-If set to true, the community is created as private.
+A private community is visible only to its members.
 
 | Property | Value |
 |----------|-------|
@@ -37,7 +36,7 @@ If set to true, the community is created as private.
 | Type | Boolean |
 
 ### CommunityShowInDirectory
-If set to true, the community is visible in the directory.
+Lists the community in the Viva Engage directory so people can find it.
 
 | Property | Value |
 |----------|-------|
@@ -46,7 +45,7 @@ If set to true, the community is visible in the directory.
 | Type | Boolean |
 
 ### CommunityOwners
-Comma-separated list of owner UPNs to add to the community.
+Sign-in names of the owners, separated by commas.
 
 | Property | Value |
 |----------|-------|
@@ -55,7 +54,7 @@ Comma-separated list of owner UPNs to add to the community.
 | Type | String |
 
 ### removeCreatorFromGroup
-If set to true, removes the initial API user from the group when at least one other owner exists.
+Takes the API user that created the community out of the group, as long as at least one other owner exists.
 
 | Property | Value |
 |----------|-------|

@@ -1,9 +1,9 @@
 # Assign Or Unassign License
 
-Assign or remove a license for a user via group membership
+Assign or remove a license for this user via a license group
 
 ## Detailed description
-Adds or removes a user to a dedicated license assignment group to control license allocation. The license group must match the configured naming convention.
+Adds this user to a license assignment group or removes the user from it, which assigns or removes the license the group carries.
 
 ## Where to find
 User \ General \ Assign Or Unassign License
@@ -18,7 +18,7 @@ User \ General \ Assign Or Unassign License
 
 ## Parameters
 ### UserName
-User principal name of the target user.
+User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|
@@ -27,7 +27,7 @@ User principal name of the target user.
 | Type | String |
 
 ### GroupID_License
-Object ID of the license assignment group.
+Group that carries the license. Only groups whose name starts with LIC_ are offered.
 
 | Property | Value |
 |----------|-------|
@@ -36,7 +36,7 @@ Object ID of the license assignment group.
 | Type | String |
 
 ### Remove
-"Assign the license to the user" (final value: $false) or "Remove the license from the user" (final value: $true) can be selected as action to perform.
+Assign adds the user to the group. Remove takes the user out of it.
 
 | Property | Value |
 |----------|-------|

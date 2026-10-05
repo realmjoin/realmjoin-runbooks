@@ -1,108 +1,92 @@
 <#
-    .SYNOPSIS
-    Alert by email on newly announced Microsoft 365 Service Health issues
+	.SYNOPSIS
+	Alert by email about new Microsoft 365 service health issues
 
-    .DESCRIPTION
-    Queries the Microsoft 365 Service Health issues feed on a schedule and identifies issues whose first Service Health post falls within a configurable lookback window, since Microsoft frequently back-dates the official start time and filtering on that alone would miss alerts. Optionally narrows monitoring to a chosen set of services and sends one alert email per newly detected issue, with the subject naming the tenant and the issue title. All issue details are carried in the email body; the runbook produces no report files.
+	.DESCRIPTION
+	Checks the Microsoft 365 service health feed for issues that Microsoft announced within the chosen number of hours. Each new issue is sent as a separate alert email, with the tenant and issue title in the subject and all details in the body. Monitoring can be limited to certain services, and advisories and already resolved issues can be included. No report files are created.
 
-    .NOTES
-    Common Use Cases:
-    - Schedule the runbook to run at or slightly more often than LookbackHours to catch every new Service Health issue exactly once.
-    - Set Services to a comma-separated list of service names or short ids (matched case-insensitively) to monitor only specific services, such as Exchange Online or Teams; leave it empty to monitor all services.
-    - Leave IncludeAdvisories and IncludeResolvedIssues at their default of $false for the lowest-noise setup, which alerts only on unresolved incidents; set either to $true to also surface advisories or issues Microsoft has already marked resolved.
+	.PARAMETER Services
+	Services to watch, separated by commas, for example Microsoft Intune, Microsoft Entra, Exchange Online. Leave empty for all services. Short names such as Intune work too.
 
-    Parameter Interactions:
-    - An issue counts as newly announced when its first Service Health post falls inside the LookbackHours window (falling back to startDateTime if the issue has no posts) - not by lastModifiedDateTime alone. This avoids missing back-dated issues while preventing re-alerts on every status update of an ongoing incident.
-    - The runbook keeps no state between runs, so a failed or skipped run means those alerts are never sent unless LookbackHours is temporarily widened for a catch-up run.
-    - One email is sent per new issue, so a busy Service Health day can produce several emails per run.
+	.PARAMETER LookbackHours
+	How many hours back to look for newly announced issues, 1 to 168. Use the same interval as the schedule, for example 24 for a daily run, so nothing is missed or alerted twice.
 
-    .PARAMETER Services
-    Comma-separated list of Microsoft 365 service names to monitor, for example Microsoft Intune, Microsoft Entra, Exchange Online. Leave empty to monitor all services. Matching is case-insensitive against both the service display name and its short id, so Intune matches Microsoft Intune. Valid names can be found on the Microsoft 365 admin center service health page.
+	.PARAMETER IncludeAdvisories
+	Also alerts on advisories, not only on incidents.
 
-    .PARAMETER LookbackHours
-    How many hours back to look for newly announced issues. Set this to the same interval as the runbook schedule, for example 24 for a daily schedule, so that no issue is missed and none is alerted on twice.
+	.PARAMETER IncludeResolvedIssues
+	Also alerts on issues Microsoft has already resolved by the time the runbook runs.
 
-    .PARAMETER IncludeAdvisories
-    If set to false, only incidents raise an alert. If set to true, advisories are alerted on as well.
+	.PARAMETER EmailFrom
+	Sender address of the alert email. Taken from the tenant setting RJReport.EmailSender.
 
-    .PARAMETER IncludeResolvedIssues
-    If set to false, issues that Microsoft has already marked as resolved by the time the runbook runs are skipped. If set to true, resolved issues are still reported.
+	.PARAMETER BrandingHeaderImageUrl
+	Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
-    .PARAMETER EmailFrom
-    The sender email address used for the per-issue alert emails. This needs to be configured in the runbook customization.
+	.PARAMETER BrandingFooterImageUrl
+	Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
-    .PARAMETER BrandingHeaderImageUrl
-    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the alert emails.
-    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+	.PARAMETER BrandingFooterLink
+	Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
-    .PARAMETER BrandingFooterImageUrl
-    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the alert emails.
-    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+	.PARAMETER BrandingAccentColor
+	Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
-    .PARAMETER BrandingFooterLink
-    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-    When empty, the default link (https://www.realmjoin.com) is used.
+	.PARAMETER BrandingTextColor
+	Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
-    .PARAMETER BrandingAccentColor
-    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+	.PARAMETER EmailTo
+	Addresses that receive the alert emails, separated by commas. At least one is required.
 
-    .PARAMETER BrandingTextColor
-    Optional text color override (6-digit hex) for the report email template.
-    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+	.PARAMETER CallerName
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
-    .PARAMETER EmailTo
-    Comma-separated list of recipient email addresses for the per-issue alert emails. At least one valid recipient is required.
-
-    .PARAMETER CallerName
-    Name of the user or system that started the runbook. Tracked for auditing purposes.
-
-    .INPUTS
-    RunbookCustomization: {
-        "Parameters": {
-            "Services": {
-                "DisplayName": "Services to Monitor (comma-separated, leave empty for all)",
-                "DefaultValue": ""
-            },
-            "LookbackHours": {
-                "DisplayName": "Lookback Window (hours 1 - 168) - match to schedule interval"
-            },
-            "IncludeAdvisories": {
-                "DisplayName": "Include Advisories (not just Incidents)"
-            },
-            "IncludeResolvedIssues": {
-                "DisplayName": "Include Already-Resolved Issues"
-            },
-            "EmailFrom": {
-                "Hide": true
-            },
-            "BrandingHeaderImageUrl": {
-                "Hide": true
-            },
-            "BrandingFooterImageUrl": {
-                "Hide": true
-            },
-            "BrandingFooterLink": {
-                "Hide": true
-            },
-            "BrandingAccentColor": {
-                "Hide": true
-            },
-            "BrandingTextColor": {
-                "Hide": true
-            },
-            "EmailTo": {
-                "DisplayName": "Alert Email Recipient Email Address(es)"
-            },
-            "CallerName": {
-                "Hide": true
-            }
-        }
-    }
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"Services": {
+				"DisplayName": "Services to monitor",
+				"DefaultValue": ""
+			},
+			"LookbackHours": {
+				"DisplayName": "Lookback window (hours)"
+			},
+			"IncludeAdvisories": {
+				"DisplayName": "Include advisories?"
+			},
+			"IncludeResolvedIssues": {
+				"DisplayName": "Include resolved issues?"
+			},
+			"EmailFrom": {
+				"Hide": true
+			},
+			"BrandingHeaderImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterLink": {
+				"Hide": true
+			},
+			"BrandingAccentColor": {
+				"Hide": true
+			},
+			"BrandingTextColor": {
+				"Hide": true
+			},
+			"EmailTo": {
+				"DisplayName": "Recipient email address(es)"
+			},
+			"CallerName": {
+				"Hide": true
+			}
+		}
+	}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.38.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
 
 param (
     [string]$Services,
@@ -114,22 +98,22 @@ param (
 
     [bool]$IncludeResolvedIssues = $false,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
     [string]$EmailFrom,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" } )]
     [string]$BrandingHeaderImageUrl,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" } )]
     [string]$BrandingFooterImageUrl,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" } )]
     [string]$BrandingFooterLink,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" } )]
     [string]$BrandingAccentColor,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" } )]
     [string]$BrandingTextColor,
 
     [Parameter(Mandatory = $true)]
@@ -146,7 +130,7 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.3.0"
+$Version = "1.4.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
@@ -327,7 +311,7 @@ Write-Output "---------------------"
 
 Write-Output "Connecting to Microsoft Graph..."
 try {
-    Connect-MgGraph -Identity -NoWelcome
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
 }
 catch {
     Write-Error "Failed to connect to Microsoft Graph using the managed identity. Ensure the Automation Account's managed identity is enabled and has the required Graph app role assignments (see .permissions.json)." -ErrorAction Continue
@@ -348,17 +332,6 @@ try {
 }
 catch {
     Write-RjRbLog -Message "Failed to retrieve tenant information: $($_.Exception.Message)" -Verbose
-}
-
-# Connect-RjRbGraph is required by Send-RjReportEmail, which this runbook always reaches when new
-# issues are found.
-Write-Output "Graph connection for RJ RunbookHelper..."
-try {
-    Connect-RjRbGraph
-}
-catch {
-    Write-Error "Failed to establish the RJ RunbookHelper Graph connection required by Send-RjReportEmail. Ensure the managed identity has the 'Mail.Send' app role assignment (see .permissions.json)." -ErrorAction Continue
-    throw
 }
 
 #endregion Connect Part
@@ -617,11 +590,7 @@ Write-Output "After resolved filter:                         $($finalCount)"
 
 if ($newIssues.Count -gt 0) {
     Write-Output ""
-    Write-Output "Service Health Issues"
-    Write-Output "---------------------"
-    $newIssues | Sort-Object StartDateTime -Descending | Format-Table -Property IssueId, Service, Classification, Status, IsResolved, StartDateTime -AutoSize | Out-String | Write-Output
-    Write-Output ""
-    Write-Output "Found $($newIssues.Count) newly announced service health issue(s) matching the criteria"
+    Write-Output "Found $($newIssues.Count) newly announced service health issue(s) matching the criteria. They are listed in the Output Data tab."
 }
 else {
     Write-Output ""
@@ -638,15 +607,18 @@ Write-Output ""
 Write-Output "Send Email Report"
 Write-Output "---------------------"
 
-
 $brandingMailParams = @{}
+# Alert email result per issue (Sent / Failed) for the Output Data table
+$alertResultByIssueId = @{}
+$successCount = 0
+$failureCount = 0
+# Set when no alert email could be sent; the run fails in Cleanup, after the tables are written
+$alertSendFailure = $null
 if ($newIssues.Count -eq 0) {
     Write-Output "No new service health issues found - no alert emails to send."
 }
 else {
     $emailToString = $emailRecipients -join ','
-    $successCount = 0
-    $failureCount = 0
 
     # Resolve optional tenant email branding once per run (never fails the send)
     $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
@@ -686,20 +658,24 @@ $($issue.LatestUpdate)
             $emailSubject = "$tenantDisplayName Service Health Issue: $($issue.Title)"
 
             # Alerts carry no attachments - every detail is in the Markdown body above, so a plain
-            # Send-RjReportEmail is used with no attachment-size guard.
-            Send-RjReportEmail `
+            # Send-RjRbReportEmail is used with no attachment-size guard. It sends through the
+            # Connect-MgGraph session.
+            Send-RjRbReportEmail `
                 -EmailFrom $EmailFrom `
                 -EmailTo $emailToString `
                 -Subject $emailSubject `
                 -MarkdownContent $markdownContent `
                 -TenantDisplayName $tenantDisplayName `
                 -ReportVersion $Version `
+                -UseNativeGraphRequest `
                 @brandingMailParams
 
             $successCount++
+            $alertResultByIssueId[$issue.IssueId] = "Sent"
         }
         catch {
             $failureCount++
+            $alertResultByIssueId[$issue.IssueId] = "Failed"
             Write-Output "Error sending alert email for issue '$($issue.Title)' ($($issue.IssueId)): $($_.Exception.Message)"
             Write-RjRbLog -Message "Error sending alert email for issue '$($issue.IssueId)': $($_.Exception.Message)" -Verbose
         }
@@ -710,11 +686,46 @@ $($issue.LatestUpdate)
 
     if ($failureCount -gt 0 -and $successCount -eq 0) {
         Write-Error "Failed to send any of the $($newIssues.Count) service health alert email(s) to '$emailToString'. Verify that EmailFrom is a valid, licensed sender mailbox, that the runbook's managed identity has been granted the 'Mail.Send' Microsoft Graph application permission, and that every address in EmailTo is a valid, deliverable recipient." -ErrorAction Continue
-        throw "Failed to send any of the $($newIssues.Count) service health alert email(s)."
+        $alertSendFailure = "Failed to send any of the $($newIssues.Count) service health alert email(s)."
     }
 }
 
 #endregion Send Email Report
+
+########################################################
+#region     Structured Output (Output Data)
+########################################################
+
+# Emitted last so the tables are not interleaved with the progress output. Every table has its own
+# RjTableTitle marker and its own column set; a marker is only written when rows follow it.
+Write-Output ""
+
+$summaryValues = [ordered]@{
+    "Issues modified in the window" = $totalFetchedCount
+    "Newly announced"               = $newlyAnnouncedCount
+    "Not new (update only)"         = $droppedNotNewCount
+    "After service filter"          = $serviceFilteredCount
+    "After classification filter"   = $classificationFilteredCount
+    "New issues to alert on"        = $finalCount
+    "Alert emails sent"             = $successCount
+    "Alert emails failed"           = $failureCount
+}
+$summaryRows = @(foreach ($metric in $summaryValues.Keys) {
+        [PSCustomObject]@{ Metric = $metric; Value = [int]$summaryValues[$metric] }
+    })
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
+Write-Output $summaryRows
+
+if ($newIssues.Count -gt 0) {
+    Write-Output "$($newIssues.Count) new service health issue(s):"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "New service health issues" })
+    Write-Output @($newIssues | Sort-Object StartDateTime -Descending | Select-Object -Property Title, Service, Feature, Classification, Status, IsResolved, StartDateTime, FirstPostTime, @{ Name = "AlertEmail"; Expression = { $alertResultByIssueId[$_.IssueId] } }, IssueId, AdminCenterLink)
+}
+else {
+    Write-Output "No new service health issues."
+}
+
+#endregion Structured Output (Output Data)
 
 ########################################################
 #region     Cleanup
@@ -731,7 +742,14 @@ foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
     }
 }
 
-Disconnect-MgGraph | Out-Null
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
+
+# Fail the run only now that the tables are written and the session is closed
+if ($alertSendFailure) {
+    throw $alertSendFailure
+}
 
 Write-Output ""
 Write-Output "Done!"

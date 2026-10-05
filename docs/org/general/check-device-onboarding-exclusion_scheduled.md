@@ -1,10 +1,9 @@
 # Check Device Onboarding Exclusion (Scheduled)
 
-Add unenrolled Autopilot devices to an exclusion group
+Keep unenrolled Autopilot devices in a compliance exclusion group
 
 ## Detailed description
-This runbook identifies Windows Autopilot devices that are not yet enrolled in Intune and ensures they are members of a configured exclusion group.
-It also removes devices from the group once they are no longer in scope.
+Puts Windows Autopilot devices that are not yet enrolled in Intune, plus devices enrolled only recently, into an exclusion group. Once they are past that grace period, they are taken out again. Devices in the group can get a longer compliance grace period after enrollment.
 
 ## Where to find
 Org \ General \ Check Device Onboarding Exclusion_Scheduled
@@ -20,7 +19,7 @@ Org \ General \ Check Device Onboarding Exclusion_Scheduled
 
 ## Parameters
 ### exclusionGroupName
-Display name of the exclusion group to manage.
+Display name of the group that holds the excluded devices.
 
 | Property | Value |
 |----------|-------|
@@ -29,7 +28,7 @@ Display name of the exclusion group to manage.
 | Type | String |
 
 ### maxAgeInDays
-Maximum age in days for recently enrolled devices to be considered in grace scope.
+Devices enrolled within this many days stay in the group; older ones are removed.
 
 | Property | Value |
 |----------|-------|

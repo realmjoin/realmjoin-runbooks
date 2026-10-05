@@ -1,32 +1,30 @@
 <#
     .SYNOPSIS
-    Add or remove a Office 365 group owner
+    Add an owner to this group or remove one
 
     .DESCRIPTION
-    This runbook adds a user as an owner of a group or removes an existing owner.
-    For Microsoft 365 groups, it also ensures that newly added owners are members of the group.
-    Use the Remove switch to remove ownership instead of adding it.
+    Makes a user an owner of this group or removes an existing owner. For Microsoft 365 groups a new owner is also made a member.
 
     .PARAMETER GroupID
-    Object ID of the target group.
+    Object ID of the group the runbook acts on. Set by the portal from the selected group.
 
     .PARAMETER UserId
-    Object ID of the user to add or remove.
+    User who gets or loses the ownership.
 
     .PARAMETER Remove
-    "Add User as Owner" (final value: $false) or "Remove User as Owner" (final value: $true) can be selected as action to perform. If set to true, the runbook will remove the user from the group owners. If set to false, it will add the user as an owner of the group.
+    Add makes the user an owner. Remove takes the user off the owner list.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
             "Remove": {
-                "DisplayName": "Add or Remove Owner",
+                "DisplayName": "Action",
                 "SelectSimple": {
-                    "Add User as Owner": false,
-                    "Remove User as Owner": true
+                    "Add user as owner": false,
+                    "Remove user as owner": true
                 }
             },
             "GroupId": {
@@ -56,7 +54,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.1"
+$Version = "1.0.3"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Connect-RjRbGraph
@@ -124,10 +122,15 @@ else {
             throw "Recipient '$UserId' not found in ExchangeOnline. Can not proceed."
         }
 
+        # Exchange Online can return the owners as directory object ids or as recipient names - accept
+        # both, so the owner check holds regardless of which form the tenant returns.
+        $isOwner = ($exgroup.ManagedBy -contains $UserId) -or ($exgroup.ManagedBy -contains $exuser.Name)
+
         if ($Remove) {
-            if ($exgroup.ManagedBy -contains $exuser.Name) {
-                $managedBy = $exgroup.ManagedBy | Where-Object { $_ -ne $exuser.Name }
-                Set-DistributionGroup -Identity $GroupID -ManagedBy $managedBy -BypassSecurityGroupManagerCheck:$true
+            if ($isOwner) {
+                # Change this one owner instead of rewriting the whole list from the returned entries,
+                # which addresses the owner unambiguously by its directory object id.
+                Set-DistributionGroup -Identity $GroupID -ManagedBy @{Remove = $UserId } -BypassSecurityGroupManagerCheck:$true
                 "## Removed '$($targetUser.UserPrincipalName)' from the list of owners for '$($targetGroup.DisplayName)'."
             }
             else {
@@ -135,12 +138,12 @@ else {
             }
         }
         else {
-            if ($exgroup.ManagedBy -contains $exuser.Name) {
+            if ($isOwner) {
                 "## '$($targetUser.UserPrincipalName)' is already owner of '$($targetGroup.DisplayName)'. No action taken."
             }
             else {
-                $managedBy = $exgroup.ManagedBy + $UserId
-                Set-DistributionGroup -Identity $GroupID -ManagedBy $managedBy -BypassSecurityGroupManagerCheck:$true
+                # Add only this owner instead of rewriting the whole list (see the Remove branch above).
+                Set-DistributionGroup -Identity $GroupID -ManagedBy @{Add = $UserId } -BypassSecurityGroupManagerCheck:$true
                 "## Added '$($targetUser.UserPrincipalName)' to the list of owners for '$($targetGroup.DisplayName)'."
             }
         }

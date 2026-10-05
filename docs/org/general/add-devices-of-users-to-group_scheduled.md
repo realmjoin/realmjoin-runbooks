@@ -1,10 +1,9 @@
 # Add Devices Of Users To Group (Scheduled)
 
-Sync devices of users in a specific group to another device group
+Add the devices of a user group's members to a device group
 
 ## Detailed description
-This runbook reads accounts from a specified users group and adds their devices to a specified device group.
-It can filter devices by operating system and keeps the target group in sync.
+Adds the devices of all users in a user group to a device group on every run, so device-based policies can follow user membership. Devices already in the group are skipped, and nothing is removed.
 
 ## Where to find
 Org \ General \ Add Devices Of Users To Group_Scheduled
@@ -19,7 +18,7 @@ Org \ General \ Add Devices Of Users To Group_Scheduled
 
 ## Parameters
 ### UserGroup
-Name or object ID of the users group, to which the target users belong.
+Name or object ID of the group whose members' devices are collected.
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +27,7 @@ Name or object ID of the users group, to which the target users belong.
 | Type | String |
 
 ### DeviceGroup
-Name or object ID of the device group, to which the devices should be added.
+Name or object ID of the group the devices are added to.
 
 | Property | Value |
 |----------|-------|
@@ -37,7 +36,7 @@ Name or object ID of the device group, to which the devices should be added.
 | Type | String |
 
 ### IncludeWindowsDevice
-If set to true, includes Windows devices in the target device group.
+Includes Windows devices.
 
 | Property | Value |
 |----------|-------|
@@ -46,7 +45,7 @@ If set to true, includes Windows devices in the target device group.
 | Type | Boolean |
 
 ### IncludeMacOSDevice
-If set to true, includes macOS devices in the target device group.
+Includes macOS devices.
 
 | Property | Value |
 |----------|-------|
@@ -55,7 +54,7 @@ If set to true, includes macOS devices in the target device group.
 | Type | Boolean |
 
 ### IncludeLinuxDevice
-If set to true, includes Linux devices in the target device group.
+Includes Linux devices.
 
 | Property | Value |
 |----------|-------|
@@ -64,7 +63,7 @@ If set to true, includes Linux devices in the target device group.
 | Type | Boolean |
 
 ### IncludeAndroidDevice
-If set to true, includes Android devices in the target device group.
+Includes Android devices.
 
 | Property | Value |
 |----------|-------|
@@ -73,7 +72,7 @@ If set to true, includes Android devices in the target device group.
 | Type | Boolean |
 
 ### IncludeIOSDevice
-If set to true, includes iOS devices in the target device group.
+Includes iOS devices.
 
 | Property | Value |
 |----------|-------|
@@ -82,7 +81,7 @@ If set to true, includes iOS devices in the target device group.
 | Type | Boolean |
 
 ### IncludeIPadOSDevice
-If set to true, includes iPadOS devices.
+Includes iPadOS devices.
 
 | Property | Value |
 |----------|-------|

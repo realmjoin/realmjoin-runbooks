@@ -1,9 +1,9 @@
 # Remove Group
 
-Remove a group. For Microsoft 365 groups, also the associated resources (Teams, SharePoint site) will be removed.
+Delete this group and its Microsoft 365 resources
 
 ## Detailed description
-This runbook deletes the specified group, which for Microsoft 365 groups means, that it also deletes the associated resources such as the Teams Team and the SharePoint Site.
+Deletes this group. For a Microsoft 365 group this also removes the Teams team and the SharePoint site that belong to it, including their content. The group and its content can be restored from the deleted groups for 30 days, after that they are gone.
 
 ## Where to find
 Group \ General \ Remove Group
@@ -16,7 +16,7 @@ Group \ General \ Remove Group
 
 ## Parameters
 ### GroupId
-Object ID of the group to delete.
+Object ID of the group the runbook acts on. Set by the portal from the selected group.
 
 | Property | Value |
 |----------|-------|

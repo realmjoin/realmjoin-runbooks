@@ -10,18 +10,26 @@
                     "Reason": "Lists all Entra devices with their registered users to count devices per user"
                 },
                 {
+                    "Value": "DeviceManagementManagedDevices.Read.All",
+                    "Reason": "Reads all Intune devices to mark each device's Intune presence in the report"
+                },
+                {
                     "Value": "Mail.Send",
                     "Optional": true,
                     "Feature": "Email report",
-                    "Reason": "Sends the report email via Send-RjReportEmail when EmailTo is configured"
+                    "Reason": "Sends the report email via Send-RjRbReportEmail when email delivery is selected"
                 },
                 {
-                    "Value": "DeviceManagementManagedDevices.Read.All",
-                    "Reason": "Reads all Intune devices to mark each device's Intune presence in the report"
+                    "Value": "Organization.Read.All",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Reads the tenant display name for the email subject, the email body and the workbook cover sheet"
                 }
             ]
         }
     ],
     "Roles": [],
-    "ManualPermissions": []
+    "ManualPermissions": [
+        "Azure Storage Account: 'Storage Account Contributor' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link options)"
+    ]
 }

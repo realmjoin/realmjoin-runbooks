@@ -1,11 +1,9 @@
 # Unenroll Updatable Assets (Scheduled)
 
-Unenroll devices from Windows Update for Business.
+Unenroll this group's devices from Windows Update for Business
 
 ## Detailed description
-This runbook unenrolls all device members of a Microsoft Entra ID group from Windows Update for Business updatable assets.
-You can remove a specific update category enrollment or delete the updatable asset registration entirely.
-Use this to offboard devices from WUfB reporting or to reset their enrollment state.
+Removes every device in this group from Windows Update for Business, either for one update category or by deleting the updatable asset registration entirely. Optionally the devices owned by the group's user members are included. Use it to offboard devices from Windows Update for Business reporting or to reset their enrollment.
 
 ## Where to find
 Group \ Devices \ Unenroll Updatable Assets_Scheduled
@@ -20,7 +18,7 @@ Group \ Devices \ Unenroll Updatable Assets_Scheduled
 
 ## Parameters
 ### GroupId
-Object ID of the group whose device members will be unenrolled.
+Object ID of the group the runbook acts on. Set by the portal from the selected group.
 
 | Property | Value |
 |----------|-------|
@@ -29,7 +27,7 @@ Object ID of the group whose device members will be unenrolled.
 | Type | String |
 
 ### UpdateCategory
-The update category to unenroll from. Supported values are driver, feature, quality, or all.
+Update category (driver, feature or quality) to unenroll the devices from. Choose all to delete the updatable asset registration entirely.
 
 | Property | Value |
 |----------|-------|
@@ -38,7 +36,7 @@ The update category to unenroll from. Supported values are driver, feature, qual
 | Type | String |
 
 ### IncludeUserOwnedDevices
-When enabled, the runbook also resolves all user members of the group (including nested groups) and unenrolls every device the user is owner of.
+Also unenrolls every device owned by the users in this group, nested groups included.
 
 | Property | Value |
 |----------|-------|

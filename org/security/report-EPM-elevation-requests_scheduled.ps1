@@ -1,121 +1,109 @@
 <#
-    .SYNOPSIS
-    Generate report for Endpoint Privilege Management (EPM) elevation requests
+	.SYNOPSIS
+	Report EPM elevation requests by status and age
 
-    .DESCRIPTION
-    Queries Microsoft Intune for EPM elevation requests with flexible filtering options.
-    Supports filtering by multiple status types and time range.
-    Sends an email report with summary statistics and detailed report file attachments.
-    The report files can also be uploaded to an Azure Storage Account, returning time-limited download links.
-    The ReportFileFormat parameter controls which file formats are generated and delivered (CSV only, CSV & XLSX, or XLSX only).
-    When the CSV attachment exceeds the email size limit and "CSV & XLSX" is selected, the email falls back to the Excel workbook alone.
+	.DESCRIPTION
+	Collects the Endpoint Privilege Management elevation requests from Intune, filtered by status and by how long ago they were created. The requests are listed per status with a summary of the counts. Intune keeps request details for 30 days, so older requests cannot be reported. The report can be sent by email or provided as a download link.
 
-    .NOTES
-    Runbook Type: Scheduled (recommended: monthly)
+	.PARAMETER IncludeApproved
+	Includes requests an administrator approved.
 
-    Purpose & Use Cases:
-    - Regular reporting of EPM activities
-    - Audit trail for approved/denied elevation requests
-    - Analysis of expired requests to identify process bottlenecks
-    - Identification of frequently requested applications for automatic elevation rules
+	.PARAMETER IncludeDenied
+	Includes requests an administrator rejected.
 
-    Status Types Explained:
-    - Pending: Awaits admin decision (use monitor-pending-EPM-requests for time-critical alerting)
-    - Approved: Admin approved the request, user can proceed with elevation
-    - Denied: Admin rejected the request due to security/policy concerns
-    - Expired: Request expired before admin review (may indicate slow response times)
-    - Revoked: Previously approved elevation was later revoked by admin
-    - Completed: User successfully executed the elevated application after approval
+	.PARAMETER IncludeExpired
+	Includes requests that expired before a decision was made.
 
-    Data Retention & Time Ranges:
-    - Intune retains EPM request details for 30 days after creation
-    - For long-term analysis, archive CSV exports outside of Intune
-    - Default filter (Approved/Denied/Expired/Revoked, 30 days)
+	.PARAMETER IncludeRevoked
+	Includes requests whose approval was withdrawn later.
 
-    Email & Export Details:
-    - Generates CSV and/or Excel (xlsx) report files with complete request details (see ReportFileFormat)
-    - Emails sent individually to each recipient for privacy
-    - No email sent when zero requests match the filter criteria
-    - Report files include: timestamps, users, devices, applications, justifications, file hashes
+	.PARAMETER IncludePending
+	Includes requests that are still waiting for a decision.
 
-    .PARAMETER EmailTo
-    Can be a single address or multiple comma-separated addresses (string).
-    The function sends individual emails to each recipient for privacy reasons.
+	.PARAMETER IncludeCompleted
+	Includes requests that were approved and used.
 
-    .PARAMETER EmailFrom
-    The sender email address. This needs to be configured in the runbook customization.
+	.PARAMETER MaxAgeInDays
+	Only requests created within this many days are reported. Intune keeps request details for 30 days, so a larger value is reduced to 30.
 
-    .PARAMETER BrandingHeaderImageUrl
-    Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+	.PARAMETER SendEmailReport
+	Send the report to the recipient email address.
 
-    .PARAMETER BrandingFooterImageUrl
-    Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-    Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+	.PARAMETER EmailTo
+	Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
-    .PARAMETER BrandingFooterLink
-    Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-    When empty, the default link (https://www.realmjoin.com) is used.
+	.PARAMETER EmailFrom
+	Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
-    .PARAMETER BrandingAccentColor
-    Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-    Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+	.PARAMETER BrandingHeaderImageUrl
+	Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
-    .PARAMETER BrandingTextColor
-    Optional text color override (6-digit hex) for the report email template.
-    Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+	.PARAMETER BrandingFooterImageUrl
+	Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
-    .PARAMETER IncludePending
-    Include requests with status "Pending" - Awaiting approval decision.
+	.PARAMETER BrandingFooterLink
+	Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
-    .PARAMETER IncludeApproved
-    Include requests with status "Approved" - Request has been approved by an administrator.
+	.PARAMETER BrandingAccentColor
+	Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
-    .PARAMETER IncludeDenied
-    Include requests with status "Denied" - Request was rejected by an administrator.
+	.PARAMETER BrandingTextColor
+	Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
-    .PARAMETER IncludeExpired
-    Include requests with status "Expired" - Request expired before approval/denial.
+	.PARAMETER ReportFileFormat
+	Deliver the report as CSV, as an Excel workbook, or both.
 
-    .PARAMETER IncludeRevoked
-    Include requests with status "Revoked" - Previously approved request was revoked.
+	.PARAMETER CreateDownloadLink
+	Also upload the report and return a download link that expires after a few days.
 
-    .PARAMETER IncludeCompleted
-    Include requests with status "Completed" - Request was approved and executed successfully.
+	.PARAMETER ContainerName
+	Storage container the report files are uploaded to. Set per runbook.
 
-    .PARAMETER MaxAgeInDays
-    Filter requests created within the last X days (default: 30).
-    Note: Request details are retained in Intune for 30 days after creation.
+	.PARAMETER ResourceGroupName
+	Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
-    .PARAMETER ReportFileFormat
-    Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+	.PARAMETER StorageAccountName
+	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
-    .PARAMETER CreateDownloadLink
-    If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+	.PARAMETER LinkExpiryDays
+	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
-    .PARAMETER ContainerName
-    Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
-
-    .PARAMETER ResourceGroupName
-    Resource group that contains the storage account. Sourced from the RJReport tenant settings.
-
-    .PARAMETER StorageAccountName
-    Storage account name used for the upload. Sourced from the RJReport tenant settings.
-
-    .PARAMETER LinkExpiryDays
-    Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
-
-    .PARAMETER CallerName
-    Internal parameter for tracking purposes
+	.PARAMETER CallerName
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
 		"Parameters": {
-			"CallerName": {
+			"IncludeApproved": {
+				"DisplayName": "Include approved requests?"
+			},
+			"IncludeDenied": {
+				"DisplayName": "Include denied requests?"
+			},
+			"IncludeExpired": {
+				"DisplayName": "Include expired requests?"
+			},
+			"IncludeRevoked": {
+				"DisplayName": "Include revoked requests?"
+			},
+			"IncludePending": {
+				"DisplayName": "Include pending requests?"
+			},
+			"IncludeCompleted": {
+				"DisplayName": "Include completed requests?"
+			},
+			"MaxAgeInDays": {
+				"DisplayName": "Created within (days)"
+			},
+			"SendEmailReport": {
 				"Hide": true
 			},
 			"EmailTo": {
-				"DisplayName": "Recipient Email Address(es)"
+				"DisplayName": "Recipient email address(es)",
+				"Hide": true
+			},
+			"EmailFrom": {
+				"Hide": true
 			},
 			"BrandingHeaderImageUrl": {
 				"Hide": true
@@ -132,56 +120,20 @@
 			"BrandingTextColor": {
 				"Hide": true
 			},
-			"EmailFrom": {
-				"Hide": true
-			},
-			"IncludePending": {
-				"DisplayName": "Pending Requests (awaiting approval)"
-			},
-			"IncludeApproved": {
-				"DisplayName": "Approved Requests (approved by admin)"
-			},
-			"IncludeDenied": {
-				"DisplayName": "Denied Requests (rejected by admin)"
-			},
-			"IncludeExpired": {
-				"DisplayName": "Expired Requests (expired before decision)"
-			},
-			"IncludeRevoked": {
-				"DisplayName": "Revoked Requests (approval revoked)"
-			},
-			"IncludeCompleted": {
-				"DisplayName": "Completed Requests (approved and executed)"
-			},
-			"MaxAgeInDays": {
-				"DisplayName": "Filter requests created within last X days (retention: 30 days)"
-			},
 			"ReportFileFormat": {
 				"DisplayName": "Report file format",
+				"Hide": true,
 				"Select": {
 					"Options": [
-						{
-							"Display": "CSV & XLSX",
-							"ParameterValue": "CSV & XLSX"
-						},
-						{
-							"Display": "CSV only",
-							"ParameterValue": "CSV only"
-						},
-						{
-							"Display": "XLSX only",
-							"ParameterValue": "XLSX only"
-						}
+						{ "Display": "CSV & XLSX", "ParameterValue": "CSV & XLSX" },
+						{ "Display": "CSV only", "ParameterValue": "CSV only" },
+						{ "Display": "XLSX only", "ParameterValue": "XLSX only" }
 					],
 					"ShowValue": false
 				}
 			},
 			"CreateDownloadLink": {
-				"DisplayName": "Create a file download link (upload report to storage)?",
-				"SelectSimple": {
-					"Yes - upload report and return a download link": true,
-					"No - do not create a download link": false
-				}
+				"Hide": true
 			},
 			"ContainerName": {
 				"Hide": true
@@ -194,8 +146,57 @@
 			},
 			"LinkExpiryDays": {
 				"Hide": true
+			},
+			"CallerName": {
+				"Hide": true
 			}
-		}
+		},
+		"ParameterList": [
+			{
+				"DisplayName": "Report delivery",
+				"DisplayAfter": "MaxAgeInDays",
+				"Select": {
+					"Options": [
+						{
+							"Display": "Output Data only",
+							"ParameterValue": "Output Data only",
+							"Customization": {
+								"Default": { "SendEmailReport": false, "CreateDownloadLink": false },
+								"Hide": [ "EmailTo", "ReportFileFormat" ]
+							}
+						},
+						{
+							"Display": "Also email the report",
+							"ParameterValue": "Also email the report",
+							"Customization": {
+								"Default": { "SendEmailReport": true, "CreateDownloadLink": false },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also create a download link",
+							"ParameterValue": "Also create a download link",
+							"Customization": {
+								"Default": { "SendEmailReport": false, "CreateDownloadLink": true },
+								"Show": [ "ReportFileFormat" ],
+								"Hide": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also email & download link",
+							"ParameterValue": "Also email & download link",
+							"Customization": {
+								"Default": { "SendEmailReport": true, "CreateDownloadLink": true },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						}
+					]
+				},
+				"Default": "Output Data only"
+			}
+		]
 	}
 #>
 
@@ -204,8 +205,6 @@
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
-    [Parameter(Mandatory = $true)]
-    [string] $CallerName,
     [bool] $IncludeApproved = $true,
     [bool] $IncludeDenied = $true,
     [bool] $IncludeExpired = $true,
@@ -213,23 +212,24 @@ param(
     [bool] $IncludePending = $false,
     [bool] $IncludeCompleted = $false,
     [int] $MaxAgeInDays = 30,
+    [bool] $SendEmailReport = $false,
     [string] $EmailTo,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
     [string]$EmailFrom,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" } )]
     [string]$BrandingHeaderImageUrl,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" } )]
     [string]$BrandingFooterImageUrl,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" } )]
     [string]$BrandingFooterLink,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" } )]
     [string]$BrandingAccentColor,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" } )]
     [string]$BrandingTextColor,
 
     [ValidateSet('CSV only', 'CSV & XLSX', 'XLSX only')]
@@ -239,45 +239,45 @@ param(
 
     [string] $ContainerName = "report-epm-elevation-requests",
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" } )]
     [string] $ResourceGroupName,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" } )]
     [string] $StorageAccountName,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" } )]
     [ValidateRange(1, 3650)]
-    [int] $LinkExpiryDays = 6
+    [int] $LinkExpiryDays = 6,
+    # CallerName is tracked purely for auditing purposes
+    [Parameter(Mandatory = $true)]
+    [string] $CallerName
 )
 
 ########################################################
 #region     RJ Log Part
 ########################################################
 
-# Add Caller and Version in Verbose output
-if ($CallerName) {
-    Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
-}
+Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.3.0"
+$Version = "1.4.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
-# Add Parameter in Verbose output
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
-Write-RjRbLog -Message "Email To: $EmailTo" -Verbose
-Write-RjRbLog -Message "Email From: $EmailFrom" -Verbose
+Write-RjRbLog -Message "IncludeApproved: $IncludeApproved" -Verbose
+Write-RjRbLog -Message "IncludeDenied: $IncludeDenied" -Verbose
+Write-RjRbLog -Message "IncludeExpired: $IncludeExpired" -Verbose
+Write-RjRbLog -Message "IncludeRevoked: $IncludeRevoked" -Verbose
+Write-RjRbLog -Message "IncludePending: $IncludePending" -Verbose
+Write-RjRbLog -Message "IncludeCompleted: $IncludeCompleted" -Verbose
+Write-RjRbLog -Message "MaxAgeInDays: $MaxAgeInDays" -Verbose
+Write-RjRbLog -Message "SendEmailReport: $SendEmailReport" -Verbose
+Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
+Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
 Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
 Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
 Write-RjRbLog -Message "BrandingFooterLink: $BrandingFooterLink" -Verbose
 Write-RjRbLog -Message "BrandingAccentColor: $BrandingAccentColor" -Verbose
 Write-RjRbLog -Message "BrandingTextColor: $BrandingTextColor" -Verbose
-Write-RjRbLog -Message "Include Pending: $IncludePending" -Verbose
-Write-RjRbLog -Message "Include Approved: $IncludeApproved" -Verbose
-Write-RjRbLog -Message "Include Denied: $IncludeDenied" -Verbose
-Write-RjRbLog -Message "Include Expired: $IncludeExpired" -Verbose
-Write-RjRbLog -Message "Include Revoked: $IncludeRevoked" -Verbose
-Write-RjRbLog -Message "Include Completed: $IncludeCompleted" -Verbose
-Write-RjRbLog -Message "Max Age In Days: $MaxAgeInDays" -Verbose
 Write-RjRbLog -Message "ReportFileFormat: $ReportFileFormat" -Verbose
 Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
 if ($CreateDownloadLink) {
@@ -287,40 +287,58 @@ if ($CreateDownloadLink) {
     Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
 }
 
-#endregion
+#endregion RJ Log Part
 
 ########################################################
 #region     Parameter Validation
 ########################################################
 
-# Validate Email Addresses (only if email is requested)
-if ($EmailTo -and (-not $EmailFrom)) {
-    Write-Warning -Message "The sender email address is required. This needs to be configured in the runbook customization. Documentation: https://docs.realmjoin.com/automation/runbooks/runbook-report-settings" -Verbose
-    throw "This needs to be configured in the runbook customization. Documentation: https://docs.realmjoin.com/automation/runbooks/runbook-report-settings"
+Write-Output ""
+Write-Output "Parameter Validation"
+Write-Output "---------------------"
+
+# Schedules created before the "Report delivery" choice existed pass a recipient but no SendEmailReport.
+# For them the recipient alone keeps the email enabled; every newer run passes SendEmailReport explicitly.
+$sendEmail = if ($PSBoundParameters.ContainsKey('SendEmailReport')) { $SendEmailReport } else { [bool]$EmailTo }
+
+# Email delivery needs a recipient
+if ($sendEmail -and -not $EmailTo) {
+    Write-Error "Email delivery is selected but no recipient email address was provided." -ErrorAction Continue
+    throw "Missing recipient email address (EmailTo)"
+}
+
+# A configured sender address is required before any mail can be sent
+if ($sendEmail -and -not $EmailFrom) {
+    Write-Error "The sender email address is missing. Configure the tenant setting RJReport.EmailSender in the runbook customization (https://docs.realmjoin.com/automation/runbooks/runbook-report-settings)." -ErrorAction Continue
+    throw "Missing email sender configuration (RJReport.EmailSender)"
 }
 
 # A target storage account is required to create a download link
 if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
-    Write-Warning -Message "A target storage account is required to create a download link. Configure the RJReport.StorageAccount.* settings in the runbook customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) or pass ResourceGroupName and StorageAccountName when starting the runbook." -Verbose
-    throw "Missing Storage Account Configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)."
+    Write-Error "A target storage account is required to create a download link. Configure the RJReport.StorageAccount.* tenant settings in the runbook customization (https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) or pass ResourceGroupName and StorageAccountName when starting the runbook." -ErrorAction Continue
+    throw "Missing storage account configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)"
 }
 
 # Validate that at least one status is selected
 if (-not ($IncludePending -or $IncludeApproved -or $IncludeDenied -or $IncludeExpired -or $IncludeRevoked -or $IncludeCompleted)) {
-    Write-RjRbLog -Message "At least one status must be selected for the report." -Verbose
+    Write-Error "At least one status must be selected for the report." -ErrorAction Continue
     throw "At least one status must be selected for the report."
 }
 
-# Validate time range
-if ($MaxAgeInDays -lt 1 -or $MaxAgeInDays -gt 30) {
-    Write-Warning "MaxAgeInDays should be between 1 and 30. Request information is retained for 30 days in Intune." -Verbose
-    if ($MaxAgeInDays -gt 30) {
-        Write-RjRbLog -Message "MaxAgeInDays set to 30 (maximum retention period)" -Verbose
-        $MaxAgeInDays = 60
-    }
+# Validate time range: Intune keeps request details for 30 days, so a longer window adds nothing
+if ($MaxAgeInDays -gt 30) {
+    Write-Output "WARNING: Intune keeps elevation request details for 30 days - the time range is reduced from $MaxAgeInDays to 30 days."
+    $MaxAgeInDays = 30
 }
+elseif ($MaxAgeInDays -lt 1) {
+    Write-Output "WARNING: The time range must be at least 1 day - $MaxAgeInDays is raised to 1 day."
+    $MaxAgeInDays = 1
+}
+Write-RjRbLog -Message "Effective time range: $MaxAgeInDays day(s)" -Verbose
 
-#endregion
+Write-Output "Parameter validation passed."
+
+#endregion Parameter Validation
 
 ########################################################
 #region     Function Definitions
@@ -333,68 +351,103 @@ function Get-GraphPagedResult {
 
         .DESCRIPTION
         Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
-        by following the @odata.nextLink property in the response.
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
 
         .PARAMETER Uri
         The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
-        e.g., "https://graph.microsoft.com/v1.0/applications".
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
 
         .EXAMPLE
-        PS C:\> $allApps = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/applications"
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
     #>
     param(
         [string]$Uri
     )
 
-    $allResults = @()
+    $allResults = [System.Collections.Generic.List[object]]::new()
     $nextLink = $Uri
+    $pageCount = 0
 
     do {
-        $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
-        if ($response.value) {
-            $allResults += $response.value
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
         }
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
         $nextLink = $response.'@odata.nextLink'
     } while ($nextLink)
 
-    return $allResults
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
 }
 
-#endregion
+function Format-ReportDateTime {
+    <#
+        .SYNOPSIS
+        Formats a timestamp for the Output Data tables, or returns "N/A" when it is empty.
+
+        .PARAMETER Value
+        The timestamp.
+    #>
+    param(
+        $Value
+    )
+
+    if ($null -eq $Value) { return "N/A" }
+    return ([datetime]$Value).ToString("yyyy-MM-dd HH:mm")
+}
+
+#endregion Function Definitions
 
 ########################################################
-#region     Connect and Initialize
+#region     Connect Part
 ########################################################
 
+Write-Output ""
 Write-Output "Connecting to Microsoft Graph..."
-Connect-MgGraph -Identity -NoWelcome
-
-Write-Output "Getting basic tenant information..."
-# Get tenant information
-$tenant = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization" -Method GET
-if ($tenant.value -and (($(($tenant.value) | Measure-Object).Count) -gt 0)) {
-    $tenant = $tenant.value[0]
+try {
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
 }
-elseif ($tenant.'@odata.context') {
-    # Single tenant response
-    $tenant = $tenant
-}
-else {
-    Write-Error "Could not retrieve tenant information" -ErrorAction Continue
-    throw "Could not retrieve tenant information"
+catch {
+    Write-Error "Failed to connect to Microsoft Graph. Ensure the managed identity is configured correctly. Error: $($_.Exception.Message)" -ErrorAction Continue
+    throw
 }
 
-$tenantDisplayName = $tenant.displayName
-$tenantId = $tenant.id
+# Tenant display name and ID for the email and the report file names (needs Organization.Read.All)
+$tenantDisplayName = "Unknown Tenant"
+$tenantId = "unknown"
+try {
+    $organizationResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization?`$select=id,displayName" -Method GET -ErrorAction Stop
+    if ($organizationResponse.value -and $organizationResponse.value.Count -gt 0) {
+        $tenantDisplayName = $organizationResponse.value[0].displayName
+        $tenantId = $organizationResponse.value[0].id
+    }
+    Write-Output "Tenant: $tenantDisplayName"
+}
+catch {
+    Write-RjRbLog -Message "Failed to retrieve tenant information: $($_.Exception.Message)" -Verbose
+}
 
-# Connect RJ RunbookHelper for email reporting
-Write-Output "Graph connection for RJ RunbookHelper..."
-Connect-RjRbGraph
-
-#endregion
+#endregion Connect Part
 
 ########################################################
-#region     Build Filter and Query EPM Requests
+#region     Data Collection
 ########################################################
 
 Write-Output ""
@@ -427,7 +480,7 @@ Write-Output "Date threshold: Requests created after $($dateThreshold.ToString('
 # Combine filters - include both status and date filtering in Graph API
 $combinedFilter = "($statusFilterString) and requestCreatedDateTime gt $dateThresholdString"
 
-$filter = [System.Uri]::EscapeDataString($combinedFilter)
+$filter = [uri]::EscapeDataString($combinedFilter)
 $Uri = "https://graph.microsoft.com/beta/deviceManagement/elevationRequests?`$filter=$filter"
 
 Write-Output "Querying EPM elevation requests..."
@@ -436,28 +489,19 @@ Write-RjRbLog -Message "Graph API filter: $combinedFilter" -Verbose
 $currentDate = Get-Date
 
 try {
-    $filteredRequests = Get-GraphPagedResult -Uri $Uri -ErrorAction Stop
-
-    Write-Output "Retrieved $($filteredRequests.Count) request(s) matching filter criteria."
-
-    # If no requests found, exit without sending email
-    if ($filteredRequests.Count -eq 0) {
-        Write-Output ""
-        Write-Output "## No EPM elevation requests found matching the specified criteria."
-        Write-Output "No email will be sent as there are no matching requests."
-        exit 0
-    }
-
+    $filteredRequests = @(Get-GraphPagedResult -Uri $Uri)
 }
 catch {
     Write-Error "Failed to retrieve EPM elevation requests: $($_.Exception.Message)" -ErrorAction Continue
     throw
 }
 
-#endregion
+Write-Output "Retrieved $($filteredRequests.Count) request(s) matching filter criteria."
+
+#endregion Data Collection
 
 ########################################################
-#region     Process and Prepare Data
+#region     Data Processing
 ########################################################
 
 Write-Output ""
@@ -501,97 +545,140 @@ foreach ($request in $filteredRequests) {
         RequestId               = $request.id
         Status                  = $request.status
         RequestedBy             = $request.requestedByUserPrincipalName
+        DeviceName              = if ($request.deviceName) { $request.deviceName } else { "Unknown device ($($request.requestedOnDeviceId))" }
         DeviceId                = $request.requestedOnDeviceId
         FileName                = $fileName
         ProductName             = $productName
-        FileVersion             = if ($request.applicationDetail.fileVersion) { $request.applicationDetail.fileVersion } else { "N/A" }
+        ProductVersion          = if ($request.applicationDetail.productVersion) { $request.applicationDetail.productVersion } else { "N/A" }
         FileHash                = if ($request.applicationDetail.fileHash) { $request.applicationDetail.fileHash } else { "N/A" }
         FilePath                = if ($request.applicationDetail.filePath) { $request.applicationDetail.filePath } else { "N/A" }
         Justification           = if ($request.requestJustification) { $request.requestJustification } else { "None provided" }
         RequestCreated          = $requestCreated
         RequestModified         = $requestModified
         RequestExpiry           = $requestExpiry
-        ReviewerName            = if ($request.reviewerJustification) { $request.reviewerJustification } else { "N/A" }
+        ReviewerName            = if ($request.reviewCompletedByUserPrincipalName) { $request.reviewCompletedByUserPrincipalName } else { "N/A" }
         ReviewerComments        = if ($request.reviewerJustification) { $request.reviewerJustification } else { "N/A" }
     }
 }
 
+$sortedRequests = @($processedRequests | Sort-Object -Property RequestCreated)
+
 # Generate statistics by status
-$statusStats = $processedRequests | Group-Object -Property Status | Select-Object @{Name='Status';Expression={$_.Name}}, Count
+$statusStats = $processedRequests | Group-Object -Property Status | Select-Object @{Name = 'Status'; Expression = { $_.Name } }, Count
+$uniqueUserCount = @($processedRequests | Select-Object -ExpandProperty RequestedBy -Unique).Count
+$uniqueDeviceCount = @($processedRequests | Select-Object -ExpandProperty DeviceId -Unique).Count
+$uniqueApplicationCount = @($processedRequests | Select-Object -ExpandProperty FileName -Unique).Count
 
 # Display summary
 Write-Output ""
 Write-Output "## Summary of EPM Elevation Requests:"
-Write-Output "Total requests: $($processedRequests.Count)"
-foreach ($stat in $statusStats) {
-    Write-Output "  - $($stat.Status): $($stat.Count)"
+if ($processedRequests.Count -eq 0) {
+    Write-Output "No EPM elevation requests found matching the specified criteria."
+}
+else {
+    Write-Output "Total requests: $($processedRequests.Count)"
+    foreach ($stat in $statusStats) {
+        Write-Output "  - $($stat.Status): $($stat.Count)"
+    }
 }
 
-#endregion
+#endregion Data Processing
 
 ########################################################
-#region     Report File Export (if needed for download link or email)
+#region     Report File Export
 ########################################################
 
 $reportFiles = @()
 $csvFilePath = $null
 $xlsxFilePath = $null
+$tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "EPMElevationRequests_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
 
-if ($EmailTo -or $CreateDownloadLink) {
-    $fileBaseName = "$(Get-Date -Format 'yyyyMMdd_HHmmss')_EPM_Elevation_Requests_$($tenantDisplayName)"
-    $sortedRequests = $processedRequests | Sort-Object -Property RequestCreated
+# Report files are only needed when they are attached to an email and/or uploaded for a download link
+if (($sendEmail -or $CreateDownloadLink) -and $sortedRequests.Count -gt 0) {
+    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+    Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
+
+    $safeTenantName = $tenantDisplayName -replace '[\\/:*?"<>|]', '_'
+    $fileBaseName = "$(Get-Date -Format 'yyyyMMdd_HHmmss')_EPM_Elevation_Requests_$($safeTenantName)"
 
     if ($ReportFileFormat -ne 'XLSX only') {
-        $csvFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath "$($fileBaseName).csv"
+        $csvFilePath = Join-Path $tempDir "$($fileBaseName).csv"
         $sortedRequests | Export-Csv -Path $csvFilePath -NoTypeInformation -Encoding UTF8
         $reportFiles += $csvFilePath
         Write-RjRbLog -Message "Exported requests to CSV: $($csvFilePath)" -Verbose
     }
 
     if ($ReportFileFormat -ne 'CSV only') {
-        $xlsxFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath "$($fileBaseName).xlsx"
+        $xlsxFilePath = Join-Path $tempDir "$($fileBaseName).xlsx"
         $sortedRequests | Export-RjRbXlsx -Path $xlsxFilePath -WorksheetName "Elevation Requests"
         $reportFiles += $xlsxFilePath
         Write-RjRbLog -Message "Exported requests to XLSX: $($xlsxFilePath)" -Verbose
     }
+
+    Write-Output ""
+    Write-Output "Report file export completed: $($reportFiles.Count) file(s) created."
+}
+elseif ($sortedRequests.Count -eq 0) {
+    Write-RjRbLog -Message "No matching requests - skipping the report file export" -Verbose
 }
 
-#endregion
+#endregion Report File Export
 
 ########################################################
-#region     Upload / Download Link (if CreateDownloadLink is enabled)
+#region     Upload / Download Link
 ########################################################
 
-if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
+if ($CreateDownloadLink) {
     Write-Output ""
-    Write-Output "## Uploading report to storage account..."
+    if ($reportFiles.Count -gt 0) {
+        Write-Output "## Uploading the report file(s) to the storage account..."
 
-    # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
-    # transparently connects the managed identity if no Az context is active.
-    $uploadResults = Publish-RjRbFilesToStorageContainer `
-        -FilePaths $reportFiles `
-        -ContainerName $ContainerName `
-        -ResourceGroupName $ResourceGroupName `
-        -StorageAccountName $StorageAccountName `
-        -LinkExpiryDays $LinkExpiryDays `
-        -AddBlobNamePrefix $true
+        # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
+        # transparently connects the managed identity if no Az context is active.
+        try {
+            $uploadResults = Publish-RjRbFilesToStorageContainer `
+                -FilePaths $reportFiles `
+                -ContainerName $ContainerName `
+                -ResourceGroupName $ResourceGroupName `
+                -StorageAccountName $StorageAccountName `
+                -LinkExpiryDays $LinkExpiryDays `
+                -AddBlobNamePrefix $true
+        }
+        catch {
+            Write-Error "Failed to upload the report file(s) to storage account '$StorageAccountName': $($_.Exception.Message). The managed identity needs the 'Storage Account Contributor' role on the storage account." -ErrorAction Continue
+            throw
+        }
 
-    Write-Output "## Report uploaded to storage account."
-    foreach ($uploadResult in $uploadResults) {
-        Write-Output "## Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
-        $uploadResult.SASLink | Out-String | Write-Output
+        foreach ($uploadResult in $uploadResults) {
+            Write-Output ""
+            Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
+            $uploadResult.SASLink | Out-String | Write-Output
+        }
+    }
+    else {
+        Write-Output "No matching requests - skipping the upload."
     }
 }
 
-#endregion
+#endregion Upload / Download Link
 
 ########################################################
-#region     Send Email Report (if EmailTo is provided)
+#region     Send Email Report
 ########################################################
 
-if ($EmailTo) {
+$brandingMailParams = @{}
+
+if (-not $sendEmail) {
+    Write-RjRbLog -Message "Email delivery not selected - email report skipped" -Verbose
+}
+elseif ($processedRequests.Count -eq 0) {
     Write-Output ""
-    Write-Output "## Preparing email report to send to $($EmailTo)"
+    Write-Output "No email will be sent as there are no matching requests."
+    Write-RjRbLog -Message "No matching requests - email report skipped" -Verbose
+}
+else {
+    Write-Output ""
+    Write-Output "## Sending the email report to '$EmailTo'..."
 
     # Build status breakdown table
     $statusBreakdown = $statusStats | ForEach-Object {
@@ -634,9 +721,9 @@ $statusBreakdownTable
 
 | Metric | Value |
 |--------|-------|
-| **Unique Users** | $(($processedRequests | Select-Object -ExpandProperty RequestedBy -Unique | Measure-Object).Count) |
-| **Unique Devices** | $(($processedRequests | Select-Object -ExpandProperty DeviceId -Unique | Measure-Object).Count) |
-| **Applications Requested** | $(($processedRequests | Select-Object -ExpandProperty FileName -Unique | Measure-Object).Count) |
+| **Unique Users** | $uniqueUserCount |
+| **Unique Devices** | $uniqueDeviceCount |
+| **Applications Requested** | $uniqueApplicationCount |
 
 $statusDescriptions
 
@@ -683,6 +770,7 @@ The attached report file(s) contain complete details for all matching requests, 
 
     $emailSubject = "$subjectPrefix EPM Elevation $statusSummary - $($processedRequests.Count) Request(s) - $($tenantDisplayName)".Trim()
 
+    $xlsxFileName = if ($xlsxFilePath) { Split-Path -Path $xlsxFilePath -Leaf } else { "the Excel workbook" }
     $markdownFallback = @"
 # EPM Elevation Requests Report
 
@@ -698,9 +786,9 @@ $statusBreakdownTable
 
 ## Attachments
 
-- **$(Split-Path -Path $xlsxFilePath -Leaf)**: Formatted Excel workbook with the complete request details
+- **$($xlsxFileName)**: Formatted Excel workbook with the complete request details
 
-> **Note:** The CSV file was not attached because it exceeds the email attachment size limit. The Excel workbook contains the complete data. Enable the download link option (CreateDownloadLink) to obtain the raw CSV file.
+> **Note:** The CSV file was not attached because it exceeds the email attachment size limit. The Excel workbook contains the complete data. Choose a delivery with a download link to obtain the raw CSV file.
 
 ---
 
@@ -708,38 +796,97 @@ $statusBreakdownTable
 
 "@
 
-    # Send email report (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSV is too large)
-    Write-Output "Sending report to '$($EmailTo)'..."
     # Resolve optional tenant email branding once per run (never fails the send)
     $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
 
     try {
-        $guardParams = @{
-            EmailFrom         = $EmailFrom
-            EmailTo           = $EmailTo
-            Subject           = $emailSubject
-            MarkdownContent   = $markdownContent
-            TenantDisplayName = $tenantDisplayName
-            ReportVersion     = $Version
+        $emailParams = @{
+            EmailFrom             = $EmailFrom
+            EmailTo               = $EmailTo
+            Subject               = $emailSubject
+            MarkdownContent       = $markdownContent
+            TenantDisplayName     = $tenantDisplayName
+            ReportVersion         = $Version
+            UseNativeGraphRequest = $true
         }
-        if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFilePath) {
-            Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
+        if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFilePath -and (Test-Path -Path $xlsxFilePath)) {
+            # Both formats attached; the built-in size guard falls back to the workbook alone if the pair is too large
+            Send-RjRbReportEmail @emailParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
         }
         else {
-            Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
+            Send-RjRbReportEmail @emailParams @brandingMailParams -Attachments $reportFiles
         }
+        Write-RjRbLog -Message "Email report sent to: $EmailTo" -Verbose
+        Write-Output "Email report sent to '$EmailTo'."
     }
     catch {
-        Write-Error "Failed to send email report: $($_.Exception.Message)" -ErrorAction Continue
+        Write-Error "Failed to send the email report: $($_.Exception.Message)" -ErrorAction Continue
         throw
     }
 }
 
-#endregion
+#endregion Send Email Report
+
+########################################################
+#region     Structured Output (Output Data)
+########################################################
+
+# Emitted last so the tables are not interleaved with the progress output. Every table has its own
+# RjTableTitle marker and its own column set; a marker is only written when rows follow it.
+Write-Output ""
+
+$summaryValues = [ordered]@{
+    "Time range"     = "Last $MaxAgeInDays days (since $($dateThreshold.ToString('yyyy-MM-dd HH:mm')))"
+    "Statuses"       = ($selectedStatuses -join ', ')
+    "Total requests" = $processedRequests.Count
+}
+foreach ($status in $selectedStatuses) {
+    $summaryValues["$status requests"] = @($processedRequests | Where-Object { $_.Status -eq $status }).Count
+}
+$summaryValues["Unique users"] = $uniqueUserCount
+$summaryValues["Unique devices"] = $uniqueDeviceCount
+$summaryValues["Applications requested"] = $uniqueApplicationCount
+
+$summaryRows = @(foreach ($metric in $summaryValues.Keys) {
+        [PSCustomObject]@{ Metric = $metric; Value = "$($summaryValues[$metric])" }
+    })
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
+Write-Output $summaryRows
+
+# One table per selected status, with the columns that matter for it (oldest request first)
+$colCreated = @{ Name = 'Created'; Expression = { Format-ReportDateTime -Value $_.RequestCreated } }
+$colModified = @{ Name = 'LastModified'; Expression = { Format-ReportDateTime -Value $_.RequestModified } }
+$colExpiry = @{ Name = 'Expires'; Expression = { Format-ReportDateTime -Value $_.RequestExpiry } }
+$statusTables = @(
+    @{ Status = "Pending"; Columns = @($colCreated, $colExpiry, 'RequestedBy', 'DeviceName', 'FileName', 'ProductName', 'Justification') }
+    @{ Status = "Approved"; Columns = @($colCreated, $colModified, 'RequestedBy', 'DeviceName', 'FileName', 'ProductName', 'Justification', 'ReviewerName', 'ReviewerComments') }
+    @{ Status = "Denied"; Columns = @($colCreated, $colModified, 'RequestedBy', 'DeviceName', 'FileName', 'ProductName', 'Justification', 'ReviewerName', 'ReviewerComments') }
+    @{ Status = "Expired"; Columns = @($colCreated, $colExpiry, 'RequestedBy', 'DeviceName', 'FileName', 'ProductName', 'Justification') }
+    @{ Status = "Revoked"; Columns = @($colCreated, $colModified, 'RequestedBy', 'DeviceName', 'FileName', 'ProductName', 'ReviewerName', 'ReviewerComments') }
+    @{ Status = "Completed"; Columns = @($colCreated, $colModified, 'RequestedBy', 'DeviceName', 'FileName', 'ProductName', 'Justification') }
+)
+
+foreach ($table in $statusTables) {
+    if ($selectedStatuses -notcontains $table.Status) { continue }
+    $title = "$($table.Status) requests"
+    $statusRequests = @($sortedRequests | Where-Object { $_.Status -eq $table.Status })
+    if ($statusRequests.Count -gt 0) {
+        $rows = @($statusRequests | Select-Object -Property $table.Columns)
+        Write-Output "$($statusRequests.Count) request(s): $title"
+        Write-Output ([PSCustomObject]@{ RjTableTitle = $title })
+        Write-Output $rows
+    }
+    else {
+        Write-Output "No $($table.Status.ToLower()) requests."
+    }
+}
+
+#endregion Structured Output (Output Data)
 
 ########################################################
 #region     Cleanup
 ########################################################
+
 # Remove the downloaded branding images, if any were used.
 foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
     if ($brandingMailParams -and $brandingMailParams.ContainsKey($brandingKey) -and (Test-Path -LiteralPath $brandingMailParams[$brandingKey])) {
@@ -747,18 +894,16 @@ foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
     }
 }
 
-foreach ($reportFilePath in $reportFiles) {
-    if ($reportFilePath -and (Test-Path -Path $reportFilePath)) {
-        try {
-            Remove-Item -Path $reportFilePath -Force -ErrorAction Stop
-        }
-        catch {
-            Write-Warning "Could not remove temporary report file '$reportFilePath': $_"
-        }
-    }
+if ($tempDir -and (Test-Path -Path $tempDir)) {
+    Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+    Write-RjRbLog -Message "Removed temporary export directory: $tempDir" -Verbose
 }
 
-#endregion
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
 
 Write-Output ""
-Write-Output "## Report generation completed successfully."
+Write-Output "Done!"
+
+#endregion Cleanup

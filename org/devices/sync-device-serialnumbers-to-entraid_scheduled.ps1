@@ -1,32 +1,46 @@
 <#
     .SYNOPSIS
-    Sync Intune serial numbers to Entra ID extension attributes
+    Copy Intune serial numbers into an Entra ID extension attribute
 
     .DESCRIPTION
-    This runbook retrieves Intune managed devices and syncs their serial numbers into an Entra ID device extension attribute.
-    It can process all devices or only devices with missing or mismatched values and can optionally send an email report.
+    Writes the serial number of each Intune managed device into one of the extension attributes of its Entra ID device object. That makes the serial number usable in dynamic groups and filters. By default only devices with a missing or different value are updated. A report can be sent by email.
 
     .PARAMETER ExtensionAttributeNumber
-    Extension attribute number to update
+    Which of the Entra ID extension attributes (1 to 15) receives the serial number.
 
     .PARAMETER ProcessAllDevices
-    If set to true, processes all devices; otherwise only devices with missing or mismatched values are processed.
+    Writes the attribute on every device, not only where it is missing or differs.
 
     .PARAMETER MaxDevicesToProcess
-    Maximum number of devices to process in a single run. Use 0 for unlimited.
+    Stops after this many devices; 0 means no limit.
 
     .PARAMETER sendReportTo
-    Email address to send the report to. If empty, no email will be sent.
+    Address the report is sent to. Leave empty to send none.
 
     .PARAMETER sendReportFrom
-    Email address to send the report from.
+    Sender address of the report email. Use a mailbox that exists in the tenant.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
         "Parameters": {
+            "ExtensionAttributeNumber": {
+                "DisplayName": "Extension attribute number"
+            },
+            "ProcessAllDevices": {
+                "DisplayName": "Process all devices?"
+            },
+            "MaxDevicesToProcess": {
+                "DisplayName": "Maximum devices per run"
+            },
+            "sendReportTo": {
+                "DisplayName": "Report recipient"
+            },
+            "sendReportFrom": {
+                "DisplayName": "Report sender"
+            },
             "CallerName": {
                 "Hide": true
             }

@@ -5,8 +5,9 @@
             "Name": "Microsoft Graph",
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
-                { "Value": "Mail.Send", "Reason": "Sends the storage threshold alert email via Send-RjReportEmail; this runbook's entire purpose is the alert, so the send is unconditional on a breach, not a toggle" },
-                { "Value": "Organization.Read.All", "Reason": "Reads /organization via Invoke-RjRbRestMethodGraph to resolve the tenant display name used in the alert email subject and branding" }
+                { "Value": "Mail.Send", "Reason": "Sends the storage threshold alert email via Send-RjRbReportEmail; this runbook's entire purpose is the alert, so the send is unconditional on a breach, not a toggle" },
+                { "Value": "Organization.Read.All", "Reason": "Reads /organization to resolve the tenant display name used in the alert email subject and branding" },
+                { "Value": "Sites.Read.All", "Reason": "Reads the tenant root site (/sites/root) to derive the SharePoint admin center URL used by Connect-PnPOnline" }
             ]
         },
         {

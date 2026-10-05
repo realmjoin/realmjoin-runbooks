@@ -1,9 +1,9 @@
 # Create Endpoint Analytics Baseline
 
-Creates Endpoint Analytics baselines in Microsoft Intune with a specified naming schema.
+Create an Endpoint Analytics baseline with a naming schema
 
 ## Detailed description
-This runbook creates new Endpoint Analytics baselines in Intune using a customizable naming schema. Endpoint Analytics baselines allow organizations to measure and track device performance metrics over time. The naming schema can include placeholders that will be replaced with contextual values during baseline creation.
+Creates a new Endpoint Analytics baseline in Intune, named after a schema with placeholders such as the current date, so baselines can be created regularly and compared over time. Intune allows at most 20 baselines; the oldest can be removed automatically when the limit is reached.
 
 ## Where to find
 Org \ Devices \ Create Endpoint Analytics Baseline
@@ -16,7 +16,7 @@ Org \ Devices \ Create Endpoint Analytics Baseline
 
 ## Parameters
 ### BaselineNamingSchema
-The naming schema to use for the Endpoint Analytics baseline. Can include placeholders like {Date}, {DateTime}, {Month}, {Year}, or other tokens that will be replaced during creation. Example: "EA-Baseline-{Year}-{Month}" or "Analytics-{Date}".
+Name pattern with placeholders such as {Year}, {Month}, {Date} or {DateTime}, for example EA-Baseline-{Year}-{Month}.
 
 | Property | Value |
 |----------|-------|
@@ -25,7 +25,7 @@ The naming schema to use for the Endpoint Analytics baseline. Can include placeh
 | Type | String |
 
 ### RemoveOldestBaseline
-When enabled (default), automatically removes the oldest baseline if the maximum limit of 20 baselines is reached. Set to false to prevent automatic deletion and fail the runbook when the limit is reached.
+Deletes the oldest baseline when 20 already exist. Turn off to stop with an error instead.
 
 | Property | Value |
 |----------|-------|

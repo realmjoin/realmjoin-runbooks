@@ -1,24 +1,24 @@
 <#
 	.SYNOPSIS
-	Grant or revoke Exchange Online FullAccess mailbox permission for one or more users
+	Grant or remove full access to this user's mailbox
 
 	.DESCRIPTION
-	Grants or removes Exchange Online FullAccess permission on a selected user's mailbox for one or more delegate users, with optional Outlook AutoMapping configuration. The runbook displays the mailbox permissions before and after the change, and continues with the remaining delegates if one fails, providing a summary of all successes and failures.
+	Grants one or more people full access to the mailbox of this user, or removes that access again. Optionally the mailbox opens automatically in the delegates' Outlook. The permissions are shown before and after the change, and a failure for one delegate does not stop the others.
 
 	.PARAMETER UserName
-	User principal name of the mailbox owner.
+	User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 	.PARAMETER delegateTo
-	One or more users to whom you want to grant or revoke full mailbox access. You can select multiple delegates to apply the same action to all of them simultaneously.
+	People who get or lose full access. You can pick several at once.
 
 	.PARAMETER Remove
-	If set to true, the script will remove the FullAccess permission. If false, it will grant the permission.
+	Grant gives the selected people full access, Remove takes it away.
 
 	.PARAMETER AutoMapping
-	If set to true, Outlook will automatically map the delegated mailbox in the delegate's Outlook client. This option is only applicable when granting access (Remove = false).
+	Makes the mailbox appear automatically in the delegates' Outlook. Has no effect when access is removed.
 
 	.PARAMETER CallerName
-	Name of the user or system that started the runbook. Tracked for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
@@ -28,6 +28,9 @@
             },
 	        "delegateTo": {
 	            "DisplayName": "Delegate access to"
+	        },
+	        "AutoMapping": {
+	            "DisplayName": "Map the mailbox in Outlook automatically?"
 	        },
 	        "Remove": {
 	            "DisplayName": "Action",
@@ -87,7 +90,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.1.2"
+$Version = "1.1.3"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "UserName: $UserName" -Verbose
@@ -153,7 +156,7 @@ try {
 }
 catch {
     Write-Error "Could not connect to Exchange Online: $($_.Exception.Message). Verify that the Azure Automation managed identity has been granted an Exchange Online RBAC role (e.g. 'Exchange Administrator' or a scoped custom role covering mailbox permission management)." -ErrorAction Continue
-    throw "Exchange Online connection could not be established. Stopping script."
+    throw "Exchange Online connection could not be established: $($_.Exception.Message)"
 }
 
 #endregion Connect Part
@@ -173,9 +176,16 @@ try {
 }
 catch {
     Write-Error "Mailbox '$UserName' could not be found in Exchange Online. The user may not be licensed for Exchange Online, the mailbox may not yet be provisioned, or the identity is incorrect. Details: $($_.Exception.Message)" -ErrorAction Continue
-    throw "Mailbox '$UserName' not found in Exchange Online."
+    throw "Mailbox '$UserName' not found in Exchange Online: $($_.Exception.Message)"
 }
 Write-Output "Mailbox '$UserName' found."
+
+# All further mailbox cmdlets address the mailbox by a unique identifier, not by the 'Identity'
+# property of the Get-EXOMailbox result. That property holds the mailbox Name (e.g. "Export"), which
+# Exchange Online also matches against the alias and display name of every other recipient - a
+# generic name therefore fails as ambiguous ("matches multiple entries") even though the mailbox
+# itself was found without any doubt via its UPN or SMTP address.
+$targetMailboxId = if ($targetMailbox.ExternalDirectoryObjectId) { [string]$targetMailbox.ExternalDirectoryObjectId } elseif ($targetMailbox.PrimarySmtpAddress) { [string]$targetMailbox.PrimarySmtpAddress } else { $UserName }
 
 # Verify each delegate has a mailbox. A missing delegate mailbox is NOT fatal for the whole
 # run - it is skipped so processing can continue for the remaining, valid delegates.
@@ -244,13 +254,13 @@ try {
     # Exclude the mailbox's own inherited "NT AUTHORITY\SELF" system entry - that is not a real
     # delegation. Real delegates can still legitimately show up as inherited (e.g. via nested group
     # membership), so IsInherited is not filtered out here - it is surfaced per entry below instead.
-    $StatusQuo = Get-MailboxPermission -Identity $targetMailbox.Identity -ErrorAction Stop | Where-Object {
+    $StatusQuo = Get-MailboxPermission -Identity $targetMailboxId -ErrorAction Stop | Where-Object {
         ($_.AccessRights -contains "FullAccess") -or ([string]$_.AccessRights -match "\bFullAccess\b")
     } | Where-Object { $_.User -notlike "NT AUTHORITY\*" }
 }
 catch {
     Write-Error "Failed to retrieve current mailbox permissions for '$($UserName)': $($_.Exception.Message)" -ErrorAction Continue
-    throw "Could not read current mailbox permissions for '$UserName'."
+    throw "Could not read current mailbox permissions for '$UserName': $($_.Exception.Message)"
 }
 
 # Resolve each existing permission entry to its primary SMTP address, so it can be compared
@@ -363,7 +373,7 @@ foreach ($delegateSmtp in $validDelegates) {
             continue
         }
         try {
-            Remove-MailboxPermission -Identity $targetMailbox.Identity -User $delegateSmtp -AccessRights FullAccess -InheritanceType All -Confirm:$false -ErrorAction Stop | Out-Null
+            Remove-MailboxPermission -Identity $targetMailboxId -User $delegateSmtp -AccessRights FullAccess -InheritanceType All -Confirm:$false -ErrorAction Stop | Out-Null
             Write-Output "Removed FullAccess for '$delegateSmtp'."
             $succeededDelegates += $delegateSmtp
         }
@@ -401,7 +411,7 @@ foreach ($delegateSmtp in $validDelegates) {
             continue
         }
         try {
-            Add-MailboxPermission -Identity $targetMailbox.Identity -User $delegateSmtp -AccessRights FullAccess -AutoMapping $AutoMapping -Confirm:$false -ErrorAction Stop | Out-Null
+            Add-MailboxPermission -Identity $targetMailboxId -User $delegateSmtp -AccessRights FullAccess -AutoMapping $AutoMapping -Confirm:$false -ErrorAction Stop | Out-Null
             Write-Output "Granted FullAccess for '$delegateSmtp' (AutoMapping: $AutoMapping)."
             $succeededDelegates += $delegateSmtp
         }
@@ -439,7 +449,7 @@ Write-Output "Result"
 Write-Output "---------------------"
 
 try {
-    $newPermissions = Get-MailboxPermission -Identity $targetMailbox.Identity -ErrorAction Stop | Where-Object {
+    $newPermissions = Get-MailboxPermission -Identity $targetMailboxId -ErrorAction Stop | Where-Object {
         ($_.AccessRights -contains "FullAccess") -or ([string]$_.AccessRights -match "\bFullAccess\b")
     } | Where-Object { $_.User -notlike "NT AUTHORITY\*" }
     Write-Output "FullAccess delegations on '$UserName' after the change:"

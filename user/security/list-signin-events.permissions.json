@@ -17,7 +17,7 @@
                     "Value": "Mail.Send",
                     "Optional": true,
                     "Feature": "Email report",
-                    "Reason": "Sends the sign-in report email with CSV/XLSX attachments via Send-RjReportEmail when email delivery is selected"
+                    "Reason": "Sends the sign-in report email with CSV/XLSX attachments via Send-RjRbReportEmail when email delivery is selected"
                 },
                 {
                     "Value": "Organization.Read.All",
@@ -29,5 +29,7 @@
         }
     ],
     "Roles": [],
-    "ManualPermissions": []
+    "ManualPermissions": [
+        "Azure Storage Account: 'Storage Account Contributor' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link options)"
+    ]
 }

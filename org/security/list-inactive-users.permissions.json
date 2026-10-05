@@ -6,16 +6,16 @@
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
                 {
-                    "Value": "User.Read.All",
-                    "Reason": "Lists all users with UPN, mail, account state and user type"
-                },
-                {
                     "Value": "AuditLog.Read.All",
                     "Reason": "Required to read the signInActivity property on /users"
                 },
                 {
                     "Value": "Organization.Read.All",
                     "Reason": "Required by Graph alongside AuditLog.Read.All to expose signInActivity"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Lists all users with UPN, mail, account state and user type"
                 }
             ]
         }
