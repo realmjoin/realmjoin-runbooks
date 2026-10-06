@@ -1,9 +1,9 @@
 # Pre Provision Onedrive
 
-Pre-provision the OneDrive of a user
+Request the OneDrive of this user before the first sign-in
 
 ## Detailed description
-Requests the creation (pre-provisioning) of the OneDrive personal site for the selected user in SharePoint Online, so the OneDrive is available before the user signs in for the first time. The runbook verifies via Microsoft Graph that the user account is enabled and, optionally, that a SharePoint license is assigned. If the OneDrive already exists, no action is taken. The request is queued by SharePoint and processed asynchronously; the runbook does not wait for the OneDrive to be created.
+Requests the OneDrive of this user in SharePoint Online so it is available before the first sign-in. The account must be enabled and, when the license check is on, have a SharePoint service plan assigned. Nothing is requested if the OneDrive already exists. SharePoint creates the OneDrive in the background, usually within minutes and sometimes only after 24 hours, and the run does not wait for it.
 
 ## Where to find
 User \ Collab \ Pre Provision Onedrive
@@ -29,7 +29,7 @@ A sign-in block enforced by **Conditional Access** cannot be detected by the run
 
 ### License check
 
-With **Verify SharePoint license before provisioning** (`CheckSharePointLicense`, enabled by default) the runbook aborts when the user has no enabled SharePoint service plan. The check evaluates the user's `assignedPlans`, so every license source counts:
+With **Check the SharePoint license first?** (`CheckSharePointLicense`, enabled by default) the runbook aborts when the user has no enabled SharePoint service plan. The check evaluates the user's `assignedPlans`, so every license source counts:
 
 - Microsoft 365 / Office 365 suites (e.g. E3, E5, F3, Business Standard)
 - SharePoint Online Plan 1 / Plan 2 and OneDrive standalone plans
@@ -54,18 +54,14 @@ The runbook returns an object with `UserPrincipalName`, `Status` (`AlreadyProvis
 
 ### Prerequisites
 
-The Automation account's system-assigned managed identity needs:
-
-- **Microsoft Graph**: `User.Read.All` (user state and licenses) and `Sites.Read.All` (tenant root site to derive the SharePoint admin center URL).
-- **Office 365 SharePoint Online**: `Sites.FullControl.All` and `User.ReadWrite.All`. These SharePoint app-only permissions must be granted manually per tenant.
-- The **PnP.PowerShell** module (version 3.x) imported into the Automation account.
+The permissions on the **Office 365 SharePoint Online** API cannot be assigned by the automatic permission setup for Microsoft Graph. Grant them once per tenant to the Automation account's system-assigned managed identity before the first run.
 
 
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - User.Read.All
   - Sites.Read.All
+  - User.Read.All
 - **Type**: Office 365 SharePoint Online
   - Sites.FullControl.All
   - User.ReadWrite.All
@@ -76,7 +72,7 @@ SharePoint Online: grant the 'Sites.FullControl.All' and 'User.ReadWrite.All' ap
 
 ## Parameters
 ### UserName
-User principal name of the user whose OneDrive should be pre-provisioned. Auto-filled by the RealmJoin portal in the user context.
+User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|
@@ -85,7 +81,7 @@ User principal name of the user whose OneDrive should be pre-provisioned. Auto-f
 | Type | String |
 
 ### CheckSharePointLicense
-If set to true (default), the runbook aborts when the user has no enabled SharePoint service plan assigned. Any license source counts (e.g. Microsoft 365 E3/E5, F3, SharePoint Online Plan 1/2, OneDrive plans, direct or group-based assignment).
+When enabled, the runbook stops if this user has no enabled SharePoint service plan from any license, assigned directly or by group. When disabled, the request is sent anyway, but SharePoint creates the OneDrive only once a license is assigned.
 
 | Property | Value |
 |----------|-------|
