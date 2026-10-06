@@ -1,18 +1,18 @@
 <#
 	.SYNOPSIS
-	Pre-provision the OneDrive of a user
+	Request the OneDrive of this user before the first sign-in
 
 	.DESCRIPTION
-	Requests the creation (pre-provisioning) of the OneDrive personal site for the selected user in SharePoint Online, so the OneDrive is available before the user signs in for the first time. The runbook verifies via Microsoft Graph that the user account is enabled and, optionally, that a SharePoint license is assigned. If the OneDrive already exists, no action is taken. The request is queued by SharePoint and processed asynchronously; the runbook does not wait for the OneDrive to be created.
+	Requests the OneDrive of this user in SharePoint Online so it is available before the first sign-in. The account must be enabled and, when the license check is on, have a SharePoint service plan assigned. Nothing is requested if the OneDrive already exists. SharePoint creates the OneDrive in the background, usually within minutes and sometimes only after 24 hours, and the run does not wait for it.
 
 	.PARAMETER UserName
-	User principal name of the user whose OneDrive should be pre-provisioned. Auto-filled by the RealmJoin portal in the user context.
+	User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 	.PARAMETER CheckSharePointLicense
-	If set to true (default), the runbook aborts when the user has no enabled SharePoint service plan assigned. Any license source counts (e.g. Microsoft 365 E3/E5, F3, SharePoint Online Plan 1/2, OneDrive plans, direct or group-based assignment).
+	When enabled, the runbook stops if this user has no enabled SharePoint service plan from any license, assigned directly or by group. When disabled, the request is sent anyway, but SharePoint creates the OneDrive only once a license is assigned.
 
 	.PARAMETER CallerName
-	Name of the user or system that started the runbook. Tracked for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
@@ -21,7 +21,7 @@
 				"Hide": true
 			},
 			"CheckSharePointLicense": {
-				"DisplayName": "Verify SharePoint license before provisioning"
+				"DisplayName": "Check the SharePoint license first?"
 			},
 			"CallerName": {
 				"Hide": true
@@ -29,7 +29,9 @@
 		}
 	}
 #>
+
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
 #Requires -Modules @{ModuleName = "PnP.PowerShell"; ModuleVersion = "3.4.1" }
 
 param(
@@ -48,7 +50,7 @@ param(
 #region     RJ Log Part
 ########################################################
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "UserName: $UserName" -Verbose

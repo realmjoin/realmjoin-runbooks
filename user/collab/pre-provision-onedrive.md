@@ -19,7 +19,7 @@ A sign-in block enforced by **Conditional Access** cannot be detected by the run
 
 ### License check
 
-With **Verify SharePoint license before provisioning** (`CheckSharePointLicense`, enabled by default) the runbook aborts when the user has no enabled SharePoint service plan. The check evaluates the user's `assignedPlans`, so every license source counts:
+With **Check the SharePoint license first?** (`CheckSharePointLicense`, enabled by default) the runbook aborts when the user has no enabled SharePoint service plan. The check evaluates the user's `assignedPlans`, so every license source counts:
 
 - Microsoft 365 / Office 365 suites (e.g. E3, E5, F3, Business Standard)
 - SharePoint Online Plan 1 / Plan 2 and OneDrive standalone plans
@@ -44,8 +44,4 @@ The runbook returns an object with `UserPrincipalName`, `Status` (`AlreadyProvis
 
 ### Prerequisites
 
-The Automation account's system-assigned managed identity needs:
-
-- **Microsoft Graph**: `User.Read.All` (user state and licenses) and `Sites.Read.All` (tenant root site to derive the SharePoint admin center URL).
-- **Office 365 SharePoint Online**: `Sites.FullControl.All` and `User.ReadWrite.All`. These SharePoint app-only permissions must be granted manually per tenant.
-- The **PnP.PowerShell** module (version 3.x) imported into the Automation account.
+The permissions on the **Office 365 SharePoint Online** API cannot be assigned by the automatic permission setup for Microsoft Graph. Grant them once per tenant to the Automation account's system-assigned managed identity before the first run.
