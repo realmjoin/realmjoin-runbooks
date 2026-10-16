@@ -142,7 +142,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Report EPM Elevation Requests (Scheduled) | Report EPM elevation requests by status and age |
 |  |  | Sync MFA Secure Users To Group (Scheduled) | Keep a group filled with users who registered a secure MFA method |
 | User | AVD | User Signout | Sign this user out of their AVD sessions |
-|  | Collab | Pre Provision Onedrive | Pre-provision the OneDrive of a user |
+|  | Collab | Pre Provision Onedrive | Request the OneDrive of this user before the first sign-in |
 |  | General | Assign Groups By Template | Add this user to a predefined set of groups |
 |  |  | Assign Or Unassign License | Assign or remove a license for this user via a license group |
 |  |  | Assign Windows365 | Provision a Windows 365 Cloud PC for this user |

@@ -1,5 +1,17 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-10-16
+
+- Update the required `Microsoft.Graph.Authentication` module version to 2.41.2 in all 65 runbooks that use the Microsoft Graph connection
+  - Versions 2.41.0 and 2.41.1 need System.Text.Json 10 (.NET 10) and fail at `Connect-MgGraph` in the PowerShell 7.4 runtime environment
+  - Version 2.41.2 connects in RJ-PowerShell-7.4; raise the other `Microsoft.Graph.*` modules in the runtime environment to 2.41.2 as well
+
+## 2026-10-06
+
+- Update **Pre-Provision OneDrive** Runbook in User/Collab (v1.0.1)
+  - Hide the user and caller fields in the portal and show the license check as "Check the SharePoint license first?"
+  - Declare the Microsoft.Graph.Authentication module required for the Microsoft Graph connection, so RealmJoin imports it into the Automation account
+
 ## 2026-10-03
 
 - Unify the report delivery option of report runbooks: one "Report delivery" choice for Output Data, email and download link (SAS link)

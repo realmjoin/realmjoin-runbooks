@@ -2577,13 +2577,13 @@ Sign this user out of their AVD sessions
 <a name='user-collab-pre-provision-onedrive'></a>
 
 ### Pre Provision Onedrive
-Pre-provision the OneDrive of a user
+Request the OneDrive of this user before the first sign-in
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| UserName | ✓ | String | User principal name of the user whose OneDrive should be pre-provisioned. Auto-filled by the RealmJoin portal in the user context. |
-| CheckSharePointLicense |  | Boolean | If set to true (default), the runbook aborts when the user has no enabled SharePoint service plan assigned. Any license source counts (e.g. Microsoft 365 E3/E5, F3, SharePoint Online Plan 1/2, OneDrive plans, direct or group-based assignment). |
-| CallerName | ✓ | String | Name of the user or system that started the runbook. Tracked for auditing purposes. |
+| UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
+| CheckSharePointLicense |  | Boolean | When enabled, the runbook stops if this user has no enabled SharePoint service plan from any license, assigned directly or by group. When disabled, the request is sent anyway, but SharePoint creates the OneDrive only once a license is assigned. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
 
