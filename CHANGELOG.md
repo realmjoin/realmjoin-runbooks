@@ -1,5 +1,12 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-10-20
+
+- Name `Reader and Data Access` as the storage role for the download link of 19 runbooks, including the group membership export of both Offboard User runbooks
+  - The upload only retrieves the storage account key via `listKeys`; `Reader and Data Access` on the target storage account is the smallest built-in role with it
+  - `Storage Account Contributor` keeps working but also allows changing and deleting the storage account; existing assignments can be reduced
+  - The permission declarations, the runbook documentation and the error hints shown when the upload fails name the new role
+
 ## 2026-10-16
 
 - Update the required `Microsoft.Graph.Authentication` module version to 2.41.2 in all 65 runbooks that use the Microsoft Graph connection

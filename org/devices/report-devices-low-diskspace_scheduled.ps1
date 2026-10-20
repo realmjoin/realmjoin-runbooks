@@ -858,7 +858,7 @@ if ($CreateDownloadLink) {
         }
         catch {
             $uploadResults = @()
-            Write-Error "Upload to the storage account failed - no download link was created. Check that the managed identity has the 'Storage Account Contributor' role on '$($StorageAccountName)' and that the storage firewall allows the Automation account. Error: $($_.Exception.Message)" -ErrorAction Continue
+            Write-Error "Upload to the storage account failed - no download link was created. Check that the managed identity has the 'Reader and Data Access' role on '$($StorageAccountName)' and that the storage firewall allows the Automation account. Error: $($_.Exception.Message)" -ErrorAction Continue
         }
     }
     elseif ($flaggedDevices.Count -eq 0) {
