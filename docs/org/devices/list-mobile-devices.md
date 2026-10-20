@@ -83,7 +83,7 @@ The scope can be limited to the members of an Entra device group (`IncludeDevice
 Report files are only generated when the **Report delivery** option includes an email or a download link. With *Output Data only* selected, the results are read directly in the Output Data tab of the RealmJoin portal, where each table can also be exported to Excel. Email delivery and download link generation are independent and can be combined; the *Report file format* defaults to the Excel workbook only.
 
 - **Email**: sends a summary email with the complete inventory attached as CSV and/or Excel workbook. When the CSV attachment exceeds the email size limit and *CSV & XLSX* is selected, the email falls back to the Excel workbook alone. When no mobile device matches, the email states that no device was found and carries no attachment.
-- **Download link**: uploads the report file(s) to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings (container `list-mobile-devices` by default) and prints time-limited SAS download links in the job output. Suitable when the inventory is too large for an email attachment or should be handed to asset management directly. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
+- **Download link**: uploads the report file(s) to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings (container `list-mobile-devices` by default) and prints time-limited SAS download links in the job output. Suitable when the inventory is too large for an email attachment or should be handed to asset management directly. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Reader and Data Access** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
 
 The report files contain all columns of the tables above, including the `DeviceId`. The `PhoneNumber` and the network/SIM columns are only part of the files when the corresponding options are enabled. Non-compliant devices are highlighted in the Excel workbook. No files are created when no mobile device matches the selected platforms and filters.
 
@@ -119,7 +119,7 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
   - Organization.Read.All *(optional: Email report)*
 
 ### Permission notes
-Azure Storage Account: 'Storage Account Contributor' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link options)
+Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link options)
 
 
 ## Parameters
