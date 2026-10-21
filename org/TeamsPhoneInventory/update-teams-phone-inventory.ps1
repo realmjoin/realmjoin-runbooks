@@ -1,137 +1,141 @@
 <#
-  .SYNOPSIS
-  Teams Phone Inventory - Main Part (Updater)
+	.SYNOPSIS
+	Teams Phone Inventory - Main Part (Updater)
 
-  .DESCRIPTION
-  This runbook fills the defined SharePoint list with all available phone numbers, which can be assigned as extension.
-  This list of phone numbers is then merged with a current state of the assigned phone numbers in Microsoft Teams,
-  as well as the stored legacy numbers and thus results in a current overview of assigned and free phone numbers.
-  The runbook is part of the TeamsPhoneInventory.
+	.DESCRIPTION
+	Fills the Teams Phone Inventory SharePoint list with every phone number of the defined extension ranges.
+	Merges this list with the phone numbers assigned in Microsoft Teams, the unassigned numbers of the tenant and the stored legacy numbers.
+	The result is a current overview of assigned and free phone numbers. The runbook is part of the Teams Phone Inventory.
 
-  .NOTES
-  Version Changelog:
-  1.2.2 - 2026-09-16 - Fix removal of expired BlockExtension entries (SharePoint item id was not read, delete call failed with 400)
-                     - Unify BlockUntil date evaluation (dd.MM.yyyy, d.M.yy, "/" as separator) - entries are removed the day after BlockUntil
-                     - Continue the run if a BlockExtension entry cannot be removed (warning instead of abort)
-                     - Fix Get-TPIList for lists with zero or one item and for an empty result (an empty inventory list is filled on the first run)
-                     - Fix extension ranges with leading zeros (e.g. 000-099 was expanded to 00-99)
-                     - Abort the run if the phone number export fails (no download link within 120 s or download error) instead of rewriting the inventory without tenant data; warn if the export is empty
-                     - Detect Common Area Phones by a directly or group assigned TeamsIPPhonePolicy again
-                     - Apply BlockExtension, unassigned tenant numbers and legacy numbers only to the matching inventory entry (a missing match no longer writes to the last entry)
-                     - Keep MainLineUri and Company of legacy numbers that are part of a number range
-                     - Block 6: delete only orphaned and duplicate inventory rows, handle duplicate rows without abort, evaluate the status of batch responses
-                     - Resolve nested groups with zero or one member, skip circular group nesting, mark nested members correctly
-                     - Validate number and extension ranges (swapped or empty ranges are reported and stop the run)
-                     - Warn on duplicate CivicAddressMapping entries, duplicate LineUris of Teams users and unknown columns in a SharePoint list
-  1.2.1 - 2025-11-13 - Update Module Versions
-                     - Update Array handling
-                     - Fix LineUri handling regarding Legacy numbers
-  1.2.0 - 2025-03-07 - Fix region handling
-                     - Add function Export-TeamsPhoneNumbers to resolve the error regarding MC950880 - Update to Get-CsPhoneNumberAssignment (Only 1000 numbers are returned)
-                     - Add handling of group based policy assignments
-  1.1.0 - 2025-01-09 - Fix "EmptyString"/$null missmatch for NumberCapability and EmergencyAddressName
-                     - New Get-TPIList function
-                       - For better handling of SharePoint Lists
-                       - Removed conversion of returned list object (no longer needed, cause of the new function)
-                     - Simplified Invoke-TPIRestMethod function
-                     - Improved logging with Enhanced Logging Output (switchable with $EnableEnhancedLoggingOutput in the script)
-                     - Disabled Verbose output for GraphAPI (by the own functions) by default (for performance reasons)
-  1.0.0 - 2024-12-20 - Initial Version (=first version in which versioning is defined)
+	.NOTES
+	Version Changelog:
+	1.2.3 - 2026-10-21 - Match number range entries in every length between BeginNumberRange and EndNumberRange (e.g. 0-99 also contains 00-09 for numbering plans with a fixed number length)
+	                   - Warn once per number range about numbers that are also part of another number range; an extension in its defined length takes precedence over a zero-padded variant
+	                   - Update module versions (RealmJoin.RunbookHelper 0.8.10, MicrosoftTeams 7.9.0, Microsoft.Graph.Authentication 2.41.2)
+	1.2.2 - 2026-09-16 -Fix removal of expired BlockExtension entries (SharePoint item id was not read, delete call failed with 400)
+	                   - Unify BlockUntil date evaluation (dd.MM.yyyy, d.M.yy, "/" as separator) - entries are removed the day after BlockUntil
+	                   - Continue the run if a BlockExtension entry cannot be removed (warning instead of abort)
+	                   - Fix Get-TPIList for lists with zero or one item and for an empty result (an empty inventory list is filled on the first run)
+	                   - Fix extension ranges with leading zeros (e.g. 000-099 was expanded to 00-99)
+	                   - Abort the run if the phone number export fails (no download link within 120 s or download error) instead of rewriting the inventory without tenant data; warn if the export is empty
+	                   - Detect Common Area Phones by a directly or group assigned TeamsIPPhonePolicy again
+	                   - Apply BlockExtension, unassigned tenant numbers and legacy numbers only to the matching inventory entry (a missing match no longer writes to the last entry)
+	                   - Keep MainLineUri and Company of legacy numbers that are part of a number range
+	                   - Block 6: delete only orphaned and duplicate inventory rows, handle duplicate rows without abort, evaluate the status of batch responses
+	                   - Resolve nested groups with zero or one member, skip circular group nesting, mark nested members correctly
+	                   - Validate number and extension ranges (swapped or empty ranges are reported and stop the run)
+	                   - Warn on duplicate CivicAddressMapping entries, duplicate LineUris of Teams users and unknown columns in a SharePoint list
+	1.2.1 - 2025-11-13 - Update Module Versions
+	                   - Update Array handling
+	                   - Fix LineUri handling regarding Legacy numbers
+	1.2.0 - 2025-03-07 - Fix region handling
+	                   - Add function Export-TeamsPhoneNumbers to resolve the error regarding MC950880 - Update to Get-CsPhoneNumberAssignment (Only 1000 numbers are returned)
+	                   - Add handling of group based policy assignments
+	1.1.0 - 2025-01-09 - Fix "EmptyString"/$null missmatch for NumberCapability and EmergencyAddressName
+	                   - New Get-TPIList function
+	                     - For better handling of SharePoint Lists
+	                     - Removed conversion of returned list object (no longer needed, cause of the new function)
+	                   - Simplified Invoke-TPIRestMethod function
+	                   - Improved logging with Enhanced Logging Output (switchable with $EnableEnhancedLoggingOutput in the script)
+	                   - Disabled Verbose output for GraphAPI (by the own functions) by default (for performance reasons)
+	1.0.0 - 2024-12-20 - Initial Version (=first version in which versioning is defined)
 
-  .PARAMETER SharepointSite
-  The name of the SharePoint site in which the list is stored
-  Example: TeamsPhoneInventory
+	.PARAMETER SharepointSite
+	The name of the SharePoint site in which the list is stored
+	Example: TeamsPhoneInventory
 
-  .PARAMETER SharepointTPIList
-  The name of the SharePoint list, which is used as a data for the TeamsPhoneInventory.
-  Example: TeamsPhoneInventory
+	.PARAMETER SharepointTPIList
+	The name of the SharePoint list, which is used as a data for the TeamsPhoneInventory.
+	Example: TeamsPhoneInventory
 
-  .PARAMETER SharepointNumberRangeList
-  The name of the SharePoint list, which inlucde the number ranges.
-  Example: TPI-NumberRange
+	.PARAMETER SharepointNumberRangeList
+	The name of the SharePoint list, which inlucde the number ranges.
+	Example: TPI-NumberRange
 
-  .PARAMETER SharepointExtensionRangeList
-  The name of the SharePoint list, which inlucdes the extension ranges.
-  Example: TPI-ExtensionRange
+	.PARAMETER SharepointExtensionRangeList
+	The name of the SharePoint list, which inlucdes the extension ranges.
+	Example: TPI-ExtensionRange
 
-  .PARAMETER SharepointLegacyList
-  The name of the SharePoint list, which inlucdes assigned legacy phone numbers.
-  Example: TPI-Legacy
+	.PARAMETER SharepointLegacyList
+	The name of the SharePoint list, which inlucdes assigned legacy phone numbers.
+	Example: TPI-Legacy
 
-  .PARAMETER SharepointBlockExtensionList
-  The name of the SharePoint list, which inlucdes the blocked extensions.
-  Example: TPI-BlockExtension
+	.PARAMETER SharepointBlockExtensionList
+	The name of the SharePoint list, which inlucdes the blocked extensions.
+	Example: TPI-BlockExtension
 
-  .PARAMETER SharepointCivicAddressMappingList
-  The name of the SharePoint list, which includes the mapping of the emergency address
-  Example: TPI-CivicAddressMapping
+	.PARAMETER SharepointCivicAddressMappingList
+	The name of the SharePoint list, which includes the mapping of the emergency address
+	Example: TPI-CivicAddressMapping
 
-  .PARAMETER SharepointLocationDefaultsList
-  The name of the SharePoint list that contains the standard for a location with regard to phone numbers and policies
-  Example: TPI-LocationDefaults
+	.PARAMETER SharepointLocationDefaultsList
+	The name of the SharePoint list that contains the standard for a location with regard to phone numbers and policies
+	Example: TPI-LocationDefaults
 
-  .PARAMETER SharepointLocationMappingList
-  The name of the SharePoint list that contains the assignment of AD attributes to locations
-  Example: TPI-LocationMapping
+	.PARAMETER SharepointLocationMappingList
+	The name of the SharePoint list that contains the assignment of AD attributes to locations
+	Example: TPI-LocationMapping
 
-  .PARAMETER SharepointUserMappingList
-  The name of the SharePoint list that contains the assignment of users to locations.
-  Example: TPI-UserMapping
+	.PARAMETER SharepointUserMappingList
+	The name of the SharePoint list that contains the assignment of users to locations.
+	Example: TPI-UserMapping
 
-  .PARAMETER BlockExtensionDays
-  How long should a number been blocked after offboarding (in days)
-  Example: 180
+	.PARAMETER BlockExtensionDays
+	How long should a number been blocked after offboarding (in days)
+	Example: 180
 
-  .INPUTS
-  RunbookCustomization: {
-        "Parameters": {
-            "SharepointSite": {
-                "Hide": true
-            },
-            "SharepointTPIList": {
-                "Hide": true
-            },
-            "SharepointNumberRangeList": {
-                "Hide": true
-            },
-            "SharepointExtensionRangeList": {
-                "Hide": true
-            },
-            "SharepointLegacyList": {
-                "Hide": true
-            },
-            "SharepointBlockExtensionList": {
-                "Hide": true
-            },
-            "SharepointCivicAddressMappingList": {
-                "Hide": true
-            },
-            "SharepointLocationDefaultsList": {
-                "Hide": true
-            },
-            "SharepointLocationMappingList": {
-                "Hide": true
-            },
-            "SharepointUserMappingList": {
-                "Hide": true
-            },
-            "BlockExtensionDays": {
-                "Hide": true
-            },
-            "CallerName": {
-                "Hide": true
-            }
-        }
-    }
+	.PARAMETER CallerName
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
+
+	.INPUTS
+	RunbookCustomization: {
+	      "Parameters": {
+	          "SharepointSite": {
+	              "Hide": true
+	          },
+	          "SharepointTPIList": {
+	              "Hide": true
+	          },
+	          "SharepointNumberRangeList": {
+	              "Hide": true
+	          },
+	          "SharepointExtensionRangeList": {
+	              "Hide": true
+	          },
+	          "SharepointLegacyList": {
+	              "Hide": true
+	          },
+	          "SharepointBlockExtensionList": {
+	              "Hide": true
+	          },
+	          "SharepointCivicAddressMappingList": {
+	              "Hide": true
+	          },
+	          "SharepointLocationDefaultsList": {
+	              "Hide": true
+	          },
+	          "SharepointLocationMappingList": {
+	              "Hide": true
+	          },
+	          "SharepointUserMappingList": {
+	              "Hide": true
+	          },
+	          "BlockExtensionDays": {
+	              "Hide": true
+	          },
+	          "CallerName": {
+	              "Hide": true
+	          }
+	      }
+	  }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.5.0" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.32.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.9.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 
 ########################################################
-#region Parameter declaration
-##
+#region     Parameter declaration
 ########################################################
 
 param(
@@ -173,11 +177,10 @@ param(
     [string] $CallerName
 )
 
-#endregion
+#endregion Parameter declaration
 
 ########################################################
-#region function declaration
-##
+#region     function declaration
 ########################################################
 function Get-TPIList {
     param (
@@ -583,11 +586,10 @@ function Get-GroupMembership {
     return , $report
 }
 
-#endregion
+#endregion function declaration
 
 ########################################################
-#region Logo Part
-##
+#region     Logo Part
 ########################################################
 
 Write-Output ''
@@ -600,11 +602,10 @@ Write-Output '                                                                  
 Write-Output ''
 
 
-#endregion
+#endregion Logo Part
 
 ########################################################
-#region Properties declaration
-##
+#region     Properties declaration
 ########################################################
 # Description for this block:
 # ===========================
@@ -708,11 +709,10 @@ $ListProperties_BlockExtension = @(
 $TitelNameReplacement_BlockExtension = "LineUri"
 
 
-#endregion
+#endregion Properties declaration
 
 ########################################################
-#region RJ Log Part
-##
+#region     RJ Log Part
 ########################################################
 
 # Add Caller in Verbose output
@@ -721,7 +721,7 @@ if ($CallerName) {
 }
 
 # Add Version in Verbose output
-$Version = "1.2.2"
+$Version = "1.2.3"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
@@ -750,11 +750,10 @@ $EnableEnhancedLoggingOutput = $false
 # By default, the verbose output is disabled.
 $VerboseGraphAPI = $false
 
-#endregion
+#endregion RJ Log Part
 
 ########################################################
-#region Connect Part
-##
+#region     Connect Part
 ########################################################
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
@@ -796,11 +795,10 @@ catch {
     exit
 }
 
-#endregion
+#endregion Connect Part
 
 ########################################################
-#region RampUp Connection Details
-##
+#region     RampUp Connection Details
 ########################################################
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
@@ -836,11 +834,10 @@ catch {
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Connection - SharePoint TPI List URL: $TPIListURL"
 
-#endregion
+#endregion RampUp Connection Details
 
 ########################################################
-#region Get Content NumberRange, Extensionrange, CivicAddressMapping
-##
+#region     Get Content NumberRange, Extensionrange, CivicAddressMapping
 ########################################################
 
 # # Block 1
@@ -930,7 +927,7 @@ foreach ($ExtensionRange in $ExtensionRanges) {
     }
 
 }
-#endregion
+#endregion Check Extension Ranges
 
 
 #region Fill Up MainArray (ExtensionRange)
@@ -978,7 +975,7 @@ foreach ($ExtensionRange in $ExtensionRanges) {
         }
     }
 }
-#endregion
+#endregion Fill Up MainArray (ExtensionRange)
 
 #region Fill the NumberRangeArray with every single extension of the entire number ranges
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
@@ -989,6 +986,8 @@ $NumberRangeAmount = ($NumberRanges | Measure-Object).Count
 [System.Collections.ArrayList]$NumberRangeArray = [System.Collections.ArrayList]::new()
 # Create a hashtable for fast lookup by LineUri
 $NumberRangeHashTable = @{}
+# Numbers that are also part of an earlier number range - collected per number range and reported once after the loop
+$NumberRangeOverlaps = [ordered]@{}
 
 foreach ($NumberRange in $NumberRanges) {
     $CurrentNumberRangeIndex = $NumberRange.NumberRangeIndex
@@ -1005,40 +1004,65 @@ foreach ($NumberRange in $NumberRanges) {
     Write-Output "$TimeStamp - Block 1 - $($NumberRangeCounter.toString().PadLeft($($NumberRangeAmount.toString().length),'0'))/$($NumberRangeAmount) - Current number range: $($CurrentName)"
 
     # Determine minimum digits based on BeginNumberRange, and maximum digits based on EndNumberRange
-    $MinNumberDigits = $NumberRange.BeginNumberRange.Length
-    $MaxNumberDigits = $NumberRange.EndNumberRange.Length
+    $MinNumberDigits = "$($NumberRange.BeginNumberRange)".Trim().Length
+    $MaxNumberDigits = "$($NumberRange.EndNumberRange)".Trim().Length
     $DIDSet = [System.Collections.Generic.HashSet[string]]::new()
 
     if ($CurrentStartNumber -le $CurrentEndNumber) {
         for ($i = $CurrentStartNumber; $i -le $CurrentEndNumber; $i++) {
-            # Determine the number of digits for current number
-            $CurrentNumberLength = $i.ToString().Length
+            # Defined length: the length of the current number, but at least MinNumberDigits
+            $CurrentNumber = $i.ToString()
+            $DefinedNumberDigits = [Math]::Max($CurrentNumber.Length, $MinNumberDigits)
 
-            # Use the length based on the current number, but at least MinNumberDigits
-            if ($CurrentNumberLength -lt $MinNumberDigits) {
-                $CurrentExtension = $i.ToString().PadLeft($MinNumberDigits, '0')
-            }
-            else {
-                $CurrentExtension = $i.ToString()
-            }
+            # Add the extension in every length up to MaxNumberDigits (e.g. 0-99 -> 0..9, 00..09 and 10..99)
+            # This fits numbering plans with a fixed number length (e.g. France) as well as variable extension lengths (e.g. Germany)
+            for ($NumberDigits = $DefinedNumberDigits; $NumberDigits -le $MaxNumberDigits; $NumberDigits++) {
+                $CurrentExtension = $CurrentNumber.PadLeft($NumberDigits, '0')
+                $IsPaddedExtension = $NumberDigits -gt $DefinedNumberDigits
 
-            if (-not $DIDSet.Contains($CurrentExtension)) {
-                $CurrentLineUri = $CurrentMainNumber + $CurrentExtension
+                if (-not $DIDSet.Contains($CurrentExtension)) {
+                    $CurrentLineUri = $CurrentMainNumber + $CurrentExtension
+                    $AddEntry = $true
 
-                $NewRow = [pscustomobject]@{
-                    'NumberRangeIndex' = $CurrentNumberRangeIndex
-                    'NumberRangeName'  = $CurrentName
-                    'LineUri'          = $CurrentLineUri
-                    'DID'              = $CurrentExtension
-                    'Country'          = $CurrentCountry
-                    'City'             = $CurrentCity
-                    'Company'          = $CurrentCompany
+                    if ($NumberRangeHashTable.ContainsKey($CurrentLineUri)) {
+                        # The number is part of an earlier number range: a zero-padded variant never replaces the existing entry,
+                        # an extension in its defined length replaces it (the later number range wins)
+                        $ExistingEntry = $NumberRangeHashTable[$CurrentLineUri]
+                        $AddEntry = -not $IsPaddedExtension
+
+                        if (-not $NumberRangeOverlaps.Contains($CurrentNumberRangeIndex)) {
+                            $NumberRangeOverlaps[$CurrentNumberRangeIndex] = [pscustomobject]@{
+                                'NumberRangeName'             = $CurrentName
+                                'OverlappingNumberRangeNames' = [System.Collections.Generic.List[string]]::new()
+                                'NumberCount'                 = 0
+                                'ExampleLineUri'              = $CurrentLineUri
+                                'ExampleNumberRangeName'      = $(if ($AddEntry) { $CurrentName } else { $ExistingEntry.NumberRangeName })
+                            }
+                        }
+                        $CurrentOverlap = $NumberRangeOverlaps[$CurrentNumberRangeIndex]
+                        if (-not $CurrentOverlap.OverlappingNumberRangeNames.Contains($ExistingEntry.NumberRangeName)) {
+                            $CurrentOverlap.OverlappingNumberRangeNames.Add($ExistingEntry.NumberRangeName)
+                        }
+                        $CurrentOverlap.NumberCount++
+                    }
+
+                    if ($AddEntry) {
+                        $NewRow = [pscustomobject]@{
+                            'NumberRangeIndex' = $CurrentNumberRangeIndex
+                            'NumberRangeName'  = $CurrentName
+                            'LineUri'          = $CurrentLineUri
+                            'DID'              = $CurrentExtension
+                            'Country'          = $CurrentCountry
+                            'City'             = $CurrentCity
+                            'Company'          = $CurrentCompany
+                        }
+                        [void]$NumberRangeArray.Add($NewRow)
+                        # Add to hashtable for fast lookup
+                        $NumberRangeHashTable[$CurrentLineUri] = $NewRow
+                    }
+                    [void]$DIDSet.Add($CurrentExtension)
+                    # [void] - suppress output
                 }
-                [void]$NumberRangeArray.Add($NewRow)
-                # Add to hashtable for fast lookup
-                $NumberRangeHashTable[$CurrentLineUri] = $NewRow
-                [void]$DIDSet.Add($CurrentExtension)
-                # [void] - suppress output
             }
         }
     }
@@ -1050,16 +1074,21 @@ foreach ($NumberRange in $NumberRanges) {
     }
 }
 
+# Report overlapping number ranges once per number range instead of once per number
+foreach ($NumberRangeOverlap in $NumberRangeOverlaps.Values) {
+    $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
+    Write-Warning "$TimeStamp - Block 1 - Number range $($NumberRangeOverlap.NumberRangeName) overlaps with number range(s) $($NumberRangeOverlap.OverlappingNumberRangeNames -join ', ') in $($NumberRangeOverlap.NumberCount) numbers (e.g. $($NumberRangeOverlap.ExampleLineUri), assigned to $($NumberRangeOverlap.ExampleNumberRangeName)) - check MainNumber, BeginNumberRange and EndNumberRange of these number ranges"
+}
+
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 1 - Finished Helper Array (Whole Number Range) with $($NumberRangeHashTable.Count) entries"
 
-#endregion
+#endregion Fill the NumberRangeArray with every single extension of the entire number ranges
 
-#endregion
+#endregion Get Content NumberRange, Extensionrange, CivicAddressMapping
 
 ########################################################
-#region Teams
-##
+#region     Teams
 ########################################################
 
 # # Block 2 Teams
@@ -1255,14 +1284,14 @@ foreach ($PhoneNumber in $PhoneNumberAssignment ) {
 }
 
 $PhoneNumberAssignment = $null
-#endregion
+#endregion Retrieve all phone numbers and LIS addresses from the tenant
 
 #region Retrieve all Microsoft Teams IP-Phone policies
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 2 - Retrieve all Microsoft Teams IP-Phone policies"
 $TeamsIPPhonePolicies = Get-CsTeamsIPPhonePolicy
 
-#endregion
+#endregion Retrieve all Microsoft Teams IP-Phone policies
 
 #region Retrieve all group policy assignments
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
@@ -1312,7 +1341,7 @@ foreach ($user in $userPolicies.Keys) {
     }
 }
 
-#endregion
+#endregion Retrieve all group policy assignments
 
 #region Merge all collected Microsoft Teams user in the main array
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
@@ -1653,7 +1682,7 @@ if ($CounterAllTeamsUser -gt 0) {
         }
         Clear-Variable -Name ("Teams_UPN", "Teams_LineUri", "Teams_FullLineUri", "Teams_MainLineUri", "Teams_LineUri_Extension", "Teams_VoiceType", "Teams_UserType")
     }
-    #endregion
+    #endregion Fill MainArray
 }
 else {
     $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
@@ -1664,11 +1693,13 @@ else {
 
 $AllTeamsUser = $null
 
-#endregion
+#endregion Merge all collected Microsoft Teams user in the main array
 
-#endregion
+#endregion Teams
 
-#region Check whether there are phone numbers in the tenant that are not assigned
+########################################################
+#region     Check whether there are phone numbers in the tenant that are not assigned
+########################################################
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "$TimeStamp - Block 2 - Check whether there are phone numbers in the tenant that are not assigned"
 $UnassignedOnlinePhoneNumbers = $OnlinePhoneNumbers | Where-Object PstnAssignmentStatus -NotLike "UserAssigned" |  Where-Object PstnAssignmentStatus -NotLike "VoiceApplicationAssigned"
@@ -1714,11 +1745,10 @@ else {
 
 }
 
-#endregion
+#endregion Check whether there are phone numbers in the tenant that are not assigned
 
 ########################################################
-#region Legacy and Duplicats
-##
+#region     Legacy and Duplicats
 ########################################################
 
 # # Block 3 Legacy
@@ -1857,11 +1887,10 @@ if ($CounterLegacyPhoneNumber -gt 0) {
 
 $LegacyPhoneNumbers = $null
 
-#endregion
+#endregion Legacy and Duplicats
 
 ########################################################
-#region Check for outdated items BlockExtension
-##
+#region     Check for outdated items BlockExtension
 ########################################################
 
 # # Block 4 BlockExtension - Check for outdated items
@@ -1960,11 +1989,10 @@ if ($BlockItemDeleteErrorCount -gt 0) {
 
 $BlockExtensionList = $null
 
-#endregion
+#endregion Check for outdated items BlockExtension
 
 ########################################################
-#region BlockExtension
-##
+#region     BlockExtension
 ########################################################
 
 # # Block 5 BlockExtension
@@ -1999,11 +2027,10 @@ foreach ($BlockExtensionItem in $BlockExtension) {
 
 $BlockExtension = $null
 
-#endregion
+#endregion BlockExtension
 
 ########################################################
-#region Compare + Update TPI List
-##
+#region     Compare + Update TPI List
 ########################################################
 
 # # Block 6 Compare
@@ -2023,11 +2050,11 @@ $NumberRangeHashTable = $null
 
 # Try to clear unused memory
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-Write-Host "$TimeStamp - CleanUp - Memory used before collection: $([System.GC]::GetTotalMemory($false))"
+Write-Output "$TimeStamp - CleanUp - Memory used before collection: $([System.GC]::GetTotalMemory($false))"
 [System.GC]::Collect()
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
-Write-Host "$TimeStamp - CleanUp - Memory used after full collection: $([System.GC]::GetTotalMemory($true))"
+Write-Output "$TimeStamp - CleanUp - Memory used after full collection: $([System.GC]::GetTotalMemory($true))"
 Start-Sleep -Seconds 5
 
 #region Compare the MainArray with the SharePoint List to check if items in the list need to be updated
@@ -2317,7 +2344,7 @@ else {
     Write-Output "$TimeStamp - Block 6 - SharePoint List is up to date - no need for an update"
     $NoUpdate = 1
 }
-#endregion
+#endregion Compare the MainArray with the SharePoint List to check if items in the list need to be updated
 
 #region Get Status Quo of the Sharepoint List if needed
 if ($NoUpdate -ne 1) {
@@ -2330,7 +2357,7 @@ if ($NoUpdate -ne 1) {
     Write-Output "$TimeStamp - Block 6 - Items in MainArray: $($($MainArray | Measure-Object).Count)"
 }
 
-#endregion
+#endregion Get Status Quo of the Sharepoint List if needed
 
 #region Compare the MainArray with the SharePoint List to check if items in the list need to be deleted
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
@@ -2434,8 +2461,8 @@ else {
     Write-Output "$TimeStamp - Block 6 - There are no items that need to be removed from the SharePoint List."
 }
 
-#endregion
-#endregion
+#endregion Compare the MainArray with the SharePoint List to check if items in the list need to be deleted
+#endregion Compare + Update TPI List
 
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
 Write-Output "--------------------"

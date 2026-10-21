@@ -310,7 +310,8 @@ function Assert-HelpIsComplete {
 		throw "Synopsis and Description must not be identical. Make .DESCRIPTION more detailed than .SYNOPSIS."
 	}
 
-	$declaredParams = Get-DeclaredParameterNames -FilePath $RunbookPath
+	# @() keeps a single parameter name an array (StrictMode has no .Count on a string)
+	$declaredParams = @(Get-DeclaredParameterNames -FilePath $RunbookPath)
 	if ($declaredParams.Count -eq 0) {
 		return
 	}

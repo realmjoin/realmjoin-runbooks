@@ -6,6 +6,30 @@
     Assigns a manually defined phone number and (pre-filled, if applicable) selected voice policies to a Microsoft Teams user.
     The runbook is part of the TeamsPhoneInventory.
 
+    .PARAMETER UserName
+    User principal name of the user the runbook acts on. Set by the portal from the selected user.
+
+    .PARAMETER PhoneNumber
+    Phone number to assign to this user, in E.164 format (for example +49123987654).
+
+    .PARAMETER OnlineVoiceRoutingPolicy
+    Online voice routing policy to grant to this user. "Global (Org Wide Default)" resets the user to the global policy. Leave empty to keep the current policy.
+
+    .PARAMETER TenantDialPlan
+    Dial plan to grant to this user. "Global (Org Wide Default)" resets the user to the global dial plan. Leave empty to keep the current dial plan.
+
+    .PARAMETER TeamsCallingPolicy
+    Calling policy to grant to this user. "Global (Org Wide Default)" resets the user to the global policy. Leave empty to keep the current policy.
+
+    .PARAMETER SharepointSite
+    Name of the SharePoint site that holds the Teams Phone Inventory lists. Taken from the tenant setting TPI.SharepointSite.
+
+    .PARAMETER SharepointTPIList
+    Name of the SharePoint list with the phone number inventory. Taken from the tenant setting TPI.SharepointTPIList.
+
+    .PARAMETER CallerName
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
+
     .NOTES
     Version Changelog:
     1.1.1 - 2025-07-14 - Fix OVRP Check if null
@@ -17,14 +41,13 @@
                        - Add regions to the script for better readability
     1.0.0 - 2024-12-20 - Initial Version (=first version in which versioning is defined)
 
-    RunbookCustomization:
-    RunbookCustomization is defined separately in the associated RealmJoin portal settings
+    The runbook customization is defined separately in the tenant settings of the RealmJoin portal.
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.5.0" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.32.0"}
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.9.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 
 param(
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
@@ -359,7 +382,7 @@ if ($CallerName) {
 }
 
 # Add Version in Verbose output
-$Version = "1.0.0"
+$Version = "1.1.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output:
@@ -866,6 +889,7 @@ else {
     Write-Warning "Block 9 - Write Output to TPI"
     Write-Warning "Currently no TPI entry exists/multiple TPI entries exists(Teams Phone Extension) - TPI List will be updated in the next sync cycle"
 }
+#endregion Block 9 - Write Output to TPI
 
 
 

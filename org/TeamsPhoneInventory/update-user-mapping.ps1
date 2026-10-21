@@ -30,9 +30,24 @@
   The name of the SharePoint list, which inlucde the number ranges.
   Example: TPI-BlockExtension
 
+  .PARAMETER SharepointLocationDefaultsList
+  Name of the SharePoint list with the defaults per location (extension range, emergency address and voice policies). Taken from the tenant setting TPI.SharepointLocationDefaultsList.
+
+  .PARAMETER SharepointCivicAddressMappingList
+  Name of the SharePoint list with the emergency addresses of Microsoft Teams used by the Teams Phone Inventory. Taken from the tenant setting TPI.SharepointCivicAddressMappingList.
+
+  .PARAMETER SharepointLocationMappingList
+  Name of the SharePoint list that maps city, street and company to a location. Taken from the tenant setting TPI.SharepointLocationMappingList.
+
+  .PARAMETER SharepointUserMappingList
+  Name of the SharePoint list that maps each user to a location. Taken from the tenant setting TPI.SharepointUserMappingList.
+
   .PARAMETER BlockExtensionDays
   How long should a number been blocked after offboarding (in days)
   Example: 180
+
+  .PARAMETER CallerName
+  Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
   .INPUTS
   RunbookCustomization: {
@@ -77,9 +92,9 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.5.0" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.32.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.9.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 
 #region Variable/Parameter declaration
 ########################################################

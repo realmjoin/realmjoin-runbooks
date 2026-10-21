@@ -1,0 +1,27 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Required by the app-based Teams PowerShell sign-in to read tenant information"
+                },
+                {
+                    "Value": "Sites.ReadWrite.All",
+                    "Reason": "Reads the TPI SharePoint lists (inventory, user mapping, location defaults) and updates the inventory entry of the assigned phone number"
+                }
+            ]
+        }
+    ],
+    "Roles": [
+        {
+            "Name": "Teams Administrator",
+            "TemplateId": "69091246-20e8-4a56-aa4d-066075b2a7a8",
+            "Reason": "Required to read the Teams user and to assign the phone number and voice policies via Set-CsPhoneNumberAssignment and Grant-Cs cmdlets"
+        }
+    ],
+    "ManualPermissions": []
+}

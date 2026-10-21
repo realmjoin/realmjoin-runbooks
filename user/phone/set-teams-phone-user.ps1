@@ -9,7 +9,9 @@
 
   .NOTES
   Version Changelog:
-  1.1.1 - 2025-04-16 - Add additional check, if number is assigned
+  1.1.2 - 2026-10-21 - Stop with a clear message if a TPI tenant setting is missing (the hidden TPI fields no longer block the portal dialog)
+                     - Update module versions (RealmJoin.RunbookHelper 0.8.10, MicrosoftTeams 7.9.0, Microsoft.Graph.Authentication 2.41.2)
+  1.1.1 - 2025-04-16 -Add additional check, if number is assigned
   1.1.0 - 2025-03-25 - New Get-TPIList function
                        - For better handling of SharePoint Lists
                        - Removed conversion of returned list object (no longer needed, cause of the new function)
@@ -18,24 +20,38 @@
                      - Add regions to the script for better readability
   1.0.0 - 2024-12-20 - Initial Version (=first version in which versioning is defined)
 
+  .PARAMETER UserName
+  User principal name of the user the runbook acts on. Set by the portal from the selected user.
+
+  .PARAMETER SharepointSite
+  Name of the SharePoint site that holds the Teams Phone Inventory lists. Taken from the tenant setting TPI.SharepointSite.
+
+  .PARAMETER SharepointTPIList
+  Name of the SharePoint list with the phone number inventory. Taken from the tenant setting TPI.SharepointTPIList.
+
+  .PARAMETER SharepointLocationDefaultsList
+  Name of the SharePoint list with the defaults per location (extension range, emergency address and voice policies). Taken from the tenant setting TPI.SharepointLocationDefaultsList.
+
+  .PARAMETER SharepointUserMappingList
+  Name of the SharePoint list that maps each user to a location. Taken from the tenant setting TPI.SharepointUserMappingList.
+
+  .PARAMETER CallerName
+  Name of the user who started the runbook. Set by the portal and recorded for auditing.
+
  .INPUTS
   RunbookCustomization: {
       "Parameters": {
           "SharepointSite": {
-              "Hide": true,
-              "Mandatory": true
+              "Hide": true
           },
           "SharepointTPIList": {
-              "Hide": true,
-              "Mandatory": true
+              "Hide": true
           },
           "SharepointLocationDefaultsList": {
-              "Hide": true,
-              "Mandatory": true
+              "Hide": true
           },
           "SharepointUserMappingList": {
-              "Hide": true,
-              "Mandatory": true
+              "Hide": true
           },
           "CallerName": {
               "Hide": true
@@ -44,9 +60,9 @@
   }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.5.0" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.32.0"}
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.9.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -375,7 +391,7 @@ if ($CallerName) {
 }
 
 # Add Version in Verbose output
-$Version = "1.0.0"
+$Version = "1.1.2"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
@@ -383,6 +399,14 @@ Write-RjRbLog -Message "SharepointSite: '$SharepointSite'" -Verbose
 Write-RjRbLog -Message "SharepointTPIList: '$SharepointTPIList'" -Verbose
 Write-RjRbLog -Message "SharepointLocationDefaultsList: '$SharepointLocationDefaultsList'" -Verbose
 Write-RjRbLog -Message "SharepointUserMappingList: '$SharepointUserMappingList'" -Verbose
+
+# The TPI settings are hidden in the portal - stop with a clear message if one of them is not configured in the tenant settings
+foreach ($TPISettingName in @("SharepointSite", "SharepointTPIList", "SharepointLocationDefaultsList", "SharepointUserMappingList")) {
+    if ([string]::IsNullOrWhiteSpace((Get-Variable -Name $TPISettingName -ValueOnly))) {
+        Write-Error "The tenant setting TPI.$TPISettingName is not configured - add it to the runbook customizations of the RealmJoin portal before running this runbook" -ErrorAction Continue
+        throw "Missing tenant setting TPI.$TPISettingName"
+    }
+}
 
 # Needs a Microsoft Teams Connection First!
 $TimeStamp = ([datetime]::now).tostring("yyyy-MM-dd HH:mm:ss")
@@ -994,6 +1018,7 @@ $HTTPBody_UpdateElement = @{
 Write-Output "Update entry: $PhoneNumber"
 $TMP = Invoke-TPIRestMethod -Uri $GraphAPIUrl_UpdateElement -Method Patch -Body $HTTPBody_UpdateElement -ProcessPart "TPI List - Update item: $CurrentLineUri"
 $HTTPBody_UpdateElement = $null
+#endregion Block 10 - Write Output to TPI
 
 Write-Output ""
 Write-Output "Done!"

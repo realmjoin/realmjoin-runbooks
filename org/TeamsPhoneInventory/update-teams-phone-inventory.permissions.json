@@ -1,0 +1,31 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "GroupMember.Read.All",
+                    "Reason": "Resolves the members of groups with a TeamsIPPhonePolicy assignment, including nested groups, to detect Common Area Phones"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Required by the app-based Teams PowerShell sign-in to read tenant information"
+                },
+                {
+                    "Value": "Sites.ReadWrite.All",
+                    "Reason": "Reads the TPI SharePoint lists (number ranges, extension ranges, civic address mapping, legacy numbers, blocked extensions) and adds, updates and deletes items in the inventory and blocked extension lists"
+                }
+            ]
+        }
+    ],
+    "Roles": [
+        {
+            "Name": "Teams Administrator",
+            "TemplateId": "69091246-20e8-4a56-aa4d-066075b2a7a8",
+            "Reason": "Required to read Teams users, phone number assignments, emergency addresses and IP phone policy assignments and to export the acquired phone numbers of the tenant"
+        }
+    ],
+    "ManualPermissions": []
+}

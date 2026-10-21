@@ -8,6 +8,9 @@
   In order to use this runbook, a few variables must be stored in the Automation account.
   The runbook is part of the TeamsPhoneInventory.
 
+  .PARAMETER EasyDisplayName
+  Shows the locations in the generated settings with a readable name such as "Offenbach - Company AG" instead of their location identifier.
+
   .INPUTS
   RunbookCustomization: {
     "Parameters": {
@@ -24,9 +27,9 @@ param (
     [bool]$EasyDisplayName = $true
 )
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.4" }
-#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.5.0" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion="2.32.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
+#Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.9.0" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 
 #region Functions
 ########################################################
