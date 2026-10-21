@@ -1,10 +1,9 @@
 # Report Pim Activations (Scheduled)
 
-Scheduled report on PIM activations
+Report the PIM role activations of the last month by email
 
 ## Detailed description
-This runbook queries Microsoft Entra ID audit logs for recent PIM activations.
-It builds an report and sends it via email.
+Reads the Entra ID audit log for Privileged Identity Management role activations of the last month and sends them as an email report, so privileged access can be reviewed regularly. Nothing is changed.
 
 ## Where to find
 Org \ General \ Report Pim Activations_Scheduled
@@ -18,7 +17,7 @@ Org \ General \ Report Pim Activations_Scheduled
 
 ## Parameters
 ### sendAlertTo
-Recipient email address for the report.
+Gets the monthly PIM activation report.
 
 | Property | Value |
 |----------|-------|
@@ -27,7 +26,7 @@ Recipient email address for the report.
 | Type | String |
 
 ### sendAlertFrom
-Sender mailbox UPN used to send the report email.
+User in the tenant the report is sent as; needs a mailbox.
 
 | Property | Value |
 |----------|-------|

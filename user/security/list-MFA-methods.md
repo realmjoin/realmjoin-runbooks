@@ -1,3 +1,7 @@
+## Privacy and audit
+
+This runbook reads sensitive identity data: the registered MFA methods of a user, including phone numbers. Phone numbers are masked by default. Set `MaskPhoneNumbers` to `false` only when the full numbers are required for legitimate support purposes; the action is logged together with the caller name.
+
 ## Activate user notification
 
 This runbook can optionally send a notification email to the target user informing them that their MFA methods were retrieved by an administrator. To enable this, you need to activate user notification in the runbook customization.

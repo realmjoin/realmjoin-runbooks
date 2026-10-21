@@ -1,16 +1,15 @@
 <#
     .SYNOPSIS
-    Show a local admin password for a device.
+    Show the local admin password of this device
 
     .DESCRIPTION
-    This runbook retrieves and displays the most recent Windows LAPS local administrator password that is backed up for the specified device.
-    Use it for break-glass troubleshooting and rotate the password after use.
+    Shows the most recent Windows LAPS password of the local administrator account that is backed up for this device. Use it for break-glass troubleshooting and rotate the password afterwards. Looking it up changes nothing on the device.
 
     .PARAMETER DeviceId
-    The device ID of the target device.
+    Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -25,7 +24,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
 
 # Suppress false positive from PSScriptAnalyzer - variables are assigned inside ForEach-Object but used afterwards
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "accountName")]

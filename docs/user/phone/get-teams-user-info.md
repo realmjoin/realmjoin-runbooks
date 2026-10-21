@@ -1,9 +1,9 @@
 # Get Teams User Info
 
-Get Microsoft Teams voice status for a user
+Show the Teams voice setup of this user
 
 ## Detailed description
-Retrieves voice-related status information for a Teams user such as phone number assignment, call forwarding settings, voicemail configuration, and policy assignments. The output is intended for troubleshooting and validation.
+Shows the telephony setup of this user in Teams: the assigned phone number, call forwarding, voicemail, the assigned voice policies and call queue membership. Nothing is changed.
 
 ## Where to find
 User \ Phone \ Get Teams User Info
@@ -19,7 +19,7 @@ User \ Phone \ Get Teams User Info
 
 ## Parameters
 ### UserName
-User principal name of the target user.
+User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|

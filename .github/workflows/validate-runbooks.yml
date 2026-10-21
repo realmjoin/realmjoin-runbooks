@@ -10,6 +10,9 @@ on:
       - '.schema/permissions.schema.json'
       - 'CHANGELOG.md'
 
+permissions:
+  contents: read
+
 jobs:
   validate-runbooks:
     name: Validate runbooks
@@ -21,16 +24,21 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
+          persist-credentials: false
 
       - name: 📄 Collect changed PR files
         id: changes
         shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
           set -euo pipefail
 
-          base_sha="${{ github.event.pull_request.base.sha }}"
-          head_sha="${{ github.event.pull_request.head.sha }}"
-          base_ref="${{ github.event.pull_request.base.ref }}"
+          base_sha="$BASE_SHA"
+          head_sha="$HEAD_SHA"
+          base_ref="$BASE_REF"
           changed_diff_mode="merge-base-two-dot"
           added_diff_mode="merge-base-two-dot"
           range_start=""
@@ -83,10 +91,10 @@ jobs:
       - name: 📝 Enforce CHANGELOG for ps1 changes
         id: changelog
         shell: pwsh
+        env:
+          CHANGED_FILES: ${{ steps.changes.outputs.changed }}
         run: |
-          $changedRaw = @'
-          ${{ steps.changes.outputs.changed }}
-          '@
+          $changedRaw = $env:CHANGED_FILES
           $changedFiles = @(
             $changedRaw -split "`r?`n" |
             ForEach-Object { $_.Trim() } |
@@ -115,10 +123,10 @@ jobs:
       - name: 🔒 Validate permissions JSON
         id: permissions
         shell: pwsh
+        env:
+          CHANGED_FILES: ${{ steps.changes.outputs.changed }}
         run: |
-          $changedRaw = @'
-          ${{ steps.changes.outputs.changed }}
-          '@
+          $changedRaw = $env:CHANGED_FILES
           $changedFiles = @(
             $changedRaw -split "`r?`n" |
             ForEach-Object { $_.Trim() } |
@@ -135,10 +143,10 @@ jobs:
         id: runbooks
         if: always()
         shell: pwsh
+        env:
+          CHANGED_FILES: ${{ steps.changes.outputs.changed }}
         run: |
-          $changedRaw = @'
-          ${{ steps.changes.outputs.changed }}
-          '@
+          $changedRaw = $env:CHANGED_FILES
           $changedFiles = @(
             $changedRaw -split "`r?`n" |
             ForEach-Object { $_.Trim() } |
@@ -153,9 +161,12 @@ jobs:
       - name: ❌ Fail if validation failed
         if: always()
         shell: pwsh
+        env:
+          PERMISSIONS_EXIT_CODE: ${{ steps.permissions.outputs.exitCode }}
+          RUNBOOKS_EXIT_CODE: ${{ steps.runbooks.outputs.exitCode }}
         run: |
-          $permRaw = '${{ steps.permissions.outputs.exitCode }}'
-          $rbRaw = '${{ steps.runbooks.outputs.exitCode }}'
+          $permRaw = $env:PERMISSIONS_EXIT_CODE
+          $rbRaw = $env:RUNBOOKS_EXIT_CODE
 
           $perm = 1
           $rb = 1

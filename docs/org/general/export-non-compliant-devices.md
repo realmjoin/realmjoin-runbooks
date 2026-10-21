@@ -1,10 +1,9 @@
 # Export Non Compliant Devices
 
-Export non-compliant Intune devices and settings
+Export non-compliant Intune devices with their failing settings
 
 ## Detailed description
-This runbook queries Intune for non-compliant and in-grace-period devices and retrieves detailed policy and setting compliance data.
-It can export the results to CSV with SAS (download) links.
+Lists the Intune devices that are non-compliant or in a grace period, together with the policies and the individual settings that fail on each of them. The results can be exported as CSV files to an Azure Storage account with time-limited download links. Nothing is changed.
 
 ## Where to find
 Org \ General \ Export Non Compliant Devices
@@ -21,7 +20,7 @@ Azure IaaS: Access to create/manage Azure Storage resources if producing links
 
 ## Parameters
 ### produceLinks
-If set to true, uploads artifacts and produces SAS (download) links when storage settings are available.
+Uploads the CSV files to the storage account configured in the tenant settings and returns download links.
 
 | Property | Value |
 |----------|-------|
@@ -30,7 +29,7 @@ If set to true, uploads artifacts and produces SAS (download) links when storage
 | Type | Boolean |
 
 ### ContainerName
-Storage container name used for uploads.
+Storage container the report files are uploaded to. Taken from the tenant setting IntuneDevicesReport.Container.
 
 | Property | Value |
 |----------|-------|
@@ -39,7 +38,7 @@ Storage container name used for uploads.
 | Type | String |
 
 ### ResourceGroupName
-Resource group that contains the storage account.
+Resource group of the storage account. Taken from the tenant setting IntuneDevicesReport.ResourceGroup.
 
 | Property | Value |
 |----------|-------|
@@ -48,7 +47,7 @@ Resource group that contains the storage account.
 | Type | String |
 
 ### StorageAccountName
-Storage account name used for uploads.
+Storage account for the export. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Name.
 
 | Property | Value |
 |----------|-------|
@@ -57,7 +56,7 @@ Storage account name used for uploads.
 | Type | String |
 
 ### StorageAccountLocation
-Azure region for the storage account.
+Azure region used when the storage account has to be created. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Location.
 
 | Property | Value |
 |----------|-------|
@@ -66,7 +65,7 @@ Azure region for the storage account.
 | Type | String |
 
 ### StorageAccountSku
-Storage account SKU.
+Performance tier used when the storage account has to be created. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Sku.
 
 | Property | Value |
 |----------|-------|
@@ -75,7 +74,7 @@ Storage account SKU.
 | Type | String |
 
 ### SubscriptionId
-Azure subscription ID used for storage operations.
+Azure subscription that holds the storage account. Taken from the tenant setting IntuneDevicesReport.SubscriptionId.
 
 | Property | Value |
 |----------|-------|

@@ -1,0 +1,25 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "DeviceManagementManagedDevices.ReadWrite.All",
+                    "Reason": "Lists Intune managed Windows devices with their join type, reads pending device actions and renames enrolled devices via setDeviceName"
+                },
+                {
+                    "Value": "DeviceManagementServiceConfig.ReadWrite.All",
+                    "Reason": "Reads Windows Autopilot device identities (group tag, serial number, display name) and writes the expected name via updateDeviceProperties"
+                },
+                {
+                    "Value": "DeviceManagementManagedDevices.PrivilegedOperations.All",
+                    "Reason": "Required for the privileged setDeviceName action that renames enrolled devices"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": []
+}

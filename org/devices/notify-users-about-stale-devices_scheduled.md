@@ -1,3 +1,12 @@
+## Common use cases
+
+- Automated user reminders about inactive devices to encourage regular device check-ins
+- Proactive device lifecycle management by alerting users before devices are retired
+- Security and compliance by ensuring users are aware of all devices registered to them
+- Staged notifications via the `MaxDays` parameter, for example a first reminder at 30 days and a final notice at 60 days
+- User scope filtering to target specific departments or to exclude service accounts
+- Central handling of devices without a primary user or owned by Device Enrollment Manager accounts (for example `DEM-*`) via dedicated recipients
+
 ## Setup regarding email sending
 
 Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
@@ -17,6 +26,10 @@ The report email honors the optional `RJReport.Branding.*` tenant settings:
 When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
 
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
+
+### Service Desk contact information
+
+The optional `RJReport.ServiceDesk_DisplayName`, `RJReport.ServiceDesk_EMail`, `RJReport.ServiceDesk_Phone` and `RJReport.ServiceDesk_PortalUrl` tenant settings add a contact block to the end of every notification email. `ServiceDeskTicketUrl` can additionally link to a ticket.
 
 ## Mail Template Language Selection
 

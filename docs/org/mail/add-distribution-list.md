@@ -1,9 +1,9 @@
 # Add Distribution List
 
-Create a classic distribution group
+Create a classic Exchange Online distribution group
 
 ## Detailed description
-Creates a classic Exchange Online distribution group with optional owner configuration. If no primary SMTP address is provided, the default verified domain is used.
+Creates a classic distribution group in Exchange Online, optionally as a room list, with an owner, or open to external senders. Without an email address the alias at the default domain of the tenant is used.
 
 ## Where to find
 Org \ Mail \ Add Distribution List
@@ -21,7 +21,7 @@ Org \ Mail \ Add Distribution List
 
 ## Parameters
 ### Alias
-Mail alias (mail nickname) for the distribution group.
+Short name that becomes the part of the email address in front of the @ sign, for example MKTG for the marketing team.
 
 | Property | Value |
 |----------|-------|
@@ -30,7 +30,7 @@ Mail alias (mail nickname) for the distribution group.
 | Type | String |
 
 ### PrimarySMTPAddress
-Optional primary SMTP address for the distribution group.
+Address the group sends and receives with. Leave empty to use the alias at the default domain.
 
 | Property | Value |
 |----------|-------|
@@ -39,7 +39,7 @@ Optional primary SMTP address for the distribution group.
 | Type | String |
 
 ### GroupName
-Optional display name for the distribution group; defaults to the alias.
+Name shown in the address book. Leave empty to use the alias.
 
 | Property | Value |
 |----------|-------|
@@ -48,7 +48,7 @@ Optional display name for the distribution group; defaults to the alias.
 | Type | String |
 
 ### Owner
-Optional owner who can manage the group.
+User who manages the members of the group. Leave empty for none.
 
 | Property | Value |
 |----------|-------|
@@ -57,7 +57,7 @@ Optional owner who can manage the group.
 | Type | String |
 
 ### Roomlist
-If set to true, the distribution group is created as a room list.
+Creates the group as a room list, so its rooms can be picked together in the Outlook room finder.
 
 | Property | Value |
 |----------|-------|
@@ -66,7 +66,7 @@ If set to true, the distribution group is created as a room list.
 | Type | Boolean |
 
 ### AllowExternalSenders
-If set to true, the group can receive email from external senders.
+Lets people outside the organization send email to the group.
 
 | Property | Value |
 |----------|-------|

@@ -11,7 +11,7 @@
                 },
                 {
                     "Value": "User.Read.All",
-                    "Reason": "Resolves the room mailbox's address and nickname via /users/{UserName}"
+                    "Reason": "Resolves the mail address of the room mailbox via /users/{UserName}"
                 }
             ]
         },
@@ -21,7 +21,7 @@
             "AppRoleAssignments": [
                 {
                     "Value": "Exchange.ManageAsApp",
-                    "Reason": "Runs Get-CalendarProcessing in the app-only Exchange Online session"
+                    "Reason": "Runs Get-CalendarProcessing and resolves the delegates and booking policy entries with Get-Recipient in the app-only Exchange Online session"
                 }
             ]
         }

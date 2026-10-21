@@ -1,12 +1,34 @@
 # Unassign Windows365
 
-Remove and deprovision a Windows 365 Cloud PC for a user
+Remove the Windows 365 Cloud PC of this user
 
 ## Detailed description
-Removes Windows 365 assignments for a user and deprovisions the associated Cloud PC. Optionally ends the grace period immediately to trigger faster removal.
+Removes the Windows 365 license or Frontline assignment of this user and, unless another Cloud PC remains, the provisioning and user settings groups, which deprovisions the Cloud PC. Data stored only on the Cloud PC is lost. Optionally the grace period is skipped so the Cloud PC is deleted right away.
 
 ## Where to find
 User \ General \ Unassign Windows365
+
+## Offer the license groups as a dropdown
+
+The license field is a text field by default. Offer the license groups (or Frontline provisioning policy groups) of your tenant as a dropdown via runbook customization:
+
+```json
+"rjgit-user_general_unassign-windows365": {
+    "Parameters": {
+        "licWin365GroupName": {
+            "SelectSimple": {
+                "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+                "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
+            }
+        }
+    }
+}
+```
+
+The group name prefixes (`cfgProvisioningGroupPrefix`, `cfgUserSettingsGroupPrefix`, `licWin365GroupPrefix`) decide which of the user's groups count as Windows 365 groups; adjust them in the same place when your naming differs.
+
+For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
 
 ## Permissions
 ### Application permissions
@@ -20,7 +42,7 @@ User \ General \ Unassign Windows365
 
 ## Parameters
 ### UserName
-User principal name of the target user.
+User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|
@@ -29,7 +51,7 @@ User principal name of the target user.
 | Type | String |
 
 ### licWin365GroupName
-Display name of the Windows 365 license group or Frontline provisioning policy to remove.
+License group to remove the user from, or the name of the Frontline provisioning policy whose assignment is removed.
 
 | Property | Value |
 |----------|-------|
@@ -38,7 +60,7 @@ Display name of the Windows 365 license group or Frontline provisioning policy t
 | Type | String |
 
 ### cfgProvisioningGroupPrefix
-Prefix used to detect provisioning-related configuration groups.
+Name prefix that identifies provisioning policy groups. Preset in the runbook customization.
 
 | Property | Value |
 |----------|-------|
@@ -47,7 +69,7 @@ Prefix used to detect provisioning-related configuration groups.
 | Type | String |
 
 ### cfgUserSettingsGroupPrefix
-Prefix used to detect user-settings-related configuration groups.
+Name prefix that identifies user settings policy groups. Preset in the runbook customization.
 
 | Property | Value |
 |----------|-------|
@@ -56,7 +78,7 @@ Prefix used to detect user-settings-related configuration groups.
 | Type | String |
 
 ### licWin365GroupPrefix
-Prefix used to detect Windows 365 license groups.
+Name prefix that identifies Windows 365 license groups. Preset in the runbook customization.
 
 | Property | Value |
 |----------|-------|
@@ -65,7 +87,7 @@ Prefix used to detect Windows 365 license groups.
 | Type | String |
 
 ### skipGracePeriod
-If set to true, ends the Cloud PC grace period immediately.
+Deletes the Cloud PC right away instead of after the 7-day grace period.
 
 | Property | Value |
 |----------|-------|
@@ -74,7 +96,7 @@ If set to true, ends the Cloud PC grace period immediately.
 | Type | Boolean |
 
 ### KeepUserSettingsAndProvisioningGroups
-If set to true, does not remove related provisioning and user settings groups.
+Leaves the user in the provisioning and user settings groups and removes only the license.
 
 | Property | Value |
 |----------|-------|

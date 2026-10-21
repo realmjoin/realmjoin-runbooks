@@ -1,9 +1,9 @@
 # Enable Or Disable Password Expiration
 
-Enable or disable password expiration for a user
+Turn password expiration on or off for this user
 
 ## Detailed description
-Updates the password policy for a user in Microsoft Entra ID. This can be used to disable password expiration or re-enable the default expiration behavior.
+Sets whether the password of this user expires. Turning expiration off keeps the current password valid indefinitely, for example for service or shared accounts; turning it on restores the tenant's default expiration.
 
 ## Where to find
 User \ Security \ Enable Or Disable Password Expiration
@@ -16,7 +16,7 @@ User \ Security \ Enable Or Disable Password Expiration
 
 ## Parameters
 ### UserName
-User principal name of the target user.
+User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|
@@ -25,7 +25,7 @@ User principal name of the target user.
 | Type | String |
 
 ### DisablePasswordExpiration
-If set to true, disables password expiration for the user.
+Yes stops the password from expiring. No applies the tenant's default expiration again.
 
 | Property | Value |
 |----------|-------|

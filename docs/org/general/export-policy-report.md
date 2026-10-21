@@ -1,10 +1,9 @@
 # Export Policy Report
 
-Create a report of tenant policies from Intune and Entra ID.
+Export Intune and Entra ID policies as a Markdown report
 
 ## Detailed description
-This runbook exports configuration policies from Intune and Entra ID and writes the results to a Markdown report.
-It can optionally export raw JSON and create downloadable links for exported artifacts.
+Collects the configuration policies from Intune and Entra ID and writes them into one Markdown report, for documentation or review. The raw policy definitions can be exported as JSON as well. The files can be uploaded to an Azure Storage account with time-limited download links. Nothing is changed.
 
 ## Where to find
 Org \ General \ Export Policy Report
@@ -22,7 +21,7 @@ Azure Storage Account: Contributor role on the Storage Account used for exportin
 
 ## Parameters
 ### produceLinks
-If set to true, creates links for exported artifacts based on settings.
+Uploads the report files to the storage account configured in the tenant settings and returns download links.
 
 | Property | Value |
 |----------|-------|
@@ -31,7 +30,7 @@ If set to true, creates links for exported artifacts based on settings.
 | Type | Boolean |
 
 ### exportJson
-If set to true, also exports raw JSON policy payloads.
+Also exports the raw policy definitions as JSON files.
 
 | Property | Value |
 |----------|-------|
@@ -40,7 +39,7 @@ If set to true, also exports raw JSON policy payloads.
 | Type | Boolean |
 
 ### renderLatexPagebreaks
-If set to true, adds LaTeX page breaks to the generated Markdown.
+Adds LaTeX page breaks to the Markdown, so each policy starts on a new page when the Markdown is converted to PDF.
 
 | Property | Value |
 |----------|-------|
@@ -49,7 +48,7 @@ If set to true, adds LaTeX page breaks to the generated Markdown.
 | Type | Boolean |
 
 ### ContainerName
-Storage container name used for uploads.
+Storage container the report files are uploaded to. Taken from the tenant setting TenantPolicyReport.Container.
 
 | Property | Value |
 |----------|-------|
@@ -58,7 +57,7 @@ Storage container name used for uploads.
 | Type | String |
 
 ### ResourceGroupName
-Resource group that contains the storage account.
+Resource group of the storage account. Taken from the tenant setting TenantPolicyReport.ResourceGroup.
 
 | Property | Value |
 |----------|-------|
@@ -67,7 +66,7 @@ Resource group that contains the storage account.
 | Type | String |
 
 ### StorageAccountName
-Storage account name used for uploads.
+Storage account for the export. Taken from the tenant setting TenantPolicyReport.StorageAccount.Name.
 
 | Property | Value |
 |----------|-------|
@@ -76,7 +75,7 @@ Storage account name used for uploads.
 | Type | String |
 
 ### StorageAccountLocation
-Azure region for the storage account.
+Azure region used when the storage account has to be created. Taken from the tenant setting TenantPolicyReport.StorageAccount.Location.
 
 | Property | Value |
 |----------|-------|
@@ -85,7 +84,7 @@ Azure region for the storage account.
 | Type | String |
 
 ### StorageAccountSku
-Storage account SKU.
+Performance tier used when the storage account has to be created. Taken from the tenant setting TenantPolicyReport.StorageAccount.Sku.
 
 | Property | Value |
 |----------|-------|

@@ -1,9 +1,9 @@
 # Delegate Full Access
 
-Grant or revoke Exchange Online FullAccess mailbox permission for one or more users
+Grant or remove full access to this user's mailbox
 
 ## Detailed description
-Grants or removes Exchange Online FullAccess permission on a selected user's mailbox for one or more delegate users, with optional Outlook AutoMapping configuration. The runbook displays the mailbox permissions before and after the change, and continues with the remaining delegates if one fails, providing a summary of all successes and failures.
+Grants one or more people full access to the mailbox of this user, or removes that access again. Optionally the mailbox opens automatically in the delegates' Outlook. The permissions are shown before and after the change, and a failure for one delegate does not stop the others.
 
 ## Where to find
 User \ Mail \ Delegate Full Access
@@ -83,7 +83,7 @@ The runbook makes no Microsoft Graph calls - the user picker is a portal-side an
 
 ## Parameters
 ### UserName
-User principal name of the mailbox owner.
+User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|
@@ -92,7 +92,7 @@ User principal name of the mailbox owner.
 | Type | String |
 
 ### delegateTo
-One or more users to whom you want to grant or revoke full mailbox access. You can select multiple delegates to apply the same action to all of them simultaneously.
+People who get or lose full access. You can pick several at once.
 
 | Property | Value |
 |----------|-------|
@@ -101,7 +101,7 @@ One or more users to whom you want to grant or revoke full mailbox access. You c
 | Type | String Array |
 
 ### Remove
-If set to true, the script will remove the FullAccess permission. If false, it will grant the permission.
+Grant gives the selected people full access, Remove takes it away.
 
 | Property | Value |
 |----------|-------|
@@ -110,7 +110,7 @@ If set to true, the script will remove the FullAccess permission. If false, it w
 | Type | Boolean |
 
 ### AutoMapping
-If set to true, Outlook will automatically map the delegated mailbox in the delegate's Outlook client. This option is only applicable when granting access (Remove = false).
+Makes the mailbox appear automatically in the delegates' Outlook. Has no effect when access is removed.
 
 | Property | Value |
 |----------|-------|

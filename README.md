@@ -50,6 +50,7 @@ Apart from the following runbook descriptions, further content such as runbook o
 
     - [Check Defender Status](docs/device/security/check-defender-status.md)
     - [Enable Or Disable Device](docs/device/security/enable-or-disable-device.md)
+    - [Enable Or Disable Lost Mode](docs/device/security/enable-or-disable-lost-mode.md)
     - [Isolate Or Release Device](docs/device/security/isolate-or-release-device.md)
     - [Reset Mobile Device Pin](docs/device/security/reset-mobile-device-pin.md)
     - [Restrict Or Release Code Execution](docs/device/security/restrict-or-release-code-execution.md)
@@ -96,6 +97,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Check Onedrive Status](docs/org/collab/check-onedrive-status.md)
     - [List Sharepoint Sitecollection Permission](docs/org/collab/list-sharepoint-sitecollection-permission.md)
     - [Report Sharepoint Tenant Storage (Scheduled)](docs/org/collab/report-sharepoint-tenant-storage_scheduled.md)
+    - [Report Teams Channels (Scheduled)](docs/org/collab/report-teams-channels_scheduled.md)
   - [Devices](docs/org/README.md#org-devices)
 
     - [Add Autopilot Device](docs/org/devices/add-autopilot-device.md)
@@ -110,9 +112,11 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Notify Users About Low Diskspace (Scheduled)](docs/org/devices/notify-users-about-low-diskspace_scheduled.md)
     - [Notify Users About Stale Devices (Scheduled)](docs/org/devices/notify-users-about-stale-devices_scheduled.md)
     - [Outphase Devices](docs/org/devices/outphase-devices.md)
+    - [Rename Devices By Group Tag (Scheduled)](docs/org/devices/rename-devices-by-group-tag_scheduled.md)
     - [Report Devices Low Diskspace (Scheduled)](docs/org/devices/report-devices-low-diskspace_scheduled.md)
     - [Report Devices Without Primary User (Scheduled)](docs/org/devices/report-devices-without-primary-user_scheduled.md)
     - [Report Primary User Mismatch (Scheduled)](docs/org/devices/report-primary-user-mismatch_scheduled.md)
+    - [Report Realmjoin Agent Contact (Scheduled)](docs/org/devices/report-realmjoin-agent-contact_scheduled.md)
     - [Report Stale Devices (Scheduled)](docs/org/devices/report-stale-devices_scheduled.md)
     - [Report Users With More Than 5-Devices (Scheduled)](docs/org/devices/report-users-with-more-than-5-devices_scheduled.md)
     - [Report Windows Devices Without Autopilot (Scheduled)](docs/org/devices/report-windows-devices-without-autopilot_scheduled.md)
@@ -172,6 +176,8 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Set Booking Config](docs/org/mail/set-booking-config.md)
   - [Phone](docs/org/README.md#org-phone)
 
+    - [Add Or Remove Call Queue Agents](docs/org/phone/add-or-remove-call-queue-agents.md)
+    - [Add Or Remove Call Queue Authorized Users](docs/org/phone/add-or-remove-call-queue-authorized-users.md)
     - [Get Teams Phone Number Assignment](docs/org/phone/get-teams-phone-number-assignment.md)
   - [Security](docs/org/README.md#org-security)
 
@@ -194,6 +200,9 @@ Apart from the following runbook descriptions, further content such as runbook o
   - [AVD](docs/user/README.md#user-avd)
 
     - [User Signout](docs/user/avd/user-signout.md)
+  - [Collab](docs/user/README.md#user-collab)
+
+    - [Pre Provision Onedrive](docs/user/collab/pre-provision-onedrive.md)
   - [General](docs/user/README.md#user-general)
 
     - [Assign Groups By Template](docs/user/general/assign-groups-by-template.md)

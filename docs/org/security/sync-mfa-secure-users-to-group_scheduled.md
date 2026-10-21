@@ -1,11 +1,9 @@
 # Sync MFA Secure Users To Group (Scheduled)
 
-Sync users with secure MFA methods registered into an Entra ID group
+Keep a group filled with users who registered a secure MFA method
 
 ## Detailed description
-This runbook synchronizes an Entra ID group with all member users that have at least one "secure" authentication method registered, based on the Entra ID authentication methods registration report. Which method groups count as secure is configurable via toggles (Passkeys/FIDO2, platform credentials, Microsoft Authenticator app, software OTP, hardware OTP, certificate-based authentication). Users that no longer have a secure method registered are removed from the group. An optional strict mode ("SecureOnly") additionally disqualifies users that have any unsecure method (phone, email, security questions) registered alongside their secure method. Admin users (holders of an Entra ID directory role, active or PIM-eligible, including members of role-assignable groups) are excluded by default ("ExcludeAdmins") - useful when the target group drives SSPR, where admins would otherwise be forced to register a second factor. An optional exclusion group keeps accounts like break glass or service accounts permanently out of the target group; individual users can additionally be excluded directly via a multi-user picker ("ExcludeUserIds"). Excluded users are never added and are removed if they are already members. Guest users and non-user group members are never touched.
-
-Optionally, a detailed report can be sent via email and/or uploaded to an Azure Storage Account (returning time-limited download links). The report contains CSV files and a formatted Excel workbook with an info cover sheet (chosen parameters and result counts), the performed changes and a per-user evaluation of all member users. Report files are only generated when email or download link is enabled.
+Keeps an Entra ID group in sync with the users who registered at least one secure authentication method, such as a passkey or the Microsoft Authenticator app. Users who lose their secure method are removed. Admins, an exclusion group and individual users can be kept out, for example when the group controls self-service password reset. A dry run only shows the changes, and the report can be sent by email or provided as a download link. Details on the options are in the runbook documentation (docs.realmjoin.com).
 
 ## Where to find
 Org \ Security \ Sync MFA Secure Users To Group_Scheduled
@@ -185,7 +183,7 @@ The sync is idempotent — a single recurring schedule (e.g. daily) keeps the gr
 
 ## Parameters
 ### TargetGroupId
-The Entra ID group to synchronize into. Members of this group will be managed exclusively by this runbook.
+Group whose members are managed by this runbook. Members that no longer qualify are removed.
 
 | Property | Value |
 |----------|-------|
@@ -194,7 +192,7 @@ The Entra ID group to synchronize into. Members of this group will be managed ex
 | Type | String |
 
 ### IncludePasskeys
-Count passkeys and FIDO2 security keys as secure (fido2SecurityKey, passKeyDeviceBound, passKeyDeviceBoundAuthenticator).
+Passkeys and FIDO2 security keys, which are phishing-resistant, count as secure.
 
 | Property | Value |
 |----------|-------|
@@ -203,7 +201,7 @@ Count passkeys and FIDO2 security keys as secure (fido2SecurityKey, passKeyDevic
 | Type | Boolean |
 
 ### IncludePlatformCredentials
-Count platform credentials as secure (windowsHelloForBusiness, passKeyDeviceBoundWindowsHello, macOsSecureEnclaveKey).
+Windows Hello for Business and macOS platform credentials count as secure.
 
 | Property | Value |
 |----------|-------|
@@ -212,7 +210,7 @@ Count platform credentials as secure (windowsHelloForBusiness, passKeyDeviceBoun
 | Type | Boolean |
 
 ### IncludeMicrosoftAuthenticator
-Count the Microsoft Authenticator app as secure (microsoftAuthenticatorPush, microsoftAuthenticatorPasswordless).
+The Microsoft Authenticator app, with push or passwordless sign-in, counts as secure.
 
 | Property | Value |
 |----------|-------|
@@ -221,7 +219,7 @@ Count the Microsoft Authenticator app as secure (microsoftAuthenticatorPush, mic
 | Type | Boolean |
 
 ### IncludeSoftwareOtp
-Count software OTP / authenticator TOTP apps as secure (softwareOneTimePasscode).
+Time-based one-time codes from authenticator apps count as secure.
 
 | Property | Value |
 |----------|-------|
@@ -230,7 +228,7 @@ Count software OTP / authenticator TOTP apps as secure (softwareOneTimePasscode)
 | Type | Boolean |
 
 ### IncludeHardwareOtp
-Count hardware OTP tokens as secure (hardwareOneTimePasscode).
+Hardware one-time password tokens count as secure.
 
 | Property | Value |
 |----------|-------|
@@ -239,7 +237,7 @@ Count hardware OTP tokens as secure (hardwareOneTimePasscode).
 | Type | Boolean |
 
 ### IncludeCertificateBasedAuth
-Count certificate-based authentication as secure (certificateBasedAuthentication).
+Sign-in with a certificate, for example from a smart card, counts as secure.
 
 | Property | Value |
 |----------|-------|
@@ -248,7 +246,7 @@ Count certificate-based authentication as secure (certificateBasedAuthentication
 | Type | Boolean |
 
 ### SecureOnly
-Strict mode: users that have any unsecure method registered (mobilePhone, alternateMobilePhone, officePhone, email, securityQuestion) never qualify, even if they also have a secure method. They are removed from the group if already a member.
+Strict mode: users who also have a phone, email or security question method registered never qualify, even with a secure method.
 
 | Property | Value |
 |----------|-------|
@@ -257,7 +255,7 @@ Strict mode: users that have any unsecure method registered (mobilePhone, altern
 | Type | Boolean |
 
 ### SecureMethodsOverride
-Optional. Comma-separated list of methodsRegistered values that define the secure set. When set, ALL method group toggles are ignored. See the runbook documentation for all known values.
+Custom list of method names that count as secure, separated by commas. When set, the individual method switches are ignored. Preset in the runbook customization; the method names are listed in the runbook documentation.
 
 | Property | Value |
 |----------|-------|
@@ -266,7 +264,7 @@ Optional. Comma-separated list of methodsRegistered values that define the secur
 | Type | String |
 
 ### UnsecureMethodsOverride
-Optional. Comma-separated list of methodsRegistered values that replace the built-in unsecure list. Only evaluated in strict mode (SecureOnly).
+Custom list of method names that count as unsecure in strict mode, separated by commas. Preset in the runbook customization.
 
 | Property | Value |
 |----------|-------|
@@ -275,7 +273,7 @@ Optional. Comma-separated list of methodsRegistered values that replace the buil
 | Type | String |
 
 ### ExcludeAdmins
-Exclude admin users: users holding an Entra ID directory role (active or PIM-eligible, including members of role-assignable groups) never qualify and are removed from the group if they are already members. Enabled by default - when the target group drives SSPR, admins would otherwise be forced to register a second factor.
+Users with an Entra ID directory role, active or eligible, never qualify and are removed from the group. Useful when the group drives self-service password reset.
 
 | Property | Value |
 |----------|-------|
@@ -284,7 +282,7 @@ Exclude admin users: users holding an Entra ID directory role (active or PIM-eli
 | Type | Boolean |
 
 ### ExcludeGroupId
-Optional exclusion group: transitive user members of this group (e.g. break glass or service accounts) never qualify and are removed from the group if they are already members.
+Members of this group, for example break glass or service accounts, never qualify and are removed from the target group. Leave empty for none.
 
 | Property | Value |
 |----------|-------|
@@ -293,7 +291,7 @@ Optional exclusion group: transitive user members of this group (e.g. break glas
 | Type | String |
 
 ### ExcludeUserIds
-Optional list of individually excluded users: these users never qualify and are removed from the group if they are already members. Accepts user object IDs and user principal names; unresolvable entries are ignored with a warning.
+Users who never qualify and are removed from the target group. Several can be picked.
 
 | Property | Value |
 |----------|-------|
@@ -302,7 +300,7 @@ Optional list of individually excluded users: these users never qualify and are 
 | Type | String Array |
 
 ### WhatIfMode
-Dry run: log which users would be added or removed without changing the group.
+Only logs which users would be added or removed without changing the group.
 
 | Property | Value |
 |----------|-------|
@@ -311,7 +309,7 @@ Dry run: log which users would be added or removed without changing the group.
 | Type | Boolean |
 
 ### SendEmail
-If enabled, the report is sent via email with CSV and Excel (xlsx) attachments. Disabled by default.
+Send the report by email after the run.
 
 | Property | Value |
 |----------|-------|
@@ -320,7 +318,7 @@ If enabled, the report is sent via email with CSV and Excel (xlsx) attachments. 
 | Type | Boolean |
 
 ### EmailTo
-Recipient email address(es) for the report. Can be a single address or multiple comma-separated addresses (string). Only used when SendEmail is enabled.
+Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
 | Property | Value |
 |----------|-------|
@@ -329,7 +327,7 @@ Recipient email address(es) for the report. Can be a single address or multiple 
 | Type | String |
 
 ### EmailFrom
-The sender email address. Sourced from the RJReport tenant settings.
+Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
 | Property | Value |
 |----------|-------|
@@ -338,8 +336,7 @@ The sender email address. Sourced from the RJReport tenant settings.
 | Type | String |
 
 ### BrandingHeaderImageUrl
-Optional public HTTPS URL of a custom header image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, the default RealmJoin header graphic is used.
+Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -348,8 +345,7 @@ Sourced from the RJReport.Branding.HeaderImageUrl tenant setting. When empty, th
 | Type | String |
 
 ### BrandingFooterImageUrl
-Optional public HTTPS URL of a custom footer image (PNG/JPEG/GIF, max. 200 KB) for the report email.
-Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, the default RealmJoin footer graphic is used.
+Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -358,8 +354,7 @@ Sourced from the RJReport.Branding.FooterImageUrl tenant setting. When empty, th
 | Type | String |
 
 ### BrandingFooterLink
-Optional URL the footer image links to. Sourced from the RJReport.Branding.FooterLink tenant setting.
-When empty, the default link (https://www.realmjoin.com) is used.
+Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -368,8 +363,7 @@ When empty, the default link (https://www.realmjoin.com) is used.
 | Type | String |
 
 ### BrandingAccentColor
-Optional accent color override (6-digit hex, e.g. '#0052cc') for the report email template.
-Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or invalid, the default RealmJoin accent color is used.
+Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -378,8 +372,7 @@ Sourced from the RJReport.Branding.AccentColor tenant setting. When empty or inv
 | Type | String |
 
 ### BrandingTextColor
-Optional text color override (6-digit hex) for the report email template.
-Sourced from the RJReport.Branding.TextColor tenant setting. When empty or invalid, the default RealmJoin text color is used.
+Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
 | Property | Value |
 |----------|-------|
@@ -388,7 +381,7 @@ Sourced from the RJReport.Branding.TextColor tenant setting. When empty or inval
 | Type | String |
 
 ### ReportFileFormat
-Controls which report file formats are generated and delivered: "CSV only", "CSV & XLSX" (default) or "XLSX only".
+Deliver the report as CSV, as an Excel workbook, or both.
 
 | Property | Value |
 |----------|-------|
@@ -397,7 +390,7 @@ Controls which report file formats are generated and delivered: "CSV only", "CSV
 | Type | String |
 
 ### CreateDownloadLink
-If enabled, the report files are uploaded to an Azure Storage Account and time-limited download links are returned. Disabled by default.
+Also upload the report and return a download link that expires after a few days.
 
 | Property | Value |
 |----------|-------|
@@ -406,7 +399,7 @@ If enabled, the report files are uploaded to an Azure Storage Account and time-l
 | Type | Boolean |
 
 ### ContainerName
-Storage container name used for the upload. Configured per runbook (not a global RJReport setting).
+Storage container the report files are uploaded to. Set per runbook.
 
 | Property | Value |
 |----------|-------|
@@ -415,7 +408,7 @@ Storage container name used for the upload. Configured per runbook (not a global
 | Type | String |
 
 ### ResourceGroupName
-Resource group that contains the storage account. Sourced from the RJReport tenant settings.
+Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
 | Property | Value |
 |----------|-------|
@@ -424,7 +417,7 @@ Resource group that contains the storage account. Sourced from the RJReport tena
 | Type | String |
 
 ### StorageAccountName
-Storage account name used for the upload. Sourced from the RJReport tenant settings.
+Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
 | Property | Value |
 |----------|-------|
@@ -433,7 +426,7 @@ Storage account name used for the upload. Sourced from the RJReport tenant setti
 | Type | String |
 
 ### LinkExpiryDays
-Number of days until the generated download link expires. Sourced from the RJReport tenant settings.
+Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
 | Property | Value |
 |----------|-------|

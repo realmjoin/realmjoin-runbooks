@@ -1,9 +1,9 @@
 # Bulk Retire Devices From Intune
 
-Bulk retire devices from Intune using serial numbers
+Retire several Intune devices by serial number
 
 ## Detailed description
-Retires multiple Intune devices based on a comma-separated list of serial numbers. Each serial number is looked up in Intune and the device is retired if found.
+Retires the Intune devices with the given serial numbers. A retire removes company data and management from each device but leaves personal data in place. Serial numbers that are not found are reported and skipped.
 
 ## Where to find
 Org \ General \ Bulk Retire Devices From Intune
@@ -16,7 +16,7 @@ Org \ General \ Bulk Retire Devices From Intune
 
 ## Parameters
 ### SerialNumbers
-Comma-separated list of device serial numbers to retire.
+Serial numbers of the devices to retire, separated by commas.
 
 | Property | Value |
 |----------|-------|

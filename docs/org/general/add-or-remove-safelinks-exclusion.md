@@ -1,9 +1,9 @@
 # Add Or Remove Safelinks Exclusion
 
-Add or remove a SafeLinks URL exclusion from a policy
+Allow a URL pattern in a Safe Links policy or remove it
 
 ## Detailed description
-Adds or removes a SafeLinks URL pattern exclusion in a specified policy. The runbook can also list existing policies and can create a new policy and group if needed.
+Adds a URL pattern to the exclusions of a Microsoft Defender Safe Links policy so links matching it are no longer rewritten, or removes such an exclusion. It can also list the existing policies with their settings, and create a policy with its assignment group when the requested one does not exist.
 
 ## Where to find
 Org \ General \ Add Or Remove Safelinks Exclusion
@@ -19,7 +19,7 @@ Org \ General \ Add Or Remove Safelinks Exclusion
 
 ## Parameters
 ### Action
-"Add URL Pattern to Policy", "Remove URL Pattern from Policy" or "List all existing policies and settings" could be selected as action to perform.
+Add puts the pattern on the exclusion list, Remove takes it off, List shows the policies and their settings.
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +28,7 @@ Org \ General \ Add Or Remove Safelinks Exclusion
 | Type | Int32 |
 
 ### LinkPattern
-URL pattern to allow; it can contain '*' as a wildcard for host and paths.
+Pattern to exclude; * works as a wildcard for host and path, for example https://*.microsoft.com/*.
 
 | Property | Value |
 |----------|-------|
@@ -37,7 +37,7 @@ URL pattern to allow; it can contain '*' as a wildcard for host and paths.
 | Type | String |
 
 ### DefaultPolicyName
-Default SafeLinks policy name used when no explicit policy name is provided.
+Policy used when no policy name is given.
 
 | Property | Value |
 |----------|-------|
@@ -46,7 +46,7 @@ Default SafeLinks policy name used when no explicit policy name is provided.
 | Type | String |
 
 ### PolicyName
-Optional SafeLinks policy name; if provided, it overrides the default selection.
+Policy to change. Leave empty to use the default policy.
 
 | Property | Value |
 |----------|-------|
@@ -55,7 +55,7 @@ Optional SafeLinks policy name; if provided, it overrides the default selection.
 | Type | String |
 
 ### CreateNewPolicyIfNeeded
-If set to true, the runbook creates a new SafeLinks policy and assignment group when the requested policy does not exist.
+Creates the Safe Links policy and its assignment group when it does not exist yet.
 
 | Property | Value |
 |----------|-------|

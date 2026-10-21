@@ -1,12 +1,32 @@
 # Reprovision Windows365
 
-Reprovision a Windows 365 Cloud PC
+Reprovision the Windows 365 Cloud PC of this user
 
 ## Detailed description
-Triggers a reprovision action for an existing Windows 365 Cloud PC without assigning a new instance. Optionally notifies the user when reprovisioning starts.
+Reprovisions the existing Windows 365 Cloud PC of this user. The Cloud PC is rebuilt from scratch with the same license, so everything stored on it is lost; the user keeps the assignment. Optionally the user gets an email when the reprovisioning starts.
 
 ## Where to find
 User \ General \ Reprovision Windows365
+
+## Offer the license groups as a dropdown
+
+The license group is a text field by default. Offer the license groups of your tenant as a dropdown via runbook customization:
+
+```json
+"rjgit-user_general_reprovision-windows365": {
+    "Parameters": {
+        "licWin365GroupName": {
+            "SelectSimple": {
+                "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 128 GB",
+                "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB": "lic - Windows 365 Enterprise - 2 vCPU 4 GB 256 GB"
+            }
+        }
+    }
+}
+```
+
+For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
 
 ## Permissions
 ### Application permissions
@@ -21,7 +41,7 @@ User \ General \ Reprovision Windows365
 
 ## Parameters
 ### UserName
-User principal name of the target user.
+User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|
@@ -30,7 +50,7 @@ User principal name of the target user.
 | Type | String |
 
 ### licWin365GroupName
-Display name of the Windows 365 license group used to identify the Cloud PC.
+License group of the Cloud PC to reprovision. Type the group name, or pick it when your runbook customization offers a list.
 
 | Property | Value |
 |----------|-------|
@@ -39,7 +59,7 @@ Display name of the Windows 365 license group used to identify the Cloud PC.
 | Type | String |
 
 ### sendMailWhenReprovisioning
-"Do not send an Email." (final value: $false) or "Send an Email." (final value: $true) can be selected as action to perform. If set to true, an email notification will be sent to the user when Cloud PC reprovisioning has begun.
+Sends the user an email as soon as the reprovisioning has begun.
 
 | Property | Value |
 |----------|-------|
@@ -48,7 +68,7 @@ Display name of the Windows 365 license group used to identify the Cloud PC.
 | Type | Boolean |
 
 ### fromMailAddress
-Mailbox used to send the notification email.
+Mailbox the notification email is sent from.
 
 | Property | Value |
 |----------|-------|
@@ -57,7 +77,7 @@ Mailbox used to send the notification email.
 | Type | String |
 
 ### customizeMail
-If set to true, uses a custom email body.
+Replaces the standard notification text with your own message.
 
 | Property | Value |
 |----------|-------|
@@ -66,7 +86,7 @@ If set to true, uses a custom email body.
 | Type | Boolean |
 
 ### customMailMessage
-Custom message body used for the notification email.
+Text of the notification email.
 
 | Property | Value |
 |----------|-------|

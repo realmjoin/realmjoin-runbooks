@@ -1,16 +1,15 @@
 <#
     .SYNOPSIS
-    Check if given serial numbers are present in Autopilot
+    Check which serial numbers are registered in Autopilot
 
     .DESCRIPTION
-    This runbook checks whether Windows Autopilot device identities exist for the provided serial numbers.
-    It returns the serial numbers found and lists any missing serial numbers.
+    Checks for a list of serial numbers whether a Windows Autopilot registration exists and reports which were found and which are missing. Nothing is changed.
 
     .PARAMETER SerialNumbers
-    Serial numbers of the devices, separated by commas.
+    Serial numbers to check, separated by commas.
 
     .PARAMETER CallerName
-    Caller name for auditing purposes.
+    Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
     .INPUTS
     RunbookCustomization: {
@@ -19,13 +18,13 @@
                 "Hide": true
             },
             "SerialNumbers": {
-                "DisplayName": "Serial numbers of the devices (comma-separated)"
+                "DisplayName": "Serial numbers"
             }
         }
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
 
 param(
     [Parameter(Mandatory = $true)]

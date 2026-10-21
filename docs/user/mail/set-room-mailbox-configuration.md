@@ -1,12 +1,36 @@
 # Set Room Mailbox Configuration
 
-Set room mailbox resource policies
+Configure the booking rules and booking delegates of this room mailbox
 
 ## Detailed description
-Updates room mailbox settings such as booking policy, calendar processing, and capacity. The runbook can optionally restrict BookInPolicy to members of a specific mail-enabled security group.
+Sets the booking rules of this room mailbox: who may book it directly, who needs the approval of a booking delegate, and how requests are processed. It also sets recurring meetings, conflicts, the booking window, the maximum meeting length and the capacity. All booking rules are written as shown. The booking group, the booking delegates and the capacity change only when a value is given.
 
 ## Where to find
 User \ Mail \ Set Room Mailbox Configuration
+
+## Booking modes
+
+"Who may book the room" and the fields shown with "Restricted" decide what happens to a meeting request:
+
+- **Everyone** - every user books the room directly; the request is accepted when the room is free.
+- **Restricted with a booking group** - members of the "Booking group" book directly. Requests from everyone else are declined.
+- **Restricted with "Let everyone else request the room?"** - requests from users outside the booking group go to the booking delegates, who approve or decline them. Leave the "Booking group" empty when the booking delegates decide every request. This is the same as the option "Select delegates who can accept or decline booking requests" in the Exchange admin center.
+
+Booking delegates get requests only with the request processing "Auto accept". With "Auto update" Exchange marks requests as tentative and sends nothing to the delegates. The runbook warns about both cases and about a run that switches off an existing delegate approval.
+
+## Booking delegates
+
+- A booking delegate approves or declines requests for the room in their own mailbox. They need no full access to the room mailbox; Exchange grants them Send on Behalf on its own. Grant full access with the runbook "Delegate Full Access" only when someone has to work in the room mailbox itself.
+- "Booking delegate change" decides what happens with the users selected in "Booking delegates": Add keeps the current delegates and adds the selected ones, Replace makes the selected users the only delegates, Remove takes them off the list. With no users selected the delegates stay as they are.
+- Users without a mailbox are skipped with a warning. Current delegates whose name does not resolve to exactly one recipient are kept unchanged.
+- The runbook "List Room Mailbox Configuration" shows the current booking delegates, the booking group and the request settings of a room.
+
+## Notes and limitations
+
+- Every run writes all booking rules as shown in the dialog. Running the runbook only to change the capacity therefore also resets "Who may book the room" to the selected option.
+- An empty "Booking group" keeps the current group; the runbook cannot clear it.
+- Tenant-wide defaults for the booking rules can be set as RealmJoin settings: `RoomMailbox.AllBookInPolicy`, `RoomMailbox.AllRequestInPolicy`, `RoomMailbox.AllowRecurringMeetings`, `RoomMailbox.AutomateProcessing`, `RoomMailbox.BookingWindowInDays`, `RoomMailbox.MaximumDurationInMinutes` and `RoomMailbox.AllowConflicts`. A field with a setting is shown read-only in the dialog. See [Settings](https://docs.realmjoin.com/automation/runbooks/runbook-customization#settings) in the Runbook Customization Guide.
+
 
 ## Permissions
 ### Application permissions
@@ -21,7 +45,7 @@ User \ Mail \ Set Room Mailbox Configuration
 
 ## Parameters
 ### UserName
-User principal name of the room mailbox.
+User principal name of the room mailbox the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|
@@ -30,7 +54,7 @@ User principal name of the room mailbox.
 | Type | String |
 
 ### AllBookInPolicy
-"Allow BookIn for everyone" (final value: $true) or "Custom BookIn Policy" (final value: $false) can be selected as action to perform. If set to true, the room will allow BookIn for everyone and the BookInPolicyGroup parameter will be ignored. If set to false, only members of the group specified in the BookInPolicyGroup parameter will be allowed to BookIn.
+Everyone lets all users book the room directly. Restricted lets only the "Booking group" book directly; everyone else is declined or, with "Let everyone else request the room?", needs a booking delegate's approval.
 
 | Property | Value |
 |----------|-------|
@@ -39,7 +63,7 @@ User principal name of the room mailbox.
 | Type | Boolean |
 
 ### BookInPolicyGroup
-Group whose members are allowed to book when AllBookInPolicy is false.
+Mail-enabled security group whose members book the room directly. Leave empty to keep the current group, for example when only the booking delegates decide.
 
 | Property | Value |
 |----------|-------|
@@ -47,8 +71,17 @@ Group whose members are allowed to book when AllBookInPolicy is false.
 | Required | false |
 | Type | String |
 
+### AllRequestInPolicy
+Requests from users outside the "Booking group" go to the booking delegates, who approve or decline them. Turn off to decline these requests.
+
+| Property | Value |
+|----------|-------|
+| Default Value | False |
+| Required | false |
+| Type | Boolean |
+
 ### AllowRecurringMeetings
-If set to true, allows recurring meetings.
+Turn off to decline recurring meeting requests; single meetings are still accepted.
 
 | Property | Value |
 |----------|-------|
@@ -57,7 +90,7 @@ If set to true, allows recurring meetings.
 | Type | Boolean |
 
 ### AutomateProcessing
-Calendar processing mode for the room mailbox.
+Auto accept books the room automatically or sends the request to the booking delegates. Auto update only marks requests as tentative, and booking delegates get no requests. None leaves requests untouched.
 
 | Property | Value |
 |----------|-------|
@@ -66,7 +99,7 @@ Calendar processing mode for the room mailbox.
 | Type | String |
 
 ### BookingWindowInDays
-How many days into the future bookings are allowed.
+Requests further ahead than this many days are declined.
 
 | Property | Value |
 |----------|-------|
@@ -75,7 +108,7 @@ How many days into the future bookings are allowed.
 | Type | Int32 |
 
 ### MaximumDurationInMinutes
-Maximum meeting duration in minutes.
+Longest meeting the room accepts, in minutes.
 
 | Property | Value |
 |----------|-------|
@@ -84,7 +117,7 @@ Maximum meeting duration in minutes.
 | Type | Int32 |
 
 ### AllowConflicts
-If set to true, allows scheduling conflicts.
+Lets overlapping bookings through instead of declining them.
 
 | Property | Value |
 |----------|-------|
@@ -93,13 +126,31 @@ If set to true, allows scheduling conflicts.
 | Type | Boolean |
 
 ### Capacity
-Capacity to set for the room when greater than 0.
+Number of seats. Leave at 0 to keep the current value.
 
 | Property | Value |
 |----------|-------|
 | Default Value | 0 |
 | Required | false |
 | Type | Int32 |
+
+### ResourceDelegates
+Users who approve or decline the booking requests that need approval. They get no access to the mailbox itself. Leave empty to keep the current booking delegates.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String Array |
+
+### DelegateAction
+Add puts the selected users next to the current booking delegates, Replace makes them the only booking delegates, Remove takes them off the list.
+
+| Property | Value |
+|----------|-------|
+| Default Value | Add |
+| Required | false |
+| Type | String |
 
 
 [Back to Table of Content](../../../README.md)

@@ -1,9 +1,9 @@
 # Add Equipment Mailbox
 
-Create an equipment mailbox
+Create an equipment mailbox with optional booking delegates
 
 ## Detailed description
-Creates an Exchange Online equipment mailbox and optionally configures delegate access and calendar processing. If requested, the associated Entra ID user account is disabled after creation.
+Creates an equipment mailbox in Exchange Online, for example for a projector or a pool car, so it can be booked in meeting requests. Without booking delegates the equipment accepts requests automatically when it is free. With booking delegates every request waits for their approval; they get no access to the mailbox itself. The user account behind the mailbox can be disabled.
 
 ## Where to find
 Org \ Mail \ Add Equipment Mailbox
@@ -21,7 +21,7 @@ Org \ Mail \ Add Equipment Mailbox
 
 ## Parameters
 ### MailboxName
-Alias (mail nickname) for the equipment mailbox.
+Alias of the mailbox, which becomes the part of the email address in front of the @ sign.
 
 | Property | Value |
 |----------|-------|
@@ -30,7 +30,7 @@ Alias (mail nickname) for the equipment mailbox.
 | Type | String |
 
 ### DisplayName
-Optional display name for the equipment mailbox.
+Name shown in the address book. Leave empty to use the alias.
 
 | Property | Value |
 |----------|-------|
@@ -39,34 +39,16 @@ Optional display name for the equipment mailbox.
 | Type | String |
 
 ### DelegateTo
-Optional user who receives delegated access to the mailbox.
+Users who approve or decline every booking request for the equipment. Leave empty to accept requests automatically when the equipment is free.
 
 | Property | Value |
 |----------|-------|
 | Default Value |  |
 | Required | false |
-| Type | String |
-
-### AutoAccept
-If set to true, meeting requests are automatically accepted.
-
-| Property | Value |
-|----------|-------|
-| Default Value | False |
-| Required | false |
-| Type | Boolean |
-
-### AutoMapping
-If set to true, the mailbox is automatically mapped in Outlook for the delegate.
-
-| Property | Value |
-|----------|-------|
-| Default Value | False |
-| Required | false |
-| Type | Boolean |
+| Type | String Array |
 
 ### DisableUser
-If set to true, the associated Entra ID user account is disabled.
+Blocks sign-in for the user account behind the mailbox. Booking keeps working.
 
 | Property | Value |
 |----------|-------|

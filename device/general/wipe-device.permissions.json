@@ -33,6 +33,8 @@
             "AppRoleAssignments": [
                 {
                     "Value": "Machine.Read.All",
+                    "Optional": true,
+                    "Feature": "Defender risk check",
                     "Reason": "Reads the device's Defender risk score in the skipWipeIfAtRisk preflight"
                 }
             ]

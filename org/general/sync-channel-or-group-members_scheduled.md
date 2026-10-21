@@ -48,7 +48,7 @@ Set `WhatIfMode` to log what would change without writing anything.
 
 ### Reporting (optional, both default off)
 
-- **`SendEmailReport`** sends a RealmJoin-branded email (via `Send-RjReportEmail`) with run statistics and
+- **`SendEmailReport`** sends a RealmJoin-branded email (via `Send-RjRbReportEmail`) with run statistics and
   a CSV attachment listing every individual change. The sender is taken from the `RJReport.EmailSender`
   setting.
 - **`CreateDownloadLink`** uploads the same CSV to a storage account and returns a time-limited SAS
@@ -56,7 +56,7 @@ Set `WhatIfMode` to log what would change without writing anything.
   is taken from the `RJReport.StorageAccount.*` settings.
 
 The storage upload authenticates with the Automation account's managed identity; that identity needs the
-**Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC
+**Reader and Data Access** RBAC role on the target storage account (this is an Azure RBAC
 assignment, not a Graph application permission).
 
 ### Scheduling

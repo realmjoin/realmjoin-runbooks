@@ -1,9 +1,9 @@
 # Convert To Shared Mailbox
 
-Convert a user mailbox to a shared mailbox and back
+Convert this user's mailbox to a shared mailbox or back
 
 ## Detailed description
-Converts a mailbox to a shared mailbox or reverts it back to a regular user mailbox. Optionally delegates access and adjusts group memberships and license groups.
+Turns the mailbox of this user into a shared mailbox, or turns a shared mailbox back into a regular user mailbox. When converting to shared, a delegate can get full access and the user's group memberships can be removed. A license group can be assigned when the mailbox needs an Exchange Online Plan 2.
 
 ## Where to find
 User \ Mail \ Convert To Shared Mailbox
@@ -23,7 +23,7 @@ User \ Mail \ Convert To Shared Mailbox
 
 ## Parameters
 ### UserName
-User principal name of the mailbox.
+User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
 | Property | Value |
 |----------|-------|
@@ -32,7 +32,7 @@ User principal name of the mailbox.
 | Type | String |
 
 ### delegateTo
-User principal name of the delegate who should receive access.
+User who gets full access to the shared mailbox. Leave empty to grant no access.
 
 | Property | Value |
 |----------|-------|
@@ -41,7 +41,7 @@ User principal name of the delegate who should receive access.
 | Type | String |
 
 ### Remove
-If set to true, converts a shared mailbox back to a regular mailbox.
+Whether the shared mailbox is turned back into a regular mailbox. Set by the "Action" choice.
 
 | Property | Value |
 |----------|-------|
@@ -50,7 +50,7 @@ If set to true, converts a shared mailbox back to a regular mailbox.
 | Type | Boolean |
 
 ### AutoMapping
-If set to true, enables automatic Outlook mapping for delegated FullAccess.
+Makes the shared mailbox appear automatically in the delegate's Outlook.
 
 | Property | Value |
 |----------|-------|
@@ -59,7 +59,7 @@ If set to true, enables automatic Outlook mapping for delegated FullAccess.
 | Type | Boolean |
 
 ### RemoveGroups
-If set to true, removes existing group memberships when converting to a shared mailbox.
+Takes the user out of all groups, including license groups, when converting to shared.
 
 | Property | Value |
 |----------|-------|
@@ -68,7 +68,7 @@ If set to true, removes existing group memberships when converting to a shared m
 | Type | Boolean |
 
 ### ArchivalLicenseGroup
-Display name of a license group to assign when an archive or larger mailbox requires it.
+Group that assigns an Exchange Online Plan 2 license, needed when the shared mailbox has an archive, is larger than 50 GB or is on litigation hold. Leave empty if not needed.
 
 | Property | Value |
 |----------|-------|
@@ -77,7 +77,7 @@ Display name of a license group to assign when an archive or larger mailbox requ
 | Type | String |
 
 ### RegularLicenseGroup
-Display name of a license group to assign when converting back to a regular mailbox.
+Group that assigns the mailbox license when converting back to a regular mailbox. Leave empty to assign none.
 
 | Property | Value |
 |----------|-------|

@@ -1,13 +1,12 @@
 <#
 	.SYNOPSIS
-	Update logos of Microsoft Store Apps (new) in Intune
+	Add missing logos to Microsoft Store apps in Intune
 
 	.DESCRIPTION
-	This runbook updates missing logos for Microsoft Store Apps (new) in Intune by fetching the icon from the Microsoft Store.
-	It skips apps that already have a logo and reports how many apps were updated.
+	Fetches the icon from the Microsoft Store for every Microsoft Store app (new) in Intune that has no logo yet and sets it. Apps that already have a logo are skipped, and the result shows how many were updated.
 
 	.PARAMETER CallerName
-	Caller name for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
@@ -19,7 +18,7 @@
 	}
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
 
 param(
     # CallerName is tracked purely for auditing purposes

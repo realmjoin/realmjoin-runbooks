@@ -1,17 +1,15 @@
 <#
 	.SYNOPSIS
-	List all members of a group, including members that are part of nested groups
+	List all members of this group, nested groups included
 
-    .DESCRIPTION
-    This script retrieves the members of a specified EntraID group, including both direct members and those from nested groups.
-    The output is a CSV file with columns for User Principal Name (UPN), direct membership status, and group path.
-    The group path reflects the membership hierarchy—for example, “Primary, Secondary” if a user belongs to “Primary” via the nested group “Secondary.”
+	.DESCRIPTION
+	Lists every member of this Entra ID group, both direct members and those who belong through nested groups. The result is a CSV-formatted list with the user principal name, whether the membership is direct, and the group path. A path like "Primary, Secondary" means the user is in Primary through the nested group Secondary.
 
 	.PARAMETER GroupId
-	The Object ID of the Microsoft Entra ID group whose membership will be retrieved.
+	Object ID of the group the runbook acts on. Set by the portal from the selected group.
 
 	.PARAMETER CallerName
-	Caller name for auditing purposes.
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
@@ -26,8 +24,8 @@
 	}
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 
 param(
     [Parameter(Mandatory=$true)]

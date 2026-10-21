@@ -1,9 +1,9 @@
 # Add Or Remove Tenant Allow Block List
 
-Add or remove entries from the Tenant Allow/Block List
+Add or remove a Tenant Allow/Block List entry
 
 ## Detailed description
-Adds or removes entries from the Tenant Allow/Block List in Microsoft Defender for Office 365. The runbook supports senders, URLs, and file hashes and sets new entries to expire after 30 days by default.
+Adds a sender, URL or file hash to the Tenant Allow/Block List of Defender for Office 365, or removes it again. New entries expire after the chosen number of days, so temporary exceptions clean themselves up.
 
 ## Where to find
 Org \ Mail \ Add Or Remove Tenant Allow Block List
@@ -19,7 +19,7 @@ Org \ Mail \ Add Or Remove Tenant Allow Block List
 
 ## Parameters
 ### Entry
-The entry to add or remove (for example: domain, email address, URL, or file hash).
+What to allow or block: a domain, an email address, a URL, or a file hash, matching the entry type.
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +28,7 @@ The entry to add or remove (for example: domain, email address, URL, or file has
 | Type | String |
 
 ### ListType
-Type of entry to manage.
+Sender takes a domain or email address, URL a web address, File hash a SHA-256 hash.
 
 | Property | Value |
 |----------|-------|
@@ -37,7 +37,7 @@ Type of entry to manage.
 | Type | String |
 
 ### Block
-"Block List (block entry)" (final value: $true) or "Allow List (permit entry)" (final value: $false) can be selected as list type.
+Block list rejects matching mail, URLs or files; Allow list lets them through even when Defender would filter them.
 
 | Property | Value |
 |----------|-------|
@@ -46,7 +46,7 @@ Type of entry to manage.
 | Type | Boolean |
 
 ### Remove
-"Add entry to the list" (final value: $false) or "Remove entry from the list" (final value: $true) can be selected as action to perform.
+Add the entry creates it with the chosen expiry; Remove the entry deletes the existing entry with the same value.
 
 | Property | Value |
 |----------|-------|
@@ -55,7 +55,7 @@ Type of entry to manage.
 | Type | Boolean |
 
 ### DaysToExpire
-Number of days until a newly added entry expires.
+Days until a new entry expires and is removed automatically.
 
 | Property | Value |
 |----------|-------|

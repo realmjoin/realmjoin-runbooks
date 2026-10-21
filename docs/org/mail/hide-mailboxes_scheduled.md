@@ -1,9 +1,9 @@
 # Hide Mailboxes (Scheduled)
 
-Hide or unhide special mailboxes in the Global Address List
+Hide or show all Bookings calendars in the address book
 
 ## Detailed description
-Hides or unhides special mailboxes in the Global Address List, currently intended for Bookings calendars. The runbook updates all scheduling mailboxes accordingly.
+Hides every Microsoft Bookings calendar mailbox from the global address list, or shows them again, on each run. New Bookings calendars are covered automatically the next time the runbook runs.
 
 ## Where to find
 Org \ Mail \ Hide Mailboxes_Scheduled
@@ -19,7 +19,7 @@ Org \ Mail \ Hide Mailboxes_Scheduled
 
 ## Parameters
 ### HideBookingCalendars
-If set to true, booking calendars are hidden from address lists.
+Hidden calendars cannot be found in Outlook or the address book; turn off to list them again.
 
 | Property | Value |
 |----------|-------|
