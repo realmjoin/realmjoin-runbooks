@@ -126,7 +126,7 @@
 	}
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
 #Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.2" }
 
 # Suppress false positive from PSScriptAnalyzer - parameters are used indirectly via Get-Variable in the addToUserArgs helper function

@@ -1,5 +1,11 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-10-21
+
+- Update the required `RealmJoin.RunbookHelper` module version to 0.8.10 in all 183 runbooks
+  - Version 0.8.10 encodes file names in storage uploads and download links, so report files with spaces or umlauts upload and open
+  - Applies to the 29 runbooks that upload report files to a storage account or create a download link (SAS link)
+
 ## 2026-10-20
 
 - Name `Reader and Data Access` as the storage role for the download link of 19 runbooks, including the group membership export of both Offboard User runbooks
