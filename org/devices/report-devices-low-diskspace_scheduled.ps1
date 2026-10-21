@@ -239,7 +239,7 @@
 	}
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
@@ -858,7 +858,7 @@ if ($CreateDownloadLink) {
         }
         catch {
             $uploadResults = @()
-            Write-Error "Upload to the storage account failed - no download link was created. Check that the managed identity has the 'Storage Account Contributor' role on '$($StorageAccountName)' and that the storage firewall allows the Automation account. Error: $($_.Exception.Message)" -ErrorAction Continue
+            Write-Error "Upload to the storage account failed - no download link was created. Check that the managed identity has the 'Reader and Data Access' role on '$($StorageAccountName)' and that the storage firewall allows the Automation account. Error: $($_.Exception.Message)" -ErrorAction Continue
         }
     }
     elseif ($flaggedDevices.Count -eq 0) {
