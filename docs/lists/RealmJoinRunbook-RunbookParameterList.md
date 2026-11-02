@@ -1879,8 +1879,9 @@ Invite an external person as a guest user
 | CompanyName |  | String | Company the guest works for. |
 | ManagerName |  | String | User who becomes the guest's manager. |
 | SponsorName |  | String | User recorded as the guest's sponsor. |
+| SendInvitationMessage |  | Boolean | Emails the invitation to the guest. Without the email, the job output shows the link the guest uses to accept the invitation, to pass on by other means. |
 | CustomizeInvitation |  | Boolean | Shows fields for an own invitation message and redirect URL. |
-| InvitationMessage |  | String | Text included in the invitation email. |
+| InvitationMessage |  | String | Text included in the invitation email. Not used when no invitation email is sent. |
 | InviteRedirectUrl |  | String | Page the guest lands on after accepting, for example a SharePoint site. |
 | UsageLocation |  | String | Two-letter country code, for example US or DE, needed before licenses can be assigned. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |

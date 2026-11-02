@@ -16862,7 +16862,7 @@
     "PrimaryFolder": "Org",
     "SubFolder": "General",
     "Synopsis": "Invite an external person as a guest user",
-    "Description": "Sends a Microsoft Entra ID guest invitation to an external email address. Optionally the guest is added to a group, and profile details such as name, company, usage location, manager and sponsor are set on the guest account right away. The invitation email and the landing page can be customized.",
+    "Description": "Sends a Microsoft Entra ID guest invitation to an external email address. Optionally the guest is added to a group, and profile details such as name, company, usage location, manager and sponsor are set on the guest account right away. The invitation email and the landing page can be customized. Without the email, the job output shows the link the guest uses to accept the invitation.",
     "Notes": null,
     "Parameters": [
       {
@@ -16876,7 +16876,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "13",
+        "position": "14",
         "required": "true",
         "type": {
           "name": "String"
@@ -16910,7 +16910,7 @@
         "name": "CustomizeInvitation",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "10",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -16954,14 +16954,14 @@
         "defaultValue": "",
         "description": [
           {
-            "Text": "Text included in the invitation email."
+            "Text": "Text included in the invitation email. Not used when no invitation email is sent."
           }
         ],
         "globbing": "false",
         "name": "InvitationMessage",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "11",
         "required": "false",
         "type": {
           "name": "String"
@@ -17012,7 +17012,7 @@
         "name": "InviteRedirectUrl",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "11",
+        "position": "12",
         "required": "false",
         "type": {
           "name": "String"
@@ -17033,6 +17033,23 @@
         "required": "false",
         "type": {
           "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Emails the invitation to the guest. Without the email, the job output shows the link the guest uses to accept the invitation, to pass on by other means."
+          }
+        ],
+        "globbing": "false",
+        "name": "SendInvitationMessage",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
         }
       },
       {
@@ -17080,16 +17097,16 @@
         "name": "UsageLocation",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "12",
+        "position": "13",
         "required": "false",
         "type": {
           "name": "String"
         }
       }
     ],
-    "DocsContent": "## Common use cases\n\n- Basic guest invite: provide only the email address and the display name; all profile and group parameters can be left blank.\n- Full onboarding: supply all optional fields to set profile properties, assign a manager and a sponsor, and add the guest to a group in a single run.\n\n## Parameter interactions\n\n- Profile properties (`givenName`, `surname`, `companyName`, `usageLocation`) are applied only when they are not empty; omitting them skips the update call entirely.\n- Manager assignment, sponsor assignment and group membership each require their respective parameters; all of them are skipped silently when not provided.\n",
-    "DocsContentEncoded": "IyMgQ29tbW9uIHVzZSBjYXNlcwoKLSBCYXNpYyBndWVzdCBpbnZpdGU6IHByb3ZpZGUgb25seSB0aGUgZW1haWwgYWRkcmVzcyBhbmQgdGhlIGRpc3BsYXkgbmFtZTsgYWxsIHByb2ZpbGUgYW5kIGdyb3VwIHBhcmFtZXRlcnMgY2FuIGJlIGxlZnQgYmxhbmsuCi0gRnVsbCBvbmJvYXJkaW5nOiBzdXBwbHkgYWxsIG9wdGlvbmFsIGZpZWxkcyB0byBzZXQgcHJvZmlsZSBwcm9wZXJ0aWVzLCBhc3NpZ24gYSBtYW5hZ2VyIGFuZCBhIHNwb25zb3IsIGFuZCBhZGQgdGhlIGd1ZXN0IHRvIGEgZ3JvdXAgaW4gYSBzaW5nbGUgcnVuLgoKIyMgUGFyYW1ldGVyIGludGVyYWN0aW9ucwoKLSBQcm9maWxlIHByb3BlcnRpZXMgKGBnaXZlbk5hbWVgLCBgc3VybmFtZWAsIGBjb21wYW55TmFtZWAsIGB1c2FnZUxvY2F0aW9uYCkgYXJlIGFwcGxpZWQgb25seSB3aGVuIHRoZXkgYXJlIG5vdCBlbXB0eTsgb21pdHRpbmcgdGhlbSBza2lwcyB0aGUgdXBkYXRlIGNhbGwgZW50aXJlbHkuCi0gTWFuYWdlciBhc3NpZ25tZW50LCBzcG9uc29yIGFzc2lnbm1lbnQgYW5kIGdyb3VwIG1lbWJlcnNoaXAgZWFjaCByZXF1aXJlIHRoZWlyIHJlc3BlY3RpdmUgcGFyYW1ldGVyczsgYWxsIG9mIHRoZW0gYXJlIHNraXBwZWQgc2lsZW50bHkgd2hlbiBub3QgcHJvdmlkZWQuCg==",
-    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"User.ReadWrite.All\",\n                    \"Reason\": \"Creates the invitation, patches guest profile properties and sets manager and sponsor\"\n                },\n                {\n                    \"Value\": \"Group.ReadWrite.All\",\n                    \"Reason\": \"Verifies the target group and adds the guest via /groups/{id}/members/$ref\"\n                },\n                {\n                    \"Value\": \"Organization.Read.All\",\n                    \"Reason\": \"Reads the tenant id to build the default invite redirect URL\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "DocsContent": "## Common use cases\n\n- Basic guest invite: provide only the email address and the display name; all profile and group parameters can be left blank.\n- Full onboarding: supply all optional fields to set profile properties, assign a manager and a sponsor, and add the guest to a group in a single run.\n\n## Parameter interactions\n\n- Profile properties (`givenName`, `surname`, `companyName`, `usageLocation`) are applied only when they are not empty; omitting them skips the update call entirely.\n- Manager assignment, sponsor assignment and group membership each require their respective parameters; all of them are skipped silently when not provided.\n\n## Invitation without email\n\nWhen \"Send the invitation email?\" is turned off, Entra ID creates the guest account without sending an email, the same as clearing \"Send invite message\" in the Entra admin center. The guest stays in the state \"pending acceptance\" until the first sign-in.\n\n- The job output shows the redemption link once, in the section \"Invite Guest User\". Pass it to the guest through another channel, for example your own email or a chat message.\n- Instead of the redemption link, the guest can sign in through a link that contains your tenant, for example `https://myapps.microsoft.com/?tenantid=<tenant id>`. The consent prompt appears at the first sign-in.\n- Guests who sign in with an alias of the invited address need the redemption link.\n- The redirect URL from \"Customize the invitation?\" still applies: after accepting through the redemption link, the guest lands there.\n- The invitation message is part of the email only and is not used without it.\n",
+    "DocsContentEncoded": "IyMgQ29tbW9uIHVzZSBjYXNlcwoKLSBCYXNpYyBndWVzdCBpbnZpdGU6IHByb3ZpZGUgb25seSB0aGUgZW1haWwgYWRkcmVzcyBhbmQgdGhlIGRpc3BsYXkgbmFtZTsgYWxsIHByb2ZpbGUgYW5kIGdyb3VwIHBhcmFtZXRlcnMgY2FuIGJlIGxlZnQgYmxhbmsuCi0gRnVsbCBvbmJvYXJkaW5nOiBzdXBwbHkgYWxsIG9wdGlvbmFsIGZpZWxkcyB0byBzZXQgcHJvZmlsZSBwcm9wZXJ0aWVzLCBhc3NpZ24gYSBtYW5hZ2VyIGFuZCBhIHNwb25zb3IsIGFuZCBhZGQgdGhlIGd1ZXN0IHRvIGEgZ3JvdXAgaW4gYSBzaW5nbGUgcnVuLgoKIyMgUGFyYW1ldGVyIGludGVyYWN0aW9ucwoKLSBQcm9maWxlIHByb3BlcnRpZXMgKGBnaXZlbk5hbWVgLCBgc3VybmFtZWAsIGBjb21wYW55TmFtZWAsIGB1c2FnZUxvY2F0aW9uYCkgYXJlIGFwcGxpZWQgb25seSB3aGVuIHRoZXkgYXJlIG5vdCBlbXB0eTsgb21pdHRpbmcgdGhlbSBza2lwcyB0aGUgdXBkYXRlIGNhbGwgZW50aXJlbHkuCi0gTWFuYWdlciBhc3NpZ25tZW50LCBzcG9uc29yIGFzc2lnbm1lbnQgYW5kIGdyb3VwIG1lbWJlcnNoaXAgZWFjaCByZXF1aXJlIHRoZWlyIHJlc3BlY3RpdmUgcGFyYW1ldGVyczsgYWxsIG9mIHRoZW0gYXJlIHNraXBwZWQgc2lsZW50bHkgd2hlbiBub3QgcHJvdmlkZWQuCgojIyBJbnZpdGF0aW9uIHdpdGhvdXQgZW1haWwKCldoZW4gIlNlbmQgdGhlIGludml0YXRpb24gZW1haWw/IiBpcyB0dXJuZWQgb2ZmLCBFbnRyYSBJRCBjcmVhdGVzIHRoZSBndWVzdCBhY2NvdW50IHdpdGhvdXQgc2VuZGluZyBhbiBlbWFpbCwgdGhlIHNhbWUgYXMgY2xlYXJpbmcgIlNlbmQgaW52aXRlIG1lc3NhZ2UiIGluIHRoZSBFbnRyYSBhZG1pbiBjZW50ZXIuIFRoZSBndWVzdCBzdGF5cyBpbiB0aGUgc3RhdGUgInBlbmRpbmcgYWNjZXB0YW5jZSIgdW50aWwgdGhlIGZpcnN0IHNpZ24taW4uCgotIFRoZSBqb2Igb3V0cHV0IHNob3dzIHRoZSByZWRlbXB0aW9uIGxpbmsgb25jZSwgaW4gdGhlIHNlY3Rpb24gIkludml0ZSBHdWVzdCBVc2VyIi4gUGFzcyBpdCB0byB0aGUgZ3Vlc3QgdGhyb3VnaCBhbm90aGVyIGNoYW5uZWwsIGZvciBleGFtcGxlIHlvdXIgb3duIGVtYWlsIG9yIGEgY2hhdCBtZXNzYWdlLgotIEluc3RlYWQgb2YgdGhlIHJlZGVtcHRpb24gbGluaywgdGhlIGd1ZXN0IGNhbiBzaWduIGluIHRocm91Z2ggYSBsaW5rIHRoYXQgY29udGFpbnMgeW91ciB0ZW5hbnQsIGZvciBleGFtcGxlIGBodHRwczovL215YXBwcy5taWNyb3NvZnQuY29tLz90ZW5hbnRpZD08dGVuYW50IGlkPmAuIFRoZSBjb25zZW50IHByb21wdCBhcHBlYXJzIGF0IHRoZSBmaXJzdCBzaWduLWluLgotIEd1ZXN0cyB3aG8gc2lnbiBpbiB3aXRoIGFuIGFsaWFzIG9mIHRoZSBpbnZpdGVkIGFkZHJlc3MgbmVlZCB0aGUgcmVkZW1wdGlvbiBsaW5rLgotIFRoZSByZWRpcmVjdCBVUkwgZnJvbSAiQ3VzdG9taXplIHRoZSBpbnZpdGF0aW9uPyIgc3RpbGwgYXBwbGllczogYWZ0ZXIgYWNjZXB0aW5nIHRocm91Z2ggdGhlIHJlZGVtcHRpb24gbGluaywgdGhlIGd1ZXN0IGxhbmRzIHRoZXJlLgotIFRoZSBpbnZpdGF0aW9uIG1lc3NhZ2UgaXMgcGFydCBvZiB0aGUgZW1haWwgb25seSBhbmQgaXMgbm90IHVzZWQgd2l0aG91dCBpdC4K",
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"Group.ReadWrite.All\",\n                    \"Reason\": \"Verifies the target group and adds the guest via /groups/{id}/members/$ref\"\n                },\n                {\n                    \"Value\": \"Organization.Read.All\",\n                    \"Reason\": \"Reads the tenant id to build the default invite redirect URL\"\n                },\n                {\n                    \"Value\": \"User.ReadWrite.All\",\n                    \"Reason\": \"Creates the invitation, patches guest profile properties and sets manager and sponsor\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
     "PermissionsJson": {
       "Permissions": [
         {

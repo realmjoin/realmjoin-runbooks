@@ -813,7 +813,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | StorageAccountLocation |  | String | Azure region used when the storage account has to be created. Taken from the tenant setting TenantPolicyReport.StorageAccount.Location. |
 |  |  |  |  |  |  | StorageAccountSku |  | String | Performance tier used when the storage account has to be created. Taken from the tenant setting TenantPolicyReport.StorageAccount.Sku. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  | Invite External Guest Users | Invite an external person as a guest user | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Organization.Read.All<br> |  | InvitedUserEmail | ✓ | String | Email address of the person to invite. |
+|  |  | Invite External Guest Users | Invite an external person as a guest user | - **Type**: Microsoft Graph<br>&emsp;- Group.ReadWrite.All<br>&emsp;- Organization.Read.All<br>&emsp;- User.ReadWrite.All<br> |  | InvitedUserEmail | ✓ | String | Email address of the person to invite. |
 |  |  |  |  |  |  | InvitedUserDisplayName |  | String | Name shown for the guest in the directory. |
 |  |  |  |  |  |  | GroupId |  | String | Group the guest is added to. Preset in the runbook customization; empty means none. |
 |  |  |  |  |  |  | GivenName |  | String | First name of the guest. |
@@ -821,8 +821,9 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CompanyName |  | String | Company the guest works for. |
 |  |  |  |  |  |  | ManagerName |  | String | User who becomes the guest's manager. |
 |  |  |  |  |  |  | SponsorName |  | String | User recorded as the guest's sponsor. |
+|  |  |  |  |  |  | SendInvitationMessage |  | Boolean | Emails the invitation to the guest. Without the email, the job output shows the link the guest uses to accept the invitation, to pass on by other means. |
 |  |  |  |  |  |  | CustomizeInvitation |  | Boolean | Shows fields for an own invitation message and redirect URL. |
-|  |  |  |  |  |  | InvitationMessage |  | String | Text included in the invitation email. |
+|  |  |  |  |  |  | InvitationMessage |  | String | Text included in the invitation email. Not used when no invitation email is sent. |
 |  |  |  |  |  |  | InviteRedirectUrl |  | String | Page the guest lands on after accepting, for example a SharePoint site. |
 |  |  |  |  |  |  | UsageLocation |  | String | Two-letter country code, for example US or DE, needed before licenses can be assigned. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
