@@ -1,5 +1,13 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-10-23
+
+- Update **Invite External Guest Users** Runbook in Org/General (v2.1.0)
+  - New option "Send the invitation email?" creates the guest without an invitation email, as in the Entra admin center
+  - Without the email, the job output shows the redemption link to pass on to the guest; sending the email stays the default
+  - Find an existing user with the same address also when the email address contains special characters such as an apostrophe
+  - Check the usage location as a two-letter country code before the guest is invited, so a wrong value stops the run before any change
+
 ## 2026-10-21
 
 - Update the required `RealmJoin.RunbookHelper` module version to 0.8.10 in all 183 runbooks
