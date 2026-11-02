@@ -52,7 +52,7 @@ Storage container the report files are uploaded to. Taken from the tenant settin
 
 | Property | Value |
 |----------|-------|
-| Default Value | rjrb-licensing-report-v2 |
+| Default Value | export-policy-report |
 | Required | false |
 | Type | String |
 
