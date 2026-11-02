@@ -986,13 +986,13 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | Capacity |  | Int32 | How many people fit in the room. Shown in the room finder. Leave at 0 to set no capacity. |
 |  |  |  |  |  |  | DisableUser |  | Boolean | Blocks sign-in for the user account behind the mailbox. Booking keeps working. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  | Add Shared Mailbox | Create a shared mailbox with optional delegate | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br>- **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All *(optional: Disable user account)*<br> | - Exchange Administrator<br> | MailboxName | ✓ | String | Alias of the mailbox, which becomes the part of the email address in front of the @ sign. |
+|  |  | Add Shared Mailbox | Create a shared mailbox with optional delegates | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br>- **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All *(optional: Disable user account)*<br> | - Exchange Administrator<br> | MailboxName | ✓ | String | Alias of the mailbox, which becomes the part of the email address in front of the @ sign. |
 |  |  |  |  |  |  | DisplayName |  | String | Name shown in the address book. Leave empty to use the alias. |
 |  |  |  |  |  |  | DomainName |  | String | Domain of the email address. Leave empty to use the default domain of the tenant. |
 |  |  |  |  |  |  | Language |  | String | Language of the mailbox, which sets the names of the default folders such as Inbox. |
-|  |  |  |  |  |  | TimeZone |  | String | Time zone used for the calendar and timestamps of the mailbox. |
-|  |  |  |  |  |  | DelegateTo |  | String | User who gets full access to the mailbox. Leave empty for none. |
-|  |  |  |  |  |  | AutoMapping |  | Boolean | The mailbox opens automatically in the delegate's Outlook. |
+|  |  |  |  |  |  | TimeZone |  | String | Time zone used for the calendar and timestamps of the mailbox. The list shows the standard time offset; daylight saving time is applied automatically where the region uses it. |
+|  |  |  |  |  |  | DelegateTo |  | String Array | People who get full access to the mailbox and can send on its behalf. You can pick several at once; leave empty for none. Nothing is created if one of them is not found in Exchange Online. |
+|  |  |  |  |  |  | AutoMapping |  | Boolean | The mailbox opens automatically in the delegates' Outlook. |
 |  |  |  |  |  |  | MessageCopyForSentAsEnabled |  | Boolean | Mails sent as the shared mailbox are also stored in its Sent Items folder. |
 |  |  |  |  |  |  | MessageCopyForSendOnBehalfEnabled |  | Boolean | Mails sent on behalf of the shared mailbox are also stored in its Sent Items folder. |
 |  |  |  |  |  |  | DisableUser |  | Boolean | Blocks sign-in for the user account behind the mailbox. Delegates keep their access. |
@@ -1463,11 +1463,11 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | ServiceDeskTicketUrl |  | String | Link to the ticket for this request, shown in the email. Preset per run or in the runbook customization; empty means no link. |
 |  |  |  |  |  |  | LanguageOverride |  | String | Forces the email language, DE or EN. Empty picks the language from the user's usage location. Preset in the runbook customization. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  | Reset Password | Set a new password for this user |  | - User Administrator<br> | UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
+|  |  | Reset Password | Set a new password for this user | - **Type**: Microsoft Graph<br>&emsp;- RoleManagement.Read.Directory *(optional: Administrator role check)*<br> | - User Administrator<br> | UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
 |  |  |  |  |  |  | EnableUserIfNeeded |  | Boolean | Enables a disabled account before the password is set. |
 |  |  |  |  |  |  | ForceChangePasswordNextSignIn |  | Boolean | Makes the user choose their own password at the next sign-in. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  | Revoke Or Restore Access | Block this user's sign-in and sessions, or restore access | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br> | - User Administrator<br> | UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
+|  |  | Revoke Or Restore Access | Block this user's sign-in and sessions, or restore access | - **Type**: Microsoft Graph<br>&emsp;- User.ReadWrite.All<br>&emsp;- RoleManagement.Read.Directory *(optional: Administrator role check)*<br> | - User Administrator<br> | UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
 |  |  |  |  |  |  | Revoke |  | Boolean | Revoke access blocks sign-in and ends the sessions. Re-enable user lets the user sign in again. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  |  | Set Or Remove Mobile Phone MFA | Set or remove the mobile phone MFA method of this user | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- User.Read.All<br>&emsp;- UserAuthenticationMethod.ReadWrite.All<br>&emsp;- Mail.Send *(optional: Email report)*<br>&emsp;- Organization.Read.All *(optional: Email notification)*<br> |  | UserId | ✓ | String | Object ID of the user the runbook acts on. Set by the portal from the selected user. |

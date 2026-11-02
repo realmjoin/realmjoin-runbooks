@@ -2205,7 +2205,7 @@ Create a room mailbox with optional booking delegates
 <a name='organization-mail-add-shared-mailbox'></a>
 
 ### Add Shared Mailbox
-Create a shared mailbox with optional delegate
+Create a shared mailbox with optional delegates
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
@@ -2213,9 +2213,9 @@ Create a shared mailbox with optional delegate
 | DisplayName |  | String | Name shown in the address book. Leave empty to use the alias. |
 | DomainName |  | String | Domain of the email address. Leave empty to use the default domain of the tenant. |
 | Language |  | String | Language of the mailbox, which sets the names of the default folders such as Inbox. |
-| TimeZone |  | String | Time zone used for the calendar and timestamps of the mailbox. |
-| DelegateTo |  | String | User who gets full access to the mailbox. Leave empty for none. |
-| AutoMapping |  | Boolean | The mailbox opens automatically in the delegate's Outlook. |
+| TimeZone |  | String | Time zone used for the calendar and timestamps of the mailbox. The list shows the standard time offset; daylight saving time is applied automatically where the region uses it. |
+| DelegateTo |  | String Array | People who get full access to the mailbox and can send on its behalf. You can pick several at once; leave empty for none. Nothing is created if one of them is not found in Exchange Online. |
+| AutoMapping |  | Boolean | The mailbox opens automatically in the delegates' Outlook. |
 | MessageCopyForSentAsEnabled |  | Boolean | Mails sent as the shared mailbox are also stored in its Sent Items folder. |
 | MessageCopyForSendOnBehalfEnabled |  | Boolean | Mails sent on behalf of the shared mailbox are also stored in its Sent Items folder. |
 | DisableUser |  | Boolean | Blocks sign-in for the user account behind the mailbox. Delegates keep their access. |

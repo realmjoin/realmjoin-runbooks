@@ -4711,11 +4711,11 @@ Org \ Mail \ Add Room Mailbox
 <a name='org-mail-add-shared-mailbox'></a>
 
 ### Add Shared Mailbox
-#### Create a shared mailbox with optional delegate
+#### Create a shared mailbox with optional delegates
 
 #### Description
 
-Creates a shared mailbox in Exchange Online with the chosen language and time zone. A delegate can get full access, and sent mails can be kept in the shared Sent Items folder. The user account behind the mailbox can be disabled so nobody signs in with it.
+Creates a shared mailbox in Exchange Online with the chosen language and time zone. Delegates can get full access and send on behalf of the mailbox, and sent mails can be kept in the shared Sent Items folder. The user account behind the mailbox can be disabled so nobody signs in with it.
 
 #### Where to find
 
@@ -4749,6 +4749,35 @@ The domain of the new mailbox is free text by default. With a runbook customizat
     }
 }
 ```
+
+## Offer only the time zones you use
+
+The time zone list holds the Windows time zones named after places, sorted by their offset from UTC as in Windows and Outlook. The offset in each entry is the standard time. Exchange Online applies daylight saving time on its own, so Sydney is listed as UTC+10:00 and runs at UTC+11:00 from October to April.
+
+With a runbook customization the operator sees only the time zones of your locations:
+
+```json
+{
+    "Runbooks": {
+        "rjgit-org_mail_add-shared-mailbox": {
+            "ParameterList": [
+                {
+                    "Name": "TimeZone",
+                    "SelectSimple": {
+                        "(UTC-05:00) Eastern Time (US & Canada)": "Eastern Standard Time",
+                        "(UTC+00:00) Dublin, Edinburgh, Lisbon, London": "GMT Standard Time",
+                        "(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna": "W. Europe Standard Time",
+                        "(UTC+10:00) Canberra, Melbourne, Sydney": "AUS Eastern Standard Time"
+                    },
+                    "Default": "W. Europe Standard Time"
+                }
+            ]
+        }
+    }
+}
+```
+
+The text on the left is shown in the portal, the value on the right is the Windows time zone ID that Exchange Online stores. Take both from the portal options of the time zone parameter below. `Default` names the ID that is preselected.
 
 For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
 
@@ -7019,6 +7048,19 @@ Sets a new password for this user in Entra ID and shows it in the output. A disa
 
 User \ Security \ Reset Password
 
+## Users with administrator roles
+
+Entra ID protects users who hold an administrator role from changes by lower-privileged administrators. With the User Administrator role, the RealmJoin managed identity can reset the password and enable the account of users without administrator roles and of users with a few roles such as Helpdesk Administrator, Password Administrator, Groups Administrator or User Administrator.
+
+For users with any other role, for example Power Platform Administrator, Exchange Administrator or Global Administrator, and for members and owners of role-assignable groups, Entra ID requires a Privileged Authentication Administrator or Global Administrator. The run then stops with "Insufficient privileges" and names the roles of the user. Reset the password of such a user in the Entra admin center with a Privileged Authentication Administrator or Global Administrator account.
+
+Granting one of these two roles to the RealmJoin managed identity is not recommended, because both can also reset the credentials of Global Administrators. Microsoft lists which role can reset which administrator's password in [Who can reset passwords](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/privileged-roles-permissions#who-can-reset-passwords).
+
+### Roles in the job output
+
+Before anything changes, the job output lists the Entra ID roles assigned directly to the user. This needs the optional permission for the administrator role check; without it the output shows "could not be read" and the run continues.
+
+
 
 [Back to Table of Content](#table-of-contents)
 
@@ -7037,6 +7079,19 @@ Blocks this user from signing in and ends the current sessions, so stolen tokens
 #### Where to find
 
 User \ Security \ Revoke Or Restore Access
+
+## Users with administrator roles
+
+Entra ID protects users who hold an administrator role from changes by lower-privileged administrators. With the User Administrator role, the RealmJoin managed identity can block or restore sign-in and revoke sessions for users without administrator roles and for users with a few roles such as Helpdesk Administrator, Password Administrator, Groups Administrator or User Administrator.
+
+For users with any other role, for example Power Platform Administrator, Exchange Administrator or Global Administrator, and for members and owners of role-assignable groups, Entra ID requires a Privileged Authentication Administrator or Global Administrator. The run then stops with "Insufficient privileges" and names the roles of the user. Make the change for such a user in the Entra admin center with a Privileged Authentication Administrator or Global Administrator account.
+
+Granting one of these two roles to the RealmJoin managed identity is not recommended, because both can also reset the credentials of Global Administrators. Microsoft lists which role can change which administrator in [Who can perform sensitive actions](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/privileged-roles-permissions#who-can-perform-sensitive-actions).
+
+### Roles in the job output
+
+Before anything changes, the job output lists the Entra ID roles assigned directly to the user. This needs the optional permission for the administrator role check; without it the output shows "could not be read" and the run continues.
+
 
 
 [Back to Table of Content](#table-of-contents)

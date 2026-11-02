@@ -192,7 +192,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Add Or Remove Teams Mailcontact | Give a Teams channel a friendly email address or remove it |
 | Add Or Remove Tenant Allow Block List | Add or remove a Tenant Allow/Block List entry |
 | Add Room Mailbox | Create a room mailbox with optional booking delegates |
-| Add Shared Mailbox | Create a shared mailbox with optional delegate |
+| Add Shared Mailbox | Create a shared mailbox with optional delegates |
 | Hide Mailboxes (Scheduled) | Hide or show all Bookings calendars in the address book |
 | Set Booking Config | Configure the Microsoft Bookings settings of the tenant |
 
