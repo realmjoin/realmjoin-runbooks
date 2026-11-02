@@ -3,7 +3,7 @@
 List or export all Windows Autopilot devices
 
 ## Detailed description
-Lists every Windows Autopilot registration with its details, either in the run output or as a CSV file uploaded to an Azure Storage account with a time-limited download link. Nothing is changed.
+Lists every Windows Autopilot registration with its details in the Output Data tables of the run. The list can also be exported as a CSV file to an Azure Storage account with a time-limited download link. Nothing is changed.
 
 ## Where to find
 Org \ General \ Export All Autopilot Devices
@@ -20,7 +20,7 @@ Azure Storage Account: 'Reader and Data Access' role for the Automation Account'
 
 ## Parameters
 ### ExportToFile
-List in the run output, or export to a CSV file with a download link.
+The list is always shown in the Output Data tables of the run. "Also export to a CSV file" also uploads it as a CSV file and returns a download link.
 
 | Property | Value |
 |----------|-------|

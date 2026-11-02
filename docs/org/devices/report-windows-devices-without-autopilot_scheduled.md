@@ -12,12 +12,14 @@ Org \ Devices \ Report Windows Devices Without Autopilot_Scheduled
 
 This runbook lists every Windows device object in Entra ID and matches it against the Windows Autopilot device identities in Intune. Devices that have no associated Autopilot object (matched via the Autopilot object's `azureActiveDirectoryDeviceId`) are reported as clean-up candidates.
 
-Two Yes/No toggles control the output:
+Every run writes the result as Output Data tables (`Summary` and `Devices`), which can be sorted, filtered and exported in the RealmJoin portal. The **Report delivery** option adds report files on top:
 
-- **Send the report via email?** — when enabled, the recipient address field (`EmailTo`) is shown and the report is sent via email with the CSV attached.
-- **Create a file download link?** — when enabled, the CSV is uploaded to an Azure Storage Account and a time-limited download link is returned.
+- **Output Data only** - no report files.
+- **Also email the report** - the recipient address field (`EmailTo`) is shown and the report is sent via email with the report file(s) attached.
+- **Also create a download link** (default) - the report file(s) are uploaded to an Azure Storage Account and a time-limited download link is returned.
+- **Also email & download link** - both.
 
-Both can be combined or used independently. If both are disabled, the report is only printed to the runbook output.
+**Report file format** chooses CSV, XLSX or both for the report files.
 
 ## Setup regarding the storage account
 

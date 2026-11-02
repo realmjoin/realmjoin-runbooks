@@ -35,6 +35,7 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
   - Application.Read.All
   - Directory.Read.All
   - Mail.Send *(optional: Email report)*
+  - Organization.Read.All *(optional: Email report)*
 
 ### Permission notes
 Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link)

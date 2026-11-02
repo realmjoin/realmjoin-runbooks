@@ -1830,7 +1830,7 @@ List or export all Windows Autopilot devices
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| ExportToFile |  | Boolean | List in the run output, or export to a CSV file with a download link. |
+| ExportToFile |  | Boolean | The list is always shown in the Output Data tables of the run. "Also export to a CSV file" also uploads it as a CSV file and returns a download link. |
 | ContainerName |  | String | Storage container the CSV file is uploaded to. Taken from the tenant setting IntuneDevicesReport.Container. |
 | ResourceGroupName |  | String | Resource group of the storage account. Taken from the tenant setting IntuneDevicesReport.ResourceGroup; when it is not set, RJReport.StorageAccount.ResourceGroup is used. |
 | StorageAccountName |  | String | Storage account for the export. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Name; when it is not set, RJReport.StorageAccount.StorageAccountName is used. |
@@ -2457,7 +2457,7 @@ List devices with no recent sign-in or Intune sync
 |-----------|----------|------|-------------|
 | Days |  | Int32 | Devices with no sync or sign-in for at least this many days are listed. |
 | Sync |  | Boolean | Last Intune sync looks at managed devices and their last check-in; Last sign-in looks at Entra ID device objects and their approximate last sign-in date. |
-| ExportToFile |  | Boolean | List in the run output, or export to a CSV file in the storage account configured in the tenant settings. |
+| ExportToFile |  | Boolean | The list is always shown in the Output Data tables of the run. "Also export to a CSV file" also uploads it as a CSV file to the storage account configured in the tenant settings and returns a download link. |
 | ContainerName |  | String | Storage container the report files are uploaded to. Taken from the tenant setting InactiveDevices.Container, otherwise set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting InactiveDevices.ResourceGroup; when it is not set, the Automation variable SettingsExports is read, then RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting InactiveDevices.StorageAccount.Name; when it is not set, the Automation variable SettingsExports is read, then RJReport.StorageAccount.StorageAccountName. |

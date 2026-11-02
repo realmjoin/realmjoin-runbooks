@@ -50,6 +50,7 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 ### Application permissions
 - **Type**: Microsoft Graph
   - DeviceManagementConfiguration.Read.All
+  - Organization.Read.All
   - Mail.Send *(optional: Email report)*
 
 

@@ -47,6 +47,7 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
   - DeviceManagementManagedDevices.ReadWrite.All
   - Directory.Read.All
   - Mail.Send *(optional: Email report)*
+  - Organization.Read.All *(optional: Email report)*
 
 
 ## Parameters

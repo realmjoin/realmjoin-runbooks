@@ -2239,9 +2239,9 @@ Every device below the threshold is rated: devices below half of the configured 
 
 The runbook sends **one email per primary user** that lists all affected devices of that user with operating system, model, free and total disk space, rating and the date of the last inventory. The email contains practical cleanup steps for the platforms of the listed devices: the Windows section is included for Windows devices, the macOS section for macOS devices, and both when the user has affected devices of both kinds.
 
-Recipients are resolved via Microsoft Graph: the primary user of a device is looked up by the Entra object id that Intune reports in `userId`, so guest accounts and users whose current UPN differs from the address recorded at enrollment resolve correctly; devices without a `userId` fall back to a lookup by user principal name. The email is then sent to the user's `mail` attribute, with the user principal name as fallback when no mail attribute is set. Disabled accounts and users that cannot be resolved are skipped and listed in the console output. Devices without a primary user cannot be notified; they are listed in the console output for central follow-up (the report runbook covers them as well).
+Recipients are resolved via Microsoft Graph: the primary user of a device is looked up by the Entra object id that Intune reports in `userId`, so guest accounts and users whose current UPN differs from the address recorded at enrollment resolve correctly; devices without a `userId` fall back to a lookup by user principal name. The email is then sent to the user's `mail` attribute, with the user principal name as fallback when no mail attribute is set. Disabled accounts and users that cannot be resolved are skipped; they are listed in the console output and, with the reason, in the Output Data table "Notifications". Devices without a primary user cannot be notified; they appear in the Output Data table "Low disk space devices" with the reason "No primary user" for central follow-up (the report runbook covers them as well).
 
-`SimulationMode` lists the affected users, their devices and the intended recipients in the console output without sending any email. Use it to validate thresholds and scope filters before the first productive run.
+`SimulationMode` lists the affected users, their devices and the intended recipients in the console output and the Output Data tables without sending any email. Use it to validate thresholds and scope filters before the first productive run.
 
 `OverrideEmailRecipient` redirects **ALL** notifications to the given address (comma-separated for multiple recipients) instead of the end users. A warning is logged on every run while the override is active, and each redirected email states the affected user in the subject and body. Use this for testing the email content or for routing everything to a shared mailbox.
 
@@ -2319,7 +2319,7 @@ The custom template consists of a subject, a text before the device list and a t
 - Markdown formatting (##, ###, **, -) is supported in the template text
 - All three custom template parameters (Subject, BeforeDeviceDetails, AfterDeviceDetails) should be configured
 - If any parameter is missing, the runbook automatically falls back to the English (EN) template
-- When using the custom template, select "Custom - Use Template from Runbook Customizations" in the Mail Template dropdown
+- When using the custom template, select "Custom template from runbook customization" in the "Mail template" field
 - The device list labels are rendered in English for the custom template
 
 
@@ -3100,12 +3100,14 @@ Org \ Devices \ Report Windows Devices Without Autopilot_Scheduled
 
 This runbook lists every Windows device object in Entra ID and matches it against the Windows Autopilot device identities in Intune. Devices that have no associated Autopilot object (matched via the Autopilot object's `azureActiveDirectoryDeviceId`) are reported as clean-up candidates.
 
-Two Yes/No toggles control the output:
+Every run writes the result as Output Data tables (`Summary` and `Devices`), which can be sorted, filtered and exported in the RealmJoin portal. The **Report delivery** option adds report files on top:
 
-- **Send the report via email?** — when enabled, the recipient address field (`EmailTo`) is shown and the report is sent via email with the CSV attached.
-- **Create a file download link?** — when enabled, the CSV is uploaded to an Azure Storage Account and a time-limited download link is returned.
+- **Output Data only** - no report files.
+- **Also email the report** - the recipient address field (`EmailTo`) is shown and the report is sent via email with the report file(s) attached.
+- **Also create a download link** (default) - the report file(s) are uploaded to an Azure Storage Account and a time-limited download link is returned.
+- **Also email & download link** - both.
 
-Both can be combined or used independently. If both are disabled, the report is only printed to the runbook output.
+**Report file format** chooses CSV, XLSX or both for the report files.
 
 ## Setup regarding the storage account
 
@@ -3815,7 +3817,7 @@ For more information on how to customize runbooks, please refer to the [Runbook 
 
 #### Description
 
-Lists every Windows Autopilot registration with its details, either in the run output or as a CSV file uploaded to an Azure Storage account with a time-limited download link. Nothing is changed.
+Lists every Windows Autopilot registration with its details in the Output Data tables of the run. The list can also be exported as a CSV file to an Azure Storage account with a time-limited download link. Nothing is changed.
 
 #### Where to find
 
@@ -5158,7 +5160,7 @@ Org \ Security \ List Expiring Role Assignments
 
 #### Description
 
-Lists the devices whose last Intune sync, or whose last sign-in recorded in Entra ID, is older than the chosen number of days. The result can be shown in the run output or exported as a CSV file to an Azure Storage account. Nothing is changed.
+Lists the devices whose last Intune sync, or whose last sign-in recorded in Entra ID, is older than the chosen number of days. The result is shown in the Output Data tables of the run and can also be exported as a CSV file to an Azure Storage account. Nothing is changed.
 
 #### Where to find
 

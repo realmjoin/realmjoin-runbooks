@@ -3,7 +3,7 @@
 List devices with no recent sign-in or Intune sync
 
 ## Detailed description
-Lists the devices whose last Intune sync, or whose last sign-in recorded in Entra ID, is older than the chosen number of days. The result can be shown in the run output or exported as a CSV file to an Azure Storage account. Nothing is changed.
+Lists the devices whose last Intune sync, or whose last sign-in recorded in Entra ID, is older than the chosen number of days. The result is shown in the Output Data tables of the run and can also be exported as a CSV file to an Azure Storage account. Nothing is changed.
 
 ## Where to find
 Org \ Security \ List Inactive Devices
@@ -39,7 +39,7 @@ Last Intune sync looks at managed devices and their last check-in; Last sign-in 
 | Type | Boolean |
 
 ### ExportToFile
-List in the run output, or export to a CSV file in the storage account configured in the tenant settings.
+The list is always shown in the Output Data tables of the run. "Also export to a CSV file" also uploads it as a CSV file to the storage account configured in the tenant settings and returns a download link.
 
 | Property | Value |
 |----------|-------|

@@ -39,9 +39,9 @@ Every device below the threshold is rated: devices below half of the configured 
 
 The runbook sends **one email per primary user** that lists all affected devices of that user with operating system, model, free and total disk space, rating and the date of the last inventory. The email contains practical cleanup steps for the platforms of the listed devices: the Windows section is included for Windows devices, the macOS section for macOS devices, and both when the user has affected devices of both kinds.
 
-Recipients are resolved via Microsoft Graph: the primary user of a device is looked up by the Entra object id that Intune reports in `userId`, so guest accounts and users whose current UPN differs from the address recorded at enrollment resolve correctly; devices without a `userId` fall back to a lookup by user principal name. The email is then sent to the user's `mail` attribute, with the user principal name as fallback when no mail attribute is set. Disabled accounts and users that cannot be resolved are skipped and listed in the console output. Devices without a primary user cannot be notified; they are listed in the console output for central follow-up (the report runbook covers them as well).
+Recipients are resolved via Microsoft Graph: the primary user of a device is looked up by the Entra object id that Intune reports in `userId`, so guest accounts and users whose current UPN differs from the address recorded at enrollment resolve correctly; devices without a `userId` fall back to a lookup by user principal name. The email is then sent to the user's `mail` attribute, with the user principal name as fallback when no mail attribute is set. Disabled accounts and users that cannot be resolved are skipped; they are listed in the console output and, with the reason, in the Output Data table "Notifications". Devices without a primary user cannot be notified; they appear in the Output Data table "Low disk space devices" with the reason "No primary user" for central follow-up (the report runbook covers them as well).
 
-`SimulationMode` lists the affected users, their devices and the intended recipients in the console output without sending any email. Use it to validate thresholds and scope filters before the first productive run.
+`SimulationMode` lists the affected users, their devices and the intended recipients in the console output and the Output Data tables without sending any email. Use it to validate thresholds and scope filters before the first productive run.
 
 `OverrideEmailRecipient` redirects **ALL** notifications to the given address (comma-separated for multiple recipients) instead of the end users. A warning is logged on every run while the override is active, and each redirected email states the affected user in the subject and body. Use this for testing the email content or for routing everything to a shared mailbox.
 
@@ -119,7 +119,7 @@ The custom template consists of a subject, a text before the device list and a t
 - Markdown formatting (##, ###, **, -) is supported in the template text
 - All three custom template parameters (Subject, BeforeDeviceDetails, AfterDeviceDetails) should be configured
 - If any parameter is missing, the runbook automatically falls back to the English (EN) template
-- When using the custom template, select "Custom - Use Template from Runbook Customizations" in the Mail Template dropdown
+- When using the custom template, select "Custom template from runbook customization" in the "Mail template" field
 - The device list labels are rendered in English for the custom template
 
 
