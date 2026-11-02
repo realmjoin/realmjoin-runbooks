@@ -1162,6 +1162,70 @@
     }
   },
   {
+    "RunbookDisplayName": "Sync Device",
+    "RunbookDisplayPath": "Device \\ General \\ Sync Device",
+    "RelativeRunbookPath": "device/general/sync-device.ps1",
+    "RelativeRunbookPath_PathOnly": "device/general",
+    "PrimaryFolder": "Device",
+    "SubFolder": "General",
+    "Synopsis": "Trigger an Intune sync on this device",
+    "Description": "Asks this device to check in with Intune, so pending policies, apps and configuration are applied without waiting for the next regular check-in. The device name, operating system, primary user and last check-in are shown first. If this device is offline, it syncs when it comes back online. The device must be enrolled in Intune.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user who started the runbook. Set by the portal and recorded for auditing."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device."
+          }
+        ],
+        "globbing": "false",
+        "name": "DeviceId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": "## How it works\n\nThe runbook looks up this device in Intune by its Entra ID device ID, shows its current state and sends the same sync request as **Sync** in the Intune admin center. Intune wakes the device through the push service of its platform; the device then checks in, applies pending policies, apps and configuration and reports its state back. An offline device receives the request when it comes back online. The last check-in time in Intune changes only after the check-in has completed.\n\nIf an earlier enrollment left more than one Intune record with the same Entra ID device ID, the sync request goes to the record that checked in last and the run shows a warning. Remove the stale records in the Intune admin center.\n\n## Sync without the RealmJoin app permission\n\nThe **Sync** button in the [device details](https://docs.realmjoin.com/ugd-management/user-list/device-details) of the RealmJoin Portal asks Intune through the RealmJoin app, which then needs the Intune permission for remote actions on devices. This runbook sends the request with the managed identity of the Automation account instead. Use it when the RealmJoin app does not hold that permission but help desk staff should still be able to sync a device. Who may start the runbook is controlled by the runbook permissions in RealmJoin.\n",
+    "DocsContentEncoded": "IyMgSG93IGl0IHdvcmtzCgpUaGUgcnVuYm9vayBsb29rcyB1cCB0aGlzIGRldmljZSBpbiBJbnR1bmUgYnkgaXRzIEVudHJhIElEIGRldmljZSBJRCwgc2hvd3MgaXRzIGN1cnJlbnQgc3RhdGUgYW5kIHNlbmRzIHRoZSBzYW1lIHN5bmMgcmVxdWVzdCBhcyAqKlN5bmMqKiBpbiB0aGUgSW50dW5lIGFkbWluIGNlbnRlci4gSW50dW5lIHdha2VzIHRoZSBkZXZpY2UgdGhyb3VnaCB0aGUgcHVzaCBzZXJ2aWNlIG9mIGl0cyBwbGF0Zm9ybTsgdGhlIGRldmljZSB0aGVuIGNoZWNrcyBpbiwgYXBwbGllcyBwZW5kaW5nIHBvbGljaWVzLCBhcHBzIGFuZCBjb25maWd1cmF0aW9uIGFuZCByZXBvcnRzIGl0cyBzdGF0ZSBiYWNrLiBBbiBvZmZsaW5lIGRldmljZSByZWNlaXZlcyB0aGUgcmVxdWVzdCB3aGVuIGl0IGNvbWVzIGJhY2sgb25saW5lLiBUaGUgbGFzdCBjaGVjay1pbiB0aW1lIGluIEludHVuZSBjaGFuZ2VzIG9ubHkgYWZ0ZXIgdGhlIGNoZWNrLWluIGhhcyBjb21wbGV0ZWQuCgpJZiBhbiBlYXJsaWVyIGVucm9sbG1lbnQgbGVmdCBtb3JlIHRoYW4gb25lIEludHVuZSByZWNvcmQgd2l0aCB0aGUgc2FtZSBFbnRyYSBJRCBkZXZpY2UgSUQsIHRoZSBzeW5jIHJlcXVlc3QgZ29lcyB0byB0aGUgcmVjb3JkIHRoYXQgY2hlY2tlZCBpbiBsYXN0IGFuZCB0aGUgcnVuIHNob3dzIGEgd2FybmluZy4gUmVtb3ZlIHRoZSBzdGFsZSByZWNvcmRzIGluIHRoZSBJbnR1bmUgYWRtaW4gY2VudGVyLgoKIyMgU3luYyB3aXRob3V0IHRoZSBSZWFsbUpvaW4gYXBwIHBlcm1pc3Npb24KClRoZSAqKlN5bmMqKiBidXR0b24gaW4gdGhlIFtkZXZpY2UgZGV0YWlsc10oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vdWdkLW1hbmFnZW1lbnQvdXNlci1saXN0L2RldmljZS1kZXRhaWxzKSBvZiB0aGUgUmVhbG1Kb2luIFBvcnRhbCBhc2tzIEludHVuZSB0aHJvdWdoIHRoZSBSZWFsbUpvaW4gYXBwLCB3aGljaCB0aGVuIG5lZWRzIHRoZSBJbnR1bmUgcGVybWlzc2lvbiBmb3IgcmVtb3RlIGFjdGlvbnMgb24gZGV2aWNlcy4gVGhpcyBydW5ib29rIHNlbmRzIHRoZSByZXF1ZXN0IHdpdGggdGhlIG1hbmFnZWQgaWRlbnRpdHkgb2YgdGhlIEF1dG9tYXRpb24gYWNjb3VudCBpbnN0ZWFkLiBVc2UgaXQgd2hlbiB0aGUgUmVhbG1Kb2luIGFwcCBkb2VzIG5vdCBob2xkIHRoYXQgcGVybWlzc2lvbiBidXQgaGVscCBkZXNrIHN0YWZmIHNob3VsZCBzdGlsbCBiZSBhYmxlIHRvIHN5bmMgYSBkZXZpY2UuIFdobyBtYXkgc3RhcnQgdGhlIHJ1bmJvb2sgaXMgY29udHJvbGxlZCBieSB0aGUgcnVuYm9vayBwZXJtaXNzaW9ucyBpbiBSZWFsbUpvaW4uCg==",
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"DeviceManagementManagedDevices.PrivilegedOperations.All\",\n                    \"Reason\": \"Sends the sync request to the device via POST /deviceManagement/managedDevices/{id}/syncDevice\"\n                },\n                {\n                    \"Value\": \"DeviceManagementManagedDevices.Read.All\",\n                    \"Reason\": \"Finds the Intune record of this device by azureADDeviceId and reads its name, operating system, primary user, compliance state and last check-in\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementManagedDevices.PrivilegedOperations.All",
+            "DeviceManagementManagedDevices.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Unenroll Updatable Assets",
     "RunbookDisplayPath": "Device \\ General \\ Unenroll Updatable Assets",
     "RelativeRunbookPath": "device/general/unenroll-updatable-assets.ps1",

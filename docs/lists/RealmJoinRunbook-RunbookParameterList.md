@@ -25,6 +25,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Remove Primary User](#device-general-remove-primary-user)
     - [Rename Device](#device-general-rename-device)
     - [Set Primary User](#device-general-set-primary-user)
+    - [Sync Device](#device-general-sync-device)
     - [Unenroll Updatable Assets](#device-general-unenroll-updatable-assets)
     - [Wipe Device](#device-general-wipe-device)
     - [Wipe Managed App Data](#device-general-wipe-managed-app-data)
@@ -364,6 +365,16 @@ Set a new primary user on this device
 |-----------|----------|------|-------------|
 | DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
 | NewPrimaryUserId | ✓ | String | User to assign. The current primary user is replaced; both are shown in the output. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+
+<a name='device-general-sync-device'></a>
+
+### Sync Device
+Trigger an Intune sync on this device
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='device-general-unenroll-updatable-assets'></a>

@@ -52,6 +52,8 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Set Primary User | Set a new primary user on this device | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- User.Read.All<br> |  | DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
 |  |  |  |  |  |  | NewPrimaryUserId | ✓ | String | User to assign. The current primary user is replaced; both are shown in the output. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+|  |  | Sync Device | Trigger an Intune sync on this device | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br>&emsp;- DeviceManagementManagedDevices.Read.All<br> |  | DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  |  | Unenroll Updatable Assets | Unenroll this device from Windows Update for Business | - **Type**: Microsoft Graph<br>&emsp;- WindowsUpdates.ReadWrite.All<br> |  | DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
 |  |  |  |  |  |  | UpdateCategory | ✓ | String | Update category to unenroll the device from. Choosing all removes the device from Windows Update for Business entirely. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |

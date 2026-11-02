@@ -14,6 +14,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Remove Primary User | Remove the primary user from this device |
 |  |  | Rename Device | Rename this device in Intune and Autopilot |
 |  |  | Set Primary User | Set a new primary user on this device |
+|  |  | Sync Device | Trigger an Intune sync on this device |
 |  |  | Unenroll Updatable Assets | Unenroll this device from Windows Update for Business |
 |  |  | Wipe Device | Wipe this Windows or macOS device and clean up its records |
 |  |  | Wipe Managed App Data | Remove company app data from this MAM-managed device |
