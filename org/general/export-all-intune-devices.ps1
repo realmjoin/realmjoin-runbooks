@@ -85,6 +85,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param (
@@ -117,18 +118,36 @@ param (
     [string] $CallerName
 )
 
+########################################################
+#region     RJ Log Part
+########################################################
+
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 $Version = "1.2.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
+Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
+Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
+Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+Write-RjRbLog -Message "StorageAccountLocation: $StorageAccountLocation" -Verbose
+Write-RjRbLog -Message "StorageAccountSku: $StorageAccountSku" -Verbose
+Write-RjRbLog -Message "SubscriptionId: $SubscriptionId" -Verbose
+Write-RjRbLog -Message "RJReportResourceGroupName: $RJReportResourceGroupName" -Verbose
+Write-RjRbLog -Message "RJReportStorageAccountName: $RJReportStorageAccountName" -Verbose
+Write-RjRbLog -Message "RJReportSubscriptionId: $RJReportSubscriptionId" -Verbose
+Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
+Write-RjRbLog -Message "FilterGroupID: $FilterGroupID" -Verbose
+
 "## Trying to export all Intune devices and metadata based on their owner, like usageLocation."
+
+#endregion RJ Log Part
 
 ########################################################
 #region     Variables
 ########################################################
 
-$OwnerMetadataSelect = "city, country, companyName, department, jobTitle, usageLocation, onPremisesExtensionAttributes"
+$OwnerMetadataSelect = "city,country,companyName,department,jobTitle,usageLocation,onPremisesExtensionAttributes"
 
 #endregion Variables
 
@@ -173,42 +192,113 @@ if ((-not $ResourceGroupName) -or (-not $StorageAccountName)) {
 #endregion Parameter Validation
 
 ########################################################
-#region     Main Logic
+#region     Function Definitions
 ########################################################
 
-# Manually import this ahead of MgGraph module to avoid conflicts
-Import-Module Az.Accounts
+function Get-GraphPagedResult {
+    <#
+        .SYNOPSIS
+        Retrieves all items from a paginated Microsoft Graph API endpoint.
 
-Connect-RjRbGraph
-Connect-RjRbAzAccount
+        .DESCRIPTION
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
 
-$groupUserLookup = $null
-if ($FilterGroupID) {
-    Write-RjRbLog -Message "FilterGroupID provided: '$FilterGroupID'" -Verbose
+        .PARAMETER Uri
+        The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
 
-    Write-RjRbLog -Message "Fetching transitive user members for group filter." -Verbose
-    $userIdSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
-    $upnSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        .EXAMPLE
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
+    #>
+    param(
+        [string]$Uri
+    )
 
-    $members = Invoke-RjRbRestMethodGraph -Resource "/groups/$FilterGroupID/transitiveMembers/microsoft.graph.user" -OdSelect "id,userPrincipalName" -FollowPaging
-    foreach ($member in @($members)) {
-        if ($member.id) {
-            [void] $userIdSet.Add([string] $member.id)
+    $allResults = [System.Collections.Generic.List[object]]::new()
+    $nextLink = $Uri
+    $pageCount = 0
+
+    do {
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
         }
-        if ($member.userPrincipalName) {
-            [void] $upnSet.Add([string] $member.userPrincipalName)
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
         }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
+        $nextLink = $response.'@odata.nextLink'
+    } while ($nextLink)
+
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
     }
 
-    $groupUserLookup = @{ UserIds = $userIdSet; UserPrincipalNames = $upnSet }
-    Write-RjRbLog -Message ("FilterGroupID user members loaded. IDs: {0}, UPNs: {1}" -f $groupUserLookup.UserIds.Count, $groupUserLookup.UserPrincipalNames.Count) -Verbose
+    return $allResults.ToArray()
 }
 
-$collectionFailed = $false
+#endregion Function Definitions
+
+########################################################
+#region     Connect Part
+########################################################
+
+Write-RjRbLog -Message "Connecting to Microsoft Graph" -Verbose
 try {
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+}
+catch {
+    Write-Error "Failed to connect to Microsoft Graph. Ensure the managed identity is configured correctly. Error: $($_.Exception.Message)" -ErrorAction Continue
+    throw
+}
+
+#endregion Connect Part
+
+########################################################
+#region     Data Collection
+########################################################
+
+$collectionFailed = $false
+# Invoke-MgGraphRequest returns PSCustomObjects in the property order of the Graph response, as the earlier RunbookHelper calls did,
+# so the CSV keeps its columns; the default is removed again after the collection
+$PSDefaultParameterValues['Invoke-MgGraphRequest:OutputType'] = 'PSObject'
+try {
+    $groupUserLookup = $null
+    if ($FilterGroupID) {
+        Write-RjRbLog -Message "FilterGroupID provided: '$FilterGroupID'" -Verbose
+
+        Write-RjRbLog -Message "Fetching transitive user members for group filter." -Verbose
+        $userIdSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        $upnSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+
+        $members = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/groups/$FilterGroupID/transitiveMembers/microsoft.graph.user?`$select=id,userPrincipalName"
+        foreach ($member in @($members)) {
+            if ($member.id) {
+                [void] $userIdSet.Add([string] $member.id)
+            }
+            if ($member.userPrincipalName) {
+                [void] $upnSet.Add([string] $member.userPrincipalName)
+            }
+        }
+
+        $groupUserLookup = @{ UserIds = $userIdSet; UserPrincipalNames = $upnSet }
+        Write-RjRbLog -Message ("FilterGroupID user members loaded. IDs: {0}, UPNs: {1}" -f $groupUserLookup.UserIds.Count, $groupUserLookup.UserPrincipalNames.Count) -Verbose
+    }
+
     $Exportdevices = @()
     Write-RjRbLog "Fetching all Intune devices."
-    $Devices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdSelect "deviceName, lastSyncDateTime, enrolledDateTime, userPrincipalName, userId, id, serialNumber, manufacturer, model, imei, managedDeviceOwnerType, operatingSystem, osVersion, complianceState" -FollowPaging
+    $Devices = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/deviceManagement/managedDevices?`$select=deviceName,lastSyncDateTime,enrolledDateTime,userPrincipalName,userId,id,serialNumber,manufacturer,model,imei,managedDeviceOwnerType,operatingSystem,osVersion,complianceState"
 
     foreach ($Device in $Devices) {
         if ($groupUserLookup) {
@@ -237,15 +327,22 @@ try {
         $hasOwnerReference = ($Device.userId -and ([string] $Device.userId) -ne "") -or ($Device.userPrincipalName -and ([string] $Device.userPrincipalName) -ne "")
         if ($hasOwnerReference) {
             # Only enrich device data if there is a user reference assigned to the device
-            $userResource = $null
+            $ownerReference = $null
             if ($Device.userId) {
-                $userResource = "/Users/$($Device.userId)"
+                $ownerReference = [string] $Device.userId
             }
             else {
-                $userResource = "/Users/$($Device.userPrincipalName)"
+                $ownerReference = [string] $Device.userPrincipalName
             }
 
-            $primaryOwner = Invoke-RjRbRestMethodGraph -Resource $userResource -OdSelect $OwnerMetadataSelect -ErrorAction SilentlyContinue
+            # A missing or unreadable owner only leaves the owner columns empty
+            $primaryOwner = $null
+            try {
+                $primaryOwner = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$([uri]::EscapeDataString($ownerReference))?`$select=$OwnerMetadataSelect" -Method GET -ErrorAction Stop
+            }
+            catch {
+                Write-RjRbLog -Message "Owner '$ownerReference' of device '$($Device.id)' could not be read: $($_.Exception.Message)" -Verbose
+            }
 
             if ($primaryOwner) {
                 $Exportdevice | Add-Member -Name "city" -Value $primaryOwner.city -MemberType "NoteProperty" -Force
@@ -275,8 +372,11 @@ catch {
     $collectionFailed = $true
     $_
 }
+finally {
+    $PSDefaultParameterValues.Remove('Invoke-MgGraphRequest:OutputType')
+}
 
-#endregion Main Logic
+#endregion Data Collection
 
 ########################################################
 #region     Report File Export
@@ -331,6 +431,12 @@ if ($reportFiles) {
 foreach ($reportFile in $reportFiles) {
     Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
 }
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
 Disconnect-AzAccount -ErrorAction SilentlyContinue -Confirm:$false | Out-Null
+
+Write-Output ""
+Write-Output "Done!"
 
 #endregion Cleanup

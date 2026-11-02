@@ -113,6 +113,7 @@
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 
 param(
     [ValidateScript( { Use-RJInterface -DisplayName "Output" } )]
@@ -143,10 +144,28 @@ param(
     [string] $CallerName
 )
 
+########################################################
+#region     RJ Log Part
+########################################################
+
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 $Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
+
+Write-RjRbLog -Message "ExportToFile: $ExportToFile" -Verbose
+Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
+Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
+Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+Write-RjRbLog -Message "SubscriptionId: $SubscriptionId" -Verbose
+Write-RjRbLog -Message "StorageAccountLocation: $StorageAccountLocation" -Verbose
+Write-RjRbLog -Message "StorageAccountSku: $StorageAccountSku" -Verbose
+Write-RjRbLog -Message "RJReportResourceGroupName: $RJReportResourceGroupName" -Verbose
+Write-RjRbLog -Message "RJReportStorageAccountName: $RJReportStorageAccountName" -Verbose
+Write-RjRbLog -Message "RJReportSubscriptionId: $RJReportSubscriptionId" -Verbose
+Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
+
+#endregion RJ Log Part
 
 ########################################################
 #region     Parameter Validation
@@ -187,64 +206,168 @@ if ($ExportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountName)
 
 #endregion Parameter Validation
 
-Connect-RjRbGraph
+########################################################
+#region     Function Definitions
+########################################################
+
+function Get-GraphPagedResult {
+    <#
+        .SYNOPSIS
+        Retrieves all items from a paginated Microsoft Graph API endpoint.
+
+        .DESCRIPTION
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
+
+        .PARAMETER Uri
+        The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
+
+        .EXAMPLE
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
+    #>
+    param(
+        [string]$Uri
+    )
+
+    $allResults = [System.Collections.Generic.List[object]]::new()
+    $nextLink = $Uri
+    $pageCount = 0
+
+    do {
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
+        }
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
+        $nextLink = $response.'@odata.nextLink'
+    } while ($nextLink)
+
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
+}
+
+#endregion Function Definitions
+
+########################################################
+#region     Connect Part
+########################################################
+
+try {
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+}
+catch {
+    Write-Error "Failed to connect to Microsoft Graph: $($_.Exception.Message)" -ErrorAction Continue
+    throw
+}
+
+#endregion Connect Part
+
+########################################################
+#region     Data Collection
+########################################################
 
 "## AzureAD App. Registrations possibly vulnerable to CVE-2021-42306:"
 
 $beforedate = "2021-12-06T00:00:00Z"
-#$appregs = Invoke-RjRbRestMethodGraph -Resource "/applications" -OdSelect "displayName,id,appId,createdDateTime,keyCredentials" -OdFilter "createdDateTime ge $beforedate"
-$appregs = Invoke-RjRbRestMethodGraph -Resource "/applications" -OdSelect "displayName,id,appId,createdDateTime,keyCredentials" -FollowPaging
+$appregs = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/applications?`$select=displayName,id,appId,createdDateTime,keyCredentials"
 
+#endregion Data Collection
+
+########################################################
+#region     Data Processing
+########################################################
+
+$cutoffDate = [datetimeoffset]$beforedate
 $AffectedAppRegs = @()
 foreach ($appreg in $appregs) {
     if ($appreg.displayName) {
         $DisplayName = $appreg.displayName
     }
     else {
-        $DisplayName = "$(AppId) ($appreg.AppId)"
+        $DisplayName = "AppId ($($appreg.appId))"
     }
-    $appID = $appReg.AppId
+    $appID = $appreg.appId
 
     $ErrorActionPreference = 'SilentlyContinue'
 
     Write-RjRbLog "Trying - $displayName - $appId"
-    foreach ($cred in $appReg.keyCredentials) {
-        if ($cred.Key.Length -gt 2000) {
 
-            $isBefore = $false
-            $certResults = $null
-
-            # Only interested in "old" credentials
-            if (get-date($cred.startdate) -le get-date($beforedate)) {
-                $isBefore = $true
-
-                $outputBase = "$PWD\$appID"
-                $outputFile = "$PWD\$appID.pfx"
-                $iter = 1
-                while (Test-Path $outputFile) {
-                    $outputFile = ( -join ($outputBase, '-', ([string]$iter), '.pfx'))
-                    $iter += 1
-                }
-                Write-RjRbLog "Testing keyId $($cred.keyId)"
-                [IO.File]::WriteAllBytes($outputFile, [Convert]::FromBase64String($cred.Key))
-                $certResults = Get-PfxData $outputFile
+    # Only interested in "old" credentials
+    $candidateKeyIds = @(foreach ($cred in $appreg.keyCredentials) {
+            if (-not $cred.startDateTime) { continue }
+            try {
+                # Depending on the deserializer the value arrives as string or as DateTime
+                $startDate = [datetimeoffset]$cred.startDateTime
             }
+            catch {
+                Write-RjRbLog -Message "Skipping keyId $($cred.keyId) of $DisplayName ($appID) - unreadable startDateTime '$($cred.startDateTime)'" -Verbose
+                continue
+            }
+            if ($startDate -le $cutoffDate) { $cred.keyId }
+        })
+    if ($candidateKeyIds.Count -eq 0) {
+        continue
+    }
 
-            if (($null -ne $certResults) -and $isBefore) {
-                if ($ExportToFile) {
-                    Write-RjRbLog "`t$displayName - $appID - has a potentially vulnerable stored credentials"
-                }
-                else {
-                    "## $DisplayName - $appID - $appID - has a potentially vulnerable stored credentials"
-                }
-                $AffectedAppRegs += "$displayName `t $appID"
+    # Graph only returns the key of a credential for a single-object request
+    try {
+        $appWithKeys = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/applications/$($appreg.id)?`$select=keyCredentials" -Method GET -ErrorAction Stop
+    }
+    catch {
+        Write-RjRbLog -Message "WARNING: Could not read the key credentials of $DisplayName ($appID): $($_.Exception.Message)"
+        continue
+    }
+
+    $isAffected = $false
+    foreach ($cred in $appWithKeys.keyCredentials) {
+        if (($candidateKeyIds -notcontains $cred.keyId) -or ($cred.key.Length -le 2000)) {
+            continue
+        }
+        Write-RjRbLog "Testing keyId $($cred.keyId)"
+        try {
+            # A PKCS#12 (PFX) blob instead of a public certificate means the private key was stored with the credential
+            $contentType = [System.Security.Cryptography.X509Certificates.X509Certificate2]::GetCertContentType([Convert]::FromBase64String($cred.key))
+            if ($contentType -eq [System.Security.Cryptography.X509Certificates.X509ContentType]::Pkcs12) {
+                $isAffected = $true
             }
-            if (Test-Path $outputFile) {
-                Remove-Item $outputFile | Out-Null
-            }
+        }
+        catch {
+            Write-RjRbLog -Message "Could not read keyId $($cred.keyId) of $DisplayName ($appID): $($_.Exception.Message)" -Verbose
+        }
+    }
+
+    if ($isAffected) {
+        if ($ExportToFile) {
+            Write-RjRbLog "`t$displayName - $appID - has a potentially vulnerable stored credentials"
+        }
+        else {
+            "## $DisplayName - $appID - has a potentially vulnerable stored credentials"
+        }
+        $AffectedAppRegs += [PSCustomObject]@{
+            DisplayName = $DisplayName
+            AppId       = $appID
         }
     }
 }
+
+#endregion Data Processing
 
 ########################################################
 #region     Report File Export
@@ -302,5 +425,11 @@ if ($ExportToFile) {
 foreach ($reportFile in $reportFiles) {
     Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
 }
+
+Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+Disconnect-AzAccount -ErrorAction SilentlyContinue -Confirm:$false | Out-Null
+
+Write-Output ""
+Write-Output "Done!"
 
 #endregion Cleanup

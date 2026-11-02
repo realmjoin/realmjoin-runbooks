@@ -20,7 +20,8 @@
 - Let the report runbooks with their own storage settings also use the central report storage settings `RJReport.StorageAccount`
   - `RJReport.StorageAccount.ResourceGroup` and `RJReport.StorageAccount.StorageAccountName` are used when the runbook-specific storage settings are not configured; `RJReport.StorageAccount.LinkExpiryDays` sets how many days the download link stays valid (default 6)
   - The runbook-specific settings (`IntuneDevicesReport`, `EnrolledDevicesReport`, `TenantPolicyReport`, `OfficeLicensingReport`, `CaPoliciesExport`, `ListAdminsReport`, `InactiveDevices`, `VulnAppRegExport`, `EntAppsReport`) and the Automation variable `SettingsExports` keep working and take precedence over `RJReport.StorageAccount`
-  - Existing scheduled runs and API calls keep uploading to the same storage account, container and file names as before
+  - Existing scheduled runs and API calls keep uploading to the same storage account, container and file names as before (except the default container of **Export Policy Report**, see below)
+  - The mapping of the runbook-specific keys to `RJReport.StorageAccount` and the steps to move to it are described in [Runbook Report Settings](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#runbook-specific-storage-settings-deprecated)
   - The runbooks that used the Az.Storage module now upload with `Publish-RjRbFilesToStorageContainer` from RealmJoin.RunbookHelper and require Az.Accounts 5.5.2
   - These runbooks no longer create the storage account: create it beforehand and assign `Reader and Data Access` on it to the Automation account's managed identity. The container is still created on the first upload
   - `StorageAccountLocation` and `StorageAccountSku` are deprecated and ignored; runs that still pass them (older scheduled runs, API calls) log a warning. Re-create these scheduled runs; a later version removes both parameters
@@ -71,6 +72,17 @@
     - **List Signin Events** - User/Security (v1.2.0)
 - Stop **Export Policy Report** with a configuration hint before it collects the policies when no storage account is configured; before, it collected all policies and then failed at the upload
 - Fix the success message of **Export All Autopilot Devices**, which said `Inactive Devices Export created.`
+- Change the default container of **Export Policy Report** from `rjrb-licensing-report-v2`, the container of **Office365 License Report**, to `export-policy-report`
+  - Tenants that set `TenantPolicyReport.Container` keep their container, as do scheduled runs created with it
+  - Without that setting, new reports go to `export-policy-report` from the next run on; earlier reports stay in `rjrb-licensing-report-v2`
+- Modernize **Export All Intune Devices**, **Backup Conditional Access Policies**, **List Vulnerable App Regs** and **Export Policy Report**
+  - The first three now call Microsoft Graph with `Connect-MgGraph` and `Invoke-MgGraphRequest` instead of the RealmJoin Graph helpers and require Microsoft.Graph.Authentication 2.41.2; the exported files and the run output stay the same, apart from a closing `Done!` line
+  - All four follow the standard runbook structure; parameters and versions stay as listed above
+  - **Backup Conditional Access Policies** now exports all pages of the policy list; before, only the first page was exported
+  - **Export All Intune Devices** no longer uploads an empty CSV when the device list cannot be read; the run shows the error instead
+- Update the CVE-2021-42306 check of **List Vulnerable App Regs**
+  - The key credentials of app registrations with a credential from before 6 December 2021 are read per app registration, because Microsoft Graph returns the key only there; an app registration is reported when such a credential contains a private key (PKCS#12)
+  - The check no longer needs the Windows PKI module; the CSV export lists `DisplayName` and `AppId` of the affected app registrations
 
 ## 2026-10-23
 

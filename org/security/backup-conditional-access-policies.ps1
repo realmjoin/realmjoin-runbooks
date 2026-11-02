@@ -81,6 +81,7 @@
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 
 param(
     # Legacy report settings: CaPoliciesExport.* - rebind to RJReport.StorageAccount.* (ContainerName: unbind) when it is switched off
@@ -109,30 +110,27 @@ param(
     [string] $CallerName
 )
 
+########################################################
+#region     RJ Log Part
+########################################################
+
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 $Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
-# Write a JSON file from a Policy / group description object
-function Export-PolicyObject {
-    param (
-        [Parameter(Mandatory = $true)]
-        [array]$policies
-    )
+Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
+Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
+Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+Write-RjRbLog -Message "SubscriptionId: $SubscriptionId" -Verbose
+Write-RjRbLog -Message "StorageAccountLocation: $StorageAccountLocation" -Verbose
+Write-RjRbLog -Message "StorageAccountSku: $StorageAccountSku" -Verbose
+Write-RjRbLog -Message "RJReportResourceGroupName: $RJReportResourceGroupName" -Verbose
+Write-RjRbLog -Message "RJReportStorageAccountName: $RJReportStorageAccountName" -Verbose
+Write-RjRbLog -Message "RJReportSubscriptionId: $RJReportSubscriptionId" -Verbose
+Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
 
-    $policies | ForEach-Object {
-        $name = $_.displayName -replace "[$([RegEx]::Escape([string][IO.Path]::GetInvalidFileNameChars()))]+", "_"
-        if (-not (Test-Path ($name + ".json"))) {
-            $_ | ConvertTo-Json -Depth 6 > ($name + ".json")
-        }
-        else {
-            "## Will not overwrite " + ($name + ".json") + ". Skipping."
-        }
-
-    }
-
-}
+#endregion RJ Log Part
 
 ########################################################
 #region     Parameter Validation
@@ -190,64 +188,174 @@ if ((-not $ResourceGroupName) -or (-not $StorageAccountName)) {
 
 #endregion Parameter Validation
 
+########################################################
+#region     Function Definitions
+########################################################
+
+# Write a JSON file from a Policy / group description object
+function Export-PolicyObject {
+    param (
+        [Parameter(Mandatory = $true)]
+        [array]$policies
+    )
+
+    $policies | ForEach-Object {
+        $name = $_.displayName -replace "[$([RegEx]::Escape([string][IO.Path]::GetInvalidFileNameChars()))]+", "_"
+        if (-not (Test-Path ($name + ".json"))) {
+            $_ | ConvertTo-Json -Depth 6 > ($name + ".json")
+        }
+        else {
+            "## Will not overwrite " + ($name + ".json") + ". Skipping."
+        }
+
+    }
+
+}
+
+function Get-GraphPagedResult {
+    <#
+        .SYNOPSIS
+        Retrieves all items from a paginated Microsoft Graph API endpoint.
+
+        .DESCRIPTION
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
+
+        .PARAMETER Uri
+        The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
+
+        .EXAMPLE
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
+    #>
+    param(
+        [string]$Uri
+    )
+
+    $allResults = [System.Collections.Generic.List[object]]::new()
+    $nextLink = $Uri
+    $pageCount = 0
+
+    do {
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
+        }
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
+        $nextLink = $response.'@odata.nextLink'
+    } while ($nextLink)
+
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
+}
+
+#endregion Function Definitions
+
+########################################################
+#region     Connect Part
+########################################################
+
+try {
+    Connect-MgGraph -Identity -NoWelcome
+}
+catch {
+    Write-Error "Failed to connect to Microsoft Graph: $_"
+    throw
+}
+
+#endregion Connect Part
+
+########################################################
+#region     Data Collection
+########################################################
+
+# Fetch the policies as PSCustomObjects, so the JSON files keep the property order of the Graph response as in earlier versions
+$PSDefaultParameterValues['Invoke-MgGraphRequest:OutputType'] = 'PSObject'
+$pols = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies"
+$PSDefaultParameterValues.Remove('Invoke-MgGraphRequest:OutputType')
+
+if (-not $pols) {
+    Write-Error "No Conditional Access policies were found - there is nothing to back up." -ErrorAction Continue
+    throw "No Conditional Access policies found."
+}
+
+#endregion Data Collection
+
+########################################################
+#region     Report File Export
+########################################################
+
 $reportFiles = @()
 $exportFolder = Join-Path ([System.IO.Path]::GetTempPath()) "conditional-policy-backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
 
+# Write policy export as files
+$policyFolder = Join-Path $exportFolder "CAPols"
+New-Item -Path $policyFolder -ItemType Directory -Force | Out-Null
+Push-Location -Path $policyFolder
+Export-PolicyObject -policies $pols
+Pop-Location
+
+# Compressed Archive mode - the archive name becomes the blob name, as in earlier versions
+$reportFile = Join-Path $exportFolder "$ContainerName.zip"
+Compress-Archive -Path (Join-Path $policyFolder "*") -DestinationPath $reportFile | Out-Null
+$reportFiles += $reportFile
+
+#endregion Report File Export
+
+########################################################
+#region     Upload / Download Link
+########################################################
+
+# Upload and create signed (SAS) link
 try {
-
-    Connect-RjRbGraph
-    Connect-RjRbAzAccount
-
-    # fetch the policies
-    $pols = Invoke-RjRbRestMethodGraph -Resource "/identity/conditionalAccess/policies"
-
-    # Write policy export as files
-    $policyFolder = Join-Path $exportFolder "CAPols"
-    New-Item -Path $policyFolder -ItemType Directory -Force | Out-Null
-    Push-Location -Path $policyFolder
-    Export-PolicyObject -policies $pols
-    Pop-Location
-
-    # Compressed Archive mode - the archive name becomes the blob name, as in earlier versions
-    $reportFile = Join-Path $exportFolder "$ContainerName.zip"
-    Compress-Archive -Path (Join-Path $policyFolder "*") -DestinationPath $reportFile | Out-Null
-    $reportFiles += $reportFile
-
-    # Upload and create signed (SAS) link
-    try {
-        Write-RjRbLog -Message "Upload" -Verbose
-        $uploadResults = Publish-RjRbFilesToStorageContainer `
-            -FilePaths $reportFiles `
-            -ContainerName $ContainerName `
-            -ResourceGroupName $ResourceGroupName `
-            -StorageAccountName $StorageAccountName `
-            -SubscriptionId $SubscriptionId `
-            -LinkExpiryDays $LinkExpiryDays `
-            -AddBlobNamePrefix $false
-    }
-    catch {
-        Write-RjRbLog -Message "Upload to storage account '$StorageAccountName' failed: $($_.Exception.Message). The managed identity needs the 'Reader and Data Access' role on the storage account." -Verbose
-        throw $_
-    }
-
-    foreach ($uploadResult in $uploadResults) {
-        "## Successfully created Conditional Access Export."
-        "## Expiry of the Link: $($uploadResult.EndTime)"
-        $uploadResult.SASLink | Out-String
-    }
-
+    Write-RjRbLog -Message "Upload" -Verbose
+    $uploadResults = Publish-RjRbFilesToStorageContainer `
+        -FilePaths $reportFiles `
+        -ContainerName $ContainerName `
+        -ResourceGroupName $ResourceGroupName `
+        -StorageAccountName $StorageAccountName `
+        -SubscriptionId $SubscriptionId `
+        -LinkExpiryDays $LinkExpiryDays `
+        -AddBlobNamePrefix $false
 }
 catch {
+    Write-RjRbLog -Message "Upload to storage account '$StorageAccountName' failed: $($_.Exception.Message). The managed identity needs the 'Reader and Data Access' role on the storage account." -Verbose
     throw $_
 }
-finally {
-    Disconnect-AzAccount -Confirm:$false | Out-Null
+
+foreach ($uploadResult in $uploadResults) {
+    "## Successfully created Conditional Access Export."
+    "## Expiry of the Link: $($uploadResult.EndTime)"
+    $uploadResult.SASLink | Out-String
 }
+
+#endregion Upload / Download Link
 
 ########################################################
 #region     Cleanup
 ########################################################
 
 Remove-Item -LiteralPath $exportFolder -Recurse -Force -ErrorAction SilentlyContinue
+Disconnect-AzAccount -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+
+Write-Output ""
+Write-Output "Done!"
 
 #endregion Cleanup

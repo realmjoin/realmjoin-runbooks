@@ -101,7 +101,7 @@ param(
     [bool] $renderLatexPagebreaks = $true,
     # Legacy report settings: TenantPolicyReport.* - rebind to RJReport.StorageAccount.* (ContainerName: unbind) when it is switched off
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.Container" } )]
-    [string] $ContainerName = "rjrb-licensing-report-v2",
+    [string] $ContainerName = "export-policy-report",
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.ResourceGroup" } )]
     [string] $ResourceGroupName,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.StorageAccount.Name" } )]
@@ -1273,7 +1273,7 @@ function ConvertTo-MarkdownGroupPolicyConfiguration {
 #endregion Function Definitions
 
 ########################################################
-#region     Main Logic
+#region     Connect Part
 ########################################################
 
 try {
@@ -1287,6 +1287,12 @@ catch {
     $_
     throw("Auth failed")
 }
+
+#endregion Connect Part
+
+########################################################
+#region     Data Collection
+########################################################
 
 ""
 "## Creating Report..."
@@ -1441,7 +1447,22 @@ foreach ($policy in $conditionalAccessPolicies) {
 "" >> $outputFileMarkdown
 ""
 
-#endregion Main Logic
+#endregion Data Collection
+
+########################################################
+#region     Data Processing
+########################################################
+
+# Remove harmfull characters
+
+# Read Markdown into variable
+$content = Get-Content -Path $outputFileMarkdown
+# Make sure Markdown contains no singular backslash or percent sign (unless intended LaTeX)
+$content = $content -replace '(?!^)([\\%])', '\$1'
+# Replace all cyrillic characters with "." (unless intended LaTeX)
+$content = $content -replace '[Ѐ-ӿ]', '.'
+
+#endregion Data Processing
 
 ########################################################
 #region     Report File Export
@@ -1459,15 +1480,6 @@ if ($exportJson) {
         $reportFiles += $zipFile
     }
 }
-
-# Remove harmfull characters
-
-# Read Markdown into variable
-$content = Get-Content -Path $outputFileMarkdown
-# Make sure Markdown contains no singular backslash or percent sign (unless intended LaTeX)
-$content = $content -replace '(?!^)([\\%])', '\$1'
-# Replace all cyrillic characters with "." (unless intended LaTeX)
-$content = $content -replace '[Ѐ-ӿ]', '.'
 
 # Make sure Markdown is UTF8 - the local file name becomes the blob name, so uploads keep the blob names of earlier versions
 $markdownFile = Join-Path ([System.IO.Path]::GetTempPath()) "$(Get-Date -Format "yyyy-MM-dd")-policy-report.md"
@@ -1534,5 +1546,8 @@ foreach ($reportFile in $reportFiles) {
 
 Disconnect-AzAccount -ErrorAction SilentlyContinue | Out-Null
 Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+
+Write-Output ""
+Write-Output "Done!"
 
 #endregion Cleanup
