@@ -4152,6 +4152,7 @@ Org \ General \ Report Intune Enrollment Readiness
 ## Interpretation notes
 
 - Checks performed per user: account state, Intune license and service plan, tenant MDM authority, device enrollment limit, platform restrictions, registered authentication methods, Conditional Access policies and, optionally, pilot group membership.
+- The device enrollment limit is the assigned limit configuration with the lowest priority number that targets All users or one of the user's groups (excluded groups are honored), falling back to the default limit. It is compared with the user's Intune-enrolled devices; the user's Entra registered and joined devices are also compared with the Entra setting *Maximum number of devices per user*, and reaching either one is reported as a blocking reason.
 - Conditional Access is evaluated as a static "What If" against the enrollment sign-in for each user's `EnrollmentPlatform`; Entra's own What If tool remains the authority.
 - Compliant-device requirements on "All resources" policies do not block enrollment (a documented Entra exemption); only policies targeting device registration or the Intune enrollment apps are treated as strict gates.
 - Not evaluated statically: named locations, device filters, sign-in frequency and terms of use.
@@ -4190,7 +4191,6 @@ The report email honors the optional `RJReport.Branding.*` tenant settings:
 When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email - the corresponding default is used instead.
 
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
-
 
 
 [Back to Table of Content](#table-of-contents)
@@ -5881,12 +5881,11 @@ The tenant MDM authority must be "intune" or "office365"; other values block eve
 The readiness verdict combines these checks:
 
 - Account status (enabled, not blocked) and an Intune license assigned to the user.
-- The tenant's device enrollment limit for the user and the platform restrictions of the enrollment configuration.
+- The tenant's device enrollment limit for the user and the platform restrictions of the enrollment configuration. The limit is the assigned limit configuration with the lowest priority number that targets All users or one of the user's groups (excluded groups are honored), falling back to the default limit, and is compared with the user's Intune-enrolled devices. The user's Entra registered and joined devices are also compared with the Entra setting *Maximum number of devices per user*.
 - Conditional Access policies that explicitly target device registration or Intune enrollment. Policies that require a compliant device via *All resources* are exempted by Microsoft Entra design and therefore not counted as blockers.
 - Platform-scoped policies and browser-only client-app requirements are evaluated against the chosen enrollment platform; with *All platforms* every platform is evaluated and reported separately.
 
 The runbook only reads; it changes nothing on the user or the tenant.
-
 
 
 [Back to Table of Content](#table-of-contents)

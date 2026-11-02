@@ -77,7 +77,7 @@ Also alerts on advisories, not only on incidents.
 
 | Property | Value |
 |----------|-------|
-| Default Value | False |
+| Default Value | True |
 | Required | false |
 | Type | Boolean |
 
