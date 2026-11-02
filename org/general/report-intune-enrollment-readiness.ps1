@@ -271,7 +271,7 @@ param(
 ########################################################
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.2.0"
+$Version = "1.2.3"
 Write-RjRbLog -Message "RealmJoin Runbook: Report Intune Enrollment Readiness. Version: $Version" -Verbose
 
 Write-RjRbLog -Message "UserName: $(($UserName | Measure-Object).Count) user(s) selected" -Verbose
@@ -926,7 +926,7 @@ function Get-CaEnrollmentAssessment {
 ########################################################
 #region     Connect Part
 ########################################################
-Write-Output "Connecting to Microsoft Graph..."
+Write-RjRbLog -Message "Connecting to Microsoft Graph..." -Verbose
 try {
     Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
 }
@@ -936,7 +936,7 @@ catch {
     throw
 }
 
-Write-Output "## Retrieving tenant information..."
+Write-RjRbLog -Message "Retrieving tenant information..." -Verbose
 $tenantDisplayName = "Unknown Tenant"
 try {
     $organizationResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization?`$select=displayName" -Method GET -ErrorAction Stop
@@ -946,7 +946,7 @@ try {
     elseif ($organizationResponse.displayName) {
         $tenantDisplayName = $organizationResponse.displayName
     }
-    Write-Output "## Tenant: $($tenantDisplayName)"
+    Write-Output "Tenant: $($tenantDisplayName)"
 }
 catch {
     # Non-fatal: the report still runs, just with a generic tenant label. 403 here almost always
@@ -958,9 +958,7 @@ catch {
 ########################################################
 #region     Data Collection
 ########################################################
-Write-Output ""
-Write-Output "## Resolving target users"
-Write-Output "---------------------"
+Write-RjRbLog -Message "Resolving target users" -Verbose
 
 # Initialize target user list
 [System.Collections.Generic.List[object]]$targetUsers = @()
@@ -1034,14 +1032,12 @@ if ($targetUsers.Count -eq 0) {
     throw "No target users specified or resolved"
 }
 
-Write-Output "Resolved $($targetUsers.Count) user(s) for evaluation"
+Write-RjRbLog -Message "Resolved $($targetUsers.Count) user(s) for evaluation" -Verbose
 if ($targetUsers.Count -gt 100) {
     Write-RjRbLog -Message "Note: Evaluating a large number of users may take several minutes." -Verbose
 }
 
-Write-Output ""
-Write-Output "## Tenant enrollment context"
-Write-Output "---------------------"
+Write-RjRbLog -Message "Collecting tenant enrollment context" -Verbose
 
 # Collect tenant-level Intune context
 try {
@@ -1062,7 +1058,7 @@ try {
         }
     }
 
-    Write-Output "Found Intune-capable licenses: $($intuneSkuPartNumbers -join ', ')"
+    Write-RjRbLog -Message "Found Intune-capable licenses: $($intuneSkuPartNumbers -join ', ')" -Verbose
 }
 catch {
     # Non-fatal: license readiness will show as unknown for all users, but the rest of the report still runs.
@@ -1088,8 +1084,8 @@ try {
     $enrollmentLimitConfigs = @($allEnrollmentConfigs | Where-Object { $_.'@odata.type' -like "*deviceEnrollmentLimitConfiguration" } | Sort-Object -Property priority)
     $platformRestrictionConfigs = @($allEnrollmentConfigs | Where-Object { $_.'@odata.type' -like "*deviceEnrollmentPlatformRestriction*" } | Sort-Object -Property priority)
 
-    Write-Output "Found $($enrollmentLimitConfigs.Count) enrollment limit configuration(s)"
-    Write-Output "Found $($platformRestrictionConfigs.Count) platform restriction configuration(s)"
+    Write-RjRbLog -Message "Found $($enrollmentLimitConfigs.Count) enrollment limit configuration(s)" -Verbose
+    Write-RjRbLog -Message "Found $($platformRestrictionConfigs.Count) platform restriction configuration(s)" -Verbose
 }
 catch {
     # Non-fatal: enrollment limit/platform-restriction readiness will show as unknown for all users.
@@ -1113,7 +1109,7 @@ try {
     $allCaPolicies = Get-GraphPagedResult -Uri $caUri
 
     $caPolicies = @($allCaPolicies | Where-Object { $_.state -eq 'enabled' })
-    Write-Output "Found $($caPolicies.Count) enabled Conditional Access policy(ies)"
+    Write-RjRbLog -Message "Found $($caPolicies.Count) enabled Conditional Access policy(ies)" -Verbose
 }
 catch {
     # Non-fatal: Conditional Access readiness will show as unknown for all users.
@@ -1172,7 +1168,7 @@ try {
         default { $mdmAuthority = if ($mdmAuthorityValue) { $mdmAuthorityValue } else { "Not set" } }
     }
 
-    Write-Output "MDM Authority: $mdmAuthority"
+    Write-RjRbLog -Message "MDM Authority: $mdmAuthority" -Verbose
 }
 catch {
     # Non-fatal: MDM authority is reported as "Unknown" and the rest of the report still runs.
@@ -1191,6 +1187,7 @@ catch {
 
 # Resolve pilot group if requested
 $pilotGroupId = $null
+$pilotGroupResolvedName = $null
 [System.Collections.Generic.HashSet[string]]$pilotMemberIds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 $pilotMembersResolved = $false
 
@@ -1210,7 +1207,8 @@ if ($CheckPilotGroupMembership -and $PilotGroupDisplayName) {
         }
         else {
             $pilotGroupId = $groupResult.value[0].id
-            Write-Output "Resolved pilot group: $($groupResult.value[0].displayName)"
+            $pilotGroupResolvedName = $groupResult.value[0].displayName
+            Write-RjRbLog -Message "Resolved pilot group: $pilotGroupResolvedName" -Verbose
 
             # Retrieve pilot group member IDs
             $pilotMembersUri = "https://graph.microsoft.com/v1.0/groups/$pilotGroupId/transitiveMembers/microsoft.graph.user?`$select=id"
@@ -1222,7 +1220,7 @@ if ($CheckPilotGroupMembership -and $PilotGroupDisplayName) {
 
             # Mark pilot membership as successfully resolved only after member enumeration completes
             $pilotMembersResolved = $true
-            Write-Output "Pilot group has $($pilotMemberIds.Count) member(s)"
+            Write-RjRbLog -Message "Pilot group has $($pilotMemberIds.Count) member(s)" -Verbose
         }
     }
     catch {
@@ -1241,13 +1239,13 @@ if ($CheckPilotGroupMembership -and $PilotGroupDisplayName) {
     }
 }
 
-Write-Output ""
-Write-Output "## Collecting per-user data"
-Write-Output "---------------------"
+Write-RjRbLog -Message "Collecting per-user data" -Verbose
 
 # Initialize hashtables for per-user data
 $userAuthMethods = @{}
 $userDeviceCounts = @{}
+$userEntraDeviceCounts = @{}
+$userManagedDeviceCounts = @{}
 
 $userCounter = 0
 foreach ($user in $targetUsers) {
@@ -1292,15 +1290,17 @@ foreach ($user in $targetUsers) {
 
     # Collect device count
     try {
-        $deviceCountUri = "https://graph.microsoft.com/v1.0/users/$($user.id)/ownedDevices?`$select=id"
-        $ownedDevicesResult = Invoke-MgGraphRequest -Uri $deviceCountUri -Method GET -ErrorAction Stop
+        $deviceCountUri = "https://graph.microsoft.com/v1.0/users/$($user.id)/ownedDevices?`$select=id,trustType&`$top=999"
+        $ownedDevicesAll = @()
+        while ($deviceCountUri) {
+            $ownedDevicesResult = Invoke-MgGraphRequest -Uri $deviceCountUri -Method GET -ErrorAction Stop
+            $ownedDevicesAll += @($ownedDevicesResult.value)
+            $deviceCountUri = $ownedDevicesResult.'@odata.nextLink'
+        }
 
-        if ($ownedDevicesResult.value) {
-            $userDeviceCounts[$user.id] = @($ownedDevicesResult.value).Count
-        }
-        else {
-            $userDeviceCounts[$user.id] = 0
-        }
+        $userDeviceCounts[$user.id] = $ownedDevicesAll.Count
+        # Entra registered or joined devices count against the Entra device quota; hybrid joined do not
+        $userEntraDeviceCounts[$user.id] = @($ownedDevicesAll | Where-Object { $_.trustType -in @("Workplace", "AzureAd") }).Count
     }
     catch {
         # Non-fatal: this single user's device count is recorded as unknown; the report continues.
@@ -1318,10 +1318,28 @@ foreach ($user in $targetUsers) {
             Write-RjRbLog -Message "WARNING: Failed to retrieve owned device count for user '$($user.userPrincipalName)': $($authError.Exception.Message)" -Verbose
         }
         $userDeviceCounts[$user.id] = $null
+        $userEntraDeviceCounts[$user.id] = $null
+    }
+
+    # Collect Intune-enrolled device count (the Intune enrollment limit counts these, not every Entra device)
+    try {
+        $managedDeviceCount = 0
+        $managedDevicesUri = "https://graph.microsoft.com/v1.0/users/$($user.id)/managedDevices?`$select=id&`$top=999"
+        while ($managedDevicesUri) {
+            $managedDevicesResult = Invoke-MgGraphRequest -Uri $managedDevicesUri -Method GET -ErrorAction Stop
+            $managedDeviceCount += @($managedDevicesResult.value).Count
+            $managedDevicesUri = $managedDevicesResult.'@odata.nextLink'
+        }
+        $userManagedDeviceCounts[$user.id] = $managedDeviceCount
+    }
+    catch {
+        # Non-fatal: this single user's Intune device count is recorded as unknown; the report continues.
+        Write-RjRbLog -Message "WARNING: Failed to retrieve Intune-enrolled devices for user '$($user.userPrincipalName)'. Check that the managed identity has the DeviceManagementManagedDevices.Read.All application permission. Recorded as unknown. Detail: $($_.Exception.Message)" -Verbose
+        $userManagedDeviceCounts[$user.id] = $null
     }
 }
 
-Write-Output "Collected authentication and device data for $($targetUsers.Count) user(s)"
+Write-RjRbLog -Message "Collected authentication and device data for $($targetUsers.Count) user(s)" -Verbose
 #endregion Data Collection
 
 ########################################################
@@ -1344,6 +1362,9 @@ $intuneServicePlanIds = @($intuneServicePlanIds | Sort-Object -Unique)
 # Both feed the Conditional Access assignment-scope evaluation.
 $userGroupCache = @{}
 $userRoleCache = @{}
+# Entra 'Maximum number of devices per user', read once on first use; a failed read skips the quota check
+$entraDeviceQuota = $null
+$entraDeviceQuotaLoaded = $false
 
 # Track blocking reasons for summary statistics. Categories come from the Conditional Access assessment
 # at runtime, so the counter is initialised on first use rather than from a fixed list.
@@ -1351,7 +1372,7 @@ $blockingReasonCounts = @{}
 
 # Platform enumeration for Conditional Access evaluation
 $platformMap = [ordered]@{ 'Windows' = 'windows'; 'iOS' = 'iOS'; 'Android' = 'android'; 'macOS' = 'macOS' }
-$platformsToCheck = if ($EnrollmentPlatform -eq 'All') { @($platformMap.Keys | ForEach-Object { [string]$_ }) } else { @($EnrollmentPlatform) }
+$platformsToCheck = @(if ($EnrollmentPlatform -eq 'All') { $platformMap.Keys | ForEach-Object { [string]$_ } } else { $EnrollmentPlatform })
 
 # Build per-user readiness assessment
 $reportRows = @()
@@ -1433,17 +1454,39 @@ foreach ($user in $targetUsers) {
     # 4. Check device enrollment limit
     $deviceCount = $userDeviceCounts[$user.id]
     $enrollmentLimitValue = $null
+    $applicableConfig = $null
+    $managedDeviceCount = $userManagedDeviceCounts[$user.id]
+
+    # Group memberships decide which assigned limit configurations apply; resolved once per user and cached
+    # (the Conditional Access evaluation below reuses the same cache).
+    if (-not $userGroupCache.ContainsKey($user.id)) {
+        try {
+            $memberOfResult = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/users/$($user.id)/transitiveMemberOf/microsoft.graph.group?`$select=id&`$top=999")
+            $userGroupCache[$user.id] = @($memberOfResult | ForEach-Object { [string]$_.id })
+        }
+        catch {
+            $userGroupCache[$user.id] = $null
+        }
+    }
+    $limitUserGroupIds = if ($null -eq $userGroupCache[$user.id]) { @() } else { @($userGroupCache[$user.id]) }
 
     if ($enrollmentLimitConfigs -and $enrollmentLimitConfigs.Count -gt 0) {
-        # Select by priority: highest > 0, else priority 0 default
-        $priorityOrderedConfigs = @($enrollmentLimitConfigs | Sort-Object -Property priority -Descending)
-
-        # First try any assigned config with priority > 0
-        $applicableConfig = $priorityOrderedConfigs | Where-Object { $_.priority -gt 0 } | Select-Object -First 1
+        # Select by priority: the assigned custom config (priority > 0) with the lowest priority number.
+        # A config applies when assigned to All users or to a group of the user, unless an excluded group matches.
+        $applicableConfig = $enrollmentLimitConfigs | Where-Object {
+            if ($_.priority -le 0) { return $false }
+            $limitTargets = @($_.assignments | ForEach-Object { $_.target })
+            $limitExcluded = @($limitTargets | Where-Object { $_.'@odata.type' -like "*.exclusionGroupAssignmentTarget" -and $limitUserGroupIds -contains [string]$_.groupId }).Count -gt 0
+            $limitIncluded = @($limitTargets | Where-Object {
+                    $_.'@odata.type' -like "*.allLicensedUsersAssignmentTarget" -or
+                    ($_.'@odata.type' -like "*.groupAssignmentTarget" -and $limitUserGroupIds -contains [string]$_.groupId)
+                }).Count -gt 0
+            $limitIncluded -and -not $limitExcluded
+        } | Sort-Object -Property priority | Select-Object -First 1
 
         # Fall back to priority 0 default
         if (-not $applicableConfig) {
-            $applicableConfig = $priorityOrderedConfigs | Where-Object { $_.priority -eq 0 } | Select-Object -First 1
+            $applicableConfig = $enrollmentLimitConfigs | Where-Object { $_.priority -eq 0 } | Select-Object -First 1
         }
 
         # Only use non-null limits; zero is a valid "block all" value
@@ -1452,14 +1495,31 @@ foreach ($user in $targetUsers) {
         }
     }
 
-    if ($null -ne $deviceCount) {
-        if ($null -ne $enrollmentLimitValue -and $deviceCount -ge $enrollmentLimitValue) {
-            $neutralBlockingReasons += "Device enrollment limit reached ($deviceCount/$enrollmentLimitValue)"
+    if ($null -ne $managedDeviceCount) {
+        if ($null -ne $enrollmentLimitValue -and $managedDeviceCount -ge $enrollmentLimitValue) {
+            $neutralBlockingReasons += "Device enrollment limit reached ($managedDeviceCount of $enrollmentLimitValue Intune devices, limit policy '$($applicableConfig.displayName)')"
             $blockingReasonCounts["Device enrollment limit reached"] += 1
         }
     }
     else {
         $neutralWarnings += "Device count unknown"
+    }
+
+    # Entra 'Maximum number of devices per user' (registered and joined devices); skipped when the policy cannot be read
+    if (-not $entraDeviceQuotaLoaded) {
+        $entraDeviceQuotaLoaded = $true
+        try {
+            $deviceRegistrationPolicy = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/policies/deviceRegistrationPolicy?`$select=userDeviceQuota" -Method GET -ErrorAction Stop
+            $entraDeviceQuota = [int]$deviceRegistrationPolicy.userDeviceQuota
+        }
+        catch {
+            Write-RjRbLog -Message "WARNING: Could not read the Entra device registration policy; the Entra device quota check is skipped: $($_.Exception.Message)" -Verbose
+        }
+    }
+    $entraDeviceCount = $userEntraDeviceCounts[$user.id]
+    if ($null -ne $entraDeviceQuota -and $null -ne $entraDeviceCount -and $entraDeviceCount -ge $entraDeviceQuota) {
+        $neutralBlockingReasons += "Entra device limit reached ($entraDeviceCount of $entraDeviceQuota Entra registered or joined devices)"
+        $blockingReasonCounts["Entra device limit reached"] += 1
     }
 
     # 5. Check platform restrictions
@@ -1649,7 +1709,11 @@ foreach ($user in $targetUsers) {
             MdmAuthority               = $mdmAuthority
             PermittedPlatforms         = if ([string]::IsNullOrEmpty($permittedPlatforms)) { "Not determined" } else { $permittedPlatforms }
             RegisteredDeviceCount      = if ($null -ne $deviceCount) { $deviceCount.ToString() } else { "Unknown" }
-            DeviceEnrollmentLimit      = if ($enrollmentLimitValue) { $enrollmentLimitValue.ToString() } else { "Not configured" }
+            DeviceEnrollmentLimit      = if ($null -ne $enrollmentLimitValue) { $enrollmentLimitValue.ToString() } else { "Not configured" }
+            EnrollmentLimitPolicy      = if ($applicableConfig) { $applicableConfig.displayName } else { "Not determined" }
+            IntuneDeviceCount          = if ($null -ne $managedDeviceCount) { $managedDeviceCount.ToString() } else { "Unknown" }
+            EntraDeviceCount           = if ($null -ne $entraDeviceCount) { $entraDeviceCount.ToString() } else { "Unknown" }
+            EntraDeviceLimit           = if ($null -ne $entraDeviceQuota) { $entraDeviceQuota.ToString() } else { "Unknown" }
             MfaCapable                 = $userHasMfa
             RegisteredAuthMethods      = $authMethodDisplay
             BlockingPolicies           = if ($caBlockingPolicies.Count -gt 0) { $caBlockingPolicies -join "; " } else { "None" }
@@ -1776,6 +1840,9 @@ else {
     Write-Output ""
     Write-Output ("{0,-22}: {1}" -f "Tenant MDM authority", $mdmAuthority)
 }
+if ($pilotGroupResolvedName) {
+    Write-Output ("{0,-22}: {1} ({2} member(s))" -f "Pilot group", $pilotGroupResolvedName, $pilotMemberIds.Count)
+}
 
 if ($topBlockingReasons.Count -gt 0) {
     Write-Output ""
@@ -1786,11 +1853,35 @@ if ($topBlockingReasons.Count -gt 0) {
     }
 }
 
-# The users per readiness status, with their blocking reasons and warnings, are listed in the Output Data
-# tables at the end of the run; the console keeps the counts only.
 $notReadyUsers = @($reportRows | Where-Object { $_.ReadinessStatus -eq "Not ready" })
 $warningUsers = @($reportRows | Where-Object { $_.ReadinessStatus -eq "Ready with warnings" })
 $readyUsers = @($reportRows | Where-Object { $_.ReadinessStatus -eq "Ready" })
+
+# Per-user details in the job output, in the same style as the check runbook: blockers [X], warnings [!].
+# Capped so a large group does not flood the output; the Output Data tables and report files list everyone.
+$consoleUserLimit = 50
+foreach ($section in @(
+        @{ Title = "Not ready"; Rows = $notReadyUsers },
+        @{ Title = "Ready with warnings"; Rows = $warningUsers }
+    )) {
+    if ($section.Rows.Count -eq 0) { continue }
+    Write-Output ""
+    Write-Output "## $($section.Title) ($($section.Rows.Count))"
+    Write-Output "---------------------"
+    foreach ($row in @($section.Rows | Select-Object -First $consoleUserLimit)) {
+        $platformSuffix = if ($platformsToCheck.Count -gt 1) { " - $($row.EnrollmentPlatform)" } else { "" }
+        Write-Output "  $($row.DisplayName) ($($row.UserPrincipalName))$($platformSuffix)"
+        if ($row.BlockingReasons -ne "None") {
+            foreach ($reasonText in ($row.BlockingReasons -split '; ')) { Write-Output "    [X] $reasonText" }
+        }
+        if ($row.Warnings -ne "None") {
+            foreach ($warningText in ($row.Warnings -split '; ')) { Write-Output "    [!] $warningText" }
+        }
+    }
+    if ($section.Rows.Count -gt $consoleUserLimit) {
+        Write-Output "  ... and $($section.Rows.Count - $consoleUserLimit) more - see the Output Data table '$($section.Title)'."
+    }
+}
 
 # Check if all users are ready
 if ($notReadyUsers.Count -eq 0 -and $warningUsers.Count -eq 0) {
@@ -1879,8 +1970,7 @@ if (($sendEmail -or $CreateDownloadLink) -and $reportRows.Count -gt 0) {
         Write-RjRbLog -Message "Exported $($reportRows.Count) items to: $xlsxFile" -Verbose
     }
 
-    Write-Output ""
-    Write-Output "Report file export completed: $($reportFiles.Count) file(s) created."
+    Write-RjRbLog -Message "Report file export completed: $($reportFiles.Count) file(s) created." -Verbose
 }
 elseif ($reportRows.Count -eq 0) {
     Write-RjRbLog -Message "No users in the report - skipping the report file export" -Verbose
@@ -1893,7 +1983,8 @@ elseif ($reportRows.Count -eq 0) {
 if ($CreateDownloadLink) {
     Write-Output ""
     if ($reportFiles.Count -gt 0) {
-        Write-Output "## Uploading the report file(s) to the storage account..."
+        Write-Output "## Download link"
+        Write-Output "---------------------"
 
         # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
         # transparently connects the managed identity if no Az context is active.
@@ -1934,7 +2025,9 @@ if (-not $sendEmail) {
 }
 else {
     Write-Output ""
-    Write-Output "## Sending the email report to '$EmailTo'..."
+    Write-Output "## Email report"
+    Write-Output "---------------------"
+    Write-RjRbLog -Message "Sending the email report to '$EmailTo'..." -Verbose
 
     # Resolve optional tenant email branding once per run (never fails the send)
     $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
@@ -2088,9 +2181,10 @@ else {
 # added when the pilot group check is enabled.
 $pilotColumn = @()
 if ($CheckPilotGroupMembership) { $pilotColumn = @("InPilotGroup") }
-$notReadyColumns = @("DisplayName", "UserPrincipalName", "EnrollmentPlatform", "BlockingReasons", "Warnings", "IntuneLicensed", "RegisteredAuthMethods") + $pilotColumn
-$warningColumns = @("DisplayName", "UserPrincipalName", "EnrollmentPlatform", "Warnings", "IntuneLicenses", "RegisteredAuthMethods") + $pilotColumn
-$readyColumns = @("DisplayName", "UserPrincipalName", "EnrollmentPlatform", "IntuneLicenses", "RegisteredAuthMethods", "RegisteredDeviceCount", "DeviceEnrollmentLimit") + $pilotColumn
+$deviceLimitColumns = @("IntuneDeviceCount", "DeviceEnrollmentLimit", "EnrollmentLimitPolicy", "EntraDeviceCount", "EntraDeviceLimit")
+$notReadyColumns = @("DisplayName", "UserPrincipalName", "EnrollmentPlatform", "BlockingReasons", "Warnings", "IntuneLicensed", "RegisteredAuthMethods") + $deviceLimitColumns + $pilotColumn
+$warningColumns = @("DisplayName", "UserPrincipalName", "EnrollmentPlatform", "Warnings", "IntuneLicenses", "RegisteredAuthMethods") + $deviceLimitColumns + $pilotColumn
+$readyColumns = @("DisplayName", "UserPrincipalName", "EnrollmentPlatform", "IntuneLicenses", "RegisteredAuthMethods") + $deviceLimitColumns + $pilotColumn
 
 if ($notReadyUsers.Count -gt 0) {
     Write-Output "$($notReadyUsers.Count) $($rowNoun) not ready"

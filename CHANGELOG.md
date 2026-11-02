@@ -2,6 +2,14 @@
 
 ## 2026-11-02
 
+- Update **Check Intune Enrollment Readiness** Runbook in User/General (v1.0.1)
+  - Fix Device Limit Restriction when checking Intune enrollment readiness
+  - Add Support for Entra Limit Registered Devices
+- Update **Report Intune Enrollment Readiness** Runbook in Device/General (v1.2.3)
+  - Fix Device Limit Restriction when checking Intune enrollment readiness
+  - Add Support for Entra Limit Registered Devices
+- Update **Monitor Service Health** Runbook in Org/General (v1.5.0)
+  - Set Advisory Status for monitored services to true in default
 - Add **Sync Device** Runbook in Device/General (v1.0.0)
   - Asks this device to check in with Intune so pending policies, apps and configuration apply without waiting for the next regular check-in
   - Shows device name, operating system, primary user, compliance state and last check-in first; stops with a clear message when the device is not in Intune
@@ -399,7 +407,7 @@
   - Reads the tenant storage quota and lists the top site collections by consumed storage, including title, URL, created date, primary owner, and storage in GB.
   - Excludes OneDrive for Business sites from the top site collections list, as personal-site storage does not count against the tenant storage quota.
   - Sends a branded alert email only when free storage falls below a configured low-storage limit or rises above a configured unused-storage limit, indicating reclaimable licensed storage.
-- Add **Check OneDrive Status** Runbook in Org/Collab 
+- Add **Check OneDrive Status** Runbook in Org/Collab
   - Checks the OneDrive (personal site) status of a single user in SharePoint Online via PnP PowerShell, connecting with the Automation account's system-assigned managed identity.
   - Reports whether the OneDrive still exists as an active site collection, its archive status, its lock state and whether it currently sits in the tenant recycle bin along with its deletion time.
   - Supports checking the OneDrive of an already-deleted user account by matching its personal site in the tenant recycle bin via the site owner email.

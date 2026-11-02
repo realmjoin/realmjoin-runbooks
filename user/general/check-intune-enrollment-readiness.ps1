@@ -75,7 +75,7 @@ param(
 ########################################################
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.0.1"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "UserName: $UserName" -Verbose
@@ -1095,25 +1095,56 @@ else {
 
 $deviceCount = $null
 try {
-    $ownedDevices = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($targetUser.id)/ownedDevices?`$select=id&`$top=999" -Method GET -ErrorAction Stop
-    $deviceCount = @($ownedDevices.value).Count
+    # The Intune enrollment limit counts devices enrolled in Intune by this user, not every Entra device object.
+    $deviceCount = 0
+    $managedDevicesUri = "https://graph.microsoft.com/v1.0/users/$($targetUser.id)/managedDevices?`$select=id&`$top=999"
+    while ($managedDevicesUri) {
+        $managedDevices = Invoke-MgGraphRequest -Uri $managedDevicesUri -Method GET -ErrorAction Stop
+        $deviceCount += @($managedDevices.value).Count
+        $managedDevicesUri = $managedDevices.'@odata.nextLink'
+    }
 }
 catch {
+    $deviceCount = $null
     $errorMessage = $_.Exception.Message
     if ($errorMessage -like "*Forbidden*" -or $errorMessage -like "*403*" -or $errorMessage -like "*Authorization_RequestDenied*") {
-        Write-RjRbLog -Message "WARNING: Access to the registered devices of '$userLabel' was denied (403). The managed identity is missing the 'User.Read.All' or 'Directory.Read.All' Microsoft Graph application permission. The device enrollment limit check will be reported as a warning. Error: $errorMessage" -Verbose
+        Write-RjRbLog -Message "WARNING: Access to the Intune-enrolled devices of '$userLabel' was denied (403). The managed identity is missing the 'DeviceManagementManagedDevices.Read.All' Microsoft Graph application permission. The device enrollment limit check will be reported as a warning. Error: $errorMessage" -Verbose
     }
     elseif ($errorMessage -like "*429*" -or $errorMessage -like "*TooManyRequests*") {
-        Write-RjRbLog -Message "WARNING: Microsoft Graph throttled the request for the registered devices of '$userLabel' (429) - this is transient and may clear on a re-run. Error: $errorMessage" -Verbose
+        Write-RjRbLog -Message "WARNING: Microsoft Graph throttled the request for the Intune-enrolled devices of '$userLabel' (429) - this is transient and may clear on a re-run. Error: $errorMessage" -Verbose
     }
     else {
-        Write-RjRbLog -Message "WARNING: Could not read the registered devices of '$userLabel': $errorMessage" -Verbose
+        Write-RjRbLog -Message "WARNING: Could not read the Intune-enrolled devices of '$userLabel': $errorMessage" -Verbose
     }
 }
 
-# The applicable limit is the highest-priority enrollment limit configuration. Graph orders these by
-# 'priority', where priority 0 is the tenant default that applies when no assigned config wins.
-$applicableLimitConfig = $CurrentEnrollmentLimitConfigs | Where-Object { $_.priority -gt 0 } | Select-Object -First 1
+# The group memberships decide which assigned limit configurations apply to this user.
+$limitUserGroupIds = @()
+try {
+    $limitMemberOfUri = "https://graph.microsoft.com/v1.0/users/$($targetUser.id)/transitiveMemberOf/microsoft.graph.group?`$select=id&`$top=999"
+    while ($limitMemberOfUri) {
+        $limitMemberOf = Invoke-MgGraphRequest -Uri $limitMemberOfUri -Method GET -ErrorAction Stop
+        $limitUserGroupIds += @($limitMemberOf.value | ForEach-Object { [string]$_.id })
+        $limitMemberOfUri = $limitMemberOf.'@odata.nextLink'
+    }
+}
+catch {
+    Write-RjRbLog -Message "WARNING: Could not read the group memberships of '$userLabel' to select the enrollment limit configuration; group-assigned limits are ignored: $($_.Exception.Message)" -Verbose
+}
+
+# The applicable limit is the assigned custom configuration (priority > 0) with the lowest priority number.
+# A configuration applies when it is assigned to All users or to a group the user is a member of, unless an
+# excluded group matches. Priority 0 is the tenant default that applies when no custom configuration does.
+$applicableLimitConfig = $CurrentEnrollmentLimitConfigs | Where-Object {
+    if ($_.priority -le 0) { return $false }
+    $limitTargets = @($_.assignments | ForEach-Object { $_.target })
+    $limitExcluded = @($limitTargets | Where-Object { $_.'@odata.type' -like "*.exclusionGroupAssignmentTarget" -and $limitUserGroupIds -contains [string]$_.groupId }).Count -gt 0
+    $limitIncluded = @($limitTargets | Where-Object {
+            $_.'@odata.type' -like "*.allLicensedUsersAssignmentTarget" -or
+            ($_.'@odata.type' -like "*.groupAssignmentTarget" -and $limitUserGroupIds -contains [string]$_.groupId)
+        }).Count -gt 0
+    $limitIncluded -and -not $limitExcluded
+} | Sort-Object -Property priority | Select-Object -First 1
 if (-not $applicableLimitConfig) {
     $applicableLimitConfig = $CurrentEnrollmentLimitConfigs | Where-Object { $_.priority -eq 0 } | Select-Object -First 1
 }
@@ -1126,16 +1157,43 @@ $limitConfigName = if ($applicableLimitConfig) {
 else { "Global" }
 
 if ($null -eq $deviceCount) {
-    Add-ReadinessFinding -Check "Device enrollment limit" -Result "Warning" -Detail "The number of devices already registered to this user could not be read, so the enrollment limit could not be evaluated."
+    Add-ReadinessFinding -Check "Device enrollment limit" -Result "Warning" -Detail "The number of Intune-enrolled devices of this user could not be read, so the enrollment limit could not be evaluated."
 }
 elseif ($null -eq $enrollmentLimit) {
-    Add-ReadinessFinding -Check "Device enrollment limit" -Result "Pass" -Detail "The user has $deviceCount registered device(s). No device enrollment limit could be determined from the enrollment restrictions."
+    Add-ReadinessFinding -Check "Device enrollment limit" -Result "Pass" -Detail "The user has $deviceCount Intune-enrolled device(s). No device enrollment limit could be determined from the enrollment restrictions."
 }
 elseif ($deviceCount -ge $enrollmentLimit) {
-    Add-ReadinessFinding -Check "Device enrollment limit" -Result "Blocker" -Detail "The user has $deviceCount registered device(s) and the applicable limit ('$limitConfigName') is $enrollmentLimit. Enrollment of another device will be refused until a device is removed or the limit is raised."
+    Add-ReadinessFinding -Check "Device enrollment limit" -Result "Blocker" -Detail "The user has $deviceCount Intune-enrolled device(s) and the applicable limit ('$limitConfigName') is $enrollmentLimit. Enrollment of another device will be refused until a device is removed or the limit is raised."
 }
 else {
-    Add-ReadinessFinding -Check "Device enrollment limit" -Result "Pass" -Detail "The user has $deviceCount of $enrollmentLimit permitted device(s) ('$limitConfigName')."
+    Add-ReadinessFinding -Check "Device enrollment limit" -Result "Pass" -Detail "The user has $deviceCount of $enrollmentLimit permitted Intune-enrolled device(s) ('$limitConfigName')."
+}
+
+# Entra 'Maximum number of devices per user': counts Entra registered and joined devices (hybrid joined are excluded).
+$entraDeviceQuota = $null
+$entraDeviceCount = $null
+try {
+    $deviceRegistrationPolicy = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/policies/deviceRegistrationPolicy?`$select=userDeviceQuota" -Method GET -ErrorAction Stop
+    $entraDeviceQuota = [int]$deviceRegistrationPolicy.userDeviceQuota
+    $entraDeviceCount = 0
+    $entraDevicesUri = "https://graph.microsoft.com/v1.0/users/$($targetUser.id)/ownedDevices?`$select=id,trustType&`$top=999"
+    while ($entraDevicesUri) {
+        $entraDevices = Invoke-MgGraphRequest -Uri $entraDevicesUri -Method GET -ErrorAction Stop
+        $entraDeviceCount += @($entraDevices.value | Where-Object { $_.trustType -in @("Workplace", "AzureAd") }).Count
+        $entraDevicesUri = $entraDevices.'@odata.nextLink'
+    }
+}
+catch {
+    $entraDeviceCount = $null
+    Write-RjRbLog -Message "WARNING: Could not evaluate the Entra device quota for '$userLabel'; the check is skipped: $($_.Exception.Message)" -Verbose
+}
+if ($null -ne $entraDeviceCount -and $null -ne $entraDeviceQuota) {
+    if ($entraDeviceCount -ge $entraDeviceQuota) {
+        Add-ReadinessFinding -Check "Entra device limit" -Result "Blocker" -Detail "The user has $entraDeviceCount Entra registered or joined device(s) and the Entra setting 'Maximum number of devices per user' is $entraDeviceQuota. Registering or joining another device will be refused until a device is removed or the setting is raised."
+    }
+    else {
+        Add-ReadinessFinding -Check "Entra device limit" -Result "Pass" -Detail "The user has $entraDeviceCount of $entraDeviceQuota permitted Entra registered or joined device(s)."
+    }
 }
 
 #endregion Device enrollment limit
