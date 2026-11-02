@@ -14,6 +14,9 @@ Org \ General \ Export All Autopilot Devices
   - DeviceManagementManagedDevices.Read.All
   - DeviceManagementServiceConfig.Read.All
 
+### Permission notes
+Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the CSV export)
+
 
 ## Parameters
 ### ExportToFile
@@ -35,7 +38,7 @@ Storage container the CSV file is uploaded to. Taken from the tenant setting Int
 | Type | String |
 
 ### ResourceGroupName
-Resource group of the storage account. Taken from the tenant setting IntuneDevicesReport.ResourceGroup.
+Resource group of the storage account. Taken from the tenant setting IntuneDevicesReport.ResourceGroup; when it is not set, RJReport.StorageAccount.ResourceGroup is used.
 
 | Property | Value |
 |----------|-------|
@@ -44,7 +47,16 @@ Resource group of the storage account. Taken from the tenant setting IntuneDevic
 | Type | String |
 
 ### StorageAccountName
-Storage account for the export. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Name.
+Storage account for the export. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Name; when it is not set, RJReport.StorageAccount.StorageAccountName is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### SubscriptionId
+Subscription ID of the storage account given in ResourceGroupName and StorageAccountName. Not taken from a tenant setting; the subscription the managed identity signs in to is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -53,7 +65,7 @@ Storage account for the export. Taken from the tenant setting IntuneDevicesRepor
 | Type | String |
 
 ### StorageAccountLocation
-Azure region used when the storage account has to be created. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Location.
+No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run.
 
 | Property | Value |
 |----------|-------|
@@ -62,13 +74,49 @@ Azure region used when the storage account has to be created. Taken from the ten
 | Type | String |
 
 ### StorageAccountSku
-Performance tier used when the storage account has to be created. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Sku.
+No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run.
 
 | Property | Value |
 |----------|-------|
 | Default Value |  |
 | Required | false |
 | Type | String |
+
+### RJReportResourceGroupName
+Resource group of the storage account. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when IntuneDevicesReport.ResourceGroup is not set.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### RJReportStorageAccountName
+Storage account for the export. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when IntuneDevicesReport.StorageAccount.Name is not set.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### RJReportSubscriptionId
+Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### LinkExpiryDays
+Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 6 |
+| Required | false |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)

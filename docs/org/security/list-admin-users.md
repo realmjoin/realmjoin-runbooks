@@ -11,11 +11,14 @@ Org \ Security \ List Admin Users
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - User.Read.All
   - Directory.Read.All
-  - RoleManagement.Read.All
   - RoleAssignmentSchedule.Read.Directory
+  - RoleManagement.Read.All
+  - User.Read.All
   - UserAuthenticationMethod.Read.All *(optional: MFA state)*
+
+### Permission notes
+Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the CSV upload)
 
 
 ## Parameters
@@ -38,7 +41,7 @@ Adds the end dates of PIM eligible and active assignments to the CSV report.
 | Type | Boolean |
 
 ### ContainerName
-Storage container the report files are uploaded to. Taken from the tenant setting ListAdminsReport.Container.
+Storage container the report files are uploaded to. Taken from the tenant setting ListAdminsReport.Container, otherwise set per runbook.
 
 | Property | Value |
 |----------|-------|
@@ -47,7 +50,7 @@ Storage container the report files are uploaded to. Taken from the tenant settin
 | Type | String |
 
 ### ResourceGroupName
-Resource group of the storage account. Taken from the tenant setting ListAdminsReport.ResourceGroup.
+Resource group of the storage account for report uploads. Taken from the tenant setting ListAdminsReport.ResourceGroup; when it is not set, RJReport.StorageAccount.ResourceGroup is used.
 
 | Property | Value |
 |----------|-------|
@@ -56,7 +59,16 @@ Resource group of the storage account. Taken from the tenant setting ListAdminsR
 | Type | String |
 
 ### StorageAccountName
-Storage account for the export. Taken from the tenant setting ListAdminsReport.StorageAccount.Name.
+Storage account for report uploads. Taken from the tenant setting ListAdminsReport.StorageAccount.Name; when it is not set, RJReport.StorageAccount.StorageAccountName is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### SubscriptionId
+Subscription ID of the storage account given in ResourceGroupName and StorageAccountName. Not taken from a tenant setting; the subscription the managed identity signs in to is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -65,7 +77,7 @@ Storage account for the export. Taken from the tenant setting ListAdminsReport.S
 | Type | String |
 
 ### StorageAccountLocation
-Azure region used when the storage account has to be created. Taken from the tenant setting ListAdminsReport.StorageAccount.Location.
+No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run.
 
 | Property | Value |
 |----------|-------|
@@ -74,7 +86,7 @@ Azure region used when the storage account has to be created. Taken from the ten
 | Type | String |
 
 ### StorageAccountSku
-Performance tier used when the storage account has to be created. Taken from the tenant setting ListAdminsReport.StorageAccount.Sku.
+No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run.
 
 | Property | Value |
 |----------|-------|
@@ -126,6 +138,42 @@ Counts Windows Hello for Business as a valid MFA method.
 | Default Value | False |
 | Required | false |
 | Type | Boolean |
+
+### RJReportResourceGroupName
+Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when ListAdminsReport.ResourceGroup is not set.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### RJReportStorageAccountName
+Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when ListAdminsReport.StorageAccount.Name is not set.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### RJReportSubscriptionId
+Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### LinkExpiryDays
+Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 6 |
+| Required | false |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)

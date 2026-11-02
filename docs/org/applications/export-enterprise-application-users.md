@@ -32,12 +32,12 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - Directory.Read.All
   - Application.Read.All
+  - Directory.Read.All
   - Mail.Send *(optional: Email report)*
 
 ### Permission notes
-Azure IaaS: - Contributor - access on subscription or resource group used for the export
+Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link)
 
 
 ## Parameters
@@ -78,7 +78,7 @@ Storage container the report files are uploaded to. Taken from the tenant settin
 | Type | String |
 
 ### ResourceGroupName
-Resource group of the storage account for report uploads. Taken from the tenant setting EntAppsReport.ResourceGroup.
+Resource group of the storage account for report uploads. Taken from the tenant setting EntAppsReport.ResourceGroup; when it is not set, RJReport.StorageAccount.ResourceGroup is used.
 
 | Property | Value |
 |----------|-------|
@@ -87,7 +87,16 @@ Resource group of the storage account for report uploads. Taken from the tenant 
 | Type | String |
 
 ### StorageAccountName
-Storage account for report uploads. Taken from the tenant setting EntAppsReport.StorageAccount.Name.
+Storage account for report uploads. Taken from the tenant setting EntAppsReport.StorageAccount.Name; when it is not set, RJReport.StorageAccount.StorageAccountName is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### SubscriptionId
+Subscription ID of the storage account given in ResourceGroupName and StorageAccountName. Not taken from a tenant setting; the subscription the managed identity signs in to is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -96,11 +105,47 @@ Storage account for report uploads. Taken from the tenant setting EntAppsReport.
 | Type | String |
 
 ### LinkExpiryDays
-Number of days a download link stays valid. Taken from the tenant setting EntAppsReport.LinkExpiryDays.
+Number of days a download link stays valid. Taken from the tenant setting EntAppsReport.LinkExpiryDays; when it is not set, RJReport.StorageAccount.LinkExpiryDays is used.
 
 | Property | Value |
 |----------|-------|
 | Default Value | 6 |
+| Required | false |
+| Type | Int32 |
+
+### RJReportResourceGroupName
+Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when EntAppsReport.ResourceGroup is not set.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### RJReportStorageAccountName
+Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when EntAppsReport.StorageAccount.Name is not set.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### RJReportSubscriptionId
+Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### RJReportLinkExpiryDays
+Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays and used when EntAppsReport.LinkExpiryDays is not set.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 0 |
 | Required | false |
 | Type | Int32 |
 

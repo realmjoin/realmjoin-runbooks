@@ -10,22 +10,26 @@ Org \ General \ Enrolled Devices Report_Scheduled
 
 ## Configure the storage account for the CSV export
 
-The CSV export uploads the report to an Azure Storage account. Its resource group, name, region and performance tier come from the tenant settings below; the container name is taken from `EnrolledDevicesReport.Container`.
+The CSV export uploads the report to an existing Azure Storage account and returns a download link. The runbook creates the container when it is missing, but not the storage account. The managed identity of the Automation Account needs the `Reader and Data Access` role on the storage account.
+
+Configure the storage account in the tenant settings under `RJReport.StorageAccount`, the same settings all report runbooks use (see [Runbook report settings](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings)). `LinkExpiryDays` sets how many days the download link stays valid; without it, the link expires after 6 days. `SubscriptionId` is optional, but recommended: it makes sure the upload uses the subscription that contains the storage account (see [Subscription of the Storage Account](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#subscription-of-the-storage-account)).
 
 ```json
 {
   "Settings": {
-    "EnrolledDevicesReport": {
-      "ResourceGroup": "rj-test-runbooks-01",
+    "RJReport": {
       "StorageAccount": {
-        "Name": "rjrbexports01",
-        "Location": "West Europe",
-        "Sku": "Standard_LRS"
+        "ResourceGroup": "rj-test-runbooks-01",
+        "StorageAccountName": "rjrbexports01",
+        "SubscriptionId": "00000000-0000-0000-0000-000000000000",
+        "LinkExpiryDays": 6
       }
     }
   }
 }
 ```
+
+The runbook-specific settings `EnrolledDevicesReport.ResourceGroup` and `EnrolledDevicesReport.StorageAccount.Name` are still read and take precedence over `RJReport.StorageAccount`. `EnrolledDevicesReport.StorageAccount.Location` and `EnrolledDevicesReport.StorageAccount.Sku` are no longer needed and are ignored. The container name is taken from `EnrolledDevicesReport.Container`; without it, the runbook uses `enrolled-devices-<weeks>w-<date>`.
 
 For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
 
@@ -33,13 +37,13 @@ For more information on how to customize runbooks, please refer to the [Runbook 
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - DeviceManagementServiceConfig.Read.All
-  - DeviceManagementManagedDevices.Read.All
-  - User.Read.All
   - Device.ReadWrite.All
+  - DeviceManagementManagedDevices.Read.All
+  - DeviceManagementServiceConfig.Read.All
+  - User.Read.All
 
 ### Permission notes
-Azure: Contributor on Storage Account
+Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the CSV export)
 
 
 ## Parameters
@@ -89,7 +93,7 @@ Uploads the report as CSV to the storage account and returns a download link. Ne
 | Type | Boolean |
 
 ### ContainerName
-Storage container the report is uploaded to. Taken from the tenant setting EnrolledDevicesReport.Container.
+Storage container the report is uploaded to. Taken from the tenant setting EnrolledDevicesReport.Container, otherwise set per runbook.
 
 | Property | Value |
 |----------|-------|
@@ -98,7 +102,7 @@ Storage container the report is uploaded to. Taken from the tenant setting Enrol
 | Type | String |
 
 ### ResourceGroupName
-Resource group of the storage account. Taken from the tenant setting EnrolledDevicesReport.ResourceGroup.
+Resource group of the storage account for report uploads. Taken from the tenant setting EnrolledDevicesReport.ResourceGroup; when it is not set, RJReport.StorageAccount.ResourceGroup is used.
 
 | Property | Value |
 |----------|-------|
@@ -107,7 +111,16 @@ Resource group of the storage account. Taken from the tenant setting EnrolledDev
 | Type | String |
 
 ### StorageAccountName
-Storage account for the export. Taken from the tenant setting EnrolledDevicesReport.StorageAccount.Name.
+Storage account for report uploads. Taken from the tenant setting EnrolledDevicesReport.StorageAccount.Name; when it is not set, RJReport.StorageAccount.StorageAccountName is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### SubscriptionId
+Subscription ID of the storage account given in ResourceGroupName and StorageAccountName. Not taken from a tenant setting; the subscription the managed identity signs in to is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -116,7 +129,7 @@ Storage account for the export. Taken from the tenant setting EnrolledDevicesRep
 | Type | String |
 
 ### StorageAccountLocation
-Azure region used when the storage account has to be created. Taken from the tenant setting EnrolledDevicesReport.StorageAccount.Location.
+No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run.
 
 | Property | Value |
 |----------|-------|
@@ -125,13 +138,49 @@ Azure region used when the storage account has to be created. Taken from the ten
 | Type | String |
 
 ### StorageAccountSku
-Performance tier used when the storage account has to be created. Taken from the tenant setting EnrolledDevicesReport.StorageAccount.Sku.
+No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run.
 
 | Property | Value |
 |----------|-------|
 | Default Value |  |
 | Required | false |
 | Type | String |
+
+### RJReportResourceGroupName
+Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when EnrolledDevicesReport.ResourceGroup is not set.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### RJReportStorageAccountName
+Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when EnrolledDevicesReport.StorageAccount.Name is not set.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### RJReportSubscriptionId
+Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### LinkExpiryDays
+Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 6 |
+| Required | false |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)

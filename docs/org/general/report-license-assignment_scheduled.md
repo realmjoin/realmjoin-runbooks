@@ -221,6 +221,15 @@ Storage account for report uploads. Taken from the tenant setting RJReport.Stora
 | Required | false |
 | Type | String |
 
+### SubscriptionId
+Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
 ### LinkExpiryDays
 Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 

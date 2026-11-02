@@ -3082,13 +3082,14 @@ The CSV report is uploaded to an Azure Storage Account. The target storage accou
 
 - `RJReport.StorageAccount.ResourceGroup`
 - `RJReport.StorageAccount.StorageAccountName`
+- `RJReport.StorageAccount.SubscriptionId` (optional, recommended; see [Subscription of the Storage Account](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#subscription-of-the-storage-account))
 - `RJReport.StorageAccount.LinkExpiryDays` (optional, defaults to 6)
 
 The container name is configured per runbook (parameter `ContainerName`, default `windows-devices-without-autopilot`) and is intentionally not part of the global RJReport settings.
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
-The runbook's managed identity needs at least `Contributor` access on the subscription or resource group containing the storage account.
+The managed identity of the Automation Account needs the `Reader and Data Access` role on the storage account.
 
 ## Setup regarding email sending
 
@@ -3746,22 +3747,26 @@ Org \ General \ Enrolled Devices Report_Scheduled
 
 ## Configure the storage account for the CSV export
 
-The CSV export uploads the report to an Azure Storage account. Its resource group, name, region and performance tier come from the tenant settings below; the container name is taken from `EnrolledDevicesReport.Container`.
+The CSV export uploads the report to an existing Azure Storage account and returns a download link. The runbook creates the container when it is missing, but not the storage account. The managed identity of the Automation Account needs the `Reader and Data Access` role on the storage account.
+
+Configure the storage account in the tenant settings under `RJReport.StorageAccount`, the same settings all report runbooks use (see [Runbook report settings](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings)). `LinkExpiryDays` sets how many days the download link stays valid; without it, the link expires after 6 days. `SubscriptionId` is optional, but recommended: it makes sure the upload uses the subscription that contains the storage account (see [Subscription of the Storage Account](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#subscription-of-the-storage-account)).
 
 ```json
 {
   "Settings": {
-    "EnrolledDevicesReport": {
-      "ResourceGroup": "rj-test-runbooks-01",
+    "RJReport": {
       "StorageAccount": {
-        "Name": "rjrbexports01",
-        "Location": "West Europe",
-        "Sku": "Standard_LRS"
+        "ResourceGroup": "rj-test-runbooks-01",
+        "StorageAccountName": "rjrbexports01",
+        "SubscriptionId": "00000000-0000-0000-0000-000000000000",
+        "LinkExpiryDays": 6
       }
     }
   }
 }
 ```
+
+The runbook-specific settings `EnrolledDevicesReport.ResourceGroup` and `EnrolledDevicesReport.StorageAccount.Name` are still read and take precedence over `RJReport.StorageAccount`. `EnrolledDevicesReport.StorageAccount.Location` and `EnrolledDevicesReport.StorageAccount.Sku` are no longer needed and are ignored. The container name is taken from `EnrolledDevicesReport.Container`; without it, the runbook uses `enrolled-devices-<weeks>w-<date>`.
 
 For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
 
@@ -4016,7 +4021,26 @@ Org \ General \ Office365 License Report
 
 ## Configure the storage account for the export
 
-The report files are uploaded to an Azure Storage account. Its subscription, resource group and name come from the tenant settings below; the container name is taken from `OfficeLicensingReport.Container`. The switches of this runbook are backed by `OfficeLicensingReport.*` settings as well, so their defaults can be fixed per tenant.
+The report files are uploaded to an existing Azure Storage account; it is not created automatically. The recommended configuration is the shared `RJReport.StorageAccount` setting that the other report runbooks use as well (see [Runbook Report Settings](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings)). `LinkExpiryDays` sets how many days the download links stay valid (default 6). `SubscriptionId` is optional, but recommended: it makes sure the upload uses the subscription that contains the storage account (see [Subscription of the Storage Account](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#subscription-of-the-storage-account)). The container name is taken from `OfficeLicensingReport.Container`. The switches of this runbook are backed by `OfficeLicensingReport.*` settings as well, so their defaults can be fixed per tenant.
+
+```json
+{
+	"Settings": {
+		"RJReport": {
+			"StorageAccount": {
+				"ResourceGroup": "rj-test-runbooks-01",
+				"StorageAccountName": "rbexports01",
+				"SubscriptionId": "00000000-0000-0000-0000-000000000000",
+				"LinkExpiryDays": 6
+			}
+		}
+	}
+}
+```
+
+The Automation Account's managed identity needs the `Reader and Data Access` role on the storage account.
+
+The runbook-specific settings below are still read. When their resource group and storage account name are set, they take precedence over `RJReport.StorageAccount`; `SubscriptionId` is only used together with them.
 
 ```json
 {
@@ -5975,6 +5999,7 @@ Most switches of this runbook are backed by tenant settings, so an organization 
             "StorageAccount": {
                 "ResourceGroup": "rj-test-runbooks-01",
                 "StorageAccountName": "rjrbexports01",
+                "SubscriptionId": "00000000-0000-0000-0000-000000000000",
                 "LinkExpiryDays": 6
             }
         }
@@ -6051,6 +6076,7 @@ Most switches of this runbook are backed by tenant settings, so an organization 
             "StorageAccount": {
                 "ResourceGroup": "rj-test-runbooks-01",
                 "StorageAccountName": "rjrbexports01",
+                "SubscriptionId": "00000000-0000-0000-0000-000000000000",
                 "LinkExpiryDays": 6
             }
         }

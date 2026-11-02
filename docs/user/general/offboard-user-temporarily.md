@@ -31,6 +31,7 @@ Most switches of this runbook are backed by tenant settings, so an organization 
             "StorageAccount": {
                 "ResourceGroup": "rj-test-runbooks-01",
                 "StorageAccountName": "rjrbexports01",
+                "SubscriptionId": "00000000-0000-0000-0000-000000000000",
                 "LinkExpiryDays": 6
             }
         }
@@ -147,6 +148,15 @@ Resource group of the storage account for report uploads. Taken from the tenant 
 
 ### StorageAccountName
 Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### SubscriptionId
+Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty.
 
 | Property | Value |
 |----------|-------|
