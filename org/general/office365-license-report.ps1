@@ -1,68 +1,88 @@
 <#
-    .SYNOPSIS
-    Report Microsoft 365 license usage and availability
+	.SYNOPSIS
+	Report Microsoft 365 license usage and availability
 
-    .DESCRIPTION
-    Creates a report of the Microsoft 365 licenses in the tenant, how many are in use and how many are free. Exchange Online details such as shared mailbox licensing can be added. The report files can be uploaded to an Azure Storage account, as single files or as one ZIP, with download links. Nothing is changed unless real user data is requested, which briefly switches off the report privacy setting and restores it afterwards.
+	.DESCRIPTION
+	Creates a report of the Microsoft 365 licenses in the tenant, how many are in use and how many are free. Exchange Online details such as shared mailbox licensing can be added. The report files can be uploaded to an Azure Storage account, as single files or as one ZIP, with download links. Nothing is changed unless real user data is requested, which briefly switches off the report privacy setting and restores it afterwards.
 
-    .PARAMETER printOverview
-    Prints a table per license SKU with total, used, available and suspended counts in the run output.
+	.PARAMETER printOverview
+	Prints a table per license SKU with total, used, available and suspended counts in the run output.
 
-    .PARAMETER includeExchange
-    Adds Exchange Online reports such as shared mailbox licensing.
+	.PARAMETER includeExchange
+	Adds Exchange Online reports such as shared mailbox licensing.
 
-    .PARAMETER includeUserData
-    Shows real user names in the activity reports by switching off the report privacy setting for the run; it is restored afterwards. The reports then contain personal data, so check your data protection rules first.
+	.PARAMETER includeUserData
+	Shows real user names in the activity reports by switching off the report privacy setting for the run; it is restored afterwards. The reports then contain personal data, so check your data protection rules first.
 
-    .PARAMETER exportToFile
-    Uploads the report files to the Azure Storage account configured in the tenant settings.
+	.PARAMETER exportToFile
+	Uploads the report files to the Azure Storage account configured in the tenant settings.
 
-    .PARAMETER exportAsZip
-    Uploads one ZIP file instead of the single report files.
+	.PARAMETER exportAsZip
+	Uploads one ZIP file instead of the single report files.
 
-    .PARAMETER produceLinks
-    Returns time-limited download links for the uploaded files.
+	.PARAMETER produceLinks
+	Returns time-limited download links for the uploaded files.
 
-    .PARAMETER ContainerName
-    Storage container the report files are uploaded to. Taken from the tenant setting OfficeLicensingReport.Container.
+	.PARAMETER ContainerName
+	Storage container the report files are uploaded to. Taken from the tenant setting OfficeLicensingReport.Container.
 
-    .PARAMETER ResourceGroupName
-    Resource group of the storage account. Taken from the tenant setting OfficeLicensingReport.ResourceGroup.
+	.PARAMETER ResourceGroupName
+	Resource group of the storage account for report uploads. Taken from the tenant setting OfficeLicensingReport.ResourceGroup; when it is not set, RJReport.StorageAccount.ResourceGroup is used.
 
-    .PARAMETER StorageAccountName
-    Storage account for the export. Taken from the tenant setting OfficeLicensingReport.StorageAccount.Name.
+	.PARAMETER StorageAccountName
+	Storage account for report uploads. Taken from the tenant setting OfficeLicensingReport.StorageAccount.Name; when it is not set, RJReport.StorageAccount.StorageAccountName is used.
 
-    .PARAMETER SubscriptionId
-    Azure subscription that holds the storage account. Taken from the tenant setting OfficeLicensingReport.SubscriptionId.
+	.PARAMETER SubscriptionId
+	Subscription ID of the storage account for report uploads. Taken from the tenant setting OfficeLicensingReport.SubscriptionId and only used with OfficeLicensingReport.*; empty means the subscription the managed identity signs in to.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
+	.PARAMETER RJReportResourceGroupName
+	Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when OfficeLicensingReport.ResourceGroup is not set.
+
+	.PARAMETER RJReportStorageAccountName
+	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when OfficeLicensingReport.StorageAccount.Name is not set.
+
+	.PARAMETER RJReportSubscriptionId
+	Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount.
+
+	.PARAMETER LinkExpiryDays
+	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
+
+	.PARAMETER CallerName
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
 	.INPUTS
 	RunbookCustomization: {
-		"ParameterList": [
-			{
-				"Name": "ContainerName",
+		"Parameters": {
+			"ContainerName": {
 				"Hide": true
 			},
-			{
-				"Name": "ResourceGroupName",
+			"ResourceGroupName": {
 				"Hide": true
 			},
-			{
-				"Name": "StorageAccountName",
+			"StorageAccountName": {
 				"Hide": true
 			},
-			{
-				"Name": "SubscriptionId",
+			"SubscriptionId": {
 				"Hide": true
 			},
-			{
-				"Name": "CallerName",
+			"RJReportResourceGroupName": {
+				"Hide": true
+			},
+			"RJReportStorageAccountName": {
+				"Hide": true
+			},
+			"RJReportSubscriptionId": {
+				"Hide": true
+			},
+			"LinkExpiryDays": {
+				"Hide": true
+			},
+			"CallerName": {
 				"Hide": true
 			}
-		]
+		}
 	}
+
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
@@ -84,6 +104,8 @@ param(
     [bool] $exportAsZip = $false,
     [ValidateScript( { Use-RJInterface -DisplayName "Create download links?" -Type Setting -Attribute "OfficeLicensingReport.CreateLinks" } )]
     [bool] $produceLinks = $true,
+    # Legacy report settings: OfficeLicensingReport.Container / .ResourceGroup / .StorageAccount.Name / .SubscriptionId - rebind to
+    # RJReport.StorageAccount.* (ContainerName: unbind) when it is switched off
     # Make a persistent container the default, so you can simply update PowerBI's report from the same source
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.Container" } )]
     [string] $ContainerName = "rjrb-licensing-report-v2",
@@ -93,6 +115,15 @@ param(
     [string] $StorageAccountName,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.SubscriptionId" } )]
     [string] $SubscriptionId,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" } )]
+    [string] $RJReportResourceGroupName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" } )]
+    [string] $RJReportStorageAccountName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.SubscriptionId" } )]
+    [string] $RJReportSubscriptionId,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" } )]
+    [ValidateRange(1, 3650)]
+    [int] $LinkExpiryDays = 6,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -100,14 +131,13 @@ param(
 
 ############################################################
 #region     RJ Log Part
-#
 ############################################################
 
 if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.1.3"
+$Version = "1.2.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "printOverview: $printOverview" -Verbose
@@ -116,21 +146,41 @@ Write-RjRbLog -Message "includeUserData: $includeUserData" -Verbose
 Write-RjRbLog -Message "exportToFile: $exportToFile" -Verbose
 Write-RjRbLog -Message "exportAsZip: $exportAsZip" -Verbose
 Write-RjRbLog -Message "produceLinks: $produceLinks" -Verbose
+Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
+Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
+Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+Write-RjRbLog -Message "SubscriptionId: $SubscriptionId" -Verbose
+Write-RjRbLog -Message "RJReportResourceGroupName: $RJReportResourceGroupName" -Verbose
+Write-RjRbLog -Message "RJReportStorageAccountName: $RJReportStorageAccountName" -Verbose
+Write-RjRbLog -Message "RJReportSubscriptionId: $RJReportSubscriptionId" -Verbose
+Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
 
 #endregion RJ Log Part
 
 ############################################################
 #region     Parameter Validation
-#
 ############################################################
+
+# Legacy report settings: OfficeLicensingReport.* stays bound to the original parameters, so explicit values, existing schedules
+# and API calls behave as before and the legacy settings win. RJReport.StorageAccount.* fills in when they are not set.
+if (-not ($ResourceGroupName -and $StorageAccountName) -and $RJReportResourceGroupName -and $RJReportStorageAccountName) {
+    Write-RjRbLog -Message "Using RJReport.StorageAccount.* - OfficeLicensingReport.* is not configured" -Verbose
+    $ResourceGroupName = $RJReportResourceGroupName
+    $StorageAccountName = $RJReportStorageAccountName
+    # OfficeLicensingReport.SubscriptionId belongs to the runbook-specific storage account
+    if ($SubscriptionId) {
+        Write-RjRbLog -Message "Ignoring OfficeLicensingReport.SubscriptionId - it only applies to the OfficeLicensingReport storage account" -Verbose
+    }
+    $SubscriptionId = $RJReportSubscriptionId
+}
 
 if ($exportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
     "## To export to a CSV, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
     ""
-    "## Please configure the following attributes in the RJ central datastore:"
-    "## - OfficeLicensingReport.ResourceGroup"
-    "## - OfficeLicensingReport.SubscriptionId"
-    "## - OfficeLicensingReport.StorageAccount.Name"
+    "## Please configure the following attributes in the RJ central datastore (see https://docs.realmjoin.com/automation/runbooks/runbook-report-settings):"
+    "## - RJReport.StorageAccount.ResourceGroup"
+    "## - RJReport.StorageAccount.StorageAccountName"
+    "## The runbook-specific OfficeLicensingReport.ResourceGroup and OfficeLicensingReport.StorageAccount.Name (with OfficeLicensingReport.SubscriptionId) are still read and take precedence."
     ""
     "## Note: The Storage Account must exist before running this report."
     ""
@@ -149,7 +199,6 @@ if ((-not $exportToFile) -and (-not $printOverview)) {
 
 ############################################################
 #region     Function Definitions
-#
 ############################################################
 
 #region Helper Functions
@@ -469,7 +518,6 @@ function Get-AdminReport {
 
 ############################################################
 #region     Connect Part
-#
 ############################################################
 
 Write-Output "Connecting to Microsoft Graph..."
@@ -485,7 +533,6 @@ if ($includeExchange) {
 
 ############################################################
 #region     Data Collection
-#
 ############################################################
 
 # Get SKUs and build a lookup table for SKU IDs
@@ -563,8 +610,25 @@ if ($exportToFile) {
 #endregion Data Collection
 
 ############################################################
-#region     Output/Export
-#
+#region     Report File Export
+############################################################
+
+$reportFiles = @()
+if ($exportToFile) {
+    if ($exportAsZip) {
+        $zipFileName = "office-licensing-v2-" + (Get-Date -Format "yyyy-MM-dd") + ".zip"
+        Compress-Archive -Path $OutPutPath -DestinationPath $zipFileName | Out-Null
+        $reportFiles = @($zipFileName)
+    }
+    else {
+        $reportFiles = (Get-ChildItem -Path $OutPutPath -File).FullName
+    }
+}
+
+#endregion Report File Export
+
+############################################################
+#region     Upload / Download Link
 ############################################################
 
 if ($exportToFile) {
@@ -574,22 +638,13 @@ if ($exportToFile) {
     }
 
     "## Upload"
-    if ($exportAsZip) {
-        $zipFileName = "office-licensing-v2-" + (Get-Date -Format "yyyy-MM-dd") + ".zip"
-        Compress-Archive -Path $OutPutPath -DestinationPath $zipFileName | Out-Null
-        $filesToUpload = @($zipFileName)
-    }
-    else {
-        $filesToUpload = (Get-ChildItem -Path $OutPutPath -File).FullName
-    }
-
     $uploadResults = Publish-RjRbFilesToStorageContainer `
-        -FilePaths $filesToUpload `
+        -FilePaths $reportFiles `
         -ContainerName $ContainerName `
         -ResourceGroupName $ResourceGroupName `
         -StorageAccountName $StorageAccountName `
         -SubscriptionId $SubscriptionId `
-        -LinkExpiryDays 6 `
+        -LinkExpiryDays $LinkExpiryDays `
         -AddBlobNamePrefix $false
 
     foreach ($r in $uploadResults) {
@@ -606,4 +661,14 @@ if ($exportToFile) {
     }
 }
 
-#endregion Output/Export
+#endregion Upload / Download Link
+
+############################################################
+#region     Cleanup
+############################################################
+
+foreach ($reportFile in $reportFiles) {
+    Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
+}
+
+#endregion Cleanup

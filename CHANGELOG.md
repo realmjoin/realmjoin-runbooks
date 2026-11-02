@@ -17,6 +17,60 @@
 - Clean up the portal field definitions of 34 runbooks by removing a legacy execution policy step that current Azure Automation environments no longer need
   - All runbooks now declare their portal fields the same way, with the plain `Use-RJInterface` call
   - The portal dialog, the runbook behavior and the runbook versions stay the same
+- Let the report runbooks with their own storage settings also use the central report storage settings `RJReport.StorageAccount`
+  - `RJReport.StorageAccount.ResourceGroup` and `RJReport.StorageAccount.StorageAccountName` are used when the runbook-specific storage settings are not configured; `RJReport.StorageAccount.LinkExpiryDays` sets how many days the download link stays valid (default 6)
+  - The runbook-specific settings (`IntuneDevicesReport`, `EnrolledDevicesReport`, `TenantPolicyReport`, `OfficeLicensingReport`, `CaPoliciesExport`, `ListAdminsReport`, `InactiveDevices`, `VulnAppRegExport`, `EntAppsReport`) and the Automation variable `SettingsExports` keep working and take precedence over `RJReport.StorageAccount`
+  - Existing scheduled runs and API calls keep uploading to the same storage account, container and file names as before
+  - The runbooks that used the Az.Storage module now upload with `Publish-RjRbFilesToStorageContainer` from RealmJoin.RunbookHelper and require Az.Accounts 5.5.2
+  - These runbooks no longer create the storage account: create it beforehand and assign `Reader and Data Access` on it to the Automation account's managed identity. The container is still created on the first upload
+  - `StorageAccountLocation` and `StorageAccountSku` are deprecated and ignored; runs that still pass them (older scheduled runs, API calls) log a warning. Re-create these scheduled runs; a later version removes both parameters
+  - Affected runbooks:
+    - **Export Enterprise Application Users** - Org/Applications (v1.5.0)
+    - **Enrolled Devices Report (Scheduled)** - Org/General (v1.1.0)
+    - **Export All Autopilot Devices** - Org/General (v1.1.0)
+    - **Export All Intune Devices** - Org/General (v1.2.0)
+    - **Export Non Compliant Devices** - Org/General (v1.1.0)
+    - **Export Policy Report** - Org/General (v1.1.0)
+    - **Office365 License Report** - Org/General (v1.2.0)
+    - **Backup Conditional Access Policies** - Org/Security (v1.1.0)
+    - **List Admin Users** - Org/Security (v1.3.0)
+    - **List Inactive Devices** - Org/Security (v1.1.0)
+    - **List Vulnerable App Regs** - Org/Security (v1.1.0)
+- Add the optional tenant setting `RJReport.StorageAccount.SubscriptionId` to all runbooks that upload reports to `RJReport.StorageAccount`
+  - Set it to the ID of the subscription that contains the storage account; the upload then always uses this subscription. Setting it is recommended
+  - Without it, the upload uses the subscription Azure selects when the managed identity signs in. This works while the managed identity holds roles in a single subscription only; once it also holds a role in another subscription, Azure may select that one and the upload fails because the storage account is not found
+  - In the runbooks with their own storage settings above, `RJReport.StorageAccount.SubscriptionId` applies when the storage account comes from `RJReport.StorageAccount`; `IntuneDevicesReport.SubscriptionId` and `OfficeLicensingReport.SubscriptionId` keep applying to their own storage account
+  - Existing settings and scheduled runs keep working unchanged
+  - Affected runbooks, in addition to the runbooks above:
+    - **List Inactive Enterprise Applications** - Org/Applications (v1.6.0)
+    - **Report Application Registration** - Org/Applications (v1.5.0)
+    - **Report Expiring Application Credentials (Scheduled)** - Org/Applications (v1.6.0)
+    - **Report Teams Channels (Scheduled)** - Org/Collab (v1.1.0)
+    - **Auto Approve Driver Updates (Scheduled)** - Org/Devices (v1.4.0)
+    - **Cleanup Autopilot Devices (Scheduled)** - Org/Devices (v1.4.0)
+    - **Delete Stale Devices (Scheduled)** - Org/Devices (v2.3.0)
+    - **List Mobile Devices** - Org/Devices (v1.2.0)
+    - **Report Devices Low Diskspace (Scheduled)** - Org/Devices (v1.2.0)
+    - **Report Devices Without Primary User (Scheduled)** - Org/Devices (v1.11.0)
+    - **Report Primary User Mismatch (Scheduled)** - Org/Devices (v1.9.0)
+    - **Report RealmJoin Agent Contact (Scheduled)** - Org/Devices (v1.1.0)
+    - **Report Stale Devices (Scheduled)** - Org/Devices (v1.7.0)
+    - **Report Users With More Than 5 Devices (Scheduled)** - Org/Devices (v1.13.0)
+    - **Report Windows Devices Without Autopilot (Scheduled)** - Org/Devices (v1.4.0)
+    - **Report Intune Enrollment Readiness** - Org/General (v1.2.0)
+    - **Report License Assignment (Scheduled)** - Org/General (v1.5.0)
+    - **Sync Channel Or Group Members (Scheduled)** - Org/General (v1.4.0)
+    - **Sync Shared Channel Owners (Scheduled)** - Org/General (v1.5.0)
+    - **Monitor Pending EPM Requests (Scheduled)** - Org/Security (v1.4.0)
+    - **Report EPM Elevation Requests (Scheduled)** - Org/Security (v1.5.0)
+    - **Sync MFA Secure Users To Group (Scheduled)** - Org/Security (v1.6.0)
+    - **List Group Memberships** - User/General (v1.8.0)
+    - **List Group Ownerships** - User/General (v1.5.0)
+    - **Offboard User Permanently** - User/General (v1.3.0)
+    - **Offboard User Temporarily** - User/General (v1.2.0)
+    - **List Signin Events** - User/Security (v1.2.0)
+- Stop **Export Policy Report** with a configuration hint before it collects the policies when no storage account is configured; before, it collected all policies and then failed at the upload
+- Fix the success message of **Export All Autopilot Devices**, which said `Inactive Devices Export created.`
 
 ## 2026-10-23
 

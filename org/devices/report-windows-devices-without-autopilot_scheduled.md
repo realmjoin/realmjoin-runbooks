@@ -15,13 +15,14 @@ The CSV report is uploaded to an Azure Storage Account. The target storage accou
 
 - `RJReport.StorageAccount.ResourceGroup`
 - `RJReport.StorageAccount.StorageAccountName`
+- `RJReport.StorageAccount.SubscriptionId` (optional, recommended; see [Subscription of the Storage Account](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#subscription-of-the-storage-account))
 - `RJReport.StorageAccount.LinkExpiryDays` (optional, defaults to 6)
 
 The container name is configured per runbook (parameter `ContainerName`, default `windows-devices-without-autopilot`) and is intentionally not part of the global RJReport settings.
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
-The runbook's managed identity needs at least `Contributor` access on the subscription or resource group containing the storage account.
+The managed identity of the Automation Account needs the `Reader and Data Access` role on the storage account.
 
 ## Setup regarding email sending
 

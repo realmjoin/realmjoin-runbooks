@@ -1,114 +1,147 @@
 <#
-    .SYNOPSIS
-    List all Entra ID admins and check their MFA methods
+	.SYNOPSIS
+	List all Entra ID admins and check their MFA methods
 
-    .DESCRIPTION
-    Lists every user and service principal that holds a built-in Entra ID role, including PIM eligible assignments, as an admin-to-role report. Optionally the registered authentication methods of each admin are checked to show who is protected by MFA, with a choice of which methods count. The report can be uploaded as CSV to an Azure Storage account. Nothing is changed.
+	.DESCRIPTION
+	Lists every user and service principal that holds a built-in Entra ID role, including PIM eligible assignments, as an admin-to-role report. Optionally the registered authentication methods of each admin are checked to show who is protected by MFA, with a choice of which methods count. The report can be uploaded as CSV to an Azure Storage account. Nothing is changed.
 
-    .PARAMETER ExportToFile
-    Uploads the report as CSV to the storage account configured in the tenant settings.
+	.PARAMETER ExportToFile
+	Uploads the report as CSV to the storage account configured in the tenant settings.
 
-    .PARAMETER PimEligibleUntilInCSV
-    Adds the end dates of PIM eligible and active assignments to the CSV report.
+	.PARAMETER PimEligibleUntilInCSV
+	Adds the end dates of PIM eligible and active assignments to the CSV report.
 
-    .PARAMETER ContainerName
-    Storage container the report files are uploaded to. Taken from the tenant setting ListAdminsReport.Container.
+	.PARAMETER ContainerName
+	Storage container the report files are uploaded to. Taken from the tenant setting ListAdminsReport.Container, otherwise set per runbook.
 
-    .PARAMETER ResourceGroupName
-    Resource group of the storage account. Taken from the tenant setting ListAdminsReport.ResourceGroup.
+	.PARAMETER ResourceGroupName
+	Resource group of the storage account for report uploads. Taken from the tenant setting ListAdminsReport.ResourceGroup; when it is not set, RJReport.StorageAccount.ResourceGroup is used.
 
-    .PARAMETER StorageAccountName
-    Storage account for the export. Taken from the tenant setting ListAdminsReport.StorageAccount.Name.
+	.PARAMETER StorageAccountName
+	Storage account for report uploads. Taken from the tenant setting ListAdminsReport.StorageAccount.Name; when it is not set, RJReport.StorageAccount.StorageAccountName is used.
 
-    .PARAMETER StorageAccountLocation
-    Azure region used when the storage account has to be created. Taken from the tenant setting ListAdminsReport.StorageAccount.Location.
+	.PARAMETER SubscriptionId
+	Subscription ID of the storage account given in ResourceGroupName and StorageAccountName. Not taken from a tenant setting; the subscription the managed identity signs in to is used when empty.
 
-    .PARAMETER StorageAccountSku
-    Performance tier used when the storage account has to be created. Taken from the tenant setting ListAdminsReport.StorageAccount.Sku.
+	.PARAMETER StorageAccountLocation
+	No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run.
 
-    .PARAMETER QueryMfaState
-    With the check, each admin gets a column showing whether a method that counts as MFA is registered; without it, the report lists only the role assignments.
+	.PARAMETER StorageAccountSku
+	No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run.
 
-    .PARAMETER TrustEmailMfa
-    Counts email as a valid MFA method.
+	.PARAMETER QueryMfaState
+	With the check, each admin gets a column showing whether a method that counts as MFA is registered; without it, the report lists only the role assignments.
 
-    .PARAMETER TrustPhoneMfa
-    Counts phone calls and SMS as a valid MFA method.
+	.PARAMETER TrustEmailMfa
+	Counts email as a valid MFA method.
 
-    .PARAMETER TrustSoftwareOathMfa
-    Counts software OATH tokens as a valid MFA method.
+	.PARAMETER TrustPhoneMfa
+	Counts phone calls and SMS as a valid MFA method.
 
-    .PARAMETER TrustWinHelloMFA
-    Counts Windows Hello for Business as a valid MFA method.
+	.PARAMETER TrustSoftwareOathMfa
+	Counts software OATH tokens as a valid MFA method.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
+	.PARAMETER TrustWinHelloMFA
+	Counts Windows Hello for Business as a valid MFA method.
 
-    .INPUTS
-    RunbookCustomization: {
-        "Parameters": {
-            "CallerName": {
-                "Hide": true
-            },
-            "ContainerName": {
-                "Hide": true
-            },
-            "ResourceGroupName": {
-                "Hide": true
-            },
-            "StorageAccountName": {
-                "Hide": true
-            },
-            "StorageAccountLocation": {
-                "Hide": true
-            },
-            "StorageAccountSku": {
-                "Hide": true
-            },
-            "QueryMfaState": {
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Check and report the MFA state of every admin",
-                            "Value": true
-                        },
-                        {
-                            "Display": "Do not check MFA states",
-                            "Value": false,
-                            "Customization": {
-                                "Hide": [
-                                    "TrustEmailMfa",
-                                    "TrustPhoneMfa",
-                                    "TrustSoftwareOathMfa",
-                                    "TrustWinHelloMFA"
-                                ]
-                            }
-                        }
-                    ]
-                }
-            }
-        }
-    }
+	.PARAMETER RJReportResourceGroupName
+	Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when ListAdminsReport.ResourceGroup is not set.
+
+	.PARAMETER RJReportStorageAccountName
+	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when ListAdminsReport.StorageAccount.Name is not set.
+
+	.PARAMETER RJReportSubscriptionId
+	Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount.
+
+	.PARAMETER LinkExpiryDays
+	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
+
+	.PARAMETER CallerName
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
+
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"CallerName": {
+				"Hide": true
+			},
+			"ContainerName": {
+				"Hide": true
+			},
+			"ResourceGroupName": {
+				"Hide": true
+			},
+			"StorageAccountName": {
+				"Hide": true
+			},
+			"SubscriptionId": {
+				"Hide": true
+			},
+			"StorageAccountLocation": {
+				"Hide": true
+			},
+			"StorageAccountSku": {
+				"Hide": true
+			},
+			"RJReportResourceGroupName": {
+				"Hide": true
+			},
+			"RJReportStorageAccountName": {
+				"Hide": true
+			},
+			"RJReportSubscriptionId": {
+				"Hide": true
+			},
+			"LinkExpiryDays": {
+				"Hide": true
+			},
+			"QueryMfaState": {
+				"Select": {
+					"Options": [
+						{
+							"Display": "Check and report the MFA state of every admin",
+							"Value": true
+						},
+						{
+							"Display": "Do not check MFA states",
+							"Value": false,
+							"Customization": {
+								"Hide": [
+									"TrustEmailMfa",
+									"TrustPhoneMfa",
+									"TrustSoftwareOathMfa",
+									"TrustWinHelloMFA"
+								]
+							}
+						}
+					]
+				}
+			}
+		}
+	}
 
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
     [ValidateScript( { Use-RJInterface -DisplayName "Upload the report as CSV?" } )]
     [bool] $ExportToFile = $true,
     [ValidateScript( { Use-RJInterface -DisplayName "Include PIM end dates in the CSV?" } )]
     [bool] $PimEligibleUntilInCSV = $false,
+    # Legacy report settings: ListAdminsReport.* - rebind to RJReport.StorageAccount.* (ContainerName: unbind) when it is switched off
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "ListAdminsReport.Container" } )]
     [string] $ContainerName,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "ListAdminsReport.ResourceGroup" } )]
     [string] $ResourceGroupName,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "ListAdminsReport.StorageAccount.Name" } )]
     [string] $StorageAccountName,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "ListAdminsReport.StorageAccount.Location" } )]
+    # Legacy report settings: set only explicitly for now - bind to RJReport.StorageAccount.SubscriptionId when it is switched off
+    [string] $SubscriptionId,
+    # Legacy report settings: deprecated and ignored, kept so existing schedules and API calls keep starting
     [string] $StorageAccountLocation,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "ListAdminsReport.StorageAccount.Sku" } )]
     [string] $StorageAccountSku,
     [ValidateScript( { Use-RJInterface -DisplayName "Check MFA state?" } )]
     [bool]$QueryMfaState = $true,
@@ -120,18 +153,27 @@ param(
     [bool]$TrustSoftwareOathMfa = $true,
     [ValidateScript( { Use-RJInterface -DisplayName "Count Windows Hello for Business as MFA?" } )]
     [bool]$TrustWinHelloMFA = $false,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" } )]
+    [string] $RJReportResourceGroupName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" } )]
+    [string] $RJReportStorageAccountName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.SubscriptionId" } )]
+    [string] $RJReportSubscriptionId,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" } )]
+    [ValidateRange(1, 3650)]
+    [int] $LinkExpiryDays = 6,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
 )
 
 ############################################################
-#region RJ Log Part
+#region     RJ Log Part
 ############################################################
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.2.4"
+$Version = "1.3.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
@@ -140,6 +182,7 @@ Write-RjRbLog -Message "PimEligibleUntilInCSV: $PimEligibleUntilInCSV" -Verbose
 Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
 Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
 Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+Write-RjRbLog -Message "SubscriptionId: $SubscriptionId" -Verbose
 Write-RjRbLog -Message "StorageAccountLocation: $StorageAccountLocation" -Verbose
 Write-RjRbLog -Message "StorageAccountSku: $StorageAccountSku" -Verbose
 Write-RjRbLog -Message "QueryMfaState: $QueryMfaState" -Verbose
@@ -147,11 +190,37 @@ Write-RjRbLog -Message "TrustEmailMfa: $TrustEmailMfa" -Verbose
 Write-RjRbLog -Message "TrustPhoneMfa: $TrustPhoneMfa" -Verbose
 Write-RjRbLog -Message "TrustSoftwareOathMfa: $TrustSoftwareOathMfa" -Verbose
 Write-RjRbLog -Message "TrustWinHelloMFA: $TrustWinHelloMFA" -Verbose
+Write-RjRbLog -Message "RJReportResourceGroupName: $RJReportResourceGroupName" -Verbose
+Write-RjRbLog -Message "RJReportStorageAccountName: $RJReportStorageAccountName" -Verbose
+Write-RjRbLog -Message "RJReportSubscriptionId: $RJReportSubscriptionId" -Verbose
+Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
 
 #endregion RJ Log Part
 
 ############################################################
-#region Functions
+#region     Parameter Validation
+############################################################
+
+# Legacy report settings: ListAdminsReport.* stays bound to the original parameters, so explicit values, existing schedules
+# and API calls behave as before and the legacy settings win. RJReport.StorageAccount.* fills in when they are not set.
+if (-not ($ResourceGroupName -and $StorageAccountName) -and $RJReportResourceGroupName -and $RJReportStorageAccountName) {
+    Write-RjRbLog -Message "Using RJReport.StorageAccount.* - ListAdminsReport.* is not configured" -Verbose
+    $ResourceGroupName = $RJReportResourceGroupName
+    $StorageAccountName = $RJReportStorageAccountName
+    $SubscriptionId = $RJReportSubscriptionId
+}
+
+# Legacy report settings: remove with StorageAccountLocation / StorageAccountSku in the switch-off release
+if ($PSBoundParameters.ContainsKey('StorageAccountLocation') -or $PSBoundParameters.ContainsKey('StorageAccountSku')) {
+    $deprecationMessage = "StorageAccountLocation and StorageAccountSku are deprecated and ignored - the storage account is no longer created automatically. Re-create this schedule or drop both parameters from the API call; a later version removes them."
+    Write-RjRbLog -Message "WARNING: $deprecationMessage"
+    Write-Warning $deprecationMessage
+}
+
+#endregion Parameter Validation
+
+############################################################
+#region     Functions
 ############################################################
 
 #region Helper Functions
@@ -288,7 +357,7 @@ function Get-GraphPagedResult {
 #endregion Functions
 
 ############################################################
-#region Connect Part
+#region     Connect Part
 ############################################################
 
 Write-Output "Connecting to Microsoft Graph..."
@@ -307,7 +376,7 @@ catch {
 #endregion Connect Part
 
 ############################################################
-#region Data Collection
+#region     Data Collection
 ############################################################
 
 ## Get builtin AzureAD Roles
@@ -616,19 +685,25 @@ $roles | ForEach-Object {
 #endregion Data Collection
 
 ############################################################
-#region Output/Export
+#region     Report File Export
 ############################################################
 
+# The storage check stays here, after the role listing, so the run output keeps the order of earlier versions
 if ($exportToFile) {
-    if ((-not $StorageAccountName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountSku) -or (-not $ResourceGroupName)) {
+    if ((-not $StorageAccountName) -or (-not $ResourceGroupName)) {
         $exportToFile = $false
         "## AZ Storage configuration incomplete, will not export to AZ Storage."
-        "## Make sure StorageAccountName, StorageAccountLocation, StorageAccountSku, ResourceGroupName are set."
+        "## Configure the following attributes (see https://docs.realmjoin.com/automation/runbooks/runbook-report-settings):"
+        "## - RJReport.StorageAccount.ResourceGroup"
+        "## - RJReport.StorageAccount.StorageAccountName"
+        "## The runbook-specific ListAdminsReport.ResourceGroup and ListAdminsReport.StorageAccount.Name are still read and take precedence."
     }
 }
 
+$reportFiles = @()
 if ($exportToFile) {
-    $filename = "AdminRoleOverview.csv"
+    # The local file name becomes the blob name, so uploads keep the blob names of earlier versions
+    $filename = Join-Path ([System.IO.Path]::GetTempPath()) "AdminRoleOverview.csv"
     [string]$output = "UPN;"
     $roles | ForEach-Object {
         $output += $_.displayName + ";"
@@ -687,47 +762,54 @@ if ($exportToFile) {
     }
     $content = Get-Content $filename
     Set-Content -Path $filename -Value $content -Encoding utf8
+    $reportFiles += $filename
+}
 
+#endregion Report File Export
+
+############################################################
+#region     Upload / Download Link
+############################################################
+
+if ($exportToFile) {
     Connect-RjRbAzAccount
 
     if (-not $ContainerName) {
         $ContainerName = "adminoverview-" + (Get-Date -Format "yyyy-MM-dd")
     }
 
-    # Make sure storage account exists
-    $storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
-    if (-not $storAccount) {
-        "## Creating Azure Storage Account $($StorageAccountName)"
-        $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku
+    try {
+        Write-RjRbLog -Message "Upload" -Verbose
+        $uploadResults = Publish-RjRbFilesToStorageContainer `
+            -FilePaths $reportFiles `
+            -ContainerName $ContainerName `
+            -ResourceGroupName $ResourceGroupName `
+            -StorageAccountName $StorageAccountName `
+            -SubscriptionId $SubscriptionId `
+            -LinkExpiryDays $LinkExpiryDays `
+            -AddBlobNamePrefix $false
+
+        foreach ($uploadResult in $uploadResults) {
+            "## $($uploadResult.BlobName)"
+            " $($uploadResult.SASLink)"
+            ""
+        }
+        "## upload of CSVs successful."
+        "## Expiry of Links: $(@($uploadResults)[0].EndTime)"
     }
-
-    # Get access to the Storage Account
-    $keys = Get-AzStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName
-    $context = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value
-
-    # Make sure, container exists
-    $container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
-    if (-not $container) {
-        "## Creating Azure Storage Account Container $($ContainerName)"
-        $container = New-AzStorageContainer -Name $ContainerName -Context $context
+    catch {
+        # The MFA state below is still reported when the upload fails
+        Write-RjRbLog -Message "Upload to storage account '$StorageAccountName' failed: $($_.Exception.Message). The managed identity needs the 'Reader and Data Access' role on the storage account." -Verbose
+        "## Upload of report failed. Please see log."
+        ""
+        $_
     }
-
-    Set-AzStorageBlobContent -File $filename -Container $ContainerName -Blob $_.Name -Context $context -Force | Out-Null
-
-    #Create signed (SAS) link
-    $EndTime = (Get-Date).AddDays(6)
-    $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $filename -FullUri -ExpiryTime $EndTime
-    "## $filename"
-    " $SASLink"
-    ""
-    "## upload of CSVs successful."
-    "## Expiry of Links: $EndTime"
 }
 
-#endregion Output/Export
+#endregion Upload / Download Link
 
 ############################################################
-#region Main Part
+#region     Main Part
 ############################################################
 
 if ($QueryMfaState) {
@@ -790,3 +872,13 @@ if ($QueryMfaState) {
 }
 
 #endregion Main Part
+
+############################################################
+#region     Cleanup
+############################################################
+
+foreach ($reportFile in $reportFiles) {
+    Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
+}
+
+#endregion Cleanup

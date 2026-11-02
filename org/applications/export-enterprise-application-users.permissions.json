@@ -6,12 +6,12 @@
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
                 {
-                    "Value": "Directory.Read.All",
-                    "Reason": "Resolves assigned users and groups and reads the tenant name for the report"
-                },
-                {
                     "Value": "Application.Read.All",
                     "Reason": "Lists service principals and reads their owners and app role assignments"
+                },
+                {
+                    "Value": "Directory.Read.All",
+                    "Reason": "Resolves assigned users and groups and reads the tenant name for the report"
                 },
                 {
                     "Value": "Mail.Send",
@@ -24,6 +24,6 @@
     ],
     "Roles": [],
     "ManualPermissions": [
-        "Azure IaaS: - Contributor - access on subscription or resource group used for the export"
+        "Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link)"
     ]
 }

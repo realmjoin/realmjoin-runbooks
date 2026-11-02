@@ -6,20 +6,20 @@
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
                 {
-                    "Value": "User.Read.All",
-                    "Reason": "Reads role holders' user details when resolving principals"
-                },
-                {
                     "Value": "Directory.Read.All",
                     "Reason": "Resolves role-holder principal ids to users, groups or service principals via /directoryObjects"
+                },
+                {
+                    "Value": "RoleAssignmentSchedule.Read.Directory",
+                    "Reason": "Reads roleAssignmentScheduleInstances to report PIM assignment end dates"
                 },
                 {
                     "Value": "RoleManagement.Read.All",
                     "Reason": "Lists role definitions, role assignments and PIM eligibility schedules"
                 },
                 {
-                    "Value": "RoleAssignmentSchedule.Read.Directory",
-                    "Reason": "Reads roleAssignmentScheduleInstances to report PIM assignment end dates"
+                    "Value": "User.Read.All",
+                    "Reason": "Reads role holders' user details when resolving principals"
                 },
                 {
                     "Value": "UserAuthenticationMethod.Read.All",
@@ -31,5 +31,7 @@
         }
     ],
     "Roles": [],
-    "ManualPermissions": []
+    "ManualPermissions": [
+        "Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the CSV upload)"
+    ]
 }
