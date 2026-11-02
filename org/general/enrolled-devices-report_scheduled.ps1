@@ -179,6 +179,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
@@ -247,10 +248,32 @@ param(
 
 )
 
+########################################################
+#region     RJ Log Part
+########################################################
+
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 $Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
+Write-RjRbLog -Message "Submitted parameters:" -Verbose
+Write-RjRbLog -Message "Weeks: $Weeks" -Verbose
+Write-RjRbLog -Message "dataSource: $dataSource" -Verbose
+Write-RjRbLog -Message "groupingSource: $groupingSource" -Verbose
+Write-RjRbLog -Message "groupingAttribute: $groupingAttribute" -Verbose
+Write-RjRbLog -Message "exportCsv: $exportCsv" -Verbose
+Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
+Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
+Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+Write-RjRbLog -Message "SubscriptionId: $SubscriptionId" -Verbose
+Write-RjRbLog -Message "StorageAccountLocation: $StorageAccountLocation" -Verbose
+Write-RjRbLog -Message "StorageAccountSku: $StorageAccountSku" -Verbose
+Write-RjRbLog -Message "RJReportResourceGroupName: $RJReportResourceGroupName" -Verbose
+Write-RjRbLog -Message "RJReportStorageAccountName: $RJReportStorageAccountName" -Verbose
+Write-RjRbLog -Message "RJReportSubscriptionId: $RJReportSubscriptionId" -Verbose
+Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
+
+#endregion RJ Log Part
 
 ########################################################
 #region     Parameter Validation
@@ -287,29 +310,116 @@ if ($exportCsv -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) 
 
 #endregion Parameter Validation
 
-Connect-RjRbGraph
+########################################################
+#region     Function Definitions
+########################################################
+
+function Get-GraphPagedResult {
+    <#
+        .SYNOPSIS
+        Retrieves all items from a paginated Microsoft Graph API endpoint.
+
+        .DESCRIPTION
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
+
+        .PARAMETER Uri
+        The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
+
+        .EXAMPLE
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
+    #>
+    param(
+        [string]$Uri
+    )
+
+    $allResults = [System.Collections.Generic.List[object]]::new()
+    $nextLink = $Uri
+    $pageCount = 0
+
+    do {
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
+        }
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
+        $nextLink = $response.'@odata.nextLink'
+    } while ($nextLink)
+
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
+}
+
+#endregion Function Definitions
+
+########################################################
+#region     Connect Part
+########################################################
+
+try {
+  Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+}
+catch {
+  Write-Error "Failed to connect to Microsoft Graph. Ensure the managed identity is configured correctly. Error: $($_.Exception.Message)" -ErrorAction Continue
+  throw
+}
+
+#endregion Connect Part
+
+########################################################
+#region     Data Collection
+########################################################
 
 # find cutoff point in time
 $date = (Get-Date) - (New-TimeSpan -Days ($Weeks * 7))
 
-# Get AutoPilot-Devices newer than cutoff
-# $devices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -Beta | Where-Object { ([datetime]$_.deploymentProfileAssignedDateTime) -ge $date }
+# Invoke-MgGraphRequest returns PSCustomObjects in the property order of the Graph response, as the earlier RunbookHelper
+# calls did, so properties are read the same way (case-insensitive); the default is removed again after each block
+$PSDefaultParameterValues['Invoke-MgGraphRequest:OutputType'] = 'PSObject'
 try {
-  $devices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -Beta
+  # Get all AutoPilot-Devices (filtered by the cutoff below)
+  $devices = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/windowsAutopilotDeviceIdentities"
 
   $data = $devices | ForEach-Object {
-    if (($dataSource -eq 1) -or (([datetime]$_.deploymentProfileAssignedDateTime) -ge $date)) {
+    $apDevice = $_
+    if (($dataSource -eq 1) -or (([datetime]$apDevice.deploymentProfileAssignedDateTime) -ge $date)) {
       # Only process this device if either Intune datasource is used, or Autopilot assignment is not too old.
-      $intuneDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices/$($_.managedDeviceId)" -ErrorAction SilentlyContinue
+      # A device without Intune object (404) counts as not enrolled, as before.
+      $intuneDevice = $null
+      if ($apDevice.managedDeviceId) {
+        try {
+          $intuneDevice = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/deviceManagement/managedDevices/$($apDevice.managedDeviceId)" -Method GET -ErrorAction Stop
+        }
+        catch {
+          $intuneDevice = $null
+        }
+      }
       if (($dataSource -eq 0) -or ($intuneDevice -and ([datetime]$intuneDevice.enrolledDateTime) -ge $date)) {
         # Only process this device if either Autopilot datasource is used, or Intune enrollment is not too old.
         $output = [PSCustomObject]@{
-          apDevice           = $_
+          apDevice           = $apDevice
           intuneDevice       = $intuneDevice
-          Serial             = $_.serialNumber
+          Serial             = $apDevice.serialNumber
           User               = ""
-          Model              = $_.model
-          APAssignmentDate   = (get-date -Date ($_.deploymentProfileAssignedDateTime) -Format "yyyy-MM-ddTHH:mmK" )
+          Model              = $apDevice.model
+          APAssignmentDate   = (get-date -Date ($apDevice.deploymentProfileAssignedDateTime) -Format "yyyy-MM-ddTHH:mmK" )
           IntuneEnrolledDate = ""
           $groupingAttribute = ""
         }
@@ -320,12 +430,29 @@ try {
           }
         }
 
-        # Take this device into account / print data
+        # Take this device into account
         $output
       }
     }
   }
+}
+catch {
+  "## Something went wrong. Probably missing MS Graph API permissions."
+  write-error $_
+  throw ("failed")
+}
+finally {
+  $PSDefaultParameterValues.Remove('Invoke-MgGraphRequest:OutputType')
+}
 
+#endregion Data Collection
+
+########################################################
+#region     Data Processing
+########################################################
+
+$PSDefaultParameterValues['Invoke-MgGraphRequest:OutputType'] = 'PSObject'
+try {
   $sortingAttribute = "APAssignmentDate"
   if ($groupingSource -eq 1) {
     $sortingAttribute = "IntuneEnrolledDate"
@@ -336,60 +463,65 @@ try {
   if ($groupingSource -eq 0) {
     "## - no grouping"
     ""
-    $data | Sort-Object -Property $sortingAttribute | Format-Table -AutoSize -Property "Serial", "User", "Model", $sortingAttribute | Out-String
-
   }
 
   if ($groupingSource -eq 1) {
     "## - EntraID User: $groupingAttribute"
     ""
-    $data | ForEach-Object {
-      if ($_.intuneDevice -and $_.intuneDevice.userId ) {
-        $azureADUser = Invoke-RjRbRestMethodGraph -Resource "/users/$($_.intuneDevice.userId)" -OdSelect $groupingAttribute -ErrorAction SilentlyContinue
-
-        if ($azureADUser) {
-          $_.$groupingAttribute = $azureADUser.$groupingAttribute
+    foreach ($entry in $data) {
+      if ($entry.intuneDevice -and $entry.intuneDevice.userId ) {
+        $azureADUser = $null
+        try {
+          $azureADUser = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($entry.intuneDevice.userId)?`$select=$([System.Uri]::EscapeDataString($groupingAttribute))" -Method GET -ErrorAction Stop
+        }
+        catch {
+          $azureADUser = $null
         }
 
-        $_
+        if ($azureADUser) {
+          $entry.$groupingAttribute = $azureADUser.$groupingAttribute
+        }
       }
-    } | Sort-Object -Property $groupingAttribute, $sortingAttribute | Format-Table -AutoSize -Property "Serial", "User", "Model", $sortingAttribute -GroupBy $groupingAttribute | Out-String
+    }
   }
 
   if ($groupingSource -eq 2) {
     "## - EntraID Device: $groupingAttribute"
     ""
-    $data | ForEach-Object {
-      $azureADDevice = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter "deviceId eq '$($_.apDevice.azureAdDeviceId)'" -ErrorAction SilentlyContinue
-
-      if ($azureADDevice) {
-        $_.$groupingAttribute = $azureADDevice.$groupingAttribute
+    foreach ($entry in $data) {
+      $azureADDevice = $null
+      try {
+        $deviceFilter = [System.Uri]::EscapeDataString("deviceId eq '$($entry.apDevice.azureAdDeviceId)'")
+        $deviceResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/devices?`$filter=$deviceFilter" -Method GET -ErrorAction Stop
+        # Unrolled as before: no match gives nothing, a single match the device itself
+        $azureADDevice = $deviceResponse.value | ForEach-Object { $_ }
+      }
+      catch {
+        $azureADDevice = $null
       }
 
-      $_
-    } | Sort-Object -Property $groupingAttribute, $sortingAttribute | Format-Table -AutoSize -Property "Serial", "User", "Model", $sortingAttribute -GroupBy $groupingAttribute | Out-String
+      if ($azureADDevice) {
+        $entry.$groupingAttribute = $azureADDevice.$groupingAttribute
+      }
+    }
   }
 
   if ($groupingSource -eq 3) {
     "## - Intune Device: $groupingAttribute"
     ""
-    $data | ForEach-Object {
-      if ($_.intuneDevice) {
-        $_.$groupingAttribute = $_.intuneDevice.$groupingAttribute
+    foreach ($entry in $data) {
+      if ($entry.intuneDevice) {
+        $entry.$groupingAttribute = $entry.intuneDevice.$groupingAttribute
       }
-
-      $_
-    } | Sort-Object -Property $groupingAttribute, $sortingAttribute | Format-Table -AutoSize -Property "Serial", "User", "Model", $sortingAttribute -GroupBy $groupingAttribute | Out-String
+    }
   }
 
   if ($groupingSource -eq 4) {
     "## - AutoPilot Device: $groupingAttribute"
     ""
-    $data | ForEach-Object {
-      $_.$groupingAttribute = $_.apDevice.$groupingAttribute
-
-      $_
-    } | Sort-Object -Property $groupingAttribute, $sortingAttribute | Format-Table -AutoSize -Property "Serial", "User", "Model", $sortingAttribute -GroupBy $groupingAttribute | Out-String
+    foreach ($entry in $data) {
+      $entry.$groupingAttribute = $entry.apDevice.$groupingAttribute
+    }
   }
 }
 catch {
@@ -397,6 +529,11 @@ catch {
   write-error $_
   throw ("failed")
 }
+finally {
+  $PSDefaultParameterValues.Remove('Invoke-MgGraphRequest:OutputType')
+}
+
+#endregion Data Processing
 
 ########################################################
 #region     Report File Export
@@ -462,11 +599,86 @@ if ($exportCsv) {
 #endregion Upload / Download Link
 
 ########################################################
+#region     Structured Output (Output Data)
+########################################################
+
+# Emitted last so the tables are not interleaved with the progress output. Every table has its own
+# RjTableTitle marker and its own column set; a marker is only written when rows follow it.
+Write-Output ""
+
+# Same rows, columns and order as the CSV export
+if ($groupingSource -eq 0) {
+  $deviceRows = @($data | Sort-Object -Property $sortingAttribute | Select-Object -Property "Serial", "User", "Model", $sortingAttribute)
+}
+else {
+  $deviceRows = @($data | Sort-Object -Property $groupingAttribute, $sortingAttribute | Select-Object -Property "Serial", "User", "Model", $sortingAttribute, $groupingAttribute)
+}
+
+$criterionText = switch ($dataSource) {
+  0 { "Date of Autopilot profile assignment" }
+  1 { "Date of Intune enrollment" }
+  default { "$dataSource" }
+}
+$groupingText = switch ($groupingSource) {
+  0 { "No grouping" }
+  1 { "Entra ID user properties: $groupingAttribute" }
+  2 { "Entra ID device properties: $groupingAttribute" }
+  3 { "Intune device properties: $groupingAttribute" }
+  4 { "Autopilot device properties: $groupingAttribute" }
+  default { "$groupingSource" }
+}
+$groupRows = @()
+if ($groupingSource -ne 0 -and $deviceRows.Count -gt 0) {
+  # One row per group in the order of the device table; an empty or missing attribute value is shown as "(not set)"
+  $groupRows = @($deviceRows | Group-Object -Property { "$($_.$groupingAttribute)" } | ForEach-Object {
+      $groupRow = [ordered]@{}
+      $groupRow[$groupingAttribute] = if ([string]::IsNullOrEmpty($_.Name)) { "(not set)" } else { $_.Name }
+      $groupRow["Device count"] = $_.Count
+      [PSCustomObject]$groupRow
+    })
+}
+
+$summaryValues = [ordered]@{
+  "Time range (weeks)"         = $Weeks
+  "First enrollment criterion" = $criterionText
+  "Grouped by"                 = $groupingText
+  "Enrolled devices"           = $deviceRows.Count
+}
+if ($groupingSource -ne 0) { $summaryValues["Groups"] = $groupRows.Count }
+$summaryRows = @(foreach ($metric in $summaryValues.Keys) {
+    [PSCustomObject]@{ Metric = $metric; Value = "$($summaryValues[$metric])" }
+  })
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
+Write-Output $summaryRows
+
+if ($deviceRows.Count -gt 0) {
+  Write-Output ([PSCustomObject]@{ RjTableTitle = "Enrolled devices" })
+  Write-Output $deviceRows
+
+  if ($groupRows.Count -gt 0) {
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Devices per group" })
+    Write-Output $groupRows
+  }
+}
+else {
+  Write-Output "No first-time enrollments in the last $Weeks week(s)."
+}
+
+#endregion Structured Output (Output Data)
+
+########################################################
 #region     Cleanup
 ########################################################
 
 foreach ($reportFile in $reportFiles) {
   Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
 }
+
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+  Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
+
+Write-Output ""
+Write-Output "Done!"
 
 #endregion Cleanup

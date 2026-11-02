@@ -3,7 +3,7 @@
 	List devices with no recent sign-in or Intune sync
 
 	.DESCRIPTION
-	Lists the devices whose last Intune sync, or whose last sign-in recorded in Entra ID, is older than the chosen number of days. The result can be shown in the run output or exported as a CSV file to an Azure Storage account. Nothing is changed.
+	Lists the devices whose last Intune sync, or whose last sign-in recorded in Entra ID, is older than the chosen number of days. The result is shown in the Output Data tables of the run and can also be exported as a CSV file to an Azure Storage account. Nothing is changed.
 
 	.PARAMETER Days
 	Devices with no sync or sign-in for at least this many days are listed.
@@ -12,7 +12,7 @@
 	Last Intune sync looks at managed devices and their last check-in; Last sign-in looks at Entra ID device objects and their approximate last sign-in date.
 
 	.PARAMETER ExportToFile
-	List in the run output, or export to a CSV file in the storage account configured in the tenant settings.
+	The list is always shown in the Output Data tables of the run. "Also export to a CSV file" also uploads it as a CSV file to the storage account configured in the tenant settings and returns a download link.
 
 	.PARAMETER ContainerName
 	Storage container the report files are uploaded to. Taken from the tenant setting InactiveDevices.Container, otherwise set per runbook.
@@ -82,18 +82,9 @@
 			},
 			"Sync": {
 				"DisplayName": "Measure inactivity by",
-				"Select": {
-					"Options": [
-						{
-							"Display": "Last Intune sync",
-							"ParameterValue": true
-						},
-						{
-							"Display": "Last sign-in",
-							"ParameterValue": false
-						}
-					],
-					"ShowValue": false
+				"SelectSimple": {
+					"Last Intune sync": true,
+					"Last sign-in": false
 				}
 			},
 			"CallerName": {
@@ -104,11 +95,11 @@
 				"Select": {
 					"Options": [
 						{
-							"Display": "Export to a CSV file",
+							"Display": "Also export to a CSV file",
 							"ParameterValue": true
 						},
 						{
-							"Display": "List in the run output",
+							"Display": "Output Data only",
 							"ParameterValue": false,
 							"Customization": {
 								"Hide": [
@@ -135,6 +126,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
@@ -169,10 +161,30 @@ param(
     [string] $CallerName
 )
 
+########################################################
+#region     RJ Log Part
+########################################################
+
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 $Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
+
+Write-RjRbLog -Message "Days: $Days" -Verbose
+Write-RjRbLog -Message "Sync: $Sync" -Verbose
+Write-RjRbLog -Message "ExportToFile: $ExportToFile" -Verbose
+Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
+Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
+Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+Write-RjRbLog -Message "SubscriptionId: $SubscriptionId" -Verbose
+Write-RjRbLog -Message "StorageAccountLocation: $StorageAccountLocation" -Verbose
+Write-RjRbLog -Message "StorageAccountSku: $StorageAccountSku" -Verbose
+Write-RjRbLog -Message "RJReportResourceGroupName: $RJReportResourceGroupName" -Verbose
+Write-RjRbLog -Message "RJReportStorageAccountName: $RJReportStorageAccountName" -Verbose
+Write-RjRbLog -Message "RJReportSubscriptionId: $RJReportSubscriptionId" -Verbose
+Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
+
+#endregion RJ Log Part
 
 ########################################################
 #region     Parameter Validation
@@ -233,68 +245,184 @@ if ($ExportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountName)
 
 #endregion Parameter Validation
 
-Connect-RjRbGraph
+########################################################
+#region     Function Definitions
+########################################################
+
+function Get-GraphPagedResult {
+    <#
+        .SYNOPSIS
+        Retrieves all items from a paginated Microsoft Graph API endpoint.
+
+        .DESCRIPTION
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
+
+        .PARAMETER Uri
+        The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
+
+        .EXAMPLE
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
+    #>
+    param(
+        [string]$Uri
+    )
+
+    $allResults = [System.Collections.Generic.List[object]]::new()
+    $nextLink = $Uri
+    $pageCount = 0
+
+    do {
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
+        }
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
+        $nextLink = $response.'@odata.nextLink'
+    } while ($nextLink)
+
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
+}
+
+function Format-ReportDate {
+    <#
+        .SYNOPSIS
+        Formats a Graph timestamp as "yyyy-MM-dd" for the Output Data table, or returns an empty string.
+
+        .PARAMETER Value
+        The timestamp as returned by Graph (DateTime or ISO 8601 string).
+    #>
+    param(
+        $Value
+    )
+
+    if ($null -eq $Value -or "$Value" -eq "") { return "" }
+    try {
+        return ([datetime]$Value).ToString("yyyy-MM-dd")
+    }
+    catch {
+        return "$Value"
+    }
+}
+
+#endregion Function Definitions
+
+########################################################
+#region     Connect Part
+########################################################
+
+Write-RjRbLog -Message "Connecting to Microsoft Graph" -Verbose
+try {
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+}
+catch {
+    Write-Error "Failed to connect to Microsoft Graph. Ensure the managed identity is configured correctly. Error: $($_.Exception.Message)" -ErrorAction Continue
+    throw
+}
+
+#endregion Connect Part
+
+########################################################
+#region     Data Collection
+########################################################
 
 # Calculate "last sign in date"
 $beforedate = (Get-Date).AddDays(-$Days) | Get-Date -Format "yyyy-MM-dd"
-$filter = 'approximateLastSignInDateTime le ' + $beforedate + 'T00:00:00Z'
 
-$Exportdevices = @()
+# Invoke-MgGraphRequest returns PSCustomObjects in the property order of the Graph response, as the earlier RunbookHelper calls did,
+# so the CSV keeps its columns; the default is removed again after the collection
+$PSDefaultParameterValues['Invoke-MgGraphRequest:OutputType'] = 'PSObject'
+try {
+    if ($Sync) {
+        $SelectString = "deviceName,lastSyncDateTime,enrolledDateTime,userPrincipalName,id,serialNumber,manufacturer,model,imei,managedDeviceOwnerType,operatingSystem,osVersion,complianceState"
+        $filter = 'lastSyncDateTime le ' + $beforedate + 'T00:00:00Z'
+        "## Listing inactive devices (no Intune sync since at least $Days days)"
+        ""
+        $Devices = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/deviceManagement/managedDevices?`$select=$SelectString&`$filter=$([uri]::EscapeDataString($filter))"
+    }
+    else {
+        $SelectString = "displayName,deviceId,approximateLastSignInDateTime,createdDateTime,id,manufacturer,model,deviceOwnership,operatingSystem,operatingSystemVersion,isCompliant"
+        $filter = 'approximateLastSignInDateTime le ' + $beforedate + 'T00:00:00Z'
+        "## Listing inactive devices (no SignIn since at least $Days days)"
+        ""
+        $Devices = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/devices?`$filter=$([uri]::EscapeDataString($filter))&`$select=$SelectString"
+    }
+
+    $Exportdevices = @()
+    foreach ($Device in $Devices) {
+        $primaryOwner = $null
+        if ($Sync) {
+            try {
+                $ownerResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$([uri]::EscapeDataString([string]$Device.userPrincipalName))?`$select=city,country,department,usageLocation" -Method GET -ErrorAction Stop
+                # As with the earlier RunbookHelper call, a collection response is unwrapped to its items: a device without a
+                # primary user addresses /users itself
+                $primaryOwner = if ($ownerResponse.PSObject.Properties['value']) { $ownerResponse.value } else { $ownerResponse }
+            }
+            catch {
+                "## User '$($Device.userPrincipalName)' not found. Maybe deleted?"
+            }
+        }
+        else {
+            try {
+                $primaryOwner = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/devices/$($Device.id)/registeredOwners?`$select=userPrincipalName,city,department,usageLocation"
+            }
+            catch {
+                "## Querying registered owners failed. Skipping."
+            }
+        }
+        $Exportdevice = @()
+        $Exportdevice += $Device
+        if ($primaryOwner) {
+            if (!$Sync) {
+                $Exportdevice | Add-Member -Name "userPrincipalName" -Value $primaryOwner.userPrincipalName -MemberType "NoteProperty"
+            }
+            $Exportdevice | Add-Member -Name "city" -Value $primaryOwner.city -MemberType "NoteProperty"
+            $Exportdevice | Add-Member -Name "country" -Value $primaryOwner.country -MemberType "NoteProperty"
+            $Exportdevice | Add-Member -Name "department" -Value $primaryOwner.department -MemberType "NoteProperty"
+            $Exportdevice | Add-Member -Name "usageLocation" -Value $primaryOwner.usageLocation -MemberType "NoteProperty"
+        }
+        $Exportdevices += $Exportdevice
+    }
+}
+finally {
+    $PSDefaultParameterValues.Remove('Invoke-MgGraphRequest:OutputType')
+}
+
+#endregion Data Collection
+
+########################################################
+#region     Data Processing
+########################################################
+
+# Output Data rows: the columns of the earlier run output table, oldest activity first, names no longer shortened
 if ($Sync) {
-    $SelectString = "deviceName, lastSyncDateTime, enrolledDateTime, userPrincipalName, id, serialNumber, manufacturer, model, imei, managedDeviceOwnerType, operatingSystem, osVersion, complianceState"
-    $filter = 'lastSyncDateTime le ' + $beforedate + 'T00:00:00Z'
-    "## Listing inactive devices (no Intune sync since at least $Days days)"
-    ""
-    $Devices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdSelect $SelectString -OdFilter $filter -FollowPaging
+    $inactivityText = "Last Intune sync"
+    $deviceRows = @($Exportdevices | Sort-Object -Property lastSyncDateTime | Select-Object -Property @{ Name = "LastSync"; Expression = { Format-ReportDate -Value $_.lastSyncDateTime } }, deviceName, userPrincipalName, serialNumber, manufacturer, model, complianceState)
 }
 else {
-    $SelectString = "displayName,deviceId,approximateLastSignInDateTime,createdDateTime,id,manufacturer,model,deviceOwnership,operatingSystem,operatingSystemVersion,isCompliant"
-    $filter = 'approximateLastSignInDateTime le ' + $beforedate + 'T00:00:00Z'
-    "## Listing inactive devices (no SignIn since at least $Days days)"
-    ""
-    $Devices = Invoke-RjRbRestMethodGraph -Resource "/devices" -OdFilter $filter -OdSelect $SelectString -FollowPaging
+    $inactivityText = "Last sign-in"
+    $deviceRows = @($Exportdevices | Sort-Object -Property approximateLastSignInDateTime | Select-Object -Property @{ Name = "LastSignIn"; Expression = { Format-ReportDate -Value $_.approximateLastSignInDateTime } }, displayName, deviceId, manufacturer, model, isCompliant)
 }
 
-foreach ($Device in $Devices) {
-    $primaryOwner = $null
-    if ($Sync) {
-        try {
-            $primaryOwner = Invoke-RjRbRestMethodGraph -Resource "/Users/$($Device.userPrincipalName)" -OdSelect "city, country, department, usageLocation"
-        }
-        catch {
-            "## User '$($Device.userPrincipalName)' not found. Maybe deleted?"
-        }
-    }
-    else {
-        try {
-            $primaryOwner = Invoke-RjRbRestMethodGraph -Resource "/devices/$($Device.id)/registeredOwners" -OdSelect "userPrincipalName,city,department,usageLocation"
-        }
-        catch {
-            "## Querying registered owners failed. Skipping."
-        }
-    }
-    $Exportdevice = @()
-    $Exportdevice += $Device
-    if ($primaryOwner) {
-        if (!$Sync) {
-            $Exportdevice | Add-Member -Name "userPrincipalName" -Value $primaryOwner.userPrincipalName -MemberType "NoteProperty"
-        }
-        $Exportdevice | Add-Member -Name "city" -Value $primaryOwner.city -MemberType "NoteProperty"
-        $Exportdevice | Add-Member -Name "country" -Value $primaryOwner.country -MemberType "NoteProperty"
-        $Exportdevice | Add-Member -Name "department" -Value $primaryOwner.department -MemberType "NoteProperty"
-        $Exportdevice | Add-Member -Name "usageLocation" -Value $primaryOwner.usageLocation -MemberType "NoteProperty"
-    }
-    $Exportdevices += $Exportdevice
-}
-
-if (-not $ExportToFile) {
-    if ($Sync) {
-        $Exportdevices | Sort-Object -Property lastSyncDateTime | Format-Table -AutoSize -Property @{name = "LastSync"; expression = { get-date $_.lastSyncDateTime -Format yyyy-MM-dd } }, @{name = "deviceName"; expression = { if ($_.deviceName.Length -gt 15) { $_.deviceName.substring(0, 14) + ".." } else { $_.deviceName } } }, userPrincipalName, @{name = "serialNumber"; expression = { if ($_.serialNumber.Length -gt 15) { $_.serialNumber.substring(0, 14) + ".." } else { $_.serialNumber } } }, manufacturer, model, complianceState | Out-String
-    }
-    else {
-        $Exportdevices | Sort-Object -Property approximateLastSignInDateTime | Format-Table -AutoSize -Property @{name = "LastSignIn"; expression = { get-date $_.approximateLastSignInDateTime -Format yyyy-MM-dd } }, @{name = "displayName"; expression = { if ($_.displayName.Length -gt 15) { $_.displayName.substring(0, 14) + ".." } else { $_.displayName } } }, deviceId, manufacturer, model, isCompliant  | Out-String
-    }
-}
+#endregion Data Processing
 
 ########################################################
 #region     Report File Export
@@ -354,11 +482,44 @@ if ($ExportToFile) {
 #endregion Upload / Download Link
 
 ########################################################
+#region     Structured Output (Output Data)
+########################################################
+
+# Emitted last so the tables are not interleaved with the progress output. Every table has its own
+# RjTableTitle marker and its own column set; a marker is only written when rows follow it.
+Write-Output ""
+
+$summaryRows = @(
+    [PSCustomObject]@{ Metric = "Inactivity measured by"; Value = $inactivityText }
+    [PSCustomObject]@{ Metric = "Inactive for at least (days)"; Value = "$Days" }
+    [PSCustomObject]@{ Metric = "No activity since"; Value = $beforedate }
+    [PSCustomObject]@{ Metric = "Inactive devices"; Value = "$($deviceRows.Count)" }
+)
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
+Write-Output $summaryRows
+
+if ($deviceRows.Count -gt 0) {
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Inactive devices" })
+    Write-Output $deviceRows
+}
+else {
+    Write-Output "No inactive devices found."
+}
+
+#endregion Structured Output (Output Data)
+
+########################################################
 #region     Cleanup
 ########################################################
 
 foreach ($reportFile in $reportFiles) {
     Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
 }
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
+
+Write-Output ""
+Write-Output "Done!"
 
 #endregion Cleanup

@@ -136,18 +136,9 @@
             },
             "NotifyOnSeverity": {
                 "DisplayName": "Which devices should trigger a notification?",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Warning and Critical - every device below the threshold",
-                            "ParameterValue": "Warning and Critical"
-                        },
-                        {
-                            "Display": "Critical only - devices below half of the threshold",
-                            "ParameterValue": "Critical only"
-                        }
-                    ],
-                    "ShowValue": false
+                "SelectSimple": {
+                    "Warning and Critical - every device below the threshold": "Warning and Critical",
+                    "Critical only - devices below half of the threshold": "Critical only"
                 }
             },
             "Windows": {
@@ -218,7 +209,11 @@
             },
             "MailTemplateLanguage": {
                 "DisplayName": "Mail template",
-                "Hide": true
+                "SelectSimple": {
+                    "English (default)": "EN",
+                    "German": "DE",
+                    "Custom template from runbook customization": "Custom"
+                }
             },
             "CustomMailTemplateSubject": {
                 "DisplayName": "Custom: email subject",
@@ -263,42 +258,6 @@
                                 }
                             },
                             "ParameterValue": false
-                        }
-                    ]
-                }
-            },
-            {
-                "DisplayName": "Mail template",
-                "DisplayAfter": "SimulationMode",
-                "Default": "EN",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "English (default)",
-                            "Customization": {
-                                "Default": {
-                                    "MailTemplateLanguage": "EN"
-                                }
-                            },
-                            "ParameterValue": "EN"
-                        },
-                        {
-                            "Display": "German",
-                            "Customization": {
-                                "Default": {
-                                    "MailTemplateLanguage": "DE"
-                                }
-                            },
-                            "ParameterValue": "DE"
-                        },
-                        {
-                            "Display": "Custom template from runbook customization",
-                            "Customization": {
-                                "Default": {
-                                    "MailTemplateLanguage": "Custom"
-                                }
-                            },
-                            "ParameterValue": "Custom"
                         }
                     ]
                 }
@@ -373,7 +332,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.0.0"
+$Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
@@ -407,7 +366,7 @@ Write-RjRbLog -Message "CustomMailTemplateSubject: $CustomMailTemplateSubject" -
 Write-RjRbLog -Message "CustomMailTemplateBeforeDeviceDetails: $CustomMailTemplateBeforeDeviceDetails" -Verbose
 Write-RjRbLog -Message "CustomMailTemplateAfterDeviceDetails: $CustomMailTemplateAfterDeviceDetails" -Verbose
 
-#endregion
+#endregion RJ Log Part
 
 ########################################################
 #region     Parameter Validation
@@ -479,7 +438,7 @@ elseif (-not $UseUserScope -and (-not [string]::IsNullOrWhiteSpace($IncludeUserG
 
 $deviceGroupActive = -not [string]::IsNullOrWhiteSpace($IncludeDeviceGroup)
 
-#endregion
+#endregion Parameter Validation
 
 ########################################################
 #region     Function Definitions
@@ -492,27 +451,50 @@ function Get-GraphPagedResult {
 
         .DESCRIPTION
         Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
-        by following the @odata.nextLink property in the response.
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
 
         .PARAMETER Uri
-        The initial Microsoft Graph API endpoint URI to query.
+        The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
+
+        .EXAMPLE
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
     #>
     param(
         [string]$Uri
     )
 
-    $allResults = @()
+    $allResults = [System.Collections.Generic.List[object]]::new()
     $nextLink = $Uri
+    $pageCount = 0
 
     do {
-        $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
-        if ($response.value) {
-            $allResults += $response.value
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
         }
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
         $nextLink = $response.'@odata.nextLink'
     } while ($nextLink)
 
-    return $allResults
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
 }
 
 function Get-PlatformKey {
@@ -1132,7 +1114,68 @@ function Get-StorageTipsMarkdown {
     return ($sections -join "`n`n")
 }
 
-#endregion
+function Add-NotificationResult {
+    <#
+        .SYNOPSIS
+        Records the notification outcome of a user for the Output Data tables.
+
+        .DESCRIPTION
+        Adds the row of the user to the Notifications table and marks every affected device of the user with
+        the outcome.
+
+        .PARAMETER Results
+        The list that collects the rows of the Notifications table.
+
+        .PARAMETER UserPrincipalName
+        The user principal name of the user, or the object id when no UPN is known.
+
+        .PARAMETER DisplayName
+        The display name of the user, if resolved.
+
+        .PARAMETER Recipient
+        The address(es) the email was sent or would be sent to.
+
+        .PARAMETER Devices
+        The affected devices of the user.
+
+        .PARAMETER Notification
+        The outcome: Sent, Partially sent, Failed, Simulated or Skipped.
+
+        .PARAMETER Reason
+        Why the user was skipped or the email was not delivered completely; empty otherwise.
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyCollection()]
+        [System.Collections.Generic.List[object]]$Results,
+        [string]$UserPrincipalName,
+        [string]$DisplayName,
+        [string]$Recipient,
+        [Parameter(Mandatory = $true)]
+        [array]$Devices,
+        [Parameter(Mandatory = $true)]
+        [string]$Notification,
+        [string]$Reason
+    )
+
+    foreach ($userDevice in $Devices) {
+        $userDevice.Notification = $Notification
+        $userDevice.Reason = $Reason
+    }
+
+    $resultRow = [PSCustomObject]@{
+        UserPrincipalName = $UserPrincipalName
+        DisplayName       = $DisplayName
+        Recipient         = $Recipient
+        Devices           = $Devices.Count
+        WorstSeverity     = if (($Devices | Where-Object { $_.Severity -eq 'Critical' } | Measure-Object).Count -gt 0) { 'Critical' } else { 'Warning' }
+        Notification      = $Notification
+        Reason            = $Reason
+    }
+    $Results.Add($resultRow)
+}
+
+#endregion Function Definitions
 
 ########################################################
 #region     Connect Part
@@ -1170,11 +1213,7 @@ catch {
     Write-RjRbLog -Message "Failed to retrieve tenant information: $($_.Exception.Message)" -Verbose
 }
 
-# Connect RJ RunbookHelper for email sending
-Write-Output "Graph connection for RJ RunbookHelper..."
-Connect-RjRbGraph
-
-#endregion
+#endregion Connect Part
 
 ########################################################
 #region     Data Collection
@@ -1249,7 +1288,7 @@ $devices = Get-GraphPagedResult -Uri $devicesUri
 $totalDevicesScanned = ($devices | Measure-Object).Count
 Write-Output "Found $($totalDevicesScanned) managed device(s) before filtering"
 
-#endregion
+#endregion Data Collection
 
 ########################################################
 #region     Data Processing
@@ -1348,11 +1387,17 @@ foreach ($device in $devices) {
         LastSyncDateTime = $lastSyncDateTime
         DeviceId         = $device.id
         AzureADDeviceId  = $device.azureADDeviceId
+        # Outcome for the Output Data device table; set when the device is skipped below or once the
+        # notification of its primary user has been sent, simulated or skipped
+        Notification     = ""
+        Reason           = ""
     }
     $flaggedDevices += $flaggedDevice
 
     if ($NotifyOnSeverity -eq 'Critical only' -and $severity -ne 'Critical') {
         $devicesExcludedBySeverity++
+        $flaggedDevice.Notification = "Skipped"
+        $flaggedDevice.Reason = "Rated Warning, Critical only selected"
         continue
     }
 
@@ -1361,6 +1406,8 @@ foreach ($device in $devices) {
     # falls back to the UPN, so requiring a UPN here would discard notifiable devices.
     if ([string]::IsNullOrWhiteSpace($device.userId) -and [string]::IsNullOrWhiteSpace($device.userPrincipalName)) {
         $devicesWithoutUser += $flaggedDevice
+        $flaggedDevice.Notification = "Skipped"
+        $flaggedDevice.Reason = "No primary user"
         Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - no primary user assigned" -Verbose
         continue
     }
@@ -1369,11 +1416,15 @@ foreach ($device in $devices) {
     if ($userScopeConfigured) {
         if ($null -ne $includeUserScope -and -not (Test-UserInScope -Scope $includeUserScope -UserId $device.userId -UserPrincipalName $device.userPrincipalName)) {
             $devicesSkippedByUserScope++
+            $flaggedDevice.Notification = "Skipped"
+            $flaggedDevice.Reason = "User not in include group"
             Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - user '$($device.userPrincipalName)' is not in the include group" -Verbose
             continue
         }
         if ($null -ne $excludeUserScope -and (Test-UserInScope -Scope $excludeUserScope -UserId $device.userId -UserPrincipalName $device.userPrincipalName)) {
             $devicesSkippedByUserScope++
+            $flaggedDevice.Notification = "Skipped"
+            $flaggedDevice.Reason = "User in exclude group"
             Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - user '$($device.userPrincipalName)' is in the exclude group" -Verbose
             continue
         }
@@ -1426,6 +1477,8 @@ $usersToNotify = @()
 $usersSkippedDisabled = @()
 $usersSkippedLookupFailed = @()
 $lookupPermissionDenied = $false
+# One row per user with affected devices for the Output Data table "Notifications"
+$notificationResults = [System.Collections.Generic.List[object]]::new()
 
 if ($devicesByUser.Count -gt 0) {
     Write-Output ""
@@ -1453,15 +1506,18 @@ if ($devicesByUser.Count -gt 0) {
 
         if ($null -eq $userInfo -or $userInfo.LookupFailed) {
             # Devices whose primary user is only known by object id have no UPN to name here
-            $usersSkippedLookupFailed += if (-not [string]::IsNullOrWhiteSpace($userDevices[0].PrimaryUser)) { $userDevices[0].PrimaryUser } else { $userDevices[0].PrimaryUserId }
+            $failedUserLabel = if (-not [string]::IsNullOrWhiteSpace($userDevices[0].PrimaryUser)) { $userDevices[0].PrimaryUser } else { $userDevices[0].PrimaryUserId }
+            $usersSkippedLookupFailed += $failedUserLabel
             if ($null -ne $userInfo -and $userInfo.FailureStatus -in 401, 403) {
                 $lookupPermissionDenied = $true
             }
+            Add-NotificationResult -Results $notificationResults -UserPrincipalName $failedUserLabel -Devices $userDevices -Notification "Skipped" -Reason "User lookup failed"
             continue
         }
         if (-not $userInfo.AccountEnabled) {
             $usersSkippedDisabled += $userInfo.UserPrincipalName
             Write-RjRbLog -Message "Skipping user '$($userInfo.UserPrincipalName)' - account is disabled" -Verbose
+            Add-NotificationResult -Results $notificationResults -UserPrincipalName $userInfo.UserPrincipalName -DisplayName $userInfo.DisplayName -Devices $userDevices -Notification "Skipped" -Reason "Account disabled"
             continue
         }
 
@@ -1488,7 +1544,7 @@ if ($devicesByUser.Count -gt 0) {
     }
 }
 
-#endregion
+#endregion Data Processing
 
 ########################################################
 #region     Output
@@ -1524,30 +1580,13 @@ if ($flaggedDevices.Count -eq 0) {
     Write-Output "No devices found matching the low disk space criteria."
 }
 else {
-    Write-Output "Detailed list of devices with low disk space:"
-    Write-Output ""
-
-    $displayDevices = @()
-    foreach ($device in $flaggedDevices) {
-        $displayDevices += [PSCustomObject]@{
-            FreeGB      = $device.FreeSpaceGB
-            FreePercent = $device.FreePercent
-            TotalGB     = $device.TotalSpaceGB
-            Severity    = $device.Severity
-            DeviceName  = if ($device.DeviceName -and $device.DeviceName.Length -gt 15) { $device.DeviceName.Substring(0, 14) + ".." } elseif ($device.DeviceName) { $device.DeviceName } else { "N/A" }
-            OS          = $device.PlatformKey
-            PrimaryUser = if ($device.PrimaryUser -and $device.PrimaryUser.Length -gt 30) { $device.PrimaryUser.Substring(0, 29) + ".." } elseif ($device.PrimaryUser) { $device.PrimaryUser } else { "N/A" }
-            LastSync    = $device.LastSync
-        }
-    }
-
-    $displayDevices | Format-Table -AutoSize
+    # The device list itself is written to Output Data at the end of the run
+    Write-Output "Detailed list of devices with low disk space: Output Data table 'Low disk space devices'."
 }
 
 if ($devicesWithoutUser.Count -gt 0) {
     Write-Output ""
-    Write-Output "Devices without a primary user (no notification possible, please review centrally):"
-    $devicesWithoutUser | Select-Object DeviceName, @{ Name = 'OS'; Expression = { $_.PlatformKey } }, FreeSpaceGB, FreePercent, Severity, LastSync | Format-Table -AutoSize
+    Write-Output "$($devicesWithoutUser.Count) device(s) without a primary user cannot be notified - please review them centrally (Output Data table 'Low disk space devices', reason 'No primary user')."
 }
 
 if ($usersSkippedDisabled.Count -gt 0) {
@@ -1562,10 +1601,10 @@ if ($usersSkippedLookupFailed.Count -gt 0) {
     $usersSkippedLookupFailed | ForEach-Object { Write-Output "  - $_" }
 }
 
-#endregion
+#endregion Output
 
 ########################################################
-#region     Email Notifications
+#region     Send Email Report
 ########################################################
 
 Write-Output ""
@@ -1668,6 +1707,7 @@ foreach ($user in $usersToNotify) {
     if ($SimulationMode) {
         Write-Output "Would notify user: $($user.UserPrincipalName) ($($userDevices.Count) device(s), worst: $($user.WorstSeverity)) - Recipient: $($actualRecipient)"
         $emailsSimulated++
+        Add-NotificationResult -Results $notificationResults -UserPrincipalName $user.UserPrincipalName -DisplayName $user.DisplayName -Recipient $actualRecipient -Devices $userDevices -Notification "Simulated" -Reason "Simulation mode, no email sent"
         continue
     }
 
@@ -1724,7 +1764,7 @@ $emailFooter
     $addressesFailed = 0
     foreach ($recipientAddress in $recipientAddresses) {
         try {
-            Send-RjRbReportEmail -EmailFrom $EmailFrom -EmailTo $recipientAddress -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version @brandingMailParams
+            Send-RjRbReportEmail -EmailFrom $EmailFrom -EmailTo $recipientAddress -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version -UseNativeGraphRequest @brandingMailParams
 
             Write-Output "Email sent successfully to $($recipientAddress)"
             Write-RjRbLog -Message "Email sent to $($recipientAddress) for user $($user.UserPrincipalName) with $($userDevices.Count) device(s)" -Verbose
@@ -1739,6 +1779,7 @@ $emailFooter
 
     if ($addressesDelivered -eq 0) {
         $emailsFailed++
+        Add-NotificationResult -Results $notificationResults -UserPrincipalName $user.UserPrincipalName -DisplayName $user.DisplayName -Recipient $actualRecipient -Devices $userDevices -Notification "Failed" -Reason "Email could not be sent, see the warnings"
     }
     else {
         $emailsSent++
@@ -1746,6 +1787,10 @@ $emailFooter
             # Reported separately so that an override list with one undeliverable address is not summarized as
             # a clean send
             $emailsPartiallySent++
+            Add-NotificationResult -Results $notificationResults -UserPrincipalName $user.UserPrincipalName -DisplayName $user.DisplayName -Recipient $actualRecipient -Devices $userDevices -Notification "Partially sent" -Reason "Sent to $($addressesDelivered) of $($recipientAddresses.Count) addresses, see the warnings"
+        }
+        else {
+            Add-NotificationResult -Results $notificationResults -UserPrincipalName $user.UserPrincipalName -DisplayName $user.DisplayName -Recipient $actualRecipient -Devices $userDevices -Notification "Sent" -Reason ""
         }
     }
 }
@@ -1754,10 +1799,10 @@ if ($usersToNotify.Count -eq 0) {
     Write-Output "No users to notify."
 }
 
-#endregion
+#endregion Send Email Report
 
 ########################################################
-#region     Output/Export
+#region     Structured Output (Output Data)
 ########################################################
 
 Write-Output ""
@@ -1825,7 +1870,83 @@ if ($globalOverrideActive) {
     }
 }
 
-#endregion
+# The tables follow the summary text so they are not interleaved with the progress output. Every table has
+# its own RjTableTitle marker and its own column set; a marker is only written when rows follow it.
+Write-Output ""
+
+$summaryValues = [ordered]@{
+    "Mode"                            = if ($SimulationMode) { "Simulation - no emails sent" } else { "Send notifications" }
+    "Threshold"                       = $thresholdTextPlain
+    "Notify on severity"              = $NotifyOnSeverity
+    "Platforms"                       = $platformSummary
+    "Devices scanned"                 = $totalDevicesScanned
+    "Skipped - platform not included" = $devicesSkippedByPlatform
+}
+if ($deviceGroupActive) {
+    $summaryValues["Devices in device group"] = $includeDeviceIds.Count
+    $summaryValues["Skipped - not in device group"] = $devicesSkippedByDeviceGroup
+}
+$summaryValues["Devices evaluated"] = $devicesEvaluated
+$summaryValues["Without storage inventory (excluded)"] = $devicesWithoutStorageData
+if ($MaxInventoryAgeDays -gt 0) {
+    $summaryValues["Skipped - inventory older than $($MaxInventoryAgeDays) day(s)"] = $devicesInventoryOutdated
+}
+$summaryValues["Below the threshold"] = $flaggedDevices.Count
+$summaryValues["Critical"] = $criticalCount
+$summaryValues["Warning"] = $warningCount
+if ($NotifyOnSeverity -eq 'Critical only') {
+    $summaryValues["Excluded by severity (Warning)"] = $devicesExcludedBySeverity
+}
+$summaryValues["Without primary user (skipped)"] = $devicesWithoutUser.Count
+if ($userScopeConfigured) {
+    if ($null -ne $includeUserScope) { $summaryValues["Users in include group"] = $includeUserScope.Count }
+    if ($null -ne $excludeUserScope) { $summaryValues["Users in exclude group"] = $excludeUserScope.Count }
+    $summaryValues["Skipped by user scope"] = $devicesSkippedByUserScope
+}
+$summaryValues["Users with affected devices"] = $devicesByUser.Count
+$summaryValues["Users skipped - account disabled"] = $usersSkippedDisabled.Count
+$summaryValues["Users skipped - user lookup failed"] = $usersSkippedLookupFailed.Count
+if ($SimulationMode) {
+    $summaryValues["Users that would be notified"] = $emailsSimulated
+}
+else {
+    $summaryValues["Users notified"] = $emailsSent
+    if ($emailsPartiallySent -gt 0) {
+        $summaryValues["Delivered to some, but not all recipients"] = $emailsPartiallySent
+    }
+    $summaryValues["Failed notifications"] = $emailsFailed
+}
+if ($globalOverrideActive) {
+    $summaryValues["All emails redirected to"] = $OverrideEmailRecipient
+}
+
+$summaryRows = @(foreach ($metric in $summaryValues.Keys) {
+        [PSCustomObject]@{ Metric = $metric; Value = "$($summaryValues[$metric])" }
+    })
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
+Write-Output $summaryRows
+
+# One row per user with affected devices: sent, simulated, failed or skipped, and why
+if ($notificationResults.Count -gt 0) {
+    Write-Output "$($notificationResults.Count) user(s) with affected devices"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Notifications" })
+    Write-Output @($notificationResults | Sort-Object -Property UserPrincipalName | Select-Object -Property UserPrincipalName, DisplayName, Recipient, Devices, WorstSeverity, Notification, Reason)
+}
+else {
+    Write-Output "No users with affected devices."
+}
+
+# Every device below the threshold, worst first, with the outcome of its notification
+if ($flaggedDevices.Count -gt 0) {
+    Write-Output "$($flaggedDevices.Count) device(s) below the threshold"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Low disk space devices" })
+    Write-Output @($flaggedDevices | Select-Object -Property DeviceName, PrimaryUser, OperatingSystem, OSVersion, Manufacturer, Model, FreeSpaceGB, FreePercent, TotalSpaceGB, Severity, LastSync, Notification, Reason)
+}
+else {
+    Write-Output "No devices below the threshold."
+}
+
+#endregion Structured Output (Output Data)
 
 ########################################################
 #region     Cleanup
@@ -1839,11 +1960,16 @@ foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
     }
 }
 
-Write-Output ""
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
+
 if ($emailsSent -eq 0 -and $emailsFailed -gt 0) {
     # A completed job with no delivered notification would stay unnoticed in a schedule
     throw "None of the $($emailsFailed) notification(s) could be sent - see the warnings above for the individual errors."
 }
+
+Write-Output ""
 Write-Output "Done!"
 
-#endregion
+#endregion Cleanup

@@ -83,6 +83,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
@@ -116,10 +117,28 @@ param(
     [string] $CallerName
 )
 
+########################################################
+#region     RJ Log Part
+########################################################
+
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 $Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
+
+Write-RjRbLog -Message "produceLinks: $produceLinks" -Verbose
+Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
+Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
+Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+Write-RjRbLog -Message "StorageAccountLocation: $StorageAccountLocation" -Verbose
+Write-RjRbLog -Message "StorageAccountSku: $StorageAccountSku" -Verbose
+Write-RjRbLog -Message "SubscriptionId: $SubscriptionId" -Verbose
+Write-RjRbLog -Message "RJReportResourceGroupName: $RJReportResourceGroupName" -Verbose
+Write-RjRbLog -Message "RJReportStorageAccountName: $RJReportStorageAccountName" -Verbose
+Write-RjRbLog -Message "RJReportSubscriptionId: $RJReportSubscriptionId" -Verbose
+Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
+
+#endregion RJ Log Part
 
 ########################################################
 #region     Parameter Validation
@@ -157,119 +176,246 @@ if ($produceLinks -and ((-not $ResourceGroupName) -or (-not $StorageAccountName)
 
 #endregion Parameter Validation
 
-# Manually import this ahead of MgGraph module to avoid conflicts
-Import-Module Az.Accounts
+########################################################
+#region     Function Definitions
+########################################################
 
-Connect-RjRbGraph
-$reportFiles = @()
+function Get-GraphPagedResult {
+    <#
+        .SYNOPSIS
+        Retrieves all items from a paginated Microsoft Graph API endpoint.
+
+        .DESCRIPTION
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
+
+        .PARAMETER Uri
+        The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
+
+        .EXAMPLE
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
+    #>
+    param(
+        [string]$Uri
+    )
+
+    $allResults = [System.Collections.Generic.List[object]]::new()
+    $nextLink = $Uri
+    $pageCount = 0
+
+    do {
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
+        }
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
+        $nextLink = $response.'@odata.nextLink'
+    } while ($nextLink)
+
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
+}
+
+function Invoke-ComplianceReportRequest {
+    <#
+        .SYNOPSIS
+        Calls an Intune compliance report action and returns its result table.
+
+        .DESCRIPTION
+        The report actions under /deviceManagement/reports answer with a JSON document as a file stream
+        (application/octet-stream), which Invoke-MgGraphRequest only writes to a file. The response is saved to a
+        temporary file, read as JSON (Schema with the column names, Values with the rows) and the file is deleted again.
+
+        .PARAMETER Uri
+        Full URI of the report action, e.g. "https://graph.microsoft.com/beta/deviceManagement/reports/getDevicePoliciesComplianceReport".
+
+        .PARAMETER Body
+        The request body (filter, paging and sort order of the report).
+    #>
+    param(
+        [string]$Uri,
+        [hashtable]$Body
+    )
+
+    $responseFile = Join-Path ([System.IO.Path]::GetTempPath()) "compliance-report-$([guid]::NewGuid()).json"
+    try {
+        Invoke-MgGraphRequest -Uri $Uri -Method POST -Body ($Body | ConvertTo-Json -Depth 20) -ContentType "application/json; charset=UTF-8" -OutputFilePath $responseFile -ErrorAction Stop
+        return (Get-Content -LiteralPath $responseFile -Raw -Encoding utf8 | ConvertFrom-Json)
+    }
+    finally {
+        Remove-Item -LiteralPath $responseFile -Force -ErrorAction SilentlyContinue
+    }
+}
+
+function ConvertTo-DisplayValue {
+    <#
+        .SYNOPSIS
+        Turns a report value into the text shown in the Output Data table.
+
+        .DESCRIPTION
+        Timestamps become "yyyy-MM-dd HH:mm:ss", an empty value becomes an empty string, everything else its text.
+
+        .PARAMETER Value
+        The value as stored for the CSV export.
+    #>
+    param(
+        $Value
+    )
+
+    if ($null -eq $Value) { return "" }
+    if ($Value -is [datetime]) { return $Value.ToString("yyyy-MM-dd HH:mm:ss") }
+    return "$Value"
+}
+
+#endregion Function Definitions
+
+########################################################
+#region     Connect Part
+########################################################
+
+Write-RjRbLog -Message "Connecting to Microsoft Graph" -Verbose
+try {
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+}
+catch {
+    Write-Error "Failed to connect to Microsoft Graph. Ensure the managed identity is configured correctly. Error: $($_.Exception.Message)" -ErrorAction Continue
+    throw
+}
+
 if ($produceLinks) {
     Connect-RjRbAzAccount
-    $uploadParameters = @{
-        ContainerName      = $ContainerName
-        ResourceGroupName  = $ResourceGroupName
-        StorageAccountName = $StorageAccountName
-        SubscriptionId     = $SubscriptionId
-        LinkExpiryDays     = $LinkExpiryDays
-        AddBlobNamePrefix  = $false
-    }
 }
 
-"## Find non-compliant devices"
-$devices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -Method GET -ODfilter "complianceState eq 'noncompliant' or complianceState eq 'inGracePeriod'" -FollowPaging
-"## ..found $($devices.count) 'non compliant' or 'in grace period' devices"
-""
+#endregion Connect Part
 
-[int]$counter = 0
-"## Get Compliance Report for each device"
-$deviceToPolicy = @{}
-foreach ($id in $devices.id) {
-    $body = @{
-        skip    = 0
-        top     = 100
-        filter  = "(DeviceId eq '$id')"
-        orderBy = @(
-            "PolicyName asc"
-        )
-        search  = ""
-    }
-    #"## DeviceId: $id"
-    $result = $null
-    try {
-        $result = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePoliciesComplianceReport" -Method POST -Body $body -Beta -FollowPaging
-    }
-    catch {
-        if ($_.Exception.Response.StatusCode.value__ -eq 429) {
-            "## Throttling exceeded - Waiting/Cooldown 2min"
-            Start-Sleep -Seconds 120
-            Connect-RjRbGraph -Force
-            $result = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePoliciesComplianceReport" -Method POST -Body $body -Beta -FollowPaging
+########################################################
+#region     Data Collection
+########################################################
+
+$reportsUri = "https://graph.microsoft.com/beta/deviceManagement/reports"
+
+# Invoke-MgGraphRequest returns PSCustomObjects in the property order of the Graph response, as the earlier RunbookHelper calls did;
+# the default is removed again after the collection
+$PSDefaultParameterValues['Invoke-MgGraphRequest:OutputType'] = 'PSObject'
+try {
+    "## Find non-compliant devices"
+    $deviceFilter = [uri]::EscapeDataString("complianceState eq 'noncompliant' or complianceState eq 'inGracePeriod'")
+    $devices = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/deviceManagement/managedDevices?`$filter=$deviceFilter"
+    "## ..found $($devices.count) 'non compliant' or 'in grace period' devices"
+    ""
+
+    [int]$counter = 0
+    "## Get Compliance Report for each device"
+    $deviceToPolicy = @{}
+    foreach ($id in $devices.id) {
+        $body = @{
+            skip    = 0
+            top     = 100
+            filter  = "(DeviceId eq '$id')"
+            orderBy = @(
+                "PolicyName asc"
+            )
+            search  = ""
         }
-        else {
-            throw $_
+        $result = $null
+        try {
+            $result = Invoke-ComplianceReportRequest -Uri "$reportsUri/getDevicePoliciesComplianceReport" -Body $body
         }
-    }
-    $policies = @{}
-    foreach ($row in $result.Values) {
-        $properties = @{}
-        for ($i = 0; $i -lt $result.Schema.Column.count; $i++) {
-            $properties.add($result.Schema.Column[$i], $row[$i])
+        catch {
+            if ($_.Exception.Response.StatusCode.value__ -eq 429) {
+                "## Throttling exceeded - Waiting/Cooldown 2min"
+                Start-Sleep -Seconds 120
+                $result = Invoke-ComplianceReportRequest -Uri "$reportsUri/getDevicePoliciesComplianceReport" -Body $body
+            }
+            else {
+                throw $_
+            }
         }
-        # Exclude compliant policies and not applicable policies
-        if ($properties.PolicyStatus -notin @(1, 2)) {
-            $settingsBody = @{
-                select  = @(
-                )
-                skip    = 0
-                top     = 100
-                filter  = "(DeviceId eq '$id') and (PolicyId eq '$($properties.PolicyId)')"
-                orderBy = @(
-                    "SettingName asc"
-                )
-                search  = ""
+        $policies = @{}
+        foreach ($row in $result.Values) {
+            $properties = @{}
+            for ($i = 0; $i -lt $result.Schema.Column.count; $i++) {
+                $properties.add($result.Schema.Column[$i], $row[$i])
             }
-            $settingsResult = $null
-            try {
-                $settingsResult = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePolicySettingsComplianceReport" -Method POST -Body $settingsBody -Beta -FollowPaging
-            }
-            catch {
-                if ($_.Exception.Response.StatusCode.value__ -eq 429) {
-                    "## Throttling exceeded - Waiting/Cooldown 2min"
-                    Start-Sleep -Seconds 120
-                    Connect-RjRbGraph -Force
-                    $settingsResult = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/reports/getDevicePolicySettingsComplianceReport" -Method POST -Body $settingsBody -Beta -FollowPaging
+            # Exclude compliant policies and not applicable policies
+            if ($properties.PolicyStatus -notin @(1, 2)) {
+                $settingsBody = @{
+                    select  = @(
+                    )
+                    skip    = 0
+                    top     = 100
+                    filter  = "(DeviceId eq '$id') and (PolicyId eq '$($properties.PolicyId)')"
+                    orderBy = @(
+                        "SettingName asc"
+                    )
+                    search  = ""
                 }
-                else {
-                    throw $_
+                $settingsResult = $null
+                try {
+                    $settingsResult = Invoke-ComplianceReportRequest -Uri "$reportsUri/getDevicePolicySettingsComplianceReport" -Body $settingsBody
                 }
-            }
-            $settings = @{}
-            foreach ($settingsRow in $settingsResult.Values) {
-                $settingsProperties = @{}
-                for ($i = 0; $i -lt $settingsResult.Schema.Column.count; $i++) {
-                    $settingsProperties.add($settingsResult.Schema.Column[$i], $settingsRow[$i])
-                }
-                #$settingsProperties | Format-Table | Out-String
-                if ($settingsProperties.SettingStatus -notin @(1, 2)) {
-                    #"## Adding '$($settingsProperties.SettingName)' ($($settingsProperties.SettingId)) to list of settings for policy '$($properties.PolicyName)' ($($properties.PolicyId))"
-                    # Avoid duplicate settings
-                    if (-not $settings.ContainsKey($settingsProperties.SettingId)) {
-                        $settings.add($settingsProperties.SettingId, $settingsProperties)
+                catch {
+                    if ($_.Exception.Response.StatusCode.value__ -eq 429) {
+                        "## Throttling exceeded - Waiting/Cooldown 2min"
+                        Start-Sleep -Seconds 120
+                        $settingsResult = Invoke-ComplianceReportRequest -Uri "$reportsUri/getDevicePolicySettingsComplianceReport" -Body $settingsBody
+                    }
+                    else {
+                        throw $_
                     }
                 }
-            }
-            $properties.add("Settings", $settings)
-            #"## Adding '$($properties.PolicyName)' ($($properties.PolicyId)) to list of policies"
-            $policies.add($properties.PolicyId, $properties)
+                $settings = @{}
+                foreach ($settingsRow in $settingsResult.Values) {
+                    $settingsProperties = @{}
+                    for ($i = 0; $i -lt $settingsResult.Schema.Column.count; $i++) {
+                        $settingsProperties.add($settingsResult.Schema.Column[$i], $settingsRow[$i])
+                    }
+                    if ($settingsProperties.SettingStatus -notin @(1, 2)) {
+                        # Avoid duplicate settings
+                        if (-not $settings.ContainsKey($settingsProperties.SettingId)) {
+                            $settings.add($settingsProperties.SettingId, $settingsProperties)
+                        }
+                    }
+                }
+                $properties.add("Settings", $settings)
+                $policies.add($properties.PolicyId, $properties)
 
+            }
+        }
+        $deviceToPolicy.Add($id, $policies)
+        $counter++
+        if ($counter % 50 -eq 0) {
+            "## ..processed $counter devices"
         }
     }
-    $deviceToPolicy.Add($id, $policies)
-    $counter++
-    if ($counter % 50 -eq 0) {
-        "## ..processed $counter devices"
-    }
+    ""
 }
-""
+finally {
+    $PSDefaultParameterValues.Remove('Invoke-MgGraphRequest:OutputType')
+}
+
+#endregion Data Collection
+
+########################################################
+#region     Data Processing
+########################################################
 
 "## Create full CSV - listing every device, policy and setting individually"
 $fullCsv = @()
@@ -301,32 +447,6 @@ foreach ($device in $deviceToPolicy.Keys) {
         }
     }
 }
-# Output full CSV
-if ($produceLinks) {
-    # The local file name becomes the blob name, so uploads keep the blob names of earlier versions
-    $filename = Join-Path ([System.IO.Path]::GetTempPath()) "$(get-date -Format "yyyy-MM-dd")-non-compliant-devices.csv"
-    $reportFiles += $filename
-    $fullCsv | convertto-csv -NoTypeInformation -Delimiter ";" > $filename
-    $content = Get-Content $filename
-    Set-Content -Path $filename -Value $content -Encoding UTF8
-
-    Write-RjRbLog "Upload Full CSV Report"
-    try {
-        $uploadResult = Publish-RjRbFilesToStorageContainer -FilePaths $filename @uploadParameters
-
-        "## Export of all Intune non-compliant and in-grace-period devices created."
-        "## Expiry of Link: $($uploadResult.EndTime)"
-        $uploadResult.SASLink | Out-String
-    }
-    catch {
-        Write-RjRbLog -Message "Upload to storage account '$StorageAccountName' failed: $($_.Exception.Message). The managed identity needs the 'Reader and Data Access' role on the storage account." -Verbose
-        $_
-    }
-}
-else {
-    $fullCsv | convertto-csv -NoTypeInformation -Delimiter ";" | Out-String
-}
-""
 
 "## Create statistics - count number of non-compliant devices per policy"
 $policyStatistics = @{}
@@ -341,39 +461,6 @@ foreach ($device in $deviceToPolicy.Keys) {
         }
     }
 }
-# Output statistics, sorted by number of non-compliant devices
-if ($produceLinks) {
-    $filename = Join-Path ([System.IO.Path]::GetTempPath()) "$(get-date -Format "yyyy-MM-dd")-non-compliant-policies.csv"
-    $reportFiles += $filename
-    "PolicyName;NonCompliantDevices;PolicyId" > $filename
-    foreach ($policy in $policyStatistics.Keys | Sort-Object { $policyStatistics[$_][1] } -Descending) {
-        $policyObject = $policyStatistics[$policy][0]
-        "$($policyObject.PolicyName);$($policyStatistics[$policy][1]);$($policyObject.PolicyId)" >> $filename
-    }
-    $content = Get-Content $filename
-    Set-Content -Path $filename -Value $content -Encoding UTF8
-
-    Write-RjRbLog "Upload Policy CSV Report"
-    try {
-        $uploadResult = Publish-RjRbFilesToStorageContainer -FilePaths $filename @uploadParameters
-
-        "## Export of policy statistics created."
-        "## Expiry of Link: $($uploadResult.EndTime)"
-        $uploadResult.SASLink | Out-String
-    }
-    catch {
-        Write-RjRbLog -Message "Upload to storage account '$StorageAccountName' failed: $($_.Exception.Message). The managed identity needs the 'Reader and Data Access' role on the storage account." -Verbose
-        $_
-    }
-}
-else {
-    "PolicyName;NonCompliantDevices;PolicyId"
-    foreach ($policy in $policyStatistics.Keys | Sort-Object { $policyStatistics[$_][1] } -Descending) {
-        $policyObject = $policyStatistics[$policy][0]
-        "$($policyObject.PolicyName);$($policyStatistics[$policy][1]);$($policyObject.PolicyId)"
-    }
-}
-""
 
 "## Create statistics - count number of non-compliant devices per setting"
 $settingStatistics = @{}
@@ -391,39 +478,136 @@ foreach ($device in $deviceToPolicy.Keys) {
         }
     }
 }
-# Output statistics, sorted by number of non-compliant devices
+""
+
+# Output Data rows: the rows and columns of the three CSV files, statistics sorted by number of non-compliant devices
+$deviceRows = @($fullCsv | Select-Object -Property DeviceName, UPN, ManagedDeviceOwnerType, OperatingSystem, PolicyName, PolicyStatus_loc, SettingName, SettingStatus_loc, @{ Name = "LastContact"; Expression = { ConvertTo-DisplayValue -Value $_.LastContact } }, SerialNumber, PolicyId, SettingId, DeviceId)
+$policyRows = @(foreach ($policy in $policyStatistics.Keys | Sort-Object { $policyStatistics[$_][1] } -Descending) {
+        $policyObject = $policyStatistics[$policy][0]
+        [PSCustomObject]@{ PolicyName = "$($policyObject.PolicyName)"; NonCompliantDevices = $policyStatistics[$policy][1]; PolicyId = "$($policyObject.PolicyId)" }
+    })
+$settingRows = @(foreach ($setting in $settingStatistics.Keys | Sort-Object { $settingStatistics[$_][1] } -Descending) {
+        $settingObject = $settingStatistics[$setting][0]
+        [PSCustomObject]@{ SettingName = "$($settingObject.SettingName)"; NonCompliantDevices = $settingStatistics[$setting][1]; SettingId = "$($settingObject.SettingId)" }
+    })
+
+#endregion Data Processing
+
+########################################################
+#region     Report File Export
+########################################################
+
+$reportFiles = @()
 if ($produceLinks) {
-    $filename = Join-Path ([System.IO.Path]::GetTempPath()) "$(get-date -Format "yyyy-MM-dd")-non-compliant-settings.csv"
-    $reportFiles += $filename
-    "SettingName;NonCompliantDevices;SettingId" > $filename
+    # The local file names become the blob names, so uploads keep the blob names of earlier versions
+    $fullCsvFile = Join-Path ([System.IO.Path]::GetTempPath()) "$(get-date -Format "yyyy-MM-dd")-non-compliant-devices.csv"
+    $reportFiles += $fullCsvFile
+    $fullCsv | convertto-csv -NoTypeInformation -Delimiter ";" > $fullCsvFile
+    $content = Get-Content $fullCsvFile
+    Set-Content -Path $fullCsvFile -Value $content -Encoding UTF8
+
+    # Policy statistics, sorted by number of non-compliant devices
+    $policyCsvFile = Join-Path ([System.IO.Path]::GetTempPath()) "$(get-date -Format "yyyy-MM-dd")-non-compliant-policies.csv"
+    $reportFiles += $policyCsvFile
+    "PolicyName;NonCompliantDevices;PolicyId" > $policyCsvFile
+    foreach ($policy in $policyStatistics.Keys | Sort-Object { $policyStatistics[$_][1] } -Descending) {
+        $policyObject = $policyStatistics[$policy][0]
+        "$($policyObject.PolicyName);$($policyStatistics[$policy][1]);$($policyObject.PolicyId)" >> $policyCsvFile
+    }
+    $content = Get-Content $policyCsvFile
+    Set-Content -Path $policyCsvFile -Value $content -Encoding UTF8
+
+    # Setting statistics, sorted by number of non-compliant devices
+    $settingCsvFile = Join-Path ([System.IO.Path]::GetTempPath()) "$(get-date -Format "yyyy-MM-dd")-non-compliant-settings.csv"
+    $reportFiles += $settingCsvFile
+    "SettingName;NonCompliantDevices;SettingId" > $settingCsvFile
     foreach ($setting in $settingStatistics.Keys | Sort-Object { $settingStatistics[$_][1] } -Descending) {
         $settingObject = $settingStatistics[$setting][0]
-        "$($settingObject.SettingName);$($settingStatistics[$setting][1]);$($settingObject.SettingId)" >> $filename
+        "$($settingObject.SettingName);$($settingStatistics[$setting][1]);$($settingObject.SettingId)" >> $settingCsvFile
     }
-    $content = Get-Content $filename
-    Set-Content -Path $filename -Value $content -Encoding UTF8
+    $content = Get-Content $settingCsvFile
+    Set-Content -Path $settingCsvFile -Value $content -Encoding UTF8
+}
 
-    Write-RjRbLog "Upload Settings CSV Report"
-    try {
-        $uploadResult = Publish-RjRbFilesToStorageContainer -FilePaths $filename @uploadParameters
+#endregion Report File Export
 
-        "## Export of settings statistics created."
-        "## Expiry of Link: $($uploadResult.EndTime)"
-        $uploadResult.SASLink | Out-String
+########################################################
+#region     Upload / Download Link
+########################################################
+
+if ($produceLinks) {
+    $uploadParameters = @{
+        ContainerName      = $ContainerName
+        ResourceGroupName  = $ResourceGroupName
+        StorageAccountName = $StorageAccountName
+        SubscriptionId     = $SubscriptionId
+        LinkExpiryDays     = $LinkExpiryDays
+        AddBlobNamePrefix  = $false
     }
-    catch {
-        Write-RjRbLog -Message "Upload to storage account '$StorageAccountName' failed: $($_.Exception.Message). The managed identity needs the 'Reader and Data Access' role on the storage account." -Verbose
-        $_
+    # One upload per file, each with its own link
+    $uploads = @(
+        @{ File = $fullCsvFile; Log = "Upload Full CSV Report"; Created = "## Export of all Intune non-compliant and in-grace-period devices created." }
+        @{ File = $policyCsvFile; Log = "Upload Policy CSV Report"; Created = "## Export of policy statistics created." }
+        @{ File = $settingCsvFile; Log = "Upload Settings CSV Report"; Created = "## Export of settings statistics created." }
+    )
+    foreach ($upload in $uploads) {
+        Write-RjRbLog $upload.Log
+        try {
+            $uploadResult = Publish-RjRbFilesToStorageContainer -FilePaths $upload.File @uploadParameters
+
+            $upload.Created
+            "## Expiry of Link: $($uploadResult.EndTime)"
+            $uploadResult.SASLink | Out-String
+        }
+        catch {
+            Write-RjRbLog -Message "Upload to storage account '$StorageAccountName' failed: $($_.Exception.Message). The managed identity needs the 'Reader and Data Access' role on the storage account." -Verbose
+            $_
+        }
+        ""
     }
+}
+
+#endregion Upload / Download Link
+
+########################################################
+#region     Structured Output (Output Data)
+########################################################
+
+# Emitted last so the tables are not interleaved with the progress output. Every table has its own
+# RjTableTitle marker and its own column set; a marker is only written when rows follow it.
+Write-Output ""
+
+$summaryRows = @(
+    [PSCustomObject]@{ Metric = "Non-compliant or in grace period devices"; Value = "$($devices.count)" }
+    [PSCustomObject]@{ Metric = "Devices with non-compliant policies"; Value = "$(@($deviceToPolicy.Values | Where-Object { $_.Count -gt 0 }).Count)" }
+    [PSCustomObject]@{ Metric = "Non-compliant policies"; Value = "$($policyRows.Count)" }
+    [PSCustomObject]@{ Metric = "Non-compliant settings"; Value = "$($settingRows.Count)" }
+)
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
+Write-Output $summaryRows
+
+if ($deviceRows.Count -gt 0) {
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Non-compliant devices" })
+    Write-Output $deviceRows
 }
 else {
-    "SettingName;NonCompliantDevices;SettingId"
-    foreach ($setting in $settingStatistics.Keys | Sort-Object { $settingStatistics[$_][1] } -Descending) {
-        $settingObject = $settingStatistics[$setting][0]
-        "$($settingObject.SettingName);$($settingStatistics[$setting][1]);$($settingObject.SettingId)"
-    }
+    Write-Output "No non-compliant policies found on the devices."
 }
-""
+
+if ($policyRows.Count -gt 0) {
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Policy statistics" })
+    Write-Output $policyRows
+}
+
+if ($settingRows.Count -gt 0) {
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Setting statistics" })
+    Write-Output $settingRows
+}
+else {
+    Write-Output "No non-compliant settings found."
+}
+
+#endregion Structured Output (Output Data)
 
 ########################################################
 #region     Cleanup
@@ -432,5 +616,14 @@ else {
 foreach ($reportFile in $reportFiles) {
     Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
 }
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
+if ($produceLinks) {
+    Disconnect-AzAccount -ErrorAction SilentlyContinue -Confirm:$false | Out-Null
+}
+
+Write-Output ""
+Write-Output "Done!"
 
 #endregion Cleanup

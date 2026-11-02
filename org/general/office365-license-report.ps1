@@ -86,8 +86,9 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
-#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 #Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.2" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 # Suppress false positive from PSScriptAnalyzer - printOverview is used in conditions and passed to Get-LicenseOverviewReport
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "printOverview")]
@@ -204,13 +205,80 @@ if ((-not $exportToFile) -and (-not $printOverview)) {
 #region Helper Functions
 ##############################
 
+function Get-GraphPagedResult {
+    <#
+        .SYNOPSIS
+        Retrieves all items from a paginated Microsoft Graph API endpoint.
+
+        .DESCRIPTION
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
+
+        .PARAMETER Uri
+        The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
+
+        .EXAMPLE
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
+    #>
+    param(
+        [string]$Uri
+    )
+
+    $allResults = [System.Collections.Generic.List[object]]::new()
+    $nextLink = $Uri
+    $pageCount = 0
+
+    do {
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
+        }
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
+        $nextLink = $response.'@odata.nextLink'
+    } while ($nextLink)
+
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
+}
+
+# The Graph errors of the report functions are written as non-terminating errors and the run goes on with the next
+# report, as with the earlier RunbookHelper Graph calls: one missing permission or license must not cost the other reports.
+
 function Get-ReportPrivacySetting {
-    (Invoke-RjRbRestMethodGraph -Resource "/admin/reportSettings" -Beta).displayConcealedNames
+    try {
+        (Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/admin/reportSettings" -Method GET -ErrorAction Stop).displayConcealedNames
+    }
+    catch {
+        Write-Error "Failed to read the report privacy setting: $($_.Exception.Message)" -ErrorAction Continue
+    }
 }
 
 function Set-ReportPrivacySetting {
     param([bool]$concealNames)
-    Invoke-RjRbRestMethodGraph -Resource "/admin/reportSettings" -Beta -Method Patch -Body @{ displayConcealedNames = $concealNames } | Out-Null
+    try {
+        $body = @{ displayConcealedNames = $concealNames } | ConvertTo-Json
+        Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/admin/reportSettings" -Method PATCH -Body $body -ContentType "application/json" -ErrorAction Stop | Out-Null
+    }
+    catch {
+        Write-Error "Failed to set the report privacy setting to concealed names '$concealNames': $($_.Exception.Message)" -ErrorAction Continue
+    }
 }
 
 #endregion Helper Functions
@@ -291,15 +359,14 @@ function Get-LicenseOverviewReport {
         }
     }
 
-    "## Totals of licenses we have:"
-    ""
-    $results | Sort-Object -Property Name | Format-Table | Out-String
-    ""
     if ($TXTPath) {
         $results | Sort-Object -Property Name | Export-Csv -LiteralPath "$($TXTPath)\office-licensing.csv" -NoTypeInformation -Delimiter ";"
         $content = Get-Content -Path "$($TXTPath)\office-licensing.csv"
         Set-Content -Path "$($TXTPath)\office-licensing.csv" -Value $content -Encoding utf8
     }
+
+    # The rows are written as an Output Data table at the end of the run
+    return @($results | Sort-Object -Property Name)
 }
 
 function Get-UnusedLicenseReport {
@@ -329,7 +396,15 @@ function Get-SharedMailboxLicensing {
     $CSVPath = $CSVPath + "\SharedMailboxLicensing.csv"
     $mailbox = Get-EXOMailbox -ResultSize Unlimited -RecipientTypeDetails SharedMailbox
     foreach ($mail in $mailbox) {
-        if (Invoke-RjRbRestMethodGraph -Resource "/users/$($mail.UserPrincipalName)/licenseDetails" -ErrorAction SilentlyContinue) {
+        $licenseDetails = $null
+        try {
+            $licenseDetails = (Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$([System.Uri]::EscapeDataString($mail.UserPrincipalName))/licenseDetails" -Method GET -ErrorAction Stop).value
+        }
+        catch {
+            # As before, a shared mailbox whose license details cannot be read counts as unlicensed
+            Write-RjRbLog -Message "Could not read the license details of '$($mail.UserPrincipalName)': $($_.Exception.Message)" -Verbose
+        }
+        if ($licenseDetails) {
             Get-EXOMailbox $mailbox.UserPrincipalName | Export-Csv -LiteralPath $CSVPath -Append -NoTypeInformation -Delimiter ";"
         }
     }
@@ -359,7 +434,24 @@ function Get-GraphReport {
         foreach ($Uri in $graphUris) {
             $reportname = ($uri.Replace("/reports/", "").split('('))[0]
             $Path = $CSVPath + "\" + $reportname + ".csv"
-            $Results = Invoke-RjRbRestMethodGraph -Resource $Uri
+            $Results = $null
+            # The report endpoints redirect to a CSV download, which Invoke-MgGraphRequest only returns as a file
+            $downloadPath = Join-Path ([System.IO.Path]::GetTempPath()) "$reportname-$([guid]::NewGuid()).csv"
+            try {
+                Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0$Uri" -Method GET -OutputFilePath $downloadPath -ErrorAction Stop
+                if (Test-Path -LiteralPath $downloadPath) {
+                    # Decoded as UTF-8 with the byte order mark kept, as the earlier RunbookHelper call returned it, so the
+                    # Remove(0, 3) below and the exported files stay as before
+                    $Results = [System.Text.Encoding]::UTF8.GetString([System.IO.File]::ReadAllBytes($downloadPath))
+                }
+            }
+            catch {
+                Write-Error "Failed to retrieve the report '$reportname': $($_.Exception.Message)" -ErrorAction Continue
+                continue
+            }
+            finally {
+                Remove-Item -LiteralPath $downloadPath -Force -ErrorAction SilentlyContinue
+            }
 
             if ($Results) {
                 $Results = $Results.Remove(0, 3)
@@ -400,7 +492,14 @@ function Get-LoginLog {
         # Slow down to avoid http 429 errors
         Start-Sleep -Seconds 5
         $filter = "createdDateTime ge " + $PastPeriod + "T00:00:00Z and createdDateTime le " + $today + "T00:00:00Z and (appId eq '" + $app + "' or startswith(appDisplayName,'" + $app + "'))"
-        $logs = Invoke-RjRbRestMethodGraph -Resource "/auditLogs/signIns" -FollowPaging -OdFilter $filter
+        try {
+            $logs = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/auditLogs/signIns?`$filter=$([System.Uri]::EscapeDataString($filter))"
+        }
+        catch {
+            # Get-GraphPagedResult has written the error; go on with the next application as before
+            Write-RjRbLog -Message "Sign-in logs of '$app' skipped: $($_.Exception.Message)" -Verbose
+            $logs = $null
+        }
         $outputFile = $CSVPath + "\" + "Audit-" + $appFileName + ".csv"
         $logs | ConvertTo-Csv -NoTypeInformation -Delimiter ";" | Add-Content -Path $outputFile -Encoding utf8
     }
@@ -413,11 +512,18 @@ function Get-AssignedPlan {
     )
     $reportname = "\assignedPlans"
     $Path = $CSVPath + $reportname + ".csv"
-    $users = Invoke-RjRbRestMethodGraph -FollowPaging -Resource "/users"
+    try {
+        $users = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/users"
+    }
+    catch {
+        # Get-GraphPagedResult has written the error; the report goes on without users as before
+        Write-RjRbLog -Message "Users for the assigned plans skipped: $($_.Exception.Message)" -Verbose
+        $users = $null
+    }
 
     $users | ForEach-Object {
         $thisUser = $_
-        (Invoke-RjRbRestMethodGraph -Resource "/users/$($_.id)/licenseDetails") | Select-Object -Property @{name = "licenses"; expression = { $_.skuPartNumber } }, @{name = "UserPrincipalName"; expression = { $thisUser.userPrincipalName } }
+        (Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($_.id)/licenseDetails" -Method GET).value | Select-Object -Property @{name = "licenses"; expression = { $_.skuPartNumber } }, @{name = "UserPrincipalName"; expression = { $thisUser.userPrincipalName } }
     } | ConvertTo-Csv -NoTypeInformation -Delimiter ";" | Out-File $Path -Append -Encoding utf8
 }
 
@@ -428,7 +534,14 @@ function Get-LicenseAssignmentPath {
     )
     $reportname = "\LicenseAssignmentPath"
     $Path = $CSVPath + $reportname + ".csv"
-    $users = Invoke-RjRbRestMethodGraph -Resource "/users" -OdSelect "licenseAssignmentStates,userPrincipalName" -FollowPaging
+    try {
+        $users = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/users?`$select=licenseAssignmentStates,userPrincipalName"
+    }
+    catch {
+        # Get-GraphPagedResult has written the error; the report goes on without users as before
+        Write-RjRbLog -Message "Users for the license assignment paths skipped: $($_.Exception.Message)" -Verbose
+        $users = $null
+    }
 
     foreach ($user in $users) {
         foreach ($sku in $user.licenseAssignmentStates) {
@@ -455,7 +568,14 @@ function Get-LicensingGroup {
     )
     $reportname = "\LicensingGroups"
     $Path = $CSVPath + $reportname + ".csv"
-    $groups = Invoke-RjRbRestMethodGraph -Resource "/groups" -OdSelect "assignedLicenses,id,displayName" -FollowPaging | Where-Object { $_.assignedLicenses }
+    try {
+        $groups = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/groups?`$select=assignedLicenses,id,displayName" | Where-Object { $_.assignedLicenses }
+    }
+    catch {
+        # Get-GraphPagedResult has written the error; the report goes on without groups as before
+        Write-RjRbLog -Message "Licensing groups skipped: $($_.Exception.Message)" -Verbose
+        $groups = $null
+    }
     foreach ($group in $groups) {
         $LicenseString = ""
         foreach ($assignedLicense in  $group.assignedLicenses) {
@@ -480,17 +600,31 @@ function Get-AdminReport {
     $reportname = "\AdminReport"
     $Path = $CSVPath + $reportname + ".csv"
 
-    $AllAdminRole = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleDefinitions" -OdFilter "isBuiltIn eq true"
+    $AllAdminRole = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/roleManagement/directory/roleDefinitions?`$filter=$([System.Uri]::EscapeDataString('isBuiltIn eq true'))"
 
     $msolUserResults = [System.Collections.ArrayList]@()
     foreach ($Role in $AllAdminRole) {
         $RoleID = $Role.id
-        $Admins = Invoke-RjRbRestMethodGraph -Resource "/roleManagement/directory/roleAssignments" -OdFilter "roleDefinitionId eq '$RoleId'" -ErrorAction SilentlyContinue
+        $Admins = $null
+        try {
+            $Admins = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/roleManagement/directory/roleAssignments?`$filter=$([System.Uri]::EscapeDataString("roleDefinitionId eq '$RoleId'"))"
+        }
+        catch {
+            Write-RjRbLog -Message "Role assignments of '$($role.displayName)' skipped: $($_.Exception.Message)" -Verbose
+        }
         foreach ($AdminCandidate in $Admins) {
-            $user = Invoke-RjRbRestMethodGraph -Resource "/users/$($AdminCandidate.principalId)" -ErrorAction SilentlyContinue
+            # Principals that are not users (groups, service principals) are skipped
+            $user = $null
+            try {
+                $user = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($AdminCandidate.principalId)" -Method GET -ErrorAction Stop
+            }
+            catch {
+                Write-RjRbLog -Message "Principal '$($AdminCandidate.principalId)' is not a readable user: $($_.Exception.Message)" -Verbose
+            }
             if ($user.mail) {
                 [string]$licensesString = ""
-                $Licenses = Invoke-RjRbRestMethodGraph -Resource "/users/$($user.id)" -OdSelect "licenseAssignmentStates"
+                $Licenses = $null
+                $Licenses = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($user.id)?`$select=licenseAssignmentStates" -Method GET
                 $Licenses | ForEach-Object {
                     if ($licensesString) {
                         $licensesString += "+"
@@ -521,7 +655,13 @@ function Get-AdminReport {
 ############################################################
 
 Write-Output "Connecting to Microsoft Graph..."
-Connect-RjRbGraph
+try {
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+}
+catch {
+    Write-Error "Failed to connect to Microsoft Graph. Ensure the managed identity is configured correctly. Error: $($_.Exception.Message)" -ErrorAction Continue
+    throw
+}
 
 # Exchange Online is only connected when actually needed for the Shared Mailbox report.
 if ($includeExchange) {
@@ -535,9 +675,21 @@ if ($includeExchange) {
 #region     Data Collection
 ############################################################
 
+# Invoke-MgGraphRequest returns PSCustomObjects in the property order of the Graph response, as the earlier RunbookHelper
+# calls did, so the exported CSV files keep their columns. Set without try/finally on purpose: an enclosing try would turn
+# a failing statement into an abort of all remaining reports. The entry is removed at the end of this region.
+$PSDefaultParameterValues['Invoke-MgGraphRequest:OutputType'] = 'PSObject'
+
 # Get SKUs and build a lookup table for SKU IDs
 $SkuHashtable = @{}
-$SKUs = Invoke-RjRbRestMethodGraph -Resource "/subscribedSkus"
+try {
+    $SKUs = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/subscribedSkus"
+}
+catch {
+    # Get-GraphPagedResult has written the error; the reports go on without SKUs as before
+    Write-RjRbLog -Message "Subscribed SKUs skipped: $($_.Exception.Message)" -Verbose
+    $SKUs = $null
+}
 $SKUs | ForEach-Object {
     $SkuHashtable.Add($_.skuId, $_.skuPartNumber)
 }
@@ -554,7 +706,7 @@ else {
 }
 
 "## Collecting: License Usage Overview"
-Get-LicenseOverviewReport -TXTPath $OutPutPath -printOverview $printOverview
+$licenseOverview = @(Get-LicenseOverviewReport -TXTPath $OutPutPath -printOverview $printOverview)
 
 if ($exportToFile) {
 
@@ -590,7 +742,13 @@ if ($exportToFile) {
     Get-LoginLog -CSVPath $OutPutPath
 
     "## Collecting: All user objects"
-    Invoke-RjRbRestMethodGraph -Resource "/users" -FollowPaging -OdSelect "UserType,UserPrincipalName,AccountEnabled,city,companyName,country,creationType,department,displayName,givenName,surname,jobTitle,mail" | Export-Csv -Path $OutPutPath"\AllUser.csv" -NoTypeInformation -Delimiter ";"
+    try {
+        Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/users?`$select=UserType,UserPrincipalName,AccountEnabled,city,companyName,country,creationType,department,displayName,givenName,surname,jobTitle,mail" | Export-Csv -Path $OutPutPath"\AllUser.csv" -NoTypeInformation -Delimiter ";"
+    }
+    catch {
+        # Get-GraphPagedResult has written the error; go on with the next report as before
+        Write-RjRbLog -Message "All user objects skipped: $($_.Exception.Message)" -Verbose
+    }
     $content = Get-Content $OutPutPath"\AllUser.csv"
     Set-Content -Path $OutPutPath"\AllUser.csv" -Value $content -Encoding utf8
 
@@ -606,6 +764,8 @@ if ($exportToFile) {
     #"## Collecting: Licensed Admin Accounts"
     #Get-AdminReport -CSVPath $OutPutPath
 }
+
+$PSDefaultParameterValues.Remove('Invoke-MgGraphRequest:OutputType')
 
 #endregion Data Collection
 
@@ -664,11 +824,49 @@ if ($exportToFile) {
 #endregion Upload / Download Link
 
 ############################################################
+#region     Structured Output (Output Data)
+############################################################
+
+# Emitted last so the tables are not interleaved with the progress output. A marker is only written when rows follow it.
+""
+$summaryRows = [System.Collections.Generic.List[object]]::new()
+$summaryRows.Add([PSCustomObject]@{ Metric = "License SKUs"; Value = "$($licenseOverview.Count)" })
+$summaryRows.Add([PSCustomObject]@{ Metric = "SKUs with available licenses"; Value = "$(@($licenseOverview | Where-Object { $_.Available -gt 0 }).Count)" })
+$summaryRows.Add([PSCustomObject]@{ Metric = "SKUs with suspended licenses"; Value = "$(@($licenseOverview | Where-Object { $_.Suspended -gt 0 }).Count)" })
+$summaryRows.Add([PSCustomObject]@{ Metric = "Report files uploaded"; Value = "$(if ($exportToFile) { @($uploadResults).Count } else { 0 })" })
+Write-Output ([PSCustomObject]@{ RjTableTitle = 'Summary' })
+Write-Output $summaryRows
+
+if ($licenseOverview.Count -gt 0) {
+    "## Totals of licenses we have:"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = 'License overview' })
+    Write-Output ($licenseOverview | Select-Object -Property Name, Total, Used, Available, Suspended)
+}
+else {
+    "## No active license SKUs found."
+}
+
+#endregion Structured Output (Output Data)
+
+############################################################
 #region     Cleanup
 ############################################################
 
 foreach ($reportFile in $reportFiles) {
     Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
 }
+
+if ($includeExchange) {
+    Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+}
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
+if (Get-AzContext -ErrorAction SilentlyContinue) {
+    Disconnect-AzAccount -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+}
+
+Write-Output ""
+Write-Output "Done!"
 
 #endregion Cleanup

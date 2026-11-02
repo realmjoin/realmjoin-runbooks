@@ -10,10 +10,14 @@
                     "Reason": "Queries Endpoint Privilege Management elevationRequests with status 'Pending' to detect requests awaiting approval"
                 },
                 {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads the tenant display name and ID for the email, the email subject and the report file names; the runbook stops when they cannot be read"
+                },
+                {
                     "Value": "Mail.Send",
                     "Optional": true,
                     "Feature": "Email report",
-                    "Reason": "Sends the pending-requests alert email via Send-RjReportEmail when EmailTo is configured"
+                    "Reason": "Sends the pending-requests alert email via Send-RjRbReportEmail when EmailTo is configured"
                 }
             ]
         }

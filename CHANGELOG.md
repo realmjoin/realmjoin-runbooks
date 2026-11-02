@@ -26,10 +26,10 @@
   - Stop with a clear message when the user is missing or Entra ID protects them because of an administrator role, naming the role and who can act
   - Show the user, the sign-in state and, with the optional RoleManagement.Read.Directory permission, the Entra ID roles before anything changes
   - Enable the account only when it is disabled
-- Clean up the portal field definitions of 34 runbooks by removing a legacy execution policy step that current Azure Automation environments no longer need
+- Update the portal field definitions of 34 runbooks and remove a legacy execution policy step that current Azure Automation environments no longer need
   - All runbooks now declare their portal fields the same way, with the plain `Use-RJInterface` call
   - The portal dialog, the runbook behavior and the runbook versions stay the same
-- Let the report runbooks with their own storage settings also use the central report storage settings `RJReport.StorageAccount`
+- Update 11 report runbooks with their own storage settings to also use the central report storage settings `RJReport.StorageAccount`
   - `RJReport.StorageAccount.ResourceGroup` and `RJReport.StorageAccount.StorageAccountName` are used when the runbook-specific storage settings are not configured; `RJReport.StorageAccount.LinkExpiryDays` sets how many days the download link stays valid (default 6)
   - The runbook-specific settings (`IntuneDevicesReport`, `EnrolledDevicesReport`, `TenantPolicyReport`, `OfficeLicensingReport`, `CaPoliciesExport`, `ListAdminsReport`, `InactiveDevices`, `VulnAppRegExport`, `EntAppsReport`) and the Automation variable `SettingsExports` keep working and take precedence over `RJReport.StorageAccount`
   - Existing scheduled runs and API calls keep uploading to the same storage account, container and file names as before (except the default container of **Export Policy Report**, see below)
@@ -82,19 +82,54 @@
     - **Offboard User Permanently** - User/General (v1.3.0)
     - **Offboard User Temporarily** - User/General (v1.2.0)
     - **List Signin Events** - User/Security (v1.2.0)
-- Stop **Export Policy Report** with a configuration hint before it collects the policies when no storage account is configured; before, it collected all policies and then failed at the upload
-- Fix the success message of **Export All Autopilot Devices**, which said `Inactive Devices Export created.`
-- Change the default container of **Export Policy Report** from `rjrb-licensing-report-v2`, the container of **Office365 License Report**, to `export-policy-report`
-  - Tenants that set `TenantPolicyReport.Container` keep their container, as do scheduled runs created with it
-  - Without that setting, new reports go to `export-policy-report` from the next run on; earlier reports stay in `rjrb-licensing-report-v2`
-- Modernize **Export All Intune Devices**, **Backup Conditional Access Policies**, **List Vulnerable App Regs** and **Export Policy Report**
+- Update **Export All Intune Devices**, **Backup Conditional Access Policies**, **List Vulnerable App Regs** and **Export Policy Report** to the standard runbook structure
   - The first three now call Microsoft Graph with `Connect-MgGraph` and `Invoke-MgGraphRequest` instead of the RealmJoin Graph helpers and require Microsoft.Graph.Authentication 2.41.2; the exported files and the run output stay the same, apart from a closing `Done!` line
-  - All four follow the standard runbook structure; parameters and versions stay as listed above
+  - Parameters and versions stay as listed above
   - **Backup Conditional Access Policies** now exports all pages of the policy list; before, only the first page was exported
   - **Export All Intune Devices** no longer uploads an empty CSV when the device list cannot be read; the run shows the error instead
-- Update the CVE-2021-42306 check of **List Vulnerable App Regs**
-  - The key credentials of app registrations with a credential from before 6 December 2021 are read per app registration, because Microsoft Graph returns the key only there; an app registration is reported when such a credential contains a private key (PKCS#12)
+- Update 10 runbooks to show their results as Output Data tables instead of formatted text
+  - The results appear on the Output Data tab of the run, where they can be sorted, filtered and exported to Excel or CSV; each runbook adds a `Summary` table
+  - The runbooks call Microsoft Graph with `Connect-MgGraph` and `Invoke-MgGraphRequest` and require Microsoft.Graph.Authentication 2.41.2; report emails are sent through the same connection
+  - Parameters, exported files, uploads and report emails stay the same
+  - **Export Enterprise Application Users** and **Enrolled Devices Report (Scheduled)** read all pages of their Graph lists, so large tenants get complete reports
+  - **Delete Stale Devices (Scheduled)**, **Monitor Pending EPM Requests (Scheduled)** and **Export Enterprise Application Users** stop with an error when their main list cannot be read, instead of continuing with an empty result
+  - Affected runbooks:
+    - **Export Enterprise Application Users** - Org/Applications (v1.5.0)
+    - **Delete Stale Devices (Scheduled)** - Org/Devices (v2.3.0)
+    - **Notify Users About Low Diskspace (Scheduled)** - Org/Devices (v1.1.0)
+    - **Report Windows Devices Without Autopilot (Scheduled)** - Org/Devices (v1.4.0)
+    - **Enrolled Devices Report (Scheduled)** - Org/General (v1.1.0)
+    - **Export All Autopilot Devices** - Org/General (v1.1.0)
+    - **Export Non Compliant Devices** - Org/General (v1.1.0)
+    - **Office365 License Report** - Org/General (v1.2.0)
+    - **List Inactive Devices** - Org/Security (v1.1.0)
+    - **Monitor Pending EPM Requests (Scheduled)** - Org/Security (v1.4.0)
+- Update **Export Policy Report** Runbook in Org/General (v1.1.0)
+  - Stop with a configuration hint before the policies are collected when no storage account is configured; before, all policies were collected and the upload then failed
+  - Change the default container from `rjrb-licensing-report-v2`, the container of **Office365 License Report**, to `export-policy-report`; tenants that set `TenantPolicyReport.Container` keep their container, as do scheduled runs created with it, and earlier reports stay in `rjrb-licensing-report-v2`
+- Update **List Vulnerable App Regs** Runbook in Org/Security (v1.1.0)
+  - Read the key credentials of app registrations with a credential from before 6 December 2021 per app registration for the CVE-2021-42306 check, because Microsoft Graph returns the key only there; an app registration is reported when such a credential contains a private key (PKCS#12)
   - The check no longer needs the Windows PKI module; the CSV export lists `DisplayName` and `AppId` of the affected app registrations
+- Update **Export All Autopilot Devices** Runbook in Org/General (v1.1.0)
+  - Fix the success message, which said `Inactive Devices Export created.`
+  - Rename the export options to "Output Data only" and "Also export to a CSV file"
+- Update **List Inactive Devices** Runbook in Org/Security (v1.1.0)
+  - Rename the export options to "Output Data only" and "Also export to a CSV file"
+- Update **Delete Stale Devices (Scheduled)** Runbook in Org/Devices (v2.3.0)
+  - Stop before anything is deleted when a configured include or exclude user group cannot be read or the include group has no user members
+  - With a user group filter, a device whose primary user cannot be resolved is not deleted; it is listed as skipped in the run output, the Output Data tables, the report files and the email
+  - The permission file lists the optional `Organization.Read.All` for the tenant name in the report email
+- Update **Report Windows Devices Without Autopilot (Scheduled)** Runbook in Org/Devices (v1.4.0)
+  - Offer the standard "Report delivery" selection instead of two Yes/No switches; the default still creates a download link, and existing scheduled runs keep their settings
+- Update **Notify Users About Low Diskspace (Scheduled)** Runbook in Org/Devices (v1.1.0)
+  - Show the mail template as a regular field
+  - The Output Data tables list every notified or skipped user and device with the reason
+- Update **Monitor Pending EPM Requests (Scheduled)** Runbook in Org/Security (v1.4.0)
+  - List the pending requests in the Output Data only with `DetailedReport`
+  - Count a single pending request correctly in the run output
+  - The permission file lists `Organization.Read.All`, which the runbook needs for the tenant name
+- Update **Export Enterprise Application Users** Runbook in Org/Applications (v1.5.0)
+  - The permission file lists the optional `Organization.Read.All` for the tenant name in the report email
 
 ## 2026-10-23
 

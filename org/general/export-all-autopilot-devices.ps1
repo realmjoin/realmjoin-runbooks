@@ -3,10 +3,10 @@
 	List or export all Windows Autopilot devices
 
 	.DESCRIPTION
-	Lists every Windows Autopilot registration with its details, either in the run output or as a CSV file uploaded to an Azure Storage account with a time-limited download link. Nothing is changed.
+	Lists every Windows Autopilot registration with its details in the Output Data tables of the run. The list can also be exported as a CSV file to an Azure Storage account with a time-limited download link. Nothing is changed.
 
 	.PARAMETER ExportToFile
-	List in the run output, or export to a CSV file with a download link.
+	The list is always shown in the Output Data tables of the run. "Also export to a CSV file" also uploads it as a CSV file and returns a download link.
 
 	.PARAMETER ContainerName
 	Storage container the CSV file is uploaded to. Taken from the tenant setting IntuneDevicesReport.Container.
@@ -81,11 +81,11 @@
 				"Select": {
 					"Options": [
 						{
-							"Display": "Export to a CSV file",
+							"Display": "Also export to a CSV file",
 							"ParameterValue": true
 						},
 						{
-							"Display": "List in the run output",
+							"Display": "Output Data only",
 							"ParameterValue": false,
 							"Customization": {
 								"Hide": [
@@ -112,6 +112,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
@@ -142,10 +143,28 @@ param(
     [string] $CallerName
 )
 
+########################################################
+#region     RJ Log Part
+########################################################
+
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
 $Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
+
+Write-RjRbLog -Message "ExportToFile: $ExportToFile" -Verbose
+Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
+Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
+Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+Write-RjRbLog -Message "SubscriptionId: $SubscriptionId" -Verbose
+Write-RjRbLog -Message "StorageAccountLocation: $StorageAccountLocation" -Verbose
+Write-RjRbLog -Message "StorageAccountSku: $StorageAccountSku" -Verbose
+Write-RjRbLog -Message "RJReportResourceGroupName: $RJReportResourceGroupName" -Verbose
+Write-RjRbLog -Message "RJReportStorageAccountName: $RJReportStorageAccountName" -Verbose
+Write-RjRbLog -Message "RJReportSubscriptionId: $RJReportSubscriptionId" -Verbose
+Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
+
+#endregion RJ Log Part
 
 ########################################################
 #region     Parameter Validation
@@ -203,62 +222,182 @@ if ($ExportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountName)
 
 #endregion Parameter Validation
 
-Connect-RjRbGraph
+########################################################
+#region     Function Definitions
+########################################################
 
-# Get all Autopilot devices
-#$SelectString = "id, azureActiveDirectoryDeviceId, managedDeviceId, groupTag, purchaseOrderIdentifier, serialNumber, model, manufacturer, enrollmentState, userPrincipalName, systemFamily"
-$APDevices = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/windowsAutopilotDeviceIdentities" -Beta -FollowPaging
+function Get-GraphPagedResult {
+    <#
+        .SYNOPSIS
+        Retrieves all items from a paginated Microsoft Graph API endpoint.
 
-$Exportdevices = @()
+        .DESCRIPTION
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
 
-foreach ($apDevice in $APDevices) {
-    # Get properties for each device from Intune and AutoPilot
-    $result = @{}
-    $result["autoPilotId"] = $apDevice.id
-    $result["azureActiveDirectoryDeviceId"] = $apDevice.azureActiveDirectoryDeviceId
-    $result["managedDeviceId"] = $apDevice.managedDeviceId
-    $result["groupTag"] = $apDevice.groupTag
-    $result["purchaseOrderIdentifier"] = $apDevice.purchaseOrderIdentifier
-    $result["serialNumber"] = $apDevice.serialNumber
-    $result["model"] = $apDevice.model
-    $result["manufacturer"] = $apDevice.manufacturer
-    $result["autoPilotIdEnrollmentState"] = $apDevice.enrollmentState
-    #$result["autoPilotIdUserPrincipalName"] = $apDevice.userPrincipalName
-    $result["systemFamily"] = $apDevice.systemFamily
-    $result["deploymentProfileAssignmentStatus"] = $apDevice.deploymentProfileAssignmentStatus
-    $result["remediationState"] = $apDevice.remediationState
-    $result["deploymentProfileAssignmentDate"] = $apDevice.deploymentProfileAssignedDateTime
-    $result["lastContactedDateTime"] = $apDevice.lastContactedDateTime
+        .PARAMETER Uri
+        The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
 
+        .EXAMPLE
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
+    #>
+    param(
+        [string]$Uri
+    )
 
-    $azureActiveDirectoryDeviceId = $apDevice.azureActiveDirectoryDeviceId
-    if ($azureActiveDirectoryDeviceId) {
-        $SelectString = "deviceName, lastSyncDateTime, enrolledDateTime, userPrincipalName, id, serialNumber, manufacturer, model, imei, managedDeviceOwnerType, operatingSystem, osVersion, complianceState"
-        $IntuneDevice = Invoke-RjRbRestMethodGraph -Resource "/deviceManagement/managedDevices" -OdFilter "azureADDeviceId eq '$azureActiveDirectoryDeviceId'" -OdSelect $SelectString -FollowPaging
-        $result["deviceName"] = $IntuneDevice.deviceName
-        $result["intuneLastSyncDateTime"] = $IntuneDevice.lastSyncDateTime
-        $result["intuneEnrolledDateTime"] = $IntuneDevice.enrolledDateTime
-        $result["UserPrincipalName"] = $IntuneDevice.userPrincipalName
-        $result["iemi"] = $IntuneDevice.imei
-        $result["managedDeviceOwnerType"] = $IntuneDevice.managedDeviceOwnerType
-        $result["operatingSystem"] = $IntuneDevice.operatingSystem
-        $result["osVersion"] = $IntuneDevice.osVersion
-        $result["complianceState"] = $IntuneDevice.complianceState
-    }
+    $allResults = [System.Collections.Generic.List[object]]::new()
+    $nextLink = $Uri
+    $pageCount = 0
 
-    if (-not $ExportToFile) {
-        "## AutoPilot Device $($apDevice.id)"
-        $tempresult = foreach ($key in $result.keys) {
-            "$($key): $($result[$key])"
+    do {
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
         }
-        $tempresult | Format-List | Out-String
-        ""
-        #$result | Format-List | Out-String
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
+        $nextLink = $response.'@odata.nextLink'
+    } while ($nextLink)
+
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
     }
-    else {
+
+    return $allResults.ToArray()
+}
+
+function ConvertTo-DisplayValue {
+    <#
+        .SYNOPSIS
+        Turns a report value into the text shown in the Output Data table.
+
+        .DESCRIPTION
+        Timestamps become "yyyy-MM-dd HH:mm:ss", several values (an Autopilot device linked to more than one
+        Intune device) are joined with ", " and empty values are left out.
+
+        .PARAMETER Value
+        The value as stored for the CSV export.
+    #>
+    param(
+        $Value
+    )
+
+    $parts = @(foreach ($item in @($Value)) {
+            if ($null -eq $item -or "$item" -eq "") { continue }
+            if ($item -is [datetime]) { $item.ToString("yyyy-MM-dd HH:mm:ss") } else { "$item" }
+        })
+    return ($parts -join ", ")
+}
+
+#endregion Function Definitions
+
+########################################################
+#region     Connect Part
+########################################################
+
+Write-RjRbLog -Message "Connecting to Microsoft Graph" -Verbose
+try {
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+}
+catch {
+    Write-Error "Failed to connect to Microsoft Graph. Ensure the managed identity is configured correctly. Error: $($_.Exception.Message)" -ErrorAction Continue
+    throw
+}
+
+#endregion Connect Part
+
+########################################################
+#region     Data Collection
+########################################################
+
+# Invoke-MgGraphRequest returns PSCustomObjects in the property order of the Graph response, as the earlier RunbookHelper calls did;
+# the default is removed again after the collection
+$PSDefaultParameterValues['Invoke-MgGraphRequest:OutputType'] = 'PSObject'
+try {
+    # Get all Autopilot devices
+    $APDevices = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/windowsAutopilotDeviceIdentities"
+    Write-RjRbLog -Message "Autopilot devices retrieved: $(@($APDevices).Count)" -Verbose
+
+    $IntuneSelectString = "deviceName,lastSyncDateTime,enrolledDateTime,userPrincipalName,id,serialNumber,manufacturer,model,imei,managedDeviceOwnerType,operatingSystem,osVersion,complianceState"
+    $Exportdevices = @()
+
+    foreach ($apDevice in $APDevices) {
+        # Get properties for each device from Intune and Autopilot
+        $result = @{}
+        $result["autoPilotId"] = $apDevice.id
+        $result["azureActiveDirectoryDeviceId"] = $apDevice.azureActiveDirectoryDeviceId
+        $result["managedDeviceId"] = $apDevice.managedDeviceId
+        $result["groupTag"] = $apDevice.groupTag
+        $result["purchaseOrderIdentifier"] = $apDevice.purchaseOrderIdentifier
+        $result["serialNumber"] = $apDevice.serialNumber
+        $result["model"] = $apDevice.model
+        $result["manufacturer"] = $apDevice.manufacturer
+        $result["autoPilotIdEnrollmentState"] = $apDevice.enrollmentState
+        $result["systemFamily"] = $apDevice.systemFamily
+        $result["deploymentProfileAssignmentStatus"] = $apDevice.deploymentProfileAssignmentStatus
+        $result["remediationState"] = $apDevice.remediationState
+        $result["deploymentProfileAssignmentDate"] = $apDevice.deploymentProfileAssignedDateTime
+        $result["lastContactedDateTime"] = $apDevice.lastContactedDateTime
+
+        $azureActiveDirectoryDeviceId = $apDevice.azureActiveDirectoryDeviceId
+        if ($azureActiveDirectoryDeviceId) {
+            $intuneFilter = [uri]::EscapeDataString("azureADDeviceId eq '$azureActiveDirectoryDeviceId'")
+            $IntuneDevice = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/deviceManagement/managedDevices?`$filter=$intuneFilter&`$select=$IntuneSelectString"
+            $result["deviceName"] = $IntuneDevice.deviceName
+            $result["intuneLastSyncDateTime"] = $IntuneDevice.lastSyncDateTime
+            $result["intuneEnrolledDateTime"] = $IntuneDevice.enrolledDateTime
+            $result["UserPrincipalName"] = $IntuneDevice.userPrincipalName
+            $result["iemi"] = $IntuneDevice.imei
+            $result["managedDeviceOwnerType"] = $IntuneDevice.managedDeviceOwnerType
+            $result["operatingSystem"] = $IntuneDevice.operatingSystem
+            $result["osVersion"] = $IntuneDevice.osVersion
+            $result["complianceState"] = $IntuneDevice.complianceState
+        }
+
         $Exportdevices += $result
     }
 }
+finally {
+    $PSDefaultParameterValues.Remove('Invoke-MgGraphRequest:OutputType')
+}
+
+#endregion Data Collection
+
+########################################################
+#region     Data Processing
+########################################################
+
+# One row per Autopilot device for the Output Data table, with the column names of the CSV export
+$deviceColumns = @(
+    'serialNumber', 'deviceName', 'UserPrincipalName', 'groupTag', 'purchaseOrderIdentifier', 'manufacturer', 'model', 'systemFamily',
+    'autoPilotIdEnrollmentState', 'deploymentProfileAssignmentStatus', 'deploymentProfileAssignmentDate', 'remediationState',
+    'lastContactedDateTime', 'intuneEnrolledDateTime', 'intuneLastSyncDateTime', 'managedDeviceOwnerType', 'operatingSystem',
+    'osVersion', 'complianceState', 'iemi', 'autoPilotId', 'azureActiveDirectoryDeviceId', 'managedDeviceId'
+)
+$deviceRows = @(foreach ($exportDevice in $Exportdevices) {
+        $row = [ordered]@{}
+        foreach ($column in $deviceColumns) {
+            $row[$column] = ConvertTo-DisplayValue -Value $exportDevice[$column]
+        }
+        [PSCustomObject]$row
+    })
+
+$linkedCount = @($deviceRows | Where-Object { $_.deviceName }).Count
+
+#endregion Data Processing
 
 ########################################################
 #region     Report File Export
@@ -315,11 +454,43 @@ if ($ExportToFile) {
 #endregion Upload / Download Link
 
 ########################################################
+#region     Structured Output (Output Data)
+########################################################
+
+# Emitted last so the tables are not interleaved with the progress output. Every table has its own
+# RjTableTitle marker and its own column set; a marker is only written when rows follow it.
+Write-Output ""
+
+$summaryRows = @(
+    [PSCustomObject]@{ Metric = "Autopilot devices"; Value = "$($deviceRows.Count)" }
+    [PSCustomObject]@{ Metric = "Linked to an Intune device"; Value = "$linkedCount" }
+    [PSCustomObject]@{ Metric = "Without an Intune device"; Value = "$($deviceRows.Count - $linkedCount)" }
+)
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
+Write-Output $summaryRows
+
+if ($deviceRows.Count -gt 0) {
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Autopilot devices" })
+    Write-Output $deviceRows
+}
+else {
+    Write-Output "No Autopilot devices found."
+}
+
+#endregion Structured Output (Output Data)
+
+########################################################
 #region     Cleanup
 ########################################################
 
 foreach ($reportFile in $reportFiles) {
     Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
 }
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
+
+Write-Output ""
+Write-Output "Done!"
 
 #endregion Cleanup
