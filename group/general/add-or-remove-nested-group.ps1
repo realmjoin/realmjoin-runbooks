@@ -43,7 +43,7 @@ param(
     [Parameter(Mandatory = $true)]
     [String] $GroupID,
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Nested group" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Nested group" } )]
     [String] $NestedGroupID,
     [bool] $Remove = $false,
     # CallerName is tracked purely for auditing purposes

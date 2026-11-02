@@ -147,9 +147,9 @@ param (
     [string]$CompanyName = "",
     [string]$JobTitle = "",
     [string]$Department = "",
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Manager" -Filter "userType eq 'Member'" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Manager" -Filter "userType eq 'Member'" } )]
     [string]$ManagerId = "",
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Sponsors" -Filter "userType eq 'Member'" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Sponsors" -Filter "userType eq 'Member'" } )]
     [string[]]$SponsorIds,
     [string]$MobilePhone = "",
     [string]$LocationName = "",

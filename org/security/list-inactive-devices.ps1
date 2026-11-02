@@ -103,20 +103,20 @@
 #Requires -Modules @{ ModuleName = "Az.Storage"; ModuleVersion = "9.7.2" }
 
 param(
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Inactive for at least (days)" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Inactive for at least (days)" } )]
     [int] $Days = 30,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Measure inactivity by" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Measure inactivity by" } )]
     [bool] $Sync = $true,
     [bool] $ExportToFile = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "InactiveDevices.Container" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "InactiveDevices.Container" } )]
     [string] $ContainerName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "InactiveDevices.ResourceGroup" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "InactiveDevices.ResourceGroup" } )]
     [string] $ResourceGroupName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "InactiveDevices.StorageAccount.Name" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "InactiveDevices.StorageAccount.Name" } )]
     [string] $StorageAccountName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "InactiveDevices.StorageAccount.Location" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "InactiveDevices.StorageAccount.Location" } )]
     [string] $StorageAccountLocation,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "InactiveDevices.StorageAccount.Sku" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "InactiveDevices.StorageAccount.Sku" } )]
     [string] $StorageAccountSku,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

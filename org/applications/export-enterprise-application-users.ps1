@@ -132,18 +132,18 @@
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Scope" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Scope" } )]
     [bool] $entAppsOnly = $true,
     [ValidateSet('CSV only', 'CSV & XLSX', 'XLSX only')]
     [string] $ReportFileFormat = 'CSV & XLSX',
     [bool] $CreateDownloadLink = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "EntAppsReport.Container" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EntAppsReport.Container" } )]
     [string] $ContainerName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "EntAppsReport.ResourceGroup" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EntAppsReport.ResourceGroup" } )]
     [string] $ResourceGroupName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "EntAppsReport.StorageAccount.Name" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EntAppsReport.StorageAccount.Name" } )]
     [string] $StorageAccountName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "EntAppsReport.LinkExpiryDays" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EntAppsReport.LinkExpiryDays" } )]
     [ValidateRange(1, 3650)]
     [int] $LinkExpiryDays = 6,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]

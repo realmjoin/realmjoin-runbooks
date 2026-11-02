@@ -72,26 +72,26 @@
 # Suppress false positive from PSScriptAnalyzer - printOverview is used in conditions and passed to Get-LicenseOverviewReport
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "printOverview")]
 param(
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Show a usage overview?" -Type Setting -Attribute "OfficeLicensingReport.PrintLicOverview" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Show a usage overview?" -Type Setting -Attribute "OfficeLicensingReport.PrintLicOverview" } )]
     [bool] $printOverview = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Include Exchange Online reports?" -Type Setting -Attribute "OfficeLicensingReport.InlcudeEXOReport" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Include Exchange Online reports?" -Type Setting -Attribute "OfficeLicensingReport.InlcudeEXOReport" } )]
     [bool] $includeExchange = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Include real user data?" -Type Setting -Attribute "OfficeLicensingReport.IncludeUserData" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Include real user data?" -Type Setting -Attribute "OfficeLicensingReport.IncludeUserData" } )]
     [bool] $includeUserData = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Export to storage?" -Type Setting -Attribute "OfficeLicensingReport.ExportToFile" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Export to storage?" -Type Setting -Attribute "OfficeLicensingReport.ExportToFile" } )]
     [bool] $exportToFile = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Export as one ZIP file?" -Type Setting -Attribute "OfficeLicensingReport.ExportToZIPFile" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Export as one ZIP file?" -Type Setting -Attribute "OfficeLicensingReport.ExportToZIPFile" } )]
     [bool] $exportAsZip = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Create download links?" -Type Setting -Attribute "OfficeLicensingReport.CreateLinks" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Create download links?" -Type Setting -Attribute "OfficeLicensingReport.CreateLinks" } )]
     [bool] $produceLinks = $true,
     # Make a persistent container the default, so you can simply update PowerBI's report from the same source
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.Container" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.Container" } )]
     [string] $ContainerName = "rjrb-licensing-report-v2",
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.ResourceGroup" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.ResourceGroup" } )]
     [string] $ResourceGroupName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.StorageAccount.Name" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.StorageAccount.Name" } )]
     [string] $StorageAccountName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.SubscriptionId" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OfficeLicensingReport.SubscriptionId" } )]
     [string] $SubscriptionId,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

@@ -41,10 +41,10 @@
 
 param(
     [Parameter(Mandatory = $true)]
-    #[ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Group" } )]
+    #[ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Group" } )]
     [String] $GroupID,
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserId,
     [bool] $Remove = $false,
     # CallerName is tracked purely for auditing purposes

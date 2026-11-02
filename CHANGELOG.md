@@ -1,5 +1,23 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-11-02
+
+- Update **Add Shared Mailbox** Runbook in Org/Mail (v1.1.0)
+  - Pick several delegates at once; they are checked in Exchange Online before the mailbox is created and each gets full access and send on behalf
+  - Offer all Windows time zones named after places with offset and cities as in Outlook, for example "(UTC+10:00) Canberra, Melbourne, Sydney"
+  - Stop with a clear error when the mailbox cannot be created or does not become available; alias changes and unblocked sign-ins show as warnings
+- Update **Revoke Or Restore Access** Runbook in User/Security (v1.1.0)
+  - Stop with a clear message when the user is missing or Entra ID protects them because of an administrator role, naming the role and who can act
+  - Show the user, the sign-in state and, with the optional RoleManagement.Read.Directory permission, the Entra ID roles before anything changes
+  - Leave the sign-in state as it is when it already matches the selected action; revoking access still ends all sessions
+- Update **Reset Password** Runbook in User/Security (v1.1.0)
+  - Stop with a clear message when the user is missing or Entra ID protects them because of an administrator role, naming the role and who can act
+  - Show the user, the sign-in state and, with the optional RoleManagement.Read.Directory permission, the Entra ID roles before anything changes
+  - Enable the account only when it is disabled
+- Clean up the portal field definitions of 34 runbooks by removing a legacy execution policy step that current Azure Automation environments no longer need
+  - All runbooks now declare their portal fields the same way, with the plain `Use-RJInterface` call
+  - The portal dialog, the runbook behavior and the runbook versions stay the same
+
 ## 2026-10-23
 
 - Update **Invite External Guest Users** Runbook in Org/General (v2.1.0)

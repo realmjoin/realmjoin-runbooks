@@ -80,17 +80,17 @@
 #Requires -Modules @{ ModuleName = "Az.Storage"; ModuleVersion = "9.7.2" }
 
 param(
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Output" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Output" } )]
     [bool] $ExportToFile = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "VulnAppRegExport.Container" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "VulnAppRegExport.Container" } )]
     [string] $ContainerName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "VulnAppRegExport.ResourceGroup" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "VulnAppRegExport.ResourceGroup" } )]
     [string] $ResourceGroupName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "VulnAppRegExport.StorageAccount.Name" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "VulnAppRegExport.StorageAccount.Name" } )]
     [string] $StorageAccountName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "VulnAppRegExport.StorageAccount.Location" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "VulnAppRegExport.StorageAccount.Location" } )]
     [string] $StorageAccountLocation,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "VulnAppRegExport.StorageAccount.Sku" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "VulnAppRegExport.StorageAccount.Sku" } )]
     [string] $StorageAccountSku,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

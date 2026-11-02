@@ -63,21 +63,21 @@
 # Suppress false positive from PSScriptAnalyzer - $blob is used to suppress unwanted output from Set-AzStorageBlobContent
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "blob")]
 param(
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Create download links?" -Type Setting -Attribute "TenantPolicyReport.CreateLinks" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Create download links?" -Type Setting -Attribute "TenantPolicyReport.CreateLinks" } )]
     [bool] $produceLinks = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Also export raw JSON?" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Also export raw JSON?" } )]
     [bool] $exportJson = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Add page breaks for PDF?" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Add page breaks for PDF?" } )]
     [bool] $renderLatexPagebreaks = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.Container" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.Container" } )]
     [string] $ContainerName = "rjrb-licensing-report-v2",
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.ResourceGroup" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.ResourceGroup" } )]
     [string] $ResourceGroupName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.StorageAccount.Name" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.StorageAccount.Name" } )]
     [string] $StorageAccountName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.StorageAccount.Location" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.StorageAccount.Location" } )]
     [string] $StorageAccountLocation,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.StorageAccount.Sku" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.StorageAccount.Sku" } )]
     [string] $StorageAccountSku,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

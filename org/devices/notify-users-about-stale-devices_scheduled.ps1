@@ -329,9 +329,9 @@ param(
     [string]$ServiceDeskPortalUrl,
     [string]$ServiceDeskTicketUrl = "",
     [bool] $UseUserScope = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Include users from group" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Include users from group" } )]
     [string]$IncludeUserGroup,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude users from group" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude users from group" } )]
     [string]$ExcludeUserGroup,
     [string]$OverrideEmailRecipient,
     [string]$OverrideUserNamePattern = "",

@@ -198,15 +198,15 @@
 
 param (
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.userTypeRestriction" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.userTypeRestriction" } )]
     [int] $UserTypeSelector = 0,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.disableUser" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.disableUser" } )]
     [bool] $DisableUser = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.revokeAccess" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.revokeAccess" } )]
     [bool] $RevokeAccess = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.exportGroupMemberships" -DisplayName "Back up group memberships?" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.exportGroupMemberships" -DisplayName "Back up group memberships?" } )]
     [bool] $exportGroupMemberships = $false,
     [string] $ContainerName = "user-leaver-groupmemberships",
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" } )]
@@ -216,23 +216,23 @@ param (
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" } )]
     [ValidateRange(1, 3650)]
     [int] $LinkExpiryDays = 6,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.licensesMode" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.licensesMode" } )]
     [int] $ChangeLicensesSelector = 0,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupsMode" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupsMode" } )]
     [int] $ChangeGroupsSelector = 0,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupToAdd" -DisplayName "Group to add or keep" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupToAdd" -DisplayName "Group to add or keep" } )]
     [string] $GroupToAdd,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupsToRemovePrefix" -DisplayName "Remove groups starting with this prefix" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.groupsToRemovePrefix" -DisplayName "Remove groups starting with this prefix" } )]
     [String] $GroupsToRemovePrefix,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.revokeGroupOwnership" -DisplayName "Group ownerships" })]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.revokeGroupOwnership" -DisplayName "Group ownerships" })]
     [bool] $RevokeGroupOwnership = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Use the manager as replacement?" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Use the manager as replacement?" } )]
     [bool] $ManagerAsReplacementOwner = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Replacement person" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Replacement person" } )]
     [String] $ReplacementOwnerName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.replaceManagerReferences" -DisplayName "Manager of direct reports" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.replaceManagerReferences" -DisplayName "Manager of direct reports" } )]
     [bool] $ReplaceManagerReferences = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.replaceSponsorReferences" -DisplayName "Sponsor of guests" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "OffboardUserTemporarily.replaceSponsorReferences" -DisplayName "Sponsor of guests" } )]
     [bool] $ReplaceSponsorReferences = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

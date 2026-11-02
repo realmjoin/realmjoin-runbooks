@@ -96,29 +96,29 @@
 #Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 
 param(
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Upload the report as CSV?" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Upload the report as CSV?" } )]
     [bool] $ExportToFile = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Include PIM end dates in the CSV?" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Include PIM end dates in the CSV?" } )]
     [bool] $PimEligibleUntilInCSV = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "ListAdminsReport.Container" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "ListAdminsReport.Container" } )]
     [string] $ContainerName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "ListAdminsReport.ResourceGroup" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "ListAdminsReport.ResourceGroup" } )]
     [string] $ResourceGroupName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "ListAdminsReport.StorageAccount.Name" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "ListAdminsReport.StorageAccount.Name" } )]
     [string] $StorageAccountName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "ListAdminsReport.StorageAccount.Location" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "ListAdminsReport.StorageAccount.Location" } )]
     [string] $StorageAccountLocation,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "ListAdminsReport.StorageAccount.Sku" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "ListAdminsReport.StorageAccount.Sku" } )]
     [string] $StorageAccountSku,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Check MFA state?" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Check MFA state?" } )]
     [bool]$QueryMfaState = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Count email as MFA?" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Count email as MFA?" } )]
     [bool]$TrustEmailMfa = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Count phone/SMS as MFA?" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Count phone/SMS as MFA?" } )]
     [bool]$TrustPhoneMfa = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Count software OATH tokens as MFA?" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Count software OATH tokens as MFA?" } )]
     [bool]$TrustSoftwareOathMfa = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Count Windows Hello for Business as MFA?" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Count Windows Hello for Business as MFA?" } )]
     [bool]$TrustWinHelloMFA = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

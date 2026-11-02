@@ -95,19 +95,19 @@
 param
 (
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User/Mailbox" } )]
     [string] $UserName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
     [string] $delegateTo,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Turn mailbox back to regular mailbox" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Turn mailbox back to regular mailbox" } )]
     [bool] $Remove = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Map the mailbox in Outlook automatically?" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Map the mailbox in Outlook automatically?" } )]
     [bool] $AutoMapping = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Remove group memberships?" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Remove group memberships?" } )]
     [bool] $RemoveGroups = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "License group for Exchange Online Plan 2" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "License group for Exchange Online Plan 2" } )]
     [string] $ArchivalLicenseGroup = "",
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "License group for the regular mailbox" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "License group for the regular mailbox" } )]
     [string] $RegularLicenseGroup = "",
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

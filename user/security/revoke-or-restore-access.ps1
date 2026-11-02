@@ -35,6 +35,7 @@
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 
 param(
     [Parameter(Mandatory = $true)]
@@ -45,38 +46,247 @@ param(
     [string] $CallerName
 )
 
+########################################################
+#region     RJ Log Part
+########################################################
+
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.1"
+$Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
-Connect-RjRbGraph
+Write-RjRbLog -Message "UserName: $UserName" -Verbose
+Write-RjRbLog -Message "Revoke: $Revoke" -Verbose
 
-if ($Revoke) {
-    "## Trying to revoke access and block signin for user '$UserName'."
+#endregion RJ Log Part
+
+########################################################
+#region     Function Definitions
+########################################################
+
+function Get-GraphPagedResult {
+    <#
+        .SYNOPSIS
+        Retrieves all items from a paginated Microsoft Graph API endpoint.
+
+        .DESCRIPTION
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
+
+        .PARAMETER Uri
+        The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
+
+        .EXAMPLE
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
+    #>
+    param(
+        [string]$Uri
+    )
+
+    $allResults = [System.Collections.Generic.List[object]]::new()
+    $nextLink = $Uri
+    $pageCount = 0
+
+    do {
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
+        }
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
+        $nextLink = $response.'@odata.nextLink'
+    } while ($nextLink)
+
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
+}
+
+function Get-UserDirectoryRoleName {
+    # Returns the names of the Entra ID roles assigned directly to the user, or $null when they cannot be read
+    param(
+        [string]$UserId
+    )
+
+    try {
+        # The role lookup is optional: 2>$null keeps a missing permission out of the job's error stream, the catch handles it
+        $roleAssignments = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/roleManagement/directory/roleAssignments?`$filter=principalId eq '$([uri]::EscapeDataString($UserId))'&`$select=roleDefinitionId" 2>$null
+        $roleDefinitionIds = @($roleAssignments | ForEach-Object { $_.roleDefinitionId } | Where-Object { $_ } | Sort-Object -Unique)
+        $roleNames = foreach ($roleDefinitionId in $roleDefinitionIds) {
+            $roleDefinition = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/roleManagement/directory/roleDefinitions/$($roleDefinitionId)?`$select=displayName" -Method GET -ErrorAction Stop
+            $roleDefinition.displayName
+        }
+        return , @($roleNames | Where-Object { $_ } | Sort-Object)
+    }
+    catch {
+        Write-RjRbLog -Message "Could not read the Entra ID roles of the user: $($_.Exception.Message)" -Verbose
+        return $null
+    }
+}
+
+function Stop-UserChangeFailure {
+    # Ends the run; on a 403 Entra ID protects the user because of an administrator role
+    param(
+        [System.Management.Automation.ErrorRecord]$ErrorRecord,
+        [string]$Action,
+        [string]$UserPrincipalName,
+        [object]$DirectoryRoles
+    )
+
+    $errorText = "$($ErrorRecord.ErrorDetails.Message) $($ErrorRecord.Exception.Message)"
+    if ($errorText -notmatch 'Authorization_RequestDenied|Forbidden|\b403\b') {
+        Write-Error "Failed to $($Action) '$($UserPrincipalName)': $($ErrorRecord.Exception.Message)" -ErrorAction Continue
+        throw $ErrorRecord
+    }
+
+    if ($null -eq $DirectoryRoles) {
+        $roleHint = "The user most likely holds an administrator role; the roles could not be read."
+    }
+    elseif ($DirectoryRoles.Count -eq 1) {
+        $roleHint = "The user holds the Entra ID role $($DirectoryRoles[0])."
+    }
+    elseif ($DirectoryRoles.Count -gt 1) {
+        $roleHint = "The user holds the Entra ID roles $($DirectoryRoles -join ', ')."
+    }
+    else {
+        $roleHint = "The user holds no directly assigned Entra ID role, but may hold one through a role-assignable group."
+    }
+
+    Write-Error ("Entra ID denied the request to $($Action) '$($UserPrincipalName)'. $($roleHint) " +
+        "For users with administrator roles, Entra ID allows this only to a Privileged Authentication Administrator or Global Administrator. " +
+        "With the User Administrator role, the RealmJoin managed identity can change users without administrator roles and a few roles such as Helpdesk Administrator or Password Administrator. " +
+        "If the user holds no administrator role, check that the managed identity holds the User Administrator role. Graph error: $($ErrorRecord.Exception.Message)") -ErrorAction Continue
+    throw "Insufficient privileges to $($Action) '$($UserPrincipalName)'. $($roleHint) Ask a Global Administrator or Privileged Authentication Administrator to make the change in the Entra admin center."
+}
+
+#endregion Function Definitions
+
+########################################################
+#region     Connect Part
+########################################################
+
+try {
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+}
+catch {
+    Write-Error "Failed to connect to Microsoft Graph: $($_.Exception.Message)" -ErrorAction Continue
+    throw
+}
+
+#endregion Connect Part
+
+########################################################
+#region     StatusQuo & Preflight-Check Part
+########################################################
+
+Write-Output ""
+Write-Output "Get StatusQuo"
+Write-Output "---------------------"
+
+try {
+    $targetUser = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$([uri]::EscapeDataString($UserName))?`$select=id,displayName,userPrincipalName,accountEnabled" -Method GET -ErrorAction Stop
+}
+catch {
+    $errorText = "$($_.ErrorDetails.Message) $($_.Exception.Message)"
+    if ($errorText -match 'Request_ResourceNotFound|NotFound|\b404\b') {
+        Write-Error "User '$($UserName)' was not found in Entra ID." -ErrorAction Continue
+        throw "User '$($UserName)' not found."
+    }
+    Write-Error "Failed to read user '$($UserName)': $($_.Exception.Message)" -ErrorAction Continue
+    throw
+}
+Write-RjRbLog -Message "User object ID: $($targetUser.id)" -Verbose
+
+$directoryRoles = Get-UserDirectoryRoleName -UserId $targetUser.id
+
+Write-Output "User: $($targetUser.displayName) ($($targetUser.userPrincipalName))"
+Write-Output "Sign-in allowed: $(if ($targetUser.accountEnabled) { 'Yes' } else { 'No' })"
+if ($null -eq $directoryRoles) {
+    Write-Output "Entra ID roles: could not be read"
+}
+elseif ($directoryRoles.Count -eq 0) {
+    Write-Output "Entra ID roles: none assigned directly"
 }
 else {
-    "## Trying to enable signing for user '$UserName'."
+    Write-Output "Entra ID roles: $($directoryRoles -join ', ')"
 }
 
-# "Find the user object $UserName"
-$targetUser = Invoke-RjRbRestMethodGraph -resource "/users/$UserName" -ErrorAction SilentlyContinue
-if ($null -eq $targetUser) {
-    throw ("User '$UserName' not found.")
-}
+#endregion StatusQuo & Preflight-Check Part
 
-# "Block/Enable user sign in"
-$body = @{
-    accountEnabled = (-not $Revoke)
-}
-Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)" -Method Patch -Body $body | Out-Null
+########################################################
+#region     Main Part
+########################################################
 
+Write-Output ""
 if ($Revoke) {
-    # "Revoke all refresh tokens"
-    $body = @{ }
-    Invoke-RjRbRestMethodGraph -Resource "/users/$($targetUser.id)/revokeSignInSessions" -Method Post -Body $body | Out-Null
-    "## User access for '$UserName' has been revoked."
+    Write-Output "Revoke access"
+    Write-Output "---------------------"
+
+    if ($targetUser.accountEnabled) {
+        try {
+            Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($targetUser.id)" -Method PATCH -Body (@{ accountEnabled = $false } | ConvertTo-Json) -ContentType "application/json" -ErrorAction Stop | Out-Null
+        }
+        catch {
+            Stop-UserChangeFailure -ErrorRecord $_ -Action "block sign-in for" -UserPrincipalName $targetUser.userPrincipalName -DirectoryRoles $directoryRoles
+        }
+        Write-Output "Sign-in blocked for '$($targetUser.userPrincipalName)'."
+    }
+    else {
+        Write-Output "Sign-in is already blocked for '$($targetUser.userPrincipalName)'."
+    }
+
+    try {
+        Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($targetUser.id)/revokeSignInSessions" -Method POST -Body (@{ } | ConvertTo-Json) -ContentType "application/json" -ErrorAction Stop | Out-Null
+    }
+    catch {
+        Stop-UserChangeFailure -ErrorRecord $_ -Action "revoke the sessions of" -UserPrincipalName $targetUser.userPrincipalName -DirectoryRoles $directoryRoles
+    }
+    Write-Output "Sessions revoked for '$($targetUser.userPrincipalName)'. Microsoft may take a few minutes to apply this."
 }
 else {
-    "## User '$UserName' has been enabled."
+    Write-Output "Re-enable user"
+    Write-Output "---------------------"
+
+    if ($targetUser.accountEnabled) {
+        Write-Output "Sign-in is already allowed for '$($targetUser.userPrincipalName)'. Nothing to change."
+    }
+    else {
+        try {
+            Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($targetUser.id)" -Method PATCH -Body (@{ accountEnabled = $true } | ConvertTo-Json) -ContentType "application/json" -ErrorAction Stop | Out-Null
+        }
+        catch {
+            Stop-UserChangeFailure -ErrorRecord $_ -Action "allow sign-in for" -UserPrincipalName $targetUser.userPrincipalName -DirectoryRoles $directoryRoles
+        }
+        Write-Output "Sign-in allowed again for '$($targetUser.userPrincipalName)'. Ended sessions stay ended; the user signs in again."
+    }
 }
+
+#endregion Main Part
+
+########################################################
+#region     Cleanup
+########################################################
+
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
+
+Write-Output ""
+Write-Output "Done!"
+
+#endregion Cleanup

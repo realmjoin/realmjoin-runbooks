@@ -184,15 +184,15 @@ param(
   [string] $groupingAttribute = "country",
   # StorageAccount info, if exporting a CSV
   [bool] $exportCsv = $true,
-  [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.Container" } )]
+  [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.Container" } )]
   [string] $ContainerName,
-  [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.ResourceGroup" } )]
+  [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.ResourceGroup" } )]
   [string] $ResourceGroupName,
-  [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.StorageAccount.Name" } )]
+  [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.StorageAccount.Name" } )]
   [string] $StorageAccountName,
-  [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.StorageAccount.Location" } )]
+  [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.StorageAccount.Location" } )]
   [string] $StorageAccountLocation,
-  [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.StorageAccount.Sku" } )]
+  [ValidateScript( { Use-RJInterface -Type Setting -Attribute "EnrolledDevicesReport.StorageAccount.Sku" } )]
   [string] $StorageAccountSku,
   # CallerName is tracked purely for auditing purposes
   [Parameter(Mandatory = $true)]
