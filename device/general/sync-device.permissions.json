@@ -1,0 +1,21 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "DeviceManagementManagedDevices.PrivilegedOperations.All",
+                    "Reason": "Sends the sync request to the device via POST /deviceManagement/managedDevices/{id}/syncDevice"
+                },
+                {
+                    "Value": "DeviceManagementManagedDevices.Read.All",
+                    "Reason": "Finds the Intune record of this device by azureADDeviceId and reads its name, operating system, primary user, compliance state and last check-in"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": []
+}

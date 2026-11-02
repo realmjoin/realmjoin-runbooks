@@ -2,6 +2,10 @@
 
 ## 2026-11-02
 
+- Add **Sync Device** Runbook in Device/General (v1.0.0)
+  - Asks this device to check in with Intune so pending policies, apps and configuration apply without waiting for the next regular check-in
+  - Shows device name, operating system, primary user, compliance state and last check-in first; stops with a clear message when the device is not in Intune
+  - Sends the request with the managed identity of the Automation account, so devices can be synced while the RealmJoin app lacks the Intune remote action permission
 - Update **Add Shared Mailbox** Runbook in Org/Mail (v1.1.0)
   - Pick several delegates at once; they are checked in Exchange Online before the mailbox is created and each gets full access and send on behalf
   - Offer all Windows time zones named after places with offset and cities as in Outlook, for example "(UTC+10:00) Canberra, Melbourne, Sydney"
