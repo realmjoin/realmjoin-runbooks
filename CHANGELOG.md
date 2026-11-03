@@ -150,6 +150,7 @@
   - Still send the email and write the Output Data when the upload fails after devices were deleted; the run fails at the end
 - Update **Report Windows Devices Without Autopilot (Scheduled)** Runbook in Org/Devices (v1.4.0)
   - Offer the standard "Report delivery" selection instead of two Yes/No switches; the default still creates a download link, and existing scheduled runs keep their settings
+  - When a scheduled run saved before this change is edited, the choice shows "Also create a download link" whatever its saved settings are: select the delivery again before saving
   - Remove the report files and branding images and close the sessions also when the export, the upload or the email fails
   - Add the column `JoinType` (Entra joined, Hybrid joined, Entra registered) as the last column of the report files, the Output Data and the email table; hybrid joined and registered devices are no longer called orphaned
 - Update **Notify Users About Low Diskspace (Scheduled)** Runbook in Org/Devices (v1.1.0)
