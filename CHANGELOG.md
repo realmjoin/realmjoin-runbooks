@@ -5,11 +5,13 @@
 - Update **Check Intune Enrollment Readiness** Runbook in User/General (v1.0.1)
   - Fix Device Limit Restriction when checking Intune enrollment readiness
   - Add Support for Entra Limit Registered Devices
+  - Count the devices the user has enrolled in Intune against the device enrollment limit with the new application permission `DeviceManagementManagedDevices.Read.All`
   - Read the Entra setting "Maximum number of devices per user" with the new application permission `Policy.Read.DeviceConfiguration` and the Entra devices of the user with the new application permission `Device.Read.All`; when the setting, the devices or the groups of the user cannot be read, the result shows a warning instead of skipping the check
   - Show the pilot group name only when the pilot group membership check is selected
 - Update **Report Intune Enrollment Readiness** Runbook in Org/General (v1.2.3)
   - Fix Device Limit Restriction when checking Intune enrollment readiness
   - Add Support for Entra Limit Registered Devices
+  - Count the devices each user has enrolled in Intune against the device enrollment limit with the new application permission `DeviceManagementManagedDevices.Read.All`
   - Read the Entra setting "Maximum number of devices per user" with the new application permission `Policy.Read.DeviceConfiguration` and the Entra devices of the users with the new application permission `Device.Read.All`; when the setting or the devices of a user cannot be read, the limit shows as Unknown with a warning instead of the check being skipped
   - Show the enrollment limit as Unknown with a warning when the groups of a user cannot be read, instead of applying the default limit
   - Use the first group, with a warning, when the pilot group name matches several groups; "Users checked" counts each user once
