@@ -3,16 +3,13 @@
     Remove disabled inactive guests from all SharePoint sites and OneDrives
 
     .DESCRIPTION
-    Finds disabled guest accounts without a sign-in for the configured number of days and removes them from the user information list of every SharePoint site collection and OneDrive (equivalent to Remove-SPOUser). This prevents the site user ID mismatch that occurs when a deleted guest is invited again later. All guests are determined first; the expensive pass over all site collections only starts when at least one guest needs to be removed, and every site is visited only once for all guests together. Locked, archived and redirect sites are skipped. Members of the ignore groups are never touched. After a guest was removed everywhere, the completion is recorded in an extension attribute so the runbook Cleanup Inactive Guests can delete the account and the guest is not processed again. A dry run lists all removals without changing anything.
+    Finds disabled guest accounts without a sign-in for the configured number of days and removes them from the user information list of every SharePoint site collection and OneDrive (equivalent to Remove-SPOUser). This prevents the site user ID mismatch that occurs when a deleted guest is invited again later. All guests are determined first; the expensive pass over all site collections only starts when at least one guest needs to be removed, and every site is visited only once for all guests together. Locked, archived and redirect sites are skipped. Members of the ignore groups are never touched. Nothing is written to the guest account itself. A dry run lists all removals without changing anything.
 
     .PARAMETER RemoveAfterDays
     Disabled guests with no sign-in for at least this many days are removed from SharePoint.
 
     .PARAMETER IgnoreGroupIds
     Guests that are members of one of these groups, directly or through nested groups, are never processed. Use the same groups as in Cleanup Inactive Guests.
-
-    .PARAMETER TrackingAttribute
-    Extension attribute of the guest account in which the completed SharePoint cleanup is recorded. Must be the same as in Cleanup Inactive Guests and must not be used for anything else.
 
     .PARAMETER WhatIfMode
     Only reports from which sites the guests would be removed without changing anything.
@@ -64,9 +61,6 @@
             },
             "IgnoreGroupIds": {
                 "DisplayName": "Ignore groups"
-            },
-            "TrackingAttribute": {
-                "DisplayName": "Tracking extension attribute"
             },
             "WhatIfMode": {
                 "DisplayName": "Dry run?"
@@ -129,9 +123,6 @@ param(
 
     [ValidateScript({ Use-RjRbInterface -Type Graph -Entity Group -DisplayName "Ignore groups" })]
     [string[]]$IgnoreGroupIds = @(),
-
-    [ValidateSet("extensionAttribute1", "extensionAttribute2", "extensionAttribute3", "extensionAttribute4", "extensionAttribute5", "extensionAttribute6", "extensionAttribute7", "extensionAttribute8", "extensionAttribute9", "extensionAttribute10", "extensionAttribute11", "extensionAttribute12", "extensionAttribute13", "extensionAttribute14", "extensionAttribute15")]
-    [string]$TrackingAttribute = "extensionAttribute15",
 
     [bool]$WhatIfMode = $true,
 
@@ -238,12 +229,6 @@ function Get-GuestLastActivity {
     }
 }
 
-function Get-SharePointCleanupDate {
-    param([string]$Value)
-    if ([string]::IsNullOrWhiteSpace($Value) -or -not $Value.StartsWith($script:CleanupMarkerPrefix)) { return $null }
-    return ConvertTo-UtcDateTime -Value $Value.Substring($script:CleanupMarkerPrefix.Length)
-}
-
 # Returns a reason when a site must not be touched, otherwise $null.
 function Get-SiteSkipReason {
     param(
@@ -275,7 +260,6 @@ Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "RemoveAfterDays: $RemoveAfterDays" -Verbose
 Write-RjRbLog -Message "IgnoreGroupIds: $($IgnoreGroupIds -join ', ')" -Verbose
-Write-RjRbLog -Message "TrackingAttribute: $TrackingAttribute" -Verbose
 Write-RjRbLog -Message "WhatIfMode: $WhatIfMode" -Verbose
 Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
 Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
@@ -302,8 +286,6 @@ Write-Output ""
 Write-Output "Parameter Validation"
 Write-Output "---------------------"
 
-$script:CleanupMarkerPrefix = "RJGuestSPOCleanup:"
-
 $IgnoreGroupIds = @($IgnoreGroupIds | ForEach-Object { "$_".Trim() } | Where-Object { $_ -ne "" } | Select-Object -Unique)
 
 $sendEmail = $false
@@ -328,7 +310,6 @@ else {
     Write-Output "Mode: live - guests are removed from SharePoint sites"
 }
 Write-Output "Remove after: $RemoveAfterDays day(s) without sign-in (only disabled guests)"
-Write-Output "Tracking attribute: $TrackingAttribute"
 Write-Output "Ignore groups: $(if ($IgnoreGroupIds.Count -gt 0) { $IgnoreGroupIds.Count } else { 'none' })"
 
 #endregion
@@ -392,7 +373,7 @@ foreach ($groupId in $IgnoreGroupIds) {
 Write-Output "Retrieving disabled guest accounts..."
 $guests = @()
 try {
-    $select = "id,displayName,userPrincipalName,mail,accountEnabled,createdDateTime,signInActivity,onPremisesExtensionAttributes"
+    $select = "id,displayName,userPrincipalName,mail,accountEnabled,createdDateTime,signInActivity"
     $guests = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/users?`$filter=userType eq 'Guest'&`$select=$select&`$top=999" | Where-Object { -not $_.accountEnabled })
 }
 catch {
@@ -406,12 +387,11 @@ catch {
 }
 Write-Output "Found $($guests.Count) disabled guest account(s)."
 
-# --- Candidates: disabled, inactive long enough, not ignored, not yet cleaned up since the last activity ---
+# --- Candidates: disabled, inactive long enough, not ignored ---
 $nowUtc = (Get-Date).ToUniversalTime()
 $candidates = [System.Collections.Generic.List[object]]::new()
 $candidateByLogin = [System.Collections.Generic.Dictionary[string, object]]::new([System.StringComparer]::OrdinalIgnoreCase)
 $ignoredCount = 0
-$alreadyCleanedCount = 0
 $notDueCount = 0
 
 foreach ($guest in $guests) {
@@ -430,16 +410,6 @@ foreach ($guest in $guests) {
         continue
     }
 
-    $markerValue = ""
-    if ($guest.onPremisesExtensionAttributes) {
-        $markerValue = [string]$guest.onPremisesExtensionAttributes.$TrackingAttribute
-    }
-    $cleanupDate = Get-SharePointCleanupDate -Value $markerValue
-    if ($null -ne $cleanupDate -and $cleanupDate -ge $activity.Date) {
-        $alreadyCleanedCount++
-        continue
-    }
-
     $upn = [string]$guest.userPrincipalName
     $candidate = [PSCustomObject]@{
         DisplayName       = [string]$guest.displayName
@@ -451,10 +421,7 @@ foreach ($guest in $guests) {
         SitesFound        = 0
         SitesRemoved      = 0
         SitesFailed       = 0
-        TrackingStatus    = ""
         UserId            = [string]$guest.id
-        # The attribute must be empty or hold our own marker; anything else belongs to another process.
-        MarkerWritable    = [string]::IsNullOrWhiteSpace($markerValue) -or $markerValue.StartsWith($script:CleanupMarkerPrefix)
     }
     $candidates.Add($candidate)
     # Entra guests appear in SharePoint with the membership claim of their UPN.
@@ -462,7 +429,6 @@ foreach ($guest in $guests) {
 }
 
 Write-Output "Disabled guests not yet due ($RemoveAfterDays days): $notDueCount"
-Write-Output "Already removed from SharePoint: $alreadyCleanedCount"
 Write-Output "Ignored (member of an ignore group): $ignoredCount"
 Write-Output "Guests to remove from SharePoint: $($candidates.Count)"
 foreach ($candidate in $candidates) {
@@ -609,33 +575,6 @@ else {
             $removalRows.Add($row)
         }
     }
-
-    # --- Record the completed cleanup on the guest, so Cleanup Inactive Guests may delete it and the
-    # guest is not processed again. Not set when a removal failed, so the next run retries. ---
-    $markerValue = $script:CleanupMarkerPrefix + $nowUtc.ToString("yyyy-MM-ddTHH:mm:ssZ")
-    foreach ($candidate in $candidates) {
-        if ($candidate.SitesFailed -gt 0) {
-            $candidate.TrackingStatus = "NotSet (removal failed)"
-        }
-        elseif (-not $candidate.MarkerWritable) {
-            $candidate.TrackingStatus = "NotSet ($TrackingAttribute is used by another process)"
-            Write-Output "WARNING: $TrackingAttribute of $($candidate.UserPrincipalName) holds a foreign value and is not overwritten. Cleanup Inactive Guests will not delete this guest while it waits for the SharePoint cleanup."
-        }
-        elseif ($WhatIfMode) {
-            $candidate.TrackingStatus = "WhatIf"
-        }
-        else {
-            try {
-                $body = @{ onPremisesExtensionAttributes = @{ $TrackingAttribute = $markerValue } } | ConvertTo-Json -Compress
-                Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($candidate.UserId)" -Method PATCH -Body $body -ContentType "application/json" -ErrorAction Stop | Out-Null
-                $candidate.TrackingStatus = "Set"
-            }
-            catch {
-                $candidate.TrackingStatus = "NotSet (write failed)"
-                Write-Output "ERROR: Recording the SharePoint cleanup on $($candidate.UserPrincipalName) failed: $($_.Exception.Message)"
-            }
-        }
-    }
 }
 
 $removedCount = @($removalRows | Where-Object { $_.Status -eq "Done" }).Count
@@ -680,7 +619,7 @@ catch {
     Write-RjRbLog -Message "Failed to retrieve tenant display name: $($_.Exception.Message)" -Verbose
 }
 
-$guestRows = @($candidates | Select-Object DisplayName, UserPrincipalName, Mail, LastActivity, ActivityBasis, InactiveDays, SitesFound, SitesRemoved, SitesFailed, TrackingStatus, UserId)
+$guestRows = @($candidates | Select-Object DisplayName, UserPrincipalName, Mail, LastActivity, ActivityBasis, InactiveDays, SitesFound, SitesRemoved, SitesFailed, UserId)
 $removalReportRows = @($removalRows | Sort-Object UserPrincipalName, SiteUrl)
 $siteIssueReportRows = @($siteIssueRows | Sort-Object Status, SiteUrl)
 
@@ -768,7 +707,6 @@ elseif ($sendEmail) {
 Write-Output ""
 $summaryValues = [ordered]@{
     "Guests to remove from SharePoint"           = $candidates.Count
-    "Already removed from SharePoint"            = $alreadyCleanedCount
     "Ignored (member of an ignore group)"        = $ignoredCount
     "Site collections and OneDrives total"       = $allSites.Count
     "Sites scanned"                              = $processedSiteCount

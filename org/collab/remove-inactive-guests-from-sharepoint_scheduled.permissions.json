@@ -6,8 +6,8 @@
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
                 {
-                    "Value": "User.ReadWrite.All",
-                    "Reason": "Lists the disabled guest accounts and records the completed SharePoint cleanup in the configured onPremisesExtensionAttributes attribute"
+                    "Value": "User.Read.All",
+                    "Reason": "Lists the disabled guest accounts"
                 },
                 {
                     "Value": "AuditLog.Read.All",

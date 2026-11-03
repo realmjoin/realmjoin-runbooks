@@ -8,9 +8,9 @@ The removal is equivalent to `Remove-SPOUser -Site <url> -LoginName <upn>` and i
 
 - **Cleanup Inactive Guests** (Org/Security) disables inactive guests and later deletes them.
 - This runbook processes guests that are **disabled** and have no sign-in for `RemoveAfterDays` days.
-- After a guest was removed from all writable sites, the date is written to `TrackingAttribute` as `RJGuestSPOCleanup:<UTC timestamp>`. Cleanup Inactive Guests only deletes a guest when this record is newer than its last sign-in (option `RequireSharePointCleanup`).
-- Guests with a valid record are not processed again. A guest who signs in again after the cleanup is processed again once it is inactive for `RemoveAfterDays` days.
-- Use the same `IgnoreGroupIds` and `TrackingAttribute` in both runbooks. The attribute must not be used by anything else; a foreign value is never overwritten and is reported instead.
+- The two runbooks do not exchange any state and nothing is written to the guest account. The order follows only from the configured days: keep `RemoveAfterDays` well below `DeleteAfterDays` of Cleanup Inactive Guests, so the guest is removed from SharePoint before the account is deleted.
+- A disabled guest is processed in every run until Cleanup Inactive Guests deletes it. Sites from which it was already removed simply no longer list it.
+- Use the same `IgnoreGroupIds` in both runbooks.
 
 ## Resource usage
 
@@ -23,7 +23,7 @@ The removal is equivalent to `Remove-SPOUser -Site <url> -LoginName <upn>` and i
 
 - Sites with lock state *ReadOnly* or *NoAccess*, archived sites and redirect sites are skipped, because they are not writable. They are listed in the *Skipped sites* table and CSV.
 - Sites whose users cannot be read for other reasons are reported as *ReadFailed* and should be checked manually.
-- If the removal from a site fails, the cleanup is not recorded for that guest and the next run tries again.
+- If the removal from a site fails, the next run tries again.
 
 ## Recommended first run
 

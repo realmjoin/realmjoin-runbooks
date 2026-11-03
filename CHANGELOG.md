@@ -13,13 +13,12 @@
 - New **Cleanup Inactive Guests (Scheduled)** Runbook in Org/Security
   - Disables guest accounts without a sign-in for a configurable number of days (default 14) and deletes disabled guests without a sign-in for a longer period (default 180); guests that never signed in are measured from their creation date
   - Members of the ignore groups (including nested groups) are never processed; a missing ignore group aborts the run
-  - Deletion can wait until **Remove Inactive Guests From SharePoint** has removed the guest from all SharePoint sites, preventing the site user ID mismatch when the person is invited again
   - Dry run (default); all actions are written to a CSV report that can be sent by email or provided as a download link
 
 - New **Remove Inactive Guests From SharePoint (Scheduled)** Runbook in Org/Collab
   - Removes disabled guests without a sign-in for a configurable number of days (default 90) from the user information list of every site collection and OneDrive (equivalent to `Remove-SPOUser`)
   - Determines all guests first and only scans the site collections when at least one guest needs to be removed; every site is read once for all guests together
-  - Skips locked, archived and redirect sites and reports them; records the completed cleanup in an extension attribute so the guest is not processed again
+  - Skips locked, archived and redirect sites and reports them; nothing is written to the guest account
   - Dry run (default); guests, site removals and skipped sites are written to CSV reports that can be sent by email or provided as a download link
 
 ## 2026-09-28

@@ -5,12 +5,14 @@ This runbook works together with **Remove Inactive Guests From SharePoint** (Org
 | Days without sign-in | Runbook | Action |
 | --- | --- | --- |
 | 14 (`DisableAfterDays`) | Cleanup Inactive Guests | Account is disabled |
-| 90 (`RemoveAfterDays`) | Remove Inactive Guests From SharePoint | Guest is removed from all SharePoint sites and OneDrives; completion is recorded in `TrackingAttribute` |
-| 180 (`DeleteAfterDays`) | Cleanup Inactive Guests | Disabled account is deleted (only after the SharePoint cleanup when `RequireSharePointCleanup` is on) |
+| 90 (`RemoveAfterDays`) | Remove Inactive Guests From SharePoint | Guest is removed from all SharePoint sites and OneDrives |
+| 180 (`DeleteAfterDays`) | Cleanup Inactive Guests | Disabled account is deleted |
 
 Deleting a guest without the SharePoint cleanup leads to a *site user ID mismatch* when the same person is invited again later. See [Fix site user ID mismatch in SharePoint or OneDrive](https://learn.microsoft.com/en-us/troubleshoot/sharepoint/sharing-and-permissions/fix-site-user-id-mismatch).
 
-Recommended schedule: this runbook daily, Remove Inactive Guests From SharePoint weekly. Use the same `IgnoreGroupIds` and `TrackingAttribute` in both runbooks.
+The two runbooks do not exchange any state; the order follows only from the configured days. Keep `RemoveAfterDays` of Remove Inactive Guests From SharePoint well below `DeleteAfterDays`, so the SharePoint cleanup has run at least once before the account is deleted.
+
+Recommended schedule: this runbook daily, Remove Inactive Guests From SharePoint weekly. Use the same `IgnoreGroupIds` in both runbooks.
 
 ## How the last sign-in is determined
 
@@ -25,8 +27,6 @@ Recommended schedule: this runbook daily, Remove Inactive Guests From SharePoint
 - A guest who was re-enabled manually but still has no new sign-in is disabled again in the next run. Add such guests to an ignore group instead.
 - If an ignore group cannot be read, the run is aborted so that no protected guest is processed.
 - Deleted guests are moved to the Entra ID recycle bin and can be restored for 30 days.
-- With `RequireSharePointCleanup` the guest is only deleted when the SharePoint cleanup was recorded *after* its last sign-in. Guests that wait for it are reported as *Deferred*.
-
 ## Recommended first run
 
 1. Run with *Dry run* enabled (default) and a download link or email recipient.

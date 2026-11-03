@@ -3,7 +3,7 @@
     Disable and delete guest accounts without recent sign-in
 
     .DESCRIPTION
-    Evaluates every guest account in Entra ID by its last sign-in. Guests without a sign-in for the configured number of days are disabled; guests that are already disabled and have no sign-in for a longer period are deleted. Guests that never signed in are measured from their creation date. Members of the ignore groups are never touched. Deletion can be held back until the runbook Remove Inactive Guests From SharePoint has removed the guest from all SharePoint sites and OneDrives, which prevents the site user ID mismatch when the same person is invited again. A dry run lists all actions without changing anything. All actions are written to a CSV report that can be sent by email or provided as a download link.
+    Evaluates every guest account in Entra ID by its last sign-in. Guests without a sign-in for the configured number of days are disabled; guests that are already disabled and have no sign-in for a longer period are deleted. Guests that never signed in are measured from their creation date. Members of the ignore groups are never touched. A dry run lists all actions without changing anything. All actions are written to a CSV report that can be sent by email or provided as a download link.
 
     .PARAMETER DisableAfterDays
     Guests with no sign-in for at least this many days are disabled.
@@ -13,12 +13,6 @@
 
     .PARAMETER IgnoreGroupIds
     Guests that are members of one of these groups, directly or through nested groups, are never disabled or deleted.
-
-    .PARAMETER RequireSharePointCleanup
-    Only delete a guest after the runbook Remove Inactive Guests From SharePoint has removed it from all SharePoint sites. Prevents the site user ID mismatch when the same person is invited again later.
-
-    .PARAMETER TrackingAttribute
-    Extension attribute in which Remove Inactive Guests From SharePoint records the completed SharePoint cleanup. Must be the same in both runbooks.
 
     .PARAMETER WhatIfMode
     Only reports what would be disabled or deleted without changing anything.
@@ -73,34 +67,6 @@
             },
             "IgnoreGroupIds": {
                 "DisplayName": "Ignore groups"
-            },
-            "RequireSharePointCleanup": {
-                "DisplayName": "Delete only after SharePoint cleanup?",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Yes, wait until the guest was removed from all SharePoint sites",
-                            "Customization": {
-                                "Show": [
-                                    "TrackingAttribute"
-                                ]
-                            },
-                            "ParameterValue": true
-                        },
-                        {
-                            "Display": "No, delete regardless of SharePoint",
-                            "Customization": {
-                                "Hide": [
-                                    "TrackingAttribute"
-                                ]
-                            },
-                            "ParameterValue": false
-                        }
-                    ]
-                }
-            },
-            "TrackingAttribute": {
-                "DisplayName": "Tracking extension attribute"
             },
             "WhatIfMode": {
                 "DisplayName": "Dry run?"
@@ -165,11 +131,6 @@ param(
 
     [ValidateScript({ Use-RjRbInterface -Type Graph -Entity Group -DisplayName "Ignore groups" })]
     [string[]]$IgnoreGroupIds = @(),
-
-    [bool]$RequireSharePointCleanup = $true,
-
-    [ValidateSet("extensionAttribute1", "extensionAttribute2", "extensionAttribute3", "extensionAttribute4", "extensionAttribute5", "extensionAttribute6", "extensionAttribute7", "extensionAttribute8", "extensionAttribute9", "extensionAttribute10", "extensionAttribute11", "extensionAttribute12", "extensionAttribute13", "extensionAttribute14", "extensionAttribute15")]
-    [string]$TrackingAttribute = "extensionAttribute15",
 
     [bool]$WhatIfMode = $true,
 
@@ -277,13 +238,6 @@ function Get-GuestLastActivity {
     }
 }
 
-# Marker written by Remove Inactive Guests From SharePoint: "RJGuestSPOCleanup:<UTC timestamp>".
-function Get-SharePointCleanupDate {
-    param([string]$Value)
-    if ([string]::IsNullOrWhiteSpace($Value) -or -not $Value.StartsWith($script:CleanupMarkerPrefix)) { return $null }
-    return ConvertTo-UtcDateTime -Value $Value.Substring($script:CleanupMarkerPrefix.Length)
-}
-
 #endregion
 
 ########################################################
@@ -298,8 +252,6 @@ Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "DisableAfterDays: $DisableAfterDays" -Verbose
 Write-RjRbLog -Message "DeleteAfterDays: $DeleteAfterDays" -Verbose
 Write-RjRbLog -Message "IgnoreGroupIds: $($IgnoreGroupIds -join ', ')" -Verbose
-Write-RjRbLog -Message "RequireSharePointCleanup: $RequireSharePointCleanup" -Verbose
-Write-RjRbLog -Message "TrackingAttribute: $TrackingAttribute" -Verbose
 Write-RjRbLog -Message "WhatIfMode: $WhatIfMode" -Verbose
 Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
 Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
@@ -325,8 +277,6 @@ if ($CreateDownloadLink) {
 Write-Output ""
 Write-Output "Parameter Validation"
 Write-Output "---------------------"
-
-$script:CleanupMarkerPrefix = "RJGuestSPOCleanup:"
 
 if ($DeleteAfterDays -le $DisableAfterDays) {
     Write-Error "DeleteAfterDays ($DeleteAfterDays) must be greater than DisableAfterDays ($DisableAfterDays). A guest is disabled first and deleted in a later run." -ErrorAction Continue
@@ -358,12 +308,6 @@ else {
 }
 Write-Output "Disable after: $DisableAfterDays day(s) without sign-in"
 Write-Output "Delete after: $DeleteAfterDays day(s) without sign-in (only already disabled guests)"
-if ($RequireSharePointCleanup) {
-    Write-Output "Deletion waits for the SharePoint cleanup (tracked in $TrackingAttribute)"
-}
-else {
-    Write-Output "Deletion does not wait for the SharePoint cleanup"
-}
 Write-Output "Ignore groups: $(if ($IgnoreGroupIds.Count -gt 0) { $IgnoreGroupIds.Count } else { 'none' })"
 
 #endregion
@@ -434,7 +378,7 @@ foreach ($groupId in $IgnoreGroupIds) {
 Write-Output "Retrieving guest accounts..."
 $guests = @()
 try {
-    $select = "id,displayName,userPrincipalName,mail,accountEnabled,createdDateTime,externalUserState,signInActivity,onPremisesExtensionAttributes"
+    $select = "id,displayName,userPrincipalName,mail,accountEnabled,createdDateTime,externalUserState,signInActivity"
     $guests = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/users?`$filter=userType eq 'Guest'&`$select=$select&`$top=999")
 }
 catch {
@@ -489,14 +433,6 @@ foreach ($guest in $guests) {
         continue
     }
 
-    $markerValue = ""
-    if ($guest.onPremisesExtensionAttributes) {
-        $markerValue = [string]$guest.onPremisesExtensionAttributes.$TrackingAttribute
-    }
-    $cleanupDate = Get-SharePointCleanupDate -Value $markerValue
-    # A cleanup counts only when it happened after the last activity; a guest who signed in again
-    # afterwards may have been added to new sites.
-    $cleanupDone = ($null -ne $cleanupDate) -and ($cleanupDate -ge $activity.Date)
     $createdDate = ConvertTo-UtcDateTime -Value $guest.createdDateTime
 
     $row = [PSCustomObject]@{
@@ -509,7 +445,6 @@ foreach ($guest in $guests) {
         LastActivity        = $activity.Date.ToString("yyyy-MM-dd HH:mm")
         ActivityBasis       = $activity.Basis
         InactiveDays        = $inactiveDays
-        SharePointCleanedUp = if ($cleanupDone) { $cleanupDate.ToString("yyyy-MM-dd HH:mm") } else { "" }
         Action              = $action
         Status              = ""
         Details             = ""
@@ -519,10 +454,6 @@ foreach ($guest in $guests) {
     if ($ignoredUserIds.Contains([string]$guest.id)) {
         $row.Status = "Ignored"
         $row.Details = "Member of an ignore group"
-    }
-    elseif ($action -eq "Delete" -and $RequireSharePointCleanup -and -not $cleanupDone) {
-        $row.Status = "Deferred"
-        $row.Details = "Waiting for Remove Inactive Guests From SharePoint"
     }
     elseif ($WhatIfMode) {
         $row.Status = "WhatIf"
@@ -564,7 +495,6 @@ $disableFailed = & $countOf "Disable" "Failed"
 $deleteWhatIf = & $countOf "Delete" "WhatIf"
 $deleteDone = & $countOf "Delete" "Done"
 $deleteFailed = & $countOf "Delete" "Failed"
-$deleteDeferred = & $countOf "Delete" "Deferred"
 $ignoredCount = @($results | Where-Object { $_.Status -eq "Ignored" }).Count
 
 Write-Output ""
@@ -583,7 +513,6 @@ else {
     Write-Output "Disabled: $disableDone (failed: $disableFailed)"
     Write-Output "Deleted: $deleteDone (failed: $deleteFailed)"
 }
-Write-Output "Deletion deferred, SharePoint cleanup pending: $deleteDeferred"
 
 if (($disableFailed + $deleteFailed) -gt 0) {
     Write-Error "$($disableFailed + $deleteFailed) action(s) failed. See the report and the job log for details." -ErrorAction Continue
@@ -606,7 +535,7 @@ catch {
     Write-RjRbLog -Message "Failed to retrieve tenant display name: $($_.Exception.Message)" -Verbose
 }
 
-$reportRows = @($results | Sort-Object -Property Action, Status, InactiveDays -Descending | Select-Object DisplayName, UserPrincipalName, Mail, ExternalUserState, AccountEnabled, CreatedDateTime, LastActivity, ActivityBasis, InactiveDays, SharePointCleanedUp, Action, Status, Details, UserId)
+$reportRows = @($results | Sort-Object -Property Action, Status, InactiveDays -Descending | Select-Object DisplayName, UserPrincipalName, Mail, ExternalUserState, AccountEnabled, CreatedDateTime, LastActivity, ActivityBasis, InactiveDays, Action, Status, Details, UserId)
 
 $tempDir = $null
 $reportFiles = @()
@@ -658,13 +587,12 @@ if ($sendEmail -and $reportFiles.Count -gt 0) {
 ## Rules
 
 - Disable after **$DisableAfterDays** days without sign-in
-- Delete disabled guests after **$DeleteAfterDays** days without sign-in$(if ($RequireSharePointCleanup) { ", once removed from all SharePoint sites" })
+- Delete disabled guests after **$DeleteAfterDays** days without sign-in
 
 ## Summary
 
 - Guest accounts total: **$($guests.Count)**
 $actionLines
-- Deletion deferred (SharePoint cleanup pending): **$deleteDeferred**
 - Ignored (ignore group): **$ignoredCount**
 
 The attached CSV file lists every guest with the action and its result.
@@ -689,11 +617,10 @@ elseif ($sendEmail) {
 # Output Data tab: a title marker is only written when rows follow it.
 Write-Output ""
 $summaryValues = [ordered]@{
-    "Guest accounts total"                         = $guests.Count
-    "Active guests (no action)"                    = $activeCount
-    "Disabled guests not yet due for deletion"     = $alreadyDisabledCount
-    "Ignored (member of an ignore group)"          = $ignoredCount
-    "Deletion deferred, SharePoint cleanup pending" = $deleteDeferred
+    "Guest accounts total"                     = $guests.Count
+    "Active guests (no action)"                = $activeCount
+    "Disabled guests not yet due for deletion" = $alreadyDisabledCount
+    "Ignored (member of an ignore group)"      = $ignoredCount
 }
 if ($WhatIfMode) {
     $summaryValues["Would disable"] = $disableWhatIf
