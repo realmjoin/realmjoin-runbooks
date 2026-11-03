@@ -13,6 +13,7 @@
   - Read the Entra setting "Maximum number of devices per user" with the new application permission `Policy.Read.DeviceConfiguration` and the Entra devices of the users with the new application permission `Device.Read.All`; when the setting or the devices of a user cannot be read, the limit shows as Unknown with a warning instead of the check being skipped
   - Show the enrollment limit as Unknown with a warning when the groups of a user cannot be read, instead of applying the default limit
   - Use the first group, with a warning, when the pilot group name matches several groups; "Users checked" counts each user once
+  - Show the pilot group name only when the pilot group membership check is selected
 - Update **Monitor Service Health** Runbook in Org/General (v1.5.0)
   - Set Advisory Status for monitored services to true in default
 - Add **Sync Device** Runbook in Device/General (v1.0.0)

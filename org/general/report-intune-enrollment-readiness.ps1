@@ -88,7 +88,25 @@
 				}
 			},
 			"CheckPilotGroupMembership": {
-				"DisplayName": "Check pilot group membership?"
+				"DisplayName": "Check pilot group membership?",
+				"Select": {
+					"Options": [
+						{
+							"Display": "No",
+							"ParameterValue": false,
+							"Customization": {
+								"Hide": [ "PilotGroupDisplayName" ]
+							}
+						},
+						{
+							"Display": "Yes",
+							"ParameterValue": true,
+							"Customization": {
+								"Show": [ "PilotGroupDisplayName" ]
+							}
+						}
+					]
+				}
 			},
 			"PilotGroupDisplayName": {
 				"DisplayName": "Pilot group name"
