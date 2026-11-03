@@ -2118,7 +2118,7 @@ Mirror members between a Teams shared channel and a group
 | IncludeGuests |  | Boolean | Also adds and removes guest users. Otherwise guests are left untouched on both sides. |
 | RemoveFromTeam |  | Boolean | When a member is removed from the shared channel, also removes them from the host team. Only applies when a group is copied into a shared channel. |
 | WhatIfMode |  | Boolean | Only logs what would change without writing anything. |
-| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. Set by the "Report delivery" choice in the portal. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -2127,7 +2127,7 @@ Mirror members between a Teams shared channel and a group
 | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
 | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
-| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. Set by the "Report delivery" choice in the portal. |
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
@@ -2620,7 +2620,7 @@ Keep a group filled with users who registered a secure MFA method
 | ExcludeGroupId |  | String | Members of this group, for example break glass or service accounts, never qualify and are removed from the target group. Leave empty for none. |
 | ExcludeUserIds |  | String Array | Users who never qualify and are removed from the target group. Several can be picked. |
 | WhatIfMode |  | Boolean | Only logs which users would be added or removed without changing the group. |
-| SendEmail |  | Boolean | Send the report by email after the run. |
+| SendEmail |  | Boolean | Send the report to the recipient email address. Set by the "Report delivery" option in the portal. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -2629,7 +2629,7 @@ Keep a group filled with users who registered a secure MFA method
 | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
 | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
-| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. Set by the "Report delivery" option in the portal. |
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
@@ -2750,16 +2750,16 @@ List the group memberships of this user
 | TeamsEnabled |  | String | Yes limits the list to groups that back a Microsoft Teams team. |
 | Source |  | String | Cloud-only groups, groups synchronized from on-premises Active Directory, or all. |
 | WritebackEnabled |  | String | Groups with writeback to on-premises Active Directory, groups without, or all. |
-| SendMail |  | Boolean | Send the report to the recipient email address. |
-| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
+| SendMail |  | Boolean | Send the report to the recipient email address. Set from the "Report delivery" choice in the portal. |
+| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. Required when "Report delivery" includes an email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
 | BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
 | BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
 | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
-| ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
-| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+| ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. Shown when "Report delivery" includes an email or a download link. |
+| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. Set from the "Report delivery" choice in the portal. |
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
@@ -2775,7 +2775,7 @@ List the groups this user owns
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
-| SendMail |  | Boolean | Send the report to the recipient email address. |
+| SendMail |  | Boolean | Send the report to the recipient email address. Set by the "Report delivery" selection; schedules and API calls can pass it directly. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -2784,7 +2784,7 @@ List the groups this user owns
 | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
 | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
-| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. Set by the "Report delivery" selection; schedules and API calls can pass it directly. |
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |

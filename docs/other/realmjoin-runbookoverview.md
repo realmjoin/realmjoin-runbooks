@@ -4489,7 +4489,7 @@ Org \ General \ Sync Apple Tokens
 
 #### Description
 
-Copies the members of a source into a target on every run. The source and target can be a shared channel and a security group, two groups, or a group and a shared channel. Missing members are always added; members that exist only in the target are removed only when asked. A dry run shows the changes without applying them, and the report can be sent by email or provided as a download link. Details on the options are in the runbook documentation (docs.realmjoin.com).
+Copies the members of a source into a target on every run. The source and target can be a shared channel and a security group, two groups, or a group and a shared channel. Missing members are always added; members that exist only in the target are removed only when asked. A dry run shows the changes without applying them, and every run lists the changes in the Output Data tab. The report can be sent by email or provided as a download link. Details on the options are in the runbook documentation (docs.realmjoin.com).
 
 #### Where to find
 
@@ -4507,7 +4507,7 @@ single direction per run. On each run it:
 
 ### Directions
 
-The `Direction` parameter selects what is synced into what:
+**Direction** selects what is synced into what:
 
 - **`SharedChannelToGroup`** - the members of a Teams shared channel are copied into a target security group.
 - **`GroupToGroup`** - the members of a source group are copied into a target group (for example a Microsoft 365 group into a security group, or the reverse by swapping source and target).
@@ -4516,8 +4516,11 @@ The `Direction` parameter selects what is synced into what:
 ### Adding and removing
 
 Adding missing members is always performed. Removing members that exist only in the target is **opt-in**
-via `RemoveExtraMembers` (default off). With removal enabled, the target is mirrored exactly against the
+via **Remove members missing in the source?** (`RemoveExtraMembers`, default off). With removal enabled, the target is mirrored exactly against the
 source; with it disabled, the runbook is add-only.
+
+If a member list cannot be read completely from Microsoft Graph, the run fails before any member is added
+or removed, so an incomplete source never leads to removals.
 
 ### Group member expansion
 
@@ -4527,7 +4530,7 @@ operations act on direct membership.
 
 ### Guest handling
 
-`IncludeGuests` (default off) controls whether guest users take part in the sync. When it is off, guests
+**Include guest users?** (`IncludeGuests`, default off) controls whether guest users take part in the sync. When it is off, guests
 are skipped on both sides and are never added or removed. Shared channels frequently reject guests, so
 this is off by default.
 
@@ -4537,39 +4540,69 @@ this is off by default.
   membership, so the runbook first ensures the user is a member of the host team and then adds the user
   to the channel.
 - When members are **removed** from a shared channel, only the channel membership is removed by default.
-  Enable `RemoveFromTeam` to also remove the user from the host team membership.
+  Enable **Also remove from the host team?** (`RemoveFromTeam`) to also remove the user from the host team membership.
 
 ### Dry run
 
-Set `WhatIfMode` to log what would change without writing anything.
-
-### Reporting (optional, both default off)
-
-- **`SendEmailReport`** sends a RealmJoin-branded email (via `Send-RjRbReportEmail`) with run statistics and
-  a CSV attachment listing every individual change. The sender is taken from the `RJReport.EmailSender`
-  setting.
-- **`CreateDownloadLink`** uploads the same CSV to a storage account and returns a time-limited SAS
-  download link (also embedded into the email when both options are enabled). The target storage account
-  is taken from the `RJReport.StorageAccount.*` settings.
-
-The storage upload authenticates with the Automation account's managed identity; that identity needs the
-**Reader and Data Access** RBAC role on the target storage account (this is an Azure RBAC
-assignment, not a Graph application permission).
+Select **Dry run?** (`WhatIfMode`) to log what would change without writing anything. The Output Data tables then list the planned changes.
 
 ### Scheduling
 
 Designed to run unattended on a schedule. Because the runbook is idempotent, a single recurring schedule
 keeps the target in sync with the source as members come and go.
 
-## Email branding
+## Report delivery
+
+Every run writes its results to the Output Data tab of the RealmJoin portal:
+
+- **Summary** - mode (live or dry run), direction, source and target, the member counts of both sides,
+  the members added and removed, and whether removal and guests were enabled (the same figures as in the
+  report email).
+- **Actions** - one row per change (target, user, user ID, add or remove, mode); in a dry run these are
+  the planned changes. Failed changes are not listed; they appear in the runbook output. When nothing
+  changes, a status line replaces the table.
+
+Each table can be exported to Excel there.
+
+Report files are only generated when a delivery method is selected via the **Report delivery** option
+(email and/or download link): the per-change list as a CSV file and/or as an Excel workbook with the
+worksheet *Actions*, as chosen in **Report file format**. With *Output Data only* selected, the results
+are read directly in the Output Data tab. Email delivery and download link generation are independent
+and can be combined; when both are selected, the download links are also embedded into the email.
+
+For the download link, the report files are uploaded to the Azure storage account configured in the
+`RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The
+storage upload authenticates with the Automation account's managed identity; that identity needs the
+**Reader and Data Access** RBAC role on the target storage account (this is an Azure RBAC assignment,
+not a Graph application permission).
+
+Schedules that were saved before the **Report delivery** option existed keep their delivery, because they
+pass `SendEmailReport` and `CreateDownloadLink` directly. When such a schedule is opened for editing, the
+option shows *Output Data only*. Select the delivery again first: as soon as another choice in the dialog
+changes, such as **Direction**, the dialog applies *Output Data only*, and saving then turns the email and
+the download link off.
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when *Also email the report* or *Also email &
+download link* is selected as report delivery; a recipient is then required. The RealmJoin-branded email
+(sent via `Send-RjRbReportEmail`) contains the run statistics and the report files as attachments. The
+sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to
+configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
+
+### Email branding
 
 The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
-- **Footer link** – target of the footer image
-- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+- **Header and footer image** - public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** - target of the footer image
+- **Accent and text color** - 6-digit hex values, e.g. `#0052cc`
 
-When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email - the corresponding default is used instead.
 
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
@@ -5489,7 +5522,7 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 
 #### Description
 
-Keeps an Entra ID group in sync with the users who registered at least one secure authentication method, such as a passkey or the Microsoft Authenticator app. Users who lose their secure method are removed. Admins, an exclusion group and individual users can be kept out, for example when the group controls self-service password reset. A dry run only shows the changes, and the report can be sent by email or provided as a download link. Details on the options are in the runbook documentation (docs.realmjoin.com).
+Keeps an Entra ID group in sync with the users who registered at least one secure authentication method, such as a passkey or the Microsoft Authenticator app. Users who lose their secure method are removed, and admins, an exclusion group and individual users can be kept out, for example when the group controls self-service password reset. A dry run only shows the changes, and every run writes a summary and the changes as Output Data. The report can be sent by email or provided as a download link. Details on the options are in the runbook documentation (docs.realmjoin.com).
 
 #### Where to find
 
@@ -5536,7 +5569,7 @@ Excluded users never qualify regardless of their registered methods: they are ne
 Users holding an Entra ID directory role are excluded. This covers:
 
 - **Active role assignments** (`roleManagement/directory/roleAssignments`)
-- **PIM-eligible assignments** (`roleManagement/directory/roleEligibilitySchedules`, requires Entra ID P2 — without P2 the runbook falls back to active assignments and logs a warning)
+- **PIM-eligible assignments** (`roleManagement/directory/roleEligibilitySchedules`, requires Entra ID P2 — when Graph reports the missing license, the runbook falls back to active assignments and logs a warning; any other error fails the job before the group is changed)
 - **Role-assignable groups**: groups holding a role are expanded to their transitive user members
 
 Background: when the target group drives **SSPR** and the SSPR administrator policy is disabled, admins in the group would still be forced to register a second factor once two SSPR methods are required. Keeping admins out of the group avoids this.
@@ -5616,14 +5649,29 @@ Both override parameters are hidden by default and intended for RealmJoin runboo
 
 Unknown values produce a warning but are still evaluated, so future Graph values can be used before this documentation catches up.
 
-## Email report and download links
+## Output Data
 
-Optionally, a detailed report can be delivered - especially useful for reviewing the very first run (ideally combined with the dry run mode):
+Every run writes its results to the Output Data tab of the RealmJoin portal, where each table can be exported to Excel:
 
-- **Send report via email** (`SendEmail`, off by default): sends the report to the configured recipient(s). The recipient field only appears when email is enabled. Requires the `RJReport.EmailSender` tenant setting (see the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings)).
-- **Create file download links** (`CreateDownloadLink`, off by default): uploads the report files to an Azure Storage Account and returns time-limited download links (uses the `RJReport.StorageAccount.*` tenant settings).
+- *Summary* - the chosen configuration and the result counts: report entries, evaluated member users, qualifying users, previous members and the added and removed users (in dry run mode the users that would be added or removed; failed adds and removes are listed separately). A user who already was a member counts as added, one who already was gone counts as removed.
+- *Changes* - every user added to or removed from the group (in dry run mode the pending changes) with the per-user method details
 
-Report files are only generated when at least one of the two options is enabled. The report consists of:
+*Changes* has the same rows and columns as the report file and worksheet of the same name. A run without changes shows a status line instead of the *Changes* table. The evaluation of every member user is only in the report files (*All Users*): one row per user on every run would make the job output of large tenants too big.
+
+## Report delivery
+
+The **Report delivery** option in the run dialog decides whether the report is also delivered as files - especially useful for reviewing the very first run (ideally combined with the dry run mode):
+
+- *Output Data only* (default): no report files, no email.
+- *Also email the report*: sends the report to the recipient email address(es), which then is a required field. Requires the `RJReport.EmailSender` tenant setting (see the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings)).
+- *Also create a download link*: uploads the report files to an Azure Storage Account and returns time-limited download links (uses the `RJReport.StorageAccount.*` tenant settings).
+- *Also email & download link*: both.
+
+With an email or a download link, **Report file format** selects CSV files, the Excel workbook or both. The option sets the hidden parameters `SendEmail` and `CreateDownloadLink`; schedules and API calls that pass these parameters directly work as before.
+
+Schedules created before the **Report delivery** option existed keep their delivery. When such a schedule is opened for editing, the option shows *Output Data only* although the stored email or download link stays active; select the delivery again before saving so that the dialog matches what the schedule does.
+
+Report files are only generated when email or a download link is selected. The report consists of:
 
 - **mfa-secure-users-group-sync-changes.csv** - all performed (or, in dry run, pending) changes with per-user method details
 - **mfa-secure-users-group-sync-all-users.csv** - the evaluation of every member user: registered methods, secure/unsecure classification, qualification, exclusion reason and group membership
@@ -5647,6 +5695,7 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 
 - The registration report requires an **Entra ID P1 or P2** license.
 - PIM-eligible role assignments (admin exclusion) require an **Entra ID P2** license — without it, only active role assignments are excluded.
+- If a list read fails (registration report, role assignments, members of a role-assignable group or of the exclusion group, current members of the target group), the job fails before the group is changed, so a sync never runs on incomplete data.
 - The report does not include **disabled** or soft-deleted users — such accounts are removed from the group on the next run.
 - Report data can lag behind recent registration changes; a newly registered method may take one sync cycle to be reflected.
 - The runbook processes large tenants (20k+ users) via paged report reads and batched group writes with automatic throttling retries.
@@ -5962,15 +6011,44 @@ The runbook only reads; it changes nothing on the user or the tenant.
 
 #### Description
 
-Lists the groups this user is a member of, with filters for group type, membership type, role assignability, Teams, source and writeback. The result is shown as CSV text. The report can be sent by email or provided as a download link.
+Lists the groups this user is a member of, with filters for group type, membership type, role assignability, Teams, source and writeback. The result is shown as CSV text and as Output Data tables. The report can also be sent by email or provided as a download link. Nothing is changed.
 
 #### Where to find
 
 User \ General \ List Group Memberships
 
+## Output and report delivery
+
+Every run lists the matching groups as CSV text in the runbook output and writes two Output Data tables, which can be sorted, filtered and exported in the RealmJoin portal:
+
+- `Summary` - the user, the selected filters, the number of direct group memberships and the number of groups matching the filters.
+- `Group Memberships` - one row per matching group with the same columns as the CSV file and the `Group Memberships` worksheet. When no group matches, a status line is shown instead.
+
+The **Report delivery** option adds report files on top:
+
+- **Output Data only** (default) - no report files.
+- **Also email the report** - the recipient address field (`EmailTo`) is shown and required, and the report is sent via email with the report file(s) attached.
+- **Also create a download link** - the report file(s) are uploaded to an Azure Storage Account and a time-limited download link is returned.
+- **Also email & download link** - both.
+
+**Report file format** chooses CSV, XLSX or both for the report files. When no group matches the filters, no report files are created, uploaded or emailed.
+
+The option sets the parameters `SendMail` and `CreateDownloadLink`. Schedules and API calls that pass these parameters directly keep working as before.
+
+## Setup regarding the storage account
+
+For the download link, the report files are uploaded to an Azure Storage Account. The target storage account is taken from the shared **RJReport** tenant settings, so it can be configured once and reused across all report runbooks:
+
+- `RJReport.StorageAccount.ResourceGroup`
+- `RJReport.StorageAccount.StorageAccountName`
+- `RJReport.StorageAccount.SubscriptionId` (optional, recommended; see [Subscription of the Storage Account](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#subscription-of-the-storage-account))
+- `RJReport.StorageAccount.LinkExpiryDays` (optional, defaults to 6)
+
+The container name is configured per runbook (parameter `ContainerName`, default `user-group-memberships`). The managed identity of the Automation Account needs the `Reader and Data Access` role on the storage account.
+
 ## Setup regarding email sending
 
-Sending an email report is optional and only happens when the `SendMail` option is enabled; a recipient (`EmailTo`) is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+Sending an email report is optional and only happens when *Also email the report* or *Also email & download link* is selected as report delivery (parameter `SendMail`); a recipient (`EmailTo`) is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
@@ -6002,15 +6080,37 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 
 #### Description
 
-Lists the Entra ID groups this user owns, with their names and IDs. The report can be sent by email or provided as a download link.
+Lists the Entra ID groups this user owns, with their names, IDs and type (Microsoft 365, security or distribution). Every run shows the list as Output Data tables in the portal. Nothing is changed. The report can be sent by email or provided as a download link.
 
 #### Where to find
 
 User \ General \ List Group Ownerships
 
+## Output Data and report delivery
+
+Every run writes the result as Output Data tables, which can be sorted, filtered and exported in the RealmJoin portal:
+
+- **Summary** - the number of groups the user owns, in total and per group type.
+- **Group Ownerships** - one row per owned group with `DisplayName`, `ID` and `Type` (`M365`, `Security`, `Distribution` or `Other`), the same rows and columns as the report files. When the user owns no groups, a status line is shown instead.
+
+The **Report delivery** option adds report files on top:
+
+- **Output Data only** (default) - no report files.
+- **Also email the report** - the recipient address field (`EmailTo`) is shown and required, and the report is sent via email with the report file(s) attached.
+- **Also create a download link** - the report file(s) are uploaded to an Azure Storage Account and a time-limited download link is returned.
+- **Also email & download link** - both.
+
+**Report file format** chooses CSV, XLSX or both for the report files. Report files are only created when the user owns at least one group.
+
+The option sets the parameters `SendMail` and `CreateDownloadLink`. Schedules and API calls that pass these parameters directly keep working as before. A schedule saved before the option existed opens with *Output Data only* selected but keeps its stored delivery until another option is chosen.
+
+## Setup regarding the storage account
+
+For the download link, the report files are uploaded to the Azure Storage Account configured in the shared `RJReport.StorageAccount.*` tenant settings (`ResourceGroup`, `StorageAccountName`, optionally `SubscriptionId` and `LinkExpiryDays`). The container name is configured per runbook (parameter `ContainerName`, default `user-group-ownerandmemberships`). The managed identity of the Automation Account needs the `Reader and Data Access` role on the storage account.
+
 ## Setup regarding email sending
 
-Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+Sending an email report is optional and only happens when *Also email the report* or *Also email & download link* is selected as report delivery; a recipient is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 

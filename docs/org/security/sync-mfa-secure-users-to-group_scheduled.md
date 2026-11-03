@@ -3,7 +3,7 @@
 Keep a group filled with users who registered a secure MFA method
 
 ## Detailed description
-Keeps an Entra ID group in sync with the users who registered at least one secure authentication method, such as a passkey or the Microsoft Authenticator app. Users who lose their secure method are removed. Admins, an exclusion group and individual users can be kept out, for example when the group controls self-service password reset. A dry run only shows the changes, and the report can be sent by email or provided as a download link. Details on the options are in the runbook documentation (docs.realmjoin.com).
+Keeps an Entra ID group in sync with the users who registered at least one secure authentication method, such as a passkey or the Microsoft Authenticator app. Users who lose their secure method are removed, and admins, an exclusion group and individual users can be kept out, for example when the group controls self-service password reset. A dry run only shows the changes, and every run writes a summary and the changes as Output Data. The report can be sent by email or provided as a download link. Details on the options are in the runbook documentation (docs.realmjoin.com).
 
 ## Where to find
 Org \ Security \ Sync MFA Secure Users To Group_Scheduled
@@ -49,7 +49,7 @@ Excluded users never qualify regardless of their registered methods: they are ne
 Users holding an Entra ID directory role are excluded. This covers:
 
 - **Active role assignments** (`roleManagement/directory/roleAssignments`)
-- **PIM-eligible assignments** (`roleManagement/directory/roleEligibilitySchedules`, requires Entra ID P2 — without P2 the runbook falls back to active assignments and logs a warning)
+- **PIM-eligible assignments** (`roleManagement/directory/roleEligibilitySchedules`, requires Entra ID P2 — when Graph reports the missing license, the runbook falls back to active assignments and logs a warning; any other error fails the job before the group is changed)
 - **Role-assignable groups**: groups holding a role are expanded to their transitive user members
 
 Background: when the target group drives **SSPR** and the SSPR administrator policy is disabled, admins in the group would still be forced to register a second factor once two SSPR methods are required. Keeping admins out of the group avoids this.
@@ -129,14 +129,29 @@ Both override parameters are hidden by default and intended for RealmJoin runboo
 
 Unknown values produce a warning but are still evaluated, so future Graph values can be used before this documentation catches up.
 
-## Email report and download links
+## Output Data
 
-Optionally, a detailed report can be delivered - especially useful for reviewing the very first run (ideally combined with the dry run mode):
+Every run writes its results to the Output Data tab of the RealmJoin portal, where each table can be exported to Excel:
 
-- **Send report via email** (`SendEmail`, off by default): sends the report to the configured recipient(s). The recipient field only appears when email is enabled. Requires the `RJReport.EmailSender` tenant setting (see the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings)).
-- **Create file download links** (`CreateDownloadLink`, off by default): uploads the report files to an Azure Storage Account and returns time-limited download links (uses the `RJReport.StorageAccount.*` tenant settings).
+- *Summary* - the chosen configuration and the result counts: report entries, evaluated member users, qualifying users, previous members and the added and removed users (in dry run mode the users that would be added or removed; failed adds and removes are listed separately). A user who already was a member counts as added, one who already was gone counts as removed.
+- *Changes* - every user added to or removed from the group (in dry run mode the pending changes) with the per-user method details
 
-Report files are only generated when at least one of the two options is enabled. The report consists of:
+*Changes* has the same rows and columns as the report file and worksheet of the same name. A run without changes shows a status line instead of the *Changes* table. The evaluation of every member user is only in the report files (*All Users*): one row per user on every run would make the job output of large tenants too big.
+
+## Report delivery
+
+The **Report delivery** option in the run dialog decides whether the report is also delivered as files - especially useful for reviewing the very first run (ideally combined with the dry run mode):
+
+- *Output Data only* (default): no report files, no email.
+- *Also email the report*: sends the report to the recipient email address(es), which then is a required field. Requires the `RJReport.EmailSender` tenant setting (see the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings)).
+- *Also create a download link*: uploads the report files to an Azure Storage Account and returns time-limited download links (uses the `RJReport.StorageAccount.*` tenant settings).
+- *Also email & download link*: both.
+
+With an email or a download link, **Report file format** selects CSV files, the Excel workbook or both. The option sets the hidden parameters `SendEmail` and `CreateDownloadLink`; schedules and API calls that pass these parameters directly work as before.
+
+Schedules created before the **Report delivery** option existed keep their delivery. When such a schedule is opened for editing, the option shows *Output Data only* although the stored email or download link stays active; select the delivery again before saving so that the dialog matches what the schedule does.
+
+Report files are only generated when email or a download link is selected. The report consists of:
 
 - **mfa-secure-users-group-sync-changes.csv** - all performed (or, in dry run, pending) changes with per-user method details
 - **mfa-secure-users-group-sync-all-users.csv** - the evaluation of every member user: registered methods, secure/unsecure classification, qualification, exclusion reason and group membership
@@ -160,6 +175,7 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 
 - The registration report requires an **Entra ID P1 or P2** license.
 - PIM-eligible role assignments (admin exclusion) require an **Entra ID P2** license — without it, only active role assignments are excluded.
+- If a list read fails (registration report, role assignments, members of a role-assignable group or of the exclusion group, current members of the target group), the job fails before the group is changed, so a sync never runs on incomplete data.
 - The report does not include **disabled** or soft-deleted users — such accounts are removed from the group on the next run.
 - Report data can lag behind recent registration changes; a newly registered method may take one sync cycle to be reflected.
 - The runbook processes large tenants (20k+ users) via paged report reads and batched group writes with automatic throttling retries.
@@ -174,10 +190,10 @@ The sync is idempotent — a single recurring schedule (e.g. daily) keeps the gr
 - **Type**: Microsoft Graph
   - AuditLog.Read.All
   - Group.Read.All
-  - RoleManagement.Read.Directory
   - GroupMember.ReadWrite.All
-  - User.Read.All
   - Organization.Read.All
+  - RoleManagement.Read.Directory
+  - User.Read.All
   - Mail.Send *(optional: Email report)*
 
 
@@ -309,7 +325,7 @@ Only logs which users would be added or removed without changing the group.
 | Type | Boolean |
 
 ### SendEmail
-Send the report by email after the run.
+Send the report to the recipient email address. Set by the "Report delivery" option in the portal.
 
 | Property | Value |
 |----------|-------|
@@ -390,7 +406,7 @@ Deliver the report as CSV, as an Excel workbook, or both.
 | Type | String |
 
 ### CreateDownloadLink
-Also upload the report and return a download link that expires after a few days.
+Also upload the report and return a download link that expires after a few days. Set by the "Report delivery" option in the portal.
 
 | Property | Value |
 |----------|-------|

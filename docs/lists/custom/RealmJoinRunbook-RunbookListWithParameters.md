@@ -954,7 +954,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  | Sync All Devices | Trigger an Intune sync on all Windows devices | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementManagedDevices.ReadWrite.All<br>&emsp;- DeviceManagementManagedDevices.PrivilegedOperations.All<br> |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  |  | Sync Apple Tokens | Sync Apple enrollment and VPP tokens with Intune | - **Type**: Microsoft Graph<br>&emsp;- DeviceManagementApps.ReadWrite.All<br>&emsp;- DeviceManagementServiceConfig.ReadWrite.All<br> |  | SyncType | ✓ | String | Sync the Enrollment Program tokens, the VPP tokens, or both. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  | Sync Channel Or Group Members (Scheduled) | Mirror members between a Teams shared channel and a group | - **Type**: Microsoft Graph<br>&emsp;- Group.ReadWrite.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Channel.ReadBasic.All<br>&emsp;- ChannelMember.ReadWrite.All<br>&emsp;- TeamMember.ReadWrite.All<br>&emsp;- User.Read.All<br>&emsp;- Organization.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br> |  | Direction | ✓ | String | What is copied where: shared channel members into the target group, source group members into the target group, or source group members into the shared channel. |
+|  |  | Sync Channel Or Group Members (Scheduled) | Mirror members between a Teams shared channel and a group | - **Type**: Microsoft Graph<br>&emsp;- Channel.ReadBasic.All<br>&emsp;- ChannelMember.ReadWrite.All<br>&emsp;- Group.ReadWrite.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Organization.Read.All<br>&emsp;- TeamMember.ReadWrite.All<br>&emsp;- User.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br> |  | Direction | ✓ | String | What is copied where: shared channel members into the target group, source group members into the target group, or source group members into the shared channel. |
 |  |  |  |  |  |  | TeamId |  | String | Team that hosts the shared channel. Needed for the shared channel directions only. |
 |  |  |  |  |  |  | ChannelName |  | String | Exact name of the shared channel in that team. Needed for the shared channel directions only. |
 |  |  |  |  |  |  | SourceGroupId |  | String | Group whose members are copied. Needed when the source is a group. |
@@ -963,7 +963,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | IncludeGuests |  | Boolean | Also adds and removes guest users. Otherwise guests are left untouched on both sides. |
 |  |  |  |  |  |  | RemoveFromTeam |  | Boolean | When a member is removed from the shared channel, also removes them from the host team. Only applies when a group is copied into a shared channel. |
 |  |  |  |  |  |  | WhatIfMode |  | Boolean | Only logs what would change without writing anything. |
-|  |  |  |  |  |  | SendEmailReport |  | Boolean | Send the report to the recipient email address. |
+|  |  |  |  |  |  | SendEmailReport |  | Boolean | Send the report to the recipient email address. Set by the "Report delivery" choice in the portal. |
 |  |  |  |  |  |  | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 |  |  |  |  |  |  | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 |  |  |  |  |  |  | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -972,7 +972,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 |  |  |  |  |  |  | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
 |  |  |  |  |  |  | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
-|  |  |  |  |  |  | CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+|  |  |  |  |  |  | CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. Set by the "Report delivery" choice in the portal. |
 |  |  |  |  |  |  | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 |  |  |  |  |  |  | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 |  |  |  |  |  |  | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
@@ -1204,7 +1204,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 |  |  |  |  |  |  | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  | Sync MFA Secure Users To Group (Scheduled) | Keep a group filled with users who registered a secure MFA method | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- RoleManagement.Read.Directory<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- User.Read.All<br>&emsp;- Organization.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br> |  | TargetGroupId | ✓ | String | Group whose members are managed by this runbook. Members that no longer qualify are removed. |
+|  |  | Sync MFA Secure Users To Group (Scheduled) | Keep a group filled with users who registered a secure MFA method | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- GroupMember.ReadWrite.All<br>&emsp;- Organization.Read.All<br>&emsp;- RoleManagement.Read.Directory<br>&emsp;- User.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br> |  | TargetGroupId | ✓ | String | Group whose members are managed by this runbook. Members that no longer qualify are removed. |
 |  |  |  |  |  |  | IncludePasskeys |  | Boolean | Passkeys and FIDO2 security keys, which are phishing-resistant, count as secure. |
 |  |  |  |  |  |  | IncludePlatformCredentials |  | Boolean | Windows Hello for Business and macOS platform credentials count as secure. |
 |  |  |  |  |  |  | IncludeMicrosoftAuthenticator |  | Boolean | The Microsoft Authenticator app, with push or passwordless sign-in, counts as secure. |
@@ -1218,7 +1218,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | ExcludeGroupId |  | String | Members of this group, for example break glass or service accounts, never qualify and are removed from the target group. Leave empty for none. |
 |  |  |  |  |  |  | ExcludeUserIds |  | String Array | Users who never qualify and are removed from the target group. Several can be picked. |
 |  |  |  |  |  |  | WhatIfMode |  | Boolean | Only logs which users would be added or removed without changing the group. |
-|  |  |  |  |  |  | SendEmail |  | Boolean | Send the report by email after the run. |
+|  |  |  |  |  |  | SendEmail |  | Boolean | Send the report to the recipient email address. Set by the "Report delivery" option in the portal. |
 |  |  |  |  |  |  | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 |  |  |  |  |  |  | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 |  |  |  |  |  |  | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -1227,7 +1227,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 |  |  |  |  |  |  | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
 |  |  |  |  |  |  | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
-|  |  |  |  |  |  | CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+|  |  |  |  |  |  | CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. Set by the "Report delivery" option in the portal. |
 |  |  |  |  |  |  | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 |  |  |  |  |  |  | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 |  |  |  |  |  |  | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
@@ -1268,31 +1268,31 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CheckPilotGroupMembership |  | Boolean | Also requires the user to be in the pilot group. Non-members are reported as Not ready. |
 |  |  |  |  |  |  | PilotGroupDisplayName |  | String | Members of this group count as pilot users. The group is looked up by its display name. Used only when the pilot group membership is checked. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  | List Group Memberships | List the group memberships of this user | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br>&emsp;- Organization.Read.All<br> |  | UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
+|  |  | List Group Memberships | List the group memberships of this user | - **Type**: Microsoft Graph<br>&emsp;- Group.Read.All<br>&emsp;- Organization.Read.All<br>&emsp;- User.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br> |  | UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
 |  |  |  |  |  |  | GroupType |  | String | Security groups only, Microsoft 365 groups only, or all groups. |
 |  |  |  |  |  |  | MembershipType |  | String | Assigned memberships, dynamic memberships, or all. |
 |  |  |  |  |  |  | RoleAssignable |  | String | Yes limits the list to groups that can be assigned Entra ID roles. |
 |  |  |  |  |  |  | TeamsEnabled |  | String | Yes limits the list to groups that back a Microsoft Teams team. |
 |  |  |  |  |  |  | Source |  | String | Cloud-only groups, groups synchronized from on-premises Active Directory, or all. |
 |  |  |  |  |  |  | WritebackEnabled |  | String | Groups with writeback to on-premises Active Directory, groups without, or all. |
-|  |  |  |  |  |  | SendMail |  | Boolean | Send the report to the recipient email address. |
-|  |  |  |  |  |  | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
+|  |  |  |  |  |  | SendMail |  | Boolean | Send the report to the recipient email address. Set from the "Report delivery" choice in the portal. |
+|  |  |  |  |  |  | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. Required when "Report delivery" includes an email. |
 |  |  |  |  |  |  | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 |  |  |  |  |  |  | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
 |  |  |  |  |  |  | BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
 |  |  |  |  |  |  | BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
 |  |  |  |  |  |  | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 |  |  |  |  |  |  | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
-|  |  |  |  |  |  | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
-|  |  |  |  |  |  | CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+|  |  |  |  |  |  | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. Shown when "Report delivery" includes an email or a download link. |
+|  |  |  |  |  |  | CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. Set from the "Report delivery" choice in the portal. |
 |  |  |  |  |  |  | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 |  |  |  |  |  |  | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 |  |  |  |  |  |  | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
 |  |  |  |  |  |  | SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 |  |  |  |  |  |  | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  | List Group Ownerships | List the groups this user owns | - **Type**: Microsoft Graph<br>&emsp;- User.Read.All<br>&emsp;- Group.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br>&emsp;- Organization.Read.All<br> |  | UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
-|  |  |  |  |  |  | SendMail |  | Boolean | Send the report to the recipient email address. |
+|  |  | List Group Ownerships | List the groups this user owns | - **Type**: Microsoft Graph<br>&emsp;- Group.Read.All<br>&emsp;- Organization.Read.All<br>&emsp;- User.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br> |  | UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
+|  |  |  |  |  |  | SendMail |  | Boolean | Send the report to the recipient email address. Set by the "Report delivery" selection; schedules and API calls can pass it directly. |
 |  |  |  |  |  |  | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 |  |  |  |  |  |  | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 |  |  |  |  |  |  | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -1301,7 +1301,7 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 |  |  |  |  |  |  | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
 |  |  |  |  |  |  | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
-|  |  |  |  |  |  | CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+|  |  |  |  |  |  | CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. Set by the "Report delivery" selection; schedules and API calls can pass it directly. |
 |  |  |  |  |  |  | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 |  |  |  |  |  |  | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 |  |  |  |  |  |  | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
