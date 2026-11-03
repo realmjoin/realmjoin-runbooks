@@ -269,7 +269,6 @@ catch {
 #region     Data Collection
 ########################################################
 
-$collectionFailed = $false
 # Invoke-MgGraphRequest returns PSCustomObjects in the property order of the Graph response, as the earlier RunbookHelper calls did,
 # so the CSV keeps its columns; the default is removed again after the collection
 $PSDefaultParameterValues['Invoke-MgGraphRequest:OutputType'] = 'PSObject'
@@ -369,8 +368,8 @@ try {
     }
 }
 catch {
-    $collectionFailed = $true
-    $_
+    # Fail the run: an incomplete device list (wrong FilterGroupID, missing permission) must not end as a finished export
+    throw
 }
 finally {
     $PSDefaultParameterValues.Remove('Invoke-MgGraphRequest:OutputType')
@@ -382,15 +381,13 @@ finally {
 #region     Report File Export
 ########################################################
 
+# The local file name becomes the blob name, so uploads keep the blob names of earlier versions
 $reportFiles = @()
-if (-not $collectionFailed) {
-    # The local file name becomes the blob name, so uploads keep the blob names of earlier versions
-    $reportFile = Join-Path ([System.IO.Path]::GetTempPath()) "intune-devices-$(Get-Date -Format "yyyy-MM-dd").csv"
-    $Exportdevices | ConvertTo-Csv -Delimiter ";" -NoTypeInformation > $reportFile
-    $content = Get-Content $reportFile
-    Set-Content -Path $reportFile -Value $content -Encoding utf8
-    $reportFiles += $reportFile
-}
+$reportFile = Join-Path ([System.IO.Path]::GetTempPath()) "intune-devices-$(Get-Date -Format "yyyy-MM-dd").csv"
+$Exportdevices | ConvertTo-Csv -Delimiter ";" -NoTypeInformation > $reportFile
+$content = Get-Content $reportFile
+Set-Content -Path $reportFile -Value $content -Encoding utf8
+$reportFiles += $reportFile
 
 #endregion Report File Export
 
@@ -418,7 +415,11 @@ if ($reportFiles) {
     }
     catch {
         Write-RjRbLog -Message "Upload to storage account '$StorageAccountName' failed: $($_.Exception.Message). The managed identity needs the 'Reader and Data Access' role on the storage account." -Verbose
-        $_
+        # The upload is the delivery of this runbook: fail the job, but remove the local report files first
+        foreach ($reportFile in $reportFiles) {
+            Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
+        }
+        throw
     }
 }
 

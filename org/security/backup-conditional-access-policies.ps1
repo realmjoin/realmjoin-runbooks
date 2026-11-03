@@ -201,8 +201,9 @@ function Export-PolicyObject {
 
     $policies | ForEach-Object {
         $name = $_.displayName -replace "[$([RegEx]::Escape([string][IO.Path]::GetInvalidFileNameChars()))]+", "_"
-        if (-not (Test-Path ($name + ".json"))) {
-            $_ | ConvertTo-Json -Depth 6 > ($name + ".json")
+        # LiteralPath, as policy names like "[CA001] Require MFA" are wildcard patterns for -Path and the > redirect
+        if (-not (Test-Path -LiteralPath ($name + ".json"))) {
+            $_ | ConvertTo-Json -Depth 6 | Out-File -LiteralPath ($name + ".json")
         }
         else {
             "## Will not overwrite " + ($name + ".json") + ". Skipping."

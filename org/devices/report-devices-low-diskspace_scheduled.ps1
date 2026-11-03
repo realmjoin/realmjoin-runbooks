@@ -472,9 +472,11 @@ function ConvertTo-MarkdownTableCell {
     # mail as raw HTML, so they are handed over already encoded. The remaining characters are Markdown
     # markup and are backslash-escaped, which the converter resolves back to the literal character.
     # '_' is deliberately not escaped: the converter has no underscore markup, so escaping it would only
-    # leave the escape artefact behind in a value like 'DESKTOP_01'.
-    $encodedValue = $Value -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;'
-    return ($encodedValue -replace '([\\`*\[\]|])', '\$1')
+    # leave the escape artefact behind in a value like 'DESKTOP_01'. The section sign (U+00A7) is encoded
+    # because the converter builds its internal placeholders from it and turns a typed placeholder back
+    # into a raw '<'.
+    $encodedValue = $Value -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;' -replace [char]0xA7, '&#167;'
+    return ($encodedValue -replace '([\\`*\[\]|~])', '\$1')
 }
 
 function Test-PlatformIncluded {

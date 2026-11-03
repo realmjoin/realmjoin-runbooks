@@ -2,6 +2,8 @@
 
 - Checks performed per user: account state, Intune license and service plan, tenant MDM authority, device enrollment limit, platform restrictions, registered authentication methods, Conditional Access policies and, optionally, pilot group membership.
 - The device enrollment limit is the assigned limit configuration with the lowest priority number that targets All users or one of the user's groups (excluded groups are honored), falling back to the default limit. It is compared with the user's Intune-enrolled devices; the user's Entra registered and joined devices are also compared with the Entra setting *Maximum number of devices per user*, and reaching either one is reported as a blocking reason.
+- A limit that cannot be read is not guessed. If a user's group memberships cannot be read while group-assigned limit configurations exist, `DeviceEnrollmentLimit` shows *Unknown* and the user gets a warning instead of the default limit. If the Entra setting cannot be read, `EntraDeviceLimit` shows *Unknown* for every user and the job output and report email say that the Entra device limit was not checked.
+- The pilot group is looked up by its display name. If several groups share that name, the first match is used and a warning is logged.
 - Conditional Access is evaluated as a static "What If" against the enrollment sign-in for each user's `EnrollmentPlatform`; Entra's own What If tool remains the authority.
 - Compliant-device requirements on "All resources" policies do not block enrollment (a documented Entra exemption); only policies targeting device registration or the Intune enrollment apps are treated as strict gates.
 - Not evaluated statically: named locations, device filters, sign-in frequency and terms of use.

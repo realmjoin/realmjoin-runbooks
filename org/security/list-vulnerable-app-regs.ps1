@@ -3,7 +3,7 @@
 	List app registrations possibly affected by CVE-2021-42306
 
 	.DESCRIPTION
-	Checks the key credentials of every app registration in Entra ID for signs of CVE-2021-42306, where private key material was stored in the credential by mistake. App registrations that may be affected are listed. The result can be shown in the run output or exported as a CSV file to an Azure Storage account. Nothing is changed.
+	Checks the key credentials of every app registration in Entra ID for signs of CVE-2021-42306, where private key material was stored in the credential by mistake. App registrations that may be affected are listed; those whose credentials cannot be read are named as not checked. The result can be shown in the run output or exported as a CSV file to an Azure Storage account. Nothing is changed.
 
 	.PARAMETER ExportToFile
 	List in the run output, or export to a CSV file in the storage account configured in the tenant settings.
@@ -296,6 +296,10 @@ $appregs = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/applicati
 
 $cutoffDate = [datetimeoffset]$beforedate
 $AffectedAppRegs = @()
+$UncheckedAppRegs = @()
+# The loop sets SilentlyContinue as in earlier versions; restore the preference after it, so errors of the export and
+# upload still stop the job
+$previousErrorActionPreference = $ErrorActionPreference
 foreach ($appreg in $appregs) {
     if ($appreg.displayName) {
         $DisplayName = $appreg.displayName
@@ -332,6 +336,11 @@ foreach ($appreg in $appregs) {
     }
     catch {
         Write-RjRbLog -Message "WARNING: Could not read the key credentials of $DisplayName ($appID): $($_.Exception.Message)"
+        $UncheckedAppRegs += [PSCustomObject]@{
+            DisplayName = $DisplayName
+            AppId       = $appID
+            Reason      = $_.Exception.Message
+        }
         continue
     }
 
@@ -365,6 +374,13 @@ foreach ($appreg in $appregs) {
             AppId       = $appID
         }
     }
+}
+$ErrorActionPreference = $previousErrorActionPreference
+
+if ($UncheckedAppRegs.Count -gt 0) {
+    $uncheckedMessage = "$($UncheckedAppRegs.Count) app registration(s) not checked, because their key credentials could not be read: $(($UncheckedAppRegs | ForEach-Object { "$($_.DisplayName) ($($_.AppId))" }) -join ', '). They are missing from the result; run the runbook again to check them."
+    Write-RjRbLog -Message "WARNING: $uncheckedMessage"
+    Write-Warning $uncheckedMessage
 }
 
 #endregion Data Processing
@@ -412,11 +428,27 @@ if ($ExportToFile) {
         Write-RjRbLog -Message "Upload to storage account '$StorageAccountName' failed: $($_.Exception.Message). The managed identity needs the 'Reader and Data Access' role on the storage account." -Verbose
         "## Upload of report failed. Please see log."
         ""
-        $_
+        # The upload is the delivery of this runbook: fail the job, but remove the local report files first
+        foreach ($reportFile in $reportFiles) {
+            Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
+        }
+        throw
     }
 }
 
 #endregion Upload / Download Link
+
+########################################################
+#region     Structured Output (Output Data)
+########################################################
+
+# A marker is only written when rows follow it
+if ($UncheckedAppRegs.Count -gt 0) {
+    Write-Output ([PSCustomObject]@{ RjTableTitle = 'Not checked' })
+    Write-Output ($UncheckedAppRegs | Select-Object -Property DisplayName, AppId, Reason)
+}
+
+#endregion Structured Output (Output Data)
 
 ########################################################
 #region     Cleanup

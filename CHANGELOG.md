@@ -5,9 +5,14 @@
 - Update **Check Intune Enrollment Readiness** Runbook in User/General (v1.0.1)
   - Fix Device Limit Restriction when checking Intune enrollment readiness
   - Add Support for Entra Limit Registered Devices
-- Update **Report Intune Enrollment Readiness** Runbook in Device/General (v1.2.3)
+  - Read the Entra setting "Maximum number of devices per user" with the new application permission `Policy.Read.DeviceConfiguration` and the Entra devices of the user with the new application permission `Device.Read.All`; when the setting, the devices or the groups of the user cannot be read, the result shows a warning instead of skipping the check
+  - Show the pilot group name only when the pilot group membership check is selected
+- Update **Report Intune Enrollment Readiness** Runbook in Org/General (v1.2.3)
   - Fix Device Limit Restriction when checking Intune enrollment readiness
   - Add Support for Entra Limit Registered Devices
+  - Read the Entra setting "Maximum number of devices per user" with the new application permission `Policy.Read.DeviceConfiguration` and the Entra devices of the users with the new application permission `Device.Read.All`; when the setting or the devices of a user cannot be read, the limit shows as Unknown with a warning instead of the check being skipped
+  - Show the enrollment limit as Unknown with a warning when the groups of a user cannot be read, instead of applying the default limit
+  - Use the first group, with a warning, when the pilot group name matches several groups; "Users checked" counts each user once
 - Update **Monitor Service Health** Runbook in Org/General (v1.5.0)
   - Set Advisory Status for monitored services to true in default
 - Add **Sync Device** Runbook in Device/General (v1.0.0)
@@ -18,14 +23,18 @@
   - Pick several delegates at once; they are checked in Exchange Online before the mailbox is created and each gets full access and send on behalf
   - Offer all Windows time zones named after places with offset and cities as in Outlook, for example "(UTC+10:00) Canberra, Melbourne, Sydney"
   - Stop with a clear error when the mailbox cannot be created or does not become available; alias changes and unblocked sign-ins show as warnings
+  - Block sign-in for the account of the new mailbox itself; before, another account with the same alias could be blocked
+  - Fail the run at the end when the Sent Items copies, the language and time zone or the sign-in block cannot be set; the other steps still run
 - Update **Revoke Or Restore Access** Runbook in User/Security (v1.1.0)
   - Stop with a clear message when the user is missing or Entra ID protects them because of an administrator role, naming the role and who can act
   - Show the user, the sign-in state and, with the optional RoleManagement.Read.Directory permission, the Entra ID roles before anything changes
   - Leave the sign-in state as it is when it already matches the selected action; revoking access still ends all sessions
+  - The description states that access tokens already issued stay valid until they expire, apart from apps with continuous access evaluation
 - Update **Reset Password** Runbook in User/Security (v1.1.0)
   - Stop with a clear message when the user is missing or Entra ID protects them because of an administrator role, naming the role and who can act
   - Show the user, the sign-in state and, with the optional RoleManagement.Read.Directory permission, the Entra ID roles before anything changes
   - Enable the account only when it is disabled
+  - Set the new password before the account is enabled, so the account stays disabled when the password cannot be set
 - Update the portal field definitions of 34 runbooks and remove a legacy execution policy step that current Azure Automation environments no longer need
   - All runbooks now declare their portal fields the same way, with the plain `Use-RJInterface` call
   - The portal dialog, the runbook behavior and the runbook versions stay the same
@@ -107,29 +116,90 @@
 - Update **Export Policy Report** Runbook in Org/General (v1.1.0)
   - Stop with a configuration hint before the policies are collected when no storage account is configured; before, all policies were collected and the upload then failed
   - Change the default container from `rjrb-licensing-report-v2`, the container of **Office365 License Report**, to `export-policy-report`; tenants that set `TenantPolicyReport.Container` keep their container, as do scheduled runs created with it, and earlier reports stay in `rjrb-licensing-report-v2`
+  - Fail the run when the upload of the report fails, so a scheduled run without a delivered report shows as failed; the local report files are removed first
+  - Show the name of each assigned group, or its ID when the group cannot be read; before, a deleted group showed the name of the group listed before it
+  - Show the descriptions of the apps excluded by Conditional Access policies
+  - Still report and upload the other parts when one part cannot be read, then fail the run; a part with a single policy is counted correctly
 - Update **List Vulnerable App Regs** Runbook in Org/Security (v1.1.0)
   - Read the key credentials of app registrations with a credential from before 6 December 2021 per app registration for the CVE-2021-42306 check, because Microsoft Graph returns the key only there; an app registration is reported when such a credential contains a private key (PKCS#12)
   - The check no longer needs the Windows PKI module; the CSV export lists `DisplayName` and `AppId` of the affected app registrations
+  - Fail the run when the upload of the report fails, so a scheduled run without a delivered report shows as failed; the local report files are removed first
+  - Name app registrations whose key credentials cannot be read in a warning and in the Output Data table `Not checked`
 - Update **Export All Autopilot Devices** Runbook in Org/General (v1.1.0)
   - Fix the success message, which said `Inactive Devices Export created.`
   - Rename the export options to "Output Data only" and "Also export to a CSV file"
+  - Fail the run when the upload of the report fails, so a scheduled run without a delivered report shows as failed; the local report files are removed first and the Output Data is still written
+  - Fail the run when collecting the device data stops with an error, instead of continuing with the devices collected so far
 - Update **List Inactive Devices** Runbook in Org/Security (v1.1.0)
   - Rename the export options to "Output Data only" and "Also export to a CSV file"
+  - Fail the run when the upload of the report fails; the local report file is removed first and the Output Data is still written
+  - Fail the run when collecting the device data stops with an error, instead of continuing with the devices collected so far
 - Update **Delete Stale Devices (Scheduled)** Runbook in Org/Devices (v2.3.0)
   - Stop before anything is deleted when a configured include or exclude user group cannot be read or the include group has no user members
-  - With a user group filter, a device whose primary user cannot be resolved is not deleted; it is listed as skipped in the run output, the Output Data tables, the report files and the email
+  - With a user group filter, a device that Intune records with a primary user but without a user ID is not deleted; it is listed as skipped in the run output, the Output Data tables, the report files and the email
   - The permission file lists the optional `Organization.Read.All` for the tenant name in the report email
+  - With an include user group, a device without a primary user is out of scope and is not deleted
+  - Read the include and exclude user groups with their nested groups: users who are members through a nested group now count for both filters
+  - Accept 1 to 3650 for `Days`; 0 or a negative value, which matched almost every device, is rejected before the run starts
+  - Apply the include and exclude user groups whenever they are passed, also without `UseUserScope`; with "Yes, filter by group membership" but no group, the run stops before anything is deleted
+  - Match the primary user by the user ID Intune records instead of the recorded UPN, so a renamed or reused UPN no longer bypasses the user groups
+  - The exclude group also excludes the devices that are members of it
+  - Still send the email and write the Output Data when the upload fails after devices were deleted; the run fails at the end
 - Update **Report Windows Devices Without Autopilot (Scheduled)** Runbook in Org/Devices (v1.4.0)
   - Offer the standard "Report delivery" selection instead of two Yes/No switches; the default still creates a download link, and existing scheduled runs keep their settings
+  - Remove the report files and branding images and close the sessions also when the export, the upload or the email fails
+  - Add the column `JoinType` (Entra joined, Hybrid joined, Entra registered) as the last column of the report files, the Output Data and the email table; hybrid joined and registered devices are no longer called orphaned
 - Update **Notify Users About Low Diskspace (Scheduled)** Runbook in Org/Devices (v1.1.0)
   - Show the mail template as a regular field
   - The Output Data tables list every notified or skipped user and device with the reason
+  - Group the devices by the Entra user found for them, so a renamed or reused UPN no longer puts a device into the email of another user
+  - Fail the run after the Output Data when no affected user can be looked up for a reason other than a deleted user
+  - Escape the section sign and `~` in device values, so a device name cannot add markup to the email
 - Update **Monitor Pending EPM Requests (Scheduled)** Runbook in Org/Security (v1.4.0)
   - List the pending requests in the Output Data only with `DetailedReport`
   - Count a single pending request correctly in the run output
   - The permission file lists `Organization.Read.All`, which the runbook needs for the tenant name
+  - Show the request values, such as the justification, as plain text in the approver email, so they cannot add links or images
+  - Send the detailed report by email also with "CSV only"; before, the run failed
+  - Warn when not every recipient got the email; when no recipient got it, write the Output Data and remove the report files before the run fails
 - Update **Export Enterprise Application Users** Runbook in Org/Applications (v1.5.0)
   - The permission file lists the optional `Organization.Read.All` for the tenant name in the report email
+  - Remove the report files and branding images and close the sessions also when the export, the upload or the email fails
+  - Show service principals that own an app as `ServicePrincipal` with name and app ID, and mark owners, users and groups that cannot be read as `(lookup failed)` with a warning
+- Update **Export All Intune Devices** Runbook in Org/General (v1.2.0)
+  - Fail the run when the upload of the report fails, so a scheduled run without a delivered report shows as failed; the local report files are removed first
+  - Fail the run when the device list or the filter group cannot be read; before, the run completed without a report
+- Update **Report Stale Devices (Scheduled)** Runbook in Org/Devices (v1.7.0)
+  - Read the include and exclude user groups with their nested groups: users who are members through a nested group now count for both filters
+  - The exclude group also excludes the devices that are members of it
+  - Warn when `MaxDays` is not above `Days`; the value is ignored as before
+- Update **Export Non Compliant Devices** Runbook in Org/General (v1.1.0)
+  - Report shared devices with several users completely; before, collecting stopped at the first such device and the run still completed
+  - Fail the run when collecting the device data stops with an error, or when an upload fails; the remaining uploads and the Output Data still run
+  - List each failing setting in the Output Data table of the devices; the CSV export stays the same
+- Update **Office365 License Report** Runbook in Org/General (v1.2.0)
+  - Leave the report privacy setting of the tenant unchanged when it cannot be read; before, the tenant could end up showing concealed names
+  - Export `SharedMailboxLicensing.csv` also when there are several licensed shared mailboxes
+  - `printOverview` set to false also hides the license totals and the license overview
+- Update **Backup Conditional Access Policies** Runbook in Org/Security (v1.1.0)
+  - Back up policies with square brackets in their name, such as `[CA001] Require MFA`; before, they were missing from the backup
+- Update **List Admin Users** Runbook in Org/Security (v1.3.0)
+  - List the members of role-assignable groups as admins and check their MFA; the role columns keep their `x` and `p` values, and the new last column `RoleGroups` names the groups, for example `Tier0 Admins (Global Administrator)`
+  - Count hardware OATH tokens, external authentication methods and the macOS platform credential as MFA; the methods are read from the Microsoft Graph beta endpoint
+  - Show admins whose authentication methods cannot be read in a section of their own instead of as admins without valid MFA
+  - Fail the run when the role assignments, the PIM data or the members of a role-assignable group cannot be read, or when the upload fails; tenants without Entra ID P2 still run without PIM data
+- Update **Enrolled Devices Report (Scheduled)** Runbook in Org/General (v1.1.0)
+  - The description states that the report covers Windows devices registered in Autopilot only
+  - Fail the run after the report was delivered when device or user lookups fail for a reason other than "not found"; before, a missing permission produced a report without enrollments
+  - Stop with a clear message when the attribute to group by is empty or a name the report uses itself
+  - Write the report file into a folder of its own per run and remove it also when the upload fails
+- Update **Convert To Shared Mailbox** Runbook in User/Mail (v1.0.2)
+  - Stop at the first failed step and fail the run, naming what was and was not done; the user is removed from groups only after Exchange Online reports the mailbox as shared
+  - Stop before any change when a license group name matches several groups, and warn when it matches none
+  - Stop before any change when the mailbox is a type that Exchange Online cannot convert, such as a Bookings mailbox; sign-in is no longer blocked first
+  - Announce the removal of send on behalf permissions when the mailbox is turned back into a regular mailbox, and check the license group membership across all members
+- Update **Report Devices Low Diskspace (Scheduled)** Runbook in Org/Devices (v1.2.0)
+  - Escape the section sign and `~` in device values, so a device name cannot add markup to the email
 
 ## 2026-10-23
 
@@ -137,7 +207,7 @@
   - New option "Send the invitation email?" creates the guest without an invitation email, as in the Entra admin center
   - Without the email, the job output shows the redemption link to pass on to the guest; sending the email stays the default
   - Find an existing user with the same address also when the email address contains special characters such as an apostrophe
-  - Check the usage location as a two-letter country code before the guest is invited, so a wrong value stops the run before any change
+  - Check the usage location against the ISO 3166-1 country codes before the guest is invited, so a wrong value such as `UK` instead of `GB` stops the run before any change
 
 ## 2026-10-21
 

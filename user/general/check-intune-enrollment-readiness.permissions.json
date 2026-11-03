@@ -6,6 +6,10 @@
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
                 {
+                    "Value": "Device.Read.All",
+                    "Reason": "Reads the trustType of the devices returned by /users/{id}/ownedDevices to count Entra registered and joined devices against the Entra setting 'Maximum number of devices per user'; without it, Graph returns these device objects with their id only"
+                },
+                {
                     "Value": "DeviceManagementManagedDevices.Read.All",
                     "Reason": "Reads /users/{id}/managedDevices to count the devices the user has enrolled in Intune against the device enrollment limit"
                 },
@@ -27,7 +31,11 @@
                 },
                 {
                     "Value": "Policy.Read.All",
-                    "Reason": "Reads /identity/conditionalAccess/policies to evaluate enabled policies that could block Intune enrollment for the user and /policies/deviceRegistrationPolicy to read the Entra maximum number of devices per user"
+                    "Reason": "Reads /identity/conditionalAccess/policies to evaluate enabled policies that could block Intune enrollment for the user"
+                },
+                {
+                    "Value": "Policy.Read.DeviceConfiguration",
+                    "Reason": "Reads /policies/deviceRegistrationPolicy (userDeviceQuota) to compare the user's Entra registered and joined devices with the Entra setting 'Maximum number of devices per user'"
                 },
                 {
                     "Value": "RoleManagement.Read.Directory",

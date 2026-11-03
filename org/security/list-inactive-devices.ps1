@@ -402,6 +402,10 @@ try {
         $Exportdevices += $Exportdevice
     }
 }
+catch {
+    # Fail the run: without a catch, an error that only ends its statement would leave the collection incomplete
+    throw
+}
 finally {
     $PSDefaultParameterValues.Remove('Invoke-MgGraphRequest:OutputType')
 }
@@ -450,6 +454,7 @@ if ($ExportToFile) {
 #region     Upload / Download Link
 ########################################################
 
+$uploadError = $null
 if ($ExportToFile) {
     try {
         Connect-RjRbAzAccount
@@ -472,7 +477,11 @@ if ($ExportToFile) {
     }
     catch {
         Write-RjRbLog -Message "Upload to storage account '$StorageAccountName' failed: $($_.Exception.Message). The managed identity needs the 'Reader and Data Access' role on the storage account." -Verbose
-        $_
+        # The upload is the delivery of this runbook: remove the local report files, write the Output Data, then fail the job
+        foreach ($reportFile in $reportFiles) {
+            Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
+        }
+        $uploadError = $_
     }
     finally {
         Disconnect-AzAccount -ErrorAction SilentlyContinue -Confirm:$false | Out-Null
@@ -517,6 +526,11 @@ foreach ($reportFile in $reportFiles) {
 }
 if (Get-MgContext -ErrorAction SilentlyContinue) {
     Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
+
+# Fail the run only now that the Output Data is written and the sessions are closed
+if ($uploadError) {
+    throw $uploadError
 }
 
 Write-Output ""

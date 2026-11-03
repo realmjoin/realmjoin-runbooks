@@ -1,9 +1,9 @@
 <#
 	.SYNOPSIS
-	Report first-time device enrollments of the last weeks
+	Report recent first-time enrollments of Windows Autopilot devices
 
 	.DESCRIPTION
-	Lists devices that enrolled for the first time within the chosen number of weeks. They are grouped by an attribute of your choice, such as country or department, so you can see where new devices show up. The report can be exported as CSV to an Azure Storage account and downloaded from there.
+	Lists Windows devices registered in Autopilot that enrolled for the first time within the chosen number of weeks. They are grouped by an attribute of your choice, such as country or department, so you can see where new devices show up. iOS, Android and macOS devices and Windows devices enrolled without Autopilot are not included. The report can be exported as CSV to an Azure Storage account and downloaded from there.
 
 	.PARAMETER Weeks
 	How many weeks back to look for first enrollments.
@@ -308,6 +308,16 @@ if ($exportCsv -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) 
   ""
 }
 
+# The grouping attribute becomes a property of its own next to the fixed properties of a device row, so it cannot be empty
+# or take one of their names (Serial, User and Model are handled separately). Without grouping it is not used.
+if ($groupingSource -ne 0) {
+  $reservedGroupingAttributes = @("apDevice", "intuneDevice", "APAssignmentDate", "IntuneEnrolledDate")
+  if ([string]::IsNullOrEmpty($groupingAttribute) -or ($groupingAttribute -in $reservedGroupingAttributes)) {
+    Write-Error "The attribute to group by ('$groupingAttribute') cannot be used: it must not be empty or one of the names the report uses itself ($($reservedGroupingAttributes -join ', ')). Enter the name of a property of the chosen object, for example country, department, manufacturer or groupTag." -ErrorAction Continue
+    throw "Invalid attribute to group by: '$groupingAttribute'"
+  }
+}
+
 #endregion Parameter Validation
 
 ########################################################
@@ -367,6 +377,41 @@ function Get-GraphPagedResult {
     return $allResults.ToArray()
 }
 
+function Test-GraphNotFound {
+  <#
+    .SYNOPSIS
+    Tells whether a failed Invoke-MgGraphRequest call was answered with 404 Not Found.
+  #>
+  param(
+    [System.Management.Automation.ErrorRecord]$ErrorRecord
+  )
+
+  $response = $ErrorRecord.Exception.Response
+  if ($response -and $response.StatusCode) {
+    return ([int]$response.StatusCode -eq 404)
+  }
+  return ($ErrorRecord.Exception.Message -match 'NotFound|\b404\b')
+}
+
+function Add-LookupFailure {
+  <#
+    .SYNOPSIS
+    Records a per-device Graph lookup that failed for another reason than "not found" and writes it to the log.
+  #>
+  param(
+    [string]$Lookup,
+    [string]$Permission,
+    [System.Management.Automation.ErrorRecord]$ErrorRecord
+  )
+
+  $lookupFailures.Add([PSCustomObject]@{
+      Lookup     = $Lookup
+      Permission = $Permission
+      Message    = $ErrorRecord.Exception.Message
+    })
+  Write-RjRbLog -Message "Lookup failed - $($Lookup): $($ErrorRecord.Exception.Message)" -Verbose
+}
+
 #endregion Function Definitions
 
 ########################################################
@@ -390,6 +435,9 @@ catch {
 # find cutoff point in time
 $date = (Get-Date) - (New-TimeSpan -Days ($Weeks * 7))
 
+# Per-device lookups that fail for another reason than "not found" (e.g. 403, 429, 5xx); the run fails after delivery
+$lookupFailures = [System.Collections.Generic.List[object]]::new()
+
 # Invoke-MgGraphRequest returns PSCustomObjects in the property order of the Graph response, as the earlier RunbookHelper
 # calls did, so properties are read the same way (case-insensitive); the default is removed again after each block
 $PSDefaultParameterValues['Invoke-MgGraphRequest:OutputType'] = 'PSObject'
@@ -401,7 +449,7 @@ try {
     $apDevice = $_
     if (($dataSource -eq 1) -or (([datetime]$apDevice.deploymentProfileAssignedDateTime) -ge $date)) {
       # Only process this device if either Intune datasource is used, or Autopilot assignment is not too old.
-      # A device without Intune object (404) counts as not enrolled, as before.
+      # A device without Intune object (404) counts as not enrolled, as before; any other error is recorded.
       $intuneDevice = $null
       if ($apDevice.managedDeviceId) {
         try {
@@ -409,6 +457,9 @@ try {
         }
         catch {
           $intuneDevice = $null
+          if (-not (Test-GraphNotFound -ErrorRecord $_)) {
+            Add-LookupFailure -Lookup "Intune device of serial '$($apDevice.serialNumber)'" -Permission "DeviceManagementManagedDevices.Read.All" -ErrorRecord $_
+          }
         }
       }
       if (($dataSource -eq 0) -or ($intuneDevice -and ([datetime]$intuneDevice.enrolledDateTime) -ge $date)) {
@@ -421,7 +472,9 @@ try {
           Model              = $apDevice.model
           APAssignmentDate   = (get-date -Date ($apDevice.deploymentProfileAssignedDateTime) -Format "yyyy-MM-ddTHH:mmK" )
           IntuneEnrolledDate = ""
-          $groupingAttribute = ""
+        }
+        if ($groupingSource -ne 0) {
+          $output | Add-Member -NotePropertyName $groupingAttribute -NotePropertyValue ""
         }
         if ($intuneDevice) {
           $output.IntuneEnrolledDate = (get-date -Date ($intuneDevice.enrolledDateTime) -Format "yyyy-MM-ddTHH:mmK" )
@@ -475,7 +528,11 @@ try {
           $azureADUser = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($entry.intuneDevice.userId)?`$select=$([System.Uri]::EscapeDataString($groupingAttribute))" -Method GET -ErrorAction Stop
         }
         catch {
+          # A deleted user (404) leaves the attribute empty, as before; any other error is recorded
           $azureADUser = $null
+          if (-not (Test-GraphNotFound -ErrorRecord $_)) {
+            Add-LookupFailure -Lookup "User of serial '$($entry.Serial)' (attribute '$groupingAttribute')" -Permission "User.Read.All" -ErrorRecord $_
+          }
         }
 
         if ($azureADUser) {
@@ -498,6 +555,7 @@ try {
       }
       catch {
         $azureADDevice = $null
+        Add-LookupFailure -Lookup "Entra ID device of serial '$($entry.Serial)'" -Permission "Device.ReadWrite.All" -ErrorRecord $_
       }
 
       if ($azureADDevice) {
@@ -533,6 +591,12 @@ finally {
   $PSDefaultParameterValues.Remove('Invoke-MgGraphRequest:OutputType')
 }
 
+if ($lookupFailures.Count -gt 0) {
+  $lookupWarning = "$($lookupFailures.Count) device lookup(s) in Microsoft Graph failed, so the report is incomplete: devices may be missing or have empty columns. The report is delivered, then the run fails."
+  Write-RjRbLog -Message "WARNING: $lookupWarning"
+  Write-Warning $lookupWarning
+}
+
 #endregion Data Processing
 
 ########################################################
@@ -540,9 +604,13 @@ finally {
 ########################################################
 
 $reportFiles = @()
+$reportDir = $null
 if ($exportCsv) {
-  # The local file name becomes the blob name, so uploads keep the blob name of earlier versions
-  $reportFile = Join-Path ([System.IO.Path]::GetTempPath()) "enrolled-devices.csv"
+  # A folder of its own keeps concurrent runs on one Hybrid Worker apart. The local file name becomes the blob name,
+  # so uploads keep the blob name of earlier versions.
+  $reportDir = Join-Path ([System.IO.Path]::GetTempPath()) "enrolled-devices-report-$([guid]::NewGuid())"
+  New-Item -ItemType Directory -Path $reportDir -Force | Out-Null
+  $reportFile = Join-Path $reportDir "enrolled-devices.csv"
   if ($groupingSource -eq 0) {
     $data | Sort-Object -Property $sortingAttribute | Select-Object -Property "Serial", "User", "Model", $sortingAttribute | ConvertTo-Csv -NoTypeInformation -Delimiter ";" > $reportFile
   }
@@ -591,6 +659,8 @@ if ($exportCsv) {
   catch {
     Write-RjRbLog -Message "Upload to storage account '$StorageAccountName' failed: $($_.Exception.Message). The managed identity needs the 'Reader and Data Access' role on the storage account." -Verbose
     "## Something went wrong. Probably missing MS Graph API permissions."
+    # The run fails, but the report with serial numbers and user names does not stay behind on the worker
+    Remove-Item -LiteralPath $reportDir -Recurse -Force -ErrorAction SilentlyContinue
     write-error $_
     throw ("failed")
   }
@@ -645,6 +715,7 @@ $summaryValues = [ordered]@{
   "Enrolled devices"           = $deviceRows.Count
 }
 if ($groupingSource -ne 0) { $summaryValues["Groups"] = $groupRows.Count }
+if ($lookupFailures.Count -gt 0) { $summaryValues["Failed device lookups"] = $lookupFailures.Count }
 $summaryRows = @(foreach ($metric in $summaryValues.Keys) {
     [PSCustomObject]@{ Metric = $metric; Value = "$($summaryValues[$metric])" }
   })
@@ -660,6 +731,9 @@ if ($deviceRows.Count -gt 0) {
     Write-Output $groupRows
   }
 }
+elseif ($lookupFailures.Count -gt 0) {
+  Write-Output "No first-time enrollments found in the last $Weeks week(s), but $($lookupFailures.Count) device lookup(s) failed, so the result is incomplete."
+}
 else {
   Write-Output "No first-time enrollments in the last $Weeks week(s)."
 }
@@ -673,9 +747,21 @@ else {
 foreach ($reportFile in $reportFiles) {
   Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
 }
+if ($reportDir) {
+  Remove-Item -LiteralPath $reportDir -Recurse -Force -ErrorAction SilentlyContinue
+}
 
 if (Get-MgContext -ErrorAction SilentlyContinue) {
   Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
+
+# Failed lookups leave the delivered report incomplete, so the run ends as failed
+if ($lookupFailures.Count -gt 0) {
+  $missingPermissions = ($lookupFailures | Select-Object -ExpandProperty Permission -Unique) -join ", "
+  $failureMessage = "$($lookupFailures.Count) device lookup(s) in Microsoft Graph failed, so the report is incomplete. First error - $($lookupFailures[0].Lookup): $($lookupFailures[0].Message)"
+  $failureMessage += " A 403 Forbidden means the managed identity is missing a Graph permission ($missingPermissions); other errors are usually temporary, so run the report again."
+  Write-Error $failureMessage -ErrorAction Continue
+  throw "Device lookups failed - the report is incomplete."
 }
 
 Write-Output ""

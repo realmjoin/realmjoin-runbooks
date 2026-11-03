@@ -3,7 +3,7 @@
 	Report Windows devices in Entra ID without an Autopilot record
 
 	.DESCRIPTION
-	Lists Windows device objects in Entra ID that no Windows Autopilot registration refers to. Such orphaned objects are usually left over from devices that were reset, re-imaged or replaced without cleanup, so the list shows what can be reviewed and deleted. Nothing is changed. The report can be sent by email or provided as a download link.
+	Lists Windows device objects in Entra ID that no Windows Autopilot registration refers to, with their join type. Entra joined objects in the list are often left over from devices that were reset, re-imaged or replaced without cleanup and can be reviewed for deletion. Hybrid joined and Entra registered devices are listed too, but are usually in use. Nothing is changed. The report can be sent by email or provided as a download link.
 
 	.PARAMETER SendMail
 	Send the report to the recipient email address.
@@ -336,6 +336,39 @@ function Get-GraphPagedResult {
     return $allResults.ToArray()
 }
 
+function Invoke-ReportCleanup {
+    <#
+        .SYNOPSIS
+        Removes the local report files and the downloaded branding images and closes the sessions.
+
+        .DESCRIPTION
+        Runs in the Cleanup region and, before the error is rethrown, when the report export, the upload or the
+        email fails, so a failed run leaves no files in the working directory (e.g. on a Hybrid Runbook Worker).
+    #>
+
+    # Remove the downloaded branding images, if any were used.
+    foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
+        if ($brandingMailParams -and $brandingMailParams.ContainsKey($brandingKey) -and (Test-Path -LiteralPath $brandingMailParams[$brandingKey])) {
+            Remove-Item -LiteralPath $brandingMailParams[$brandingKey] -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    # Remove the local report files, including one that a failed export left behind
+    foreach ($reportFile in @($csvFilePath, $xlsxFilePath)) {
+        if ($reportFile -and (Test-Path -LiteralPath $reportFile)) {
+            Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    if ($CreateDownloadLink) {
+        Disconnect-AzAccount -ErrorAction SilentlyContinue -Confirm:$false | Out-Null
+    }
+
+    if (Get-MgContext -ErrorAction SilentlyContinue) {
+        Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+    }
+}
+
 #endregion Function Definitions
 
 ########################################################
@@ -403,6 +436,10 @@ foreach ($apDevice in $autopilotDevices) {
 Write-Output ""
 Write-Output "## Determining Windows Entra devices without an associated Autopilot object..."
 
+# Join type from trustType: only Entra joined objects are typical leftovers. Hybrid joined and Entra registered devices are
+# usually in use, also when no Autopilot record refers to their device object.
+$joinTypeNames = @{ AzureAd = 'Entra joined'; ServerAd = 'Hybrid joined'; Workplace = 'Entra registered' }
+
 $orphanedDevices = foreach ($device in $windowsDevices) {
     if (-not $autopilotDeviceIds.Contains($device.deviceId)) {
         [PSCustomObject]@{
@@ -412,6 +449,7 @@ $orphanedDevices = foreach ($device in $windowsDevices) {
             TrustType                 = $device.trustType
             OperatingSystemVersion    = $device.operatingSystemVersion
             ApproximateLastSignInDate = $device.approximateLastSignInDateTime
+            JoinType                  = if ($device.trustType -and $joinTypeNames.ContainsKey($device.trustType)) { $joinTypeNames[$device.trustType] } else { "$($device.trustType)" }
         }
     }
 }
@@ -419,9 +457,15 @@ $orphanedDevices = foreach ($device in $windowsDevices) {
 $orphanedDevices = @($orphanedDevices)
 
 $totalDevices = $orphanedDevices.Count
+$entraJoinedCount = @($orphanedDevices | Where-Object { $_.JoinType -eq 'Entra joined' }).Count
+$hybridJoinedCount = @($orphanedDevices | Where-Object { $_.JoinType -eq 'Hybrid joined' }).Count
+$entraRegisteredCount = @($orphanedDevices | Where-Object { $_.JoinType -eq 'Entra registered' }).Count
 
 Write-Output ""
 Write-Output "## Windows Entra devices without an associated Autopilot object for '$($tenantDisplayName)': $($totalDevices)"
+if ($totalDevices -gt 0) {
+    Write-Output "## Of these: $($entraJoinedCount) Entra joined (typical clean-up candidates), $($hybridJoinedCount) hybrid joined and $($entraRegisteredCount) Entra registered (usually in use, not orphaned)."
+}
 
 #endregion Data Processing
 
@@ -438,18 +482,25 @@ $reportFiles = @()
 if (($CreateDownloadLink -or $SendMail) -and $totalDevices -gt 0) {
     $sortedDevices = $orphanedDevices | Sort-Object DisplayName
 
-    if ($ReportFileFormat -ne 'XLSX only') {
-        $csvFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath $csvFileName
-        $sortedDevices | Export-Csv -Path $csvFilePath -NoTypeInformation -Encoding UTF8
-        $reportFiles += $csvFilePath
-        Write-RjRbLog -Message "Exported orphaned devices to CSV: $($csvFilePath)" -Verbose
-    }
+    try {
+        if ($ReportFileFormat -ne 'XLSX only') {
+            $csvFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath $csvFileName
+            $sortedDevices | Export-Csv -Path $csvFilePath -NoTypeInformation -Encoding UTF8
+            $reportFiles += $csvFilePath
+            Write-RjRbLog -Message "Exported orphaned devices to CSV: $($csvFilePath)" -Verbose
+        }
 
-    if ($ReportFileFormat -ne 'CSV only') {
-        $xlsxFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath $xlsxFileName
-        $sortedDevices | Export-RjRbXlsx -Path $xlsxFilePath -WorksheetName "Devices"
-        $reportFiles += $xlsxFilePath
-        Write-RjRbLog -Message "Exported orphaned devices to XLSX: $($xlsxFilePath)" -Verbose
+        if ($ReportFileFormat -ne 'CSV only') {
+            $xlsxFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath $xlsxFileName
+            $sortedDevices | Export-RjRbXlsx -Path $xlsxFilePath -WorksheetName "Devices"
+            $reportFiles += $xlsxFilePath
+            Write-RjRbLog -Message "Exported orphaned devices to XLSX: $($xlsxFilePath)" -Verbose
+        }
+    }
+    catch {
+        # Leave no report file behind; the run fails with the original error
+        Invoke-ReportCleanup
+        throw
     }
 }
 
@@ -465,14 +516,21 @@ if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
 
     # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
     # transparently connects the managed identity if no Az context is active.
-    $uploadResults = Publish-RjRbFilesToStorageContainer `
-        -FilePaths $reportFiles `
-        -ContainerName $ContainerName `
-        -ResourceGroupName $ResourceGroupName `
-        -StorageAccountName $StorageAccountName `
-        -SubscriptionId $SubscriptionId `
-        -LinkExpiryDays $LinkExpiryDays `
-        -AddBlobNamePrefix $true
+    try {
+        $uploadResults = Publish-RjRbFilesToStorageContainer `
+            -FilePaths $reportFiles `
+            -ContainerName $ContainerName `
+            -ResourceGroupName $ResourceGroupName `
+            -StorageAccountName $StorageAccountName `
+            -SubscriptionId $SubscriptionId `
+            -LinkExpiryDays $LinkExpiryDays `
+            -AddBlobNamePrefix $true
+    }
+    catch {
+        # Leave no report file behind; the run fails with the original error
+        Invoke-ReportCleanup
+        throw
+    }
 
     Write-Output "## Report uploaded to storage account."
     foreach ($uploadResult in $uploadResults) {
@@ -515,12 +573,12 @@ Every Windows device object in Entra ID is associated with a Windows Autopilot o
         # Show the first 10 devices inline; the full list is in the attached report file(s)
         $devicesToShow = $orphanedDevices | Sort-Object DisplayName | Select-Object -First 10
         $table = @"
-| Display Name | Device ID | Enabled | Trust Type | Last Sign-In |
-|--------------|-----------|---------|------------|--------------|
+| Display Name | Device ID | Enabled | Trust Type | Last Sign-In | Join Type |
+|--------------|-----------|---------|------------|--------------|-----------|
 "@
         foreach ($device in $devicesToShow) {
             $lastSignIn = if ($device.ApproximateLastSignInDate) { Get-Date $device.ApproximateLastSignInDate -Format "yyyy-MM-dd" } else { "N/A" }
-            $table += "`n| $($device.DisplayName) | $($device.DeviceId) | $($device.AccountEnabled) | $($device.TrustType) | $($lastSignIn) |"
+            $table += "`n| $($device.DisplayName) | $($device.DeviceId) | $($device.AccountEnabled) | $($device.TrustType) | $($lastSignIn) | $($device.JoinType) |"
         }
 
         $tableHeading = if ($totalDevices -gt 10) {
@@ -535,9 +593,15 @@ Every Windows device object in Entra ID is associated with a Windows Autopilot o
 
 ## Executive Summary
 
-This report identifies **$($totalDevices) Windows device object(s)** in Entra ID for tenant **$($tenantDisplayName)** that have **no associated Windows Autopilot object**.
+This report identifies **$($totalDevices) Windows device object(s)** in Entra ID for tenant **$($tenantDisplayName)** that have **no associated Windows Autopilot object**:
 
-These objects are typical leftovers of devices that were reset, re-imaged, or replaced without being cleaned up. They are good candidates for review and possible deletion.
+- **Entra joined:** $($entraJoinedCount)
+- **Hybrid joined:** $($hybridJoinedCount)
+- **Entra registered:** $($entraRegisteredCount)
+
+Entra joined objects without an Autopilot object are typical leftovers of devices that were reset, re-imaged, or replaced without being cleaned up. They are candidates for review and possible deletion.
+
+Hybrid joined and Entra registered (personal or BYOD) devices are listed for completeness. They show up whenever no Autopilot object refers to their device object, but are usually in use and not orphaned.
 
 ## How the association is determined
 
@@ -551,7 +615,7 @@ $($table)
 
 1. **Review** the attached list and confirm the devices are genuinely no longer in use.
 2. **Verify** there is no pending re-enrollment or Autopilot import in progress for these devices.
-3. **Delete** the confirmed orphaned device objects from Entra ID to keep the inventory clean.
+3. **Delete** the confirmed orphaned Entra joined device objects from Entra ID to keep the inventory clean. Do not delete hybrid joined or Entra registered devices because of this report alone.
 
 ## Data Files
 
@@ -571,7 +635,7 @@ $(if ($ReportFileFormat -ne 'CSV only') { "- **$($xlsxFileName)**: The same list
 
 ## Executive Summary
 
-This report identifies **$($totalDevices) Windows device object(s)** in Entra ID for tenant **$($tenantDisplayName)** that have **no associated Windows Autopilot object**.
+This report identifies **$($totalDevices) Windows device object(s)** in Entra ID for tenant **$($tenantDisplayName)** that have **no associated Windows Autopilot object**: $($entraJoinedCount) Entra joined, $($hybridJoinedCount) hybrid joined and $($entraRegisteredCount) Entra registered. Only the Entra joined objects are typical clean-up candidates; hybrid joined and Entra registered devices are usually in use.
 
 ## Data Files
 
@@ -615,6 +679,8 @@ This report identifies **$($totalDevices) Windows device object(s)** in Entra ID
         }
     }
     catch {
+        # Leave no report file or branding image behind; the run fails with the original error
+        Invoke-ReportCleanup
         Write-Error "Failed to send email report: $($_.Exception.Message)"
         throw
     }
@@ -634,6 +700,9 @@ $summaryRows = @(
     [PSCustomObject]@{ Metric = "Windows devices in Entra ID"; Value = $windowsDeviceCount }
     [PSCustomObject]@{ Metric = "Autopilot devices"; Value = $autopilotDeviceCount }
     [PSCustomObject]@{ Metric = "Windows devices without Autopilot"; Value = $totalDevices }
+    [PSCustomObject]@{ Metric = "Without Autopilot: Entra joined"; Value = $entraJoinedCount }
+    [PSCustomObject]@{ Metric = "Without Autopilot: hybrid joined"; Value = $hybridJoinedCount }
+    [PSCustomObject]@{ Metric = "Without Autopilot: Entra registered"; Value = $entraRegisteredCount }
 )
 Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
 Write-Output $summaryRows
@@ -643,7 +712,7 @@ if ($totalDevices -gt 0) {
     $deviceRows = @($orphanedDevices | Sort-Object DisplayName | Select-Object -Property DisplayName, DeviceId, AccountEnabled, TrustType, OperatingSystemVersion, @{
             Name       = 'ApproximateLastSignInDate'
             Expression = { if ($_.ApproximateLastSignInDate) { ([datetime]$_.ApproximateLastSignInDate).ToUniversalTime().ToString('yyyy-MM-dd HH:mm:ss') } else { '' } }
-        })
+        }, JoinType)
     Write-Output ([PSCustomObject]@{ RjTableTitle = "Devices" })
     Write-Output $deviceRows
 }
@@ -657,25 +726,8 @@ else {
 #region     Cleanup
 ########################################################
 
-# Remove the downloaded branding images, if any were used.
-foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
-    if ($brandingMailParams -and $brandingMailParams.ContainsKey($brandingKey) -and (Test-Path -LiteralPath $brandingMailParams[$brandingKey])) {
-        Remove-Item -LiteralPath $brandingMailParams[$brandingKey] -Force -ErrorAction SilentlyContinue
-    }
-}
-
-# Remove the local report files once they are uploaded and/or sent
-foreach ($reportFile in $reportFiles) {
-    Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
-}
-
-if ($CreateDownloadLink) {
-    Disconnect-AzAccount -ErrorAction SilentlyContinue -Confirm:$false | Out-Null
-}
-
-if (Get-MgContext -ErrorAction SilentlyContinue) {
-    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
-}
+# Branding images, report files and sessions; a failed export, upload or email runs the same cleanup before rethrowing
+Invoke-ReportCleanup
 
 Write-Output ""
 Write-Output "Done!"

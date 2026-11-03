@@ -375,6 +375,34 @@ function Get-GraphPagedResult {
     return $allResults.ToArray()
 }
 
+function Invoke-RunbookCleanup {
+    # Removes the report files and branding images of this run and closes the sessions. Called by the Cleanup region and by
+    # a failing report export, upload or email step right before it rethrows, so a failed run leaves no user data behind.
+    param(
+        [string[]]$ReportFiles,
+        [hashtable]$BrandingMailParams
+    )
+
+    # Remove the report files created by this run
+    foreach ($reportFile in $ReportFiles) {
+        Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
+    }
+
+    # Remove the downloaded branding images, if any were used.
+    foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
+        if ($BrandingMailParams -and $BrandingMailParams.ContainsKey($brandingKey) -and (Test-Path -LiteralPath $BrandingMailParams[$brandingKey])) {
+            Remove-Item -LiteralPath $BrandingMailParams[$brandingKey] -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    if (Get-MgContext -ErrorAction SilentlyContinue) {
+        Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+    }
+    if (Get-AzContext -ErrorAction SilentlyContinue) {
+        Disconnect-AzAccount -ErrorAction SilentlyContinue -Confirm:$false | Out-Null
+    }
+}
+
 #endregion Function Definitions
 
 ############################################################
@@ -422,7 +450,8 @@ try {
     $servicePrincipals = Get-GraphPagedResult -Uri $servicePrincipalsUri
 
     # Owners and assignments: a failing lookup is written as an error and the report goes on, as with the earlier
-    # RunbookHelper Graph calls
+    # RunbookHelper Graph calls. Its row shows "(lookup failed)", so it does not read as a missing owner or assignee.
+    $lookupFailures = [System.Collections.Generic.List[string]]::new()
     $reportData = @($servicePrincipals | ForEach-Object {
             $AppId = $_.appId
             $AppDisplayName = $_.displayName
@@ -438,17 +467,34 @@ try {
                 $Notes = ""
             }
 
-            # Get Owners
+            # Get Owners (users and service principals)
+            $ownersFailed = $false
             try {
                 $owners = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/servicePrincipals/$servicePrincipalId/owners"
             }
             catch {
-                # Get-GraphPagedResult has written the error; the app is listed without an owner
+                # Get-GraphPagedResult has written the error; the app is listed with a marked owner row
                 Write-RjRbLog -Message "Owners of '$AppDisplayName' skipped: $($_.Exception.Message)" -Verbose
+                $lookupFailures.Add("Owners of '$AppDisplayName'")
                 $owners = $null
+                $ownersFailed = $true
             }
             if ($owners) {
                 $owners | ForEach-Object {
+                    $ownerType = $_.'@odata.type'
+                    if ($ownerType -eq '#microsoft.graph.servicePrincipal') {
+                        $ownerPrincipalType = "ServicePrincipal"
+                        $ownerPrincipalId = "$($_.displayName) ($($_.appId))"
+                    }
+                    elseif ((-not $ownerType) -or ($ownerType -eq '#microsoft.graph.user')) {
+                        $ownerPrincipalType = "User"
+                        $ownerPrincipalId = if ($_.userPrincipalName) { $_.userPrincipalName } else { $_.id }
+                    }
+                    else {
+                        $ownerTypeName = $ownerType -replace '^#microsoft\.graph\.', ''
+                        $ownerPrincipalType = $ownerTypeName.Substring(0, 1).ToUpper() + $ownerTypeName.Substring(1)
+                        $ownerPrincipalId = if ($_.displayName) { "$($_.displayName) ($($_.id))" } else { $_.id }
+                    }
                     [PSCustomObject]@{
                         AppId              = $AppId
                         AppDisplayName     = $AppDisplayName
@@ -456,14 +502,14 @@ try {
                         HideApp            = $HideApp
                         AssignmentRequired = $AssignmentRequired
                         PrincipalRole      = "Owner"
-                        PrincipalType      = "User"
-                        PrincipalId        = $_.userPrincipalName
+                        PrincipalType      = $ownerPrincipalType
+                        PrincipalId        = $ownerPrincipalId
                         Notes              = $Notes
                     }
                 }
             }
             else {
-                # Make sure to list apps missing an owner
+                # Make sure to list apps missing an owner, or whose owners could not be read
                 [PSCustomObject]@{
                     AppId              = $AppId
                     AppDisplayName     = $AppDisplayName
@@ -471,8 +517,8 @@ try {
                     HideApp            = $HideApp
                     AssignmentRequired = $AssignmentRequired
                     PrincipalRole      = "Owner"
-                    PrincipalType      = "User"
-                    PrincipalId        = ""
+                    PrincipalType      = if ($ownersFailed) { "" } else { "User" }
+                    PrincipalId        = if ($ownersFailed) { "(lookup failed)" } else { "" }
                     Notes              = $Notes
                 }
             }
@@ -482,9 +528,21 @@ try {
                 $users = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/servicePrincipals/$servicePrincipalId/appRoleAssignedTo"
             }
             catch {
-                # Get-GraphPagedResult has written the error; the app is listed without assignments
+                # Get-GraphPagedResult has written the error; the app is listed with a marked assignment row
                 Write-RjRbLog -Message "App role assignments of '$AppDisplayName' skipped: $($_.Exception.Message)" -Verbose
+                $lookupFailures.Add("App role assignments of '$AppDisplayName'")
                 $users = $null
+                [PSCustomObject]@{
+                    AppId              = $AppId
+                    AppDisplayName     = $AppDisplayName
+                    AccountEnabled     = $AccountEnabled
+                    HideApp            = $HideApp
+                    AssignmentRequired = $AssignmentRequired
+                    PrincipalRole      = "Member"
+                    PrincipalType      = ""
+                    PrincipalId        = "(lookup failed)"
+                    Notes              = $Notes
+                }
             }
             $users | ForEach-Object {
                 $principalId = $_.principalId
@@ -495,6 +553,7 @@ try {
                     }
                     catch {
                         Write-Error "Failed to read the assigned user '$principalId' of '$AppDisplayName': $($_.Exception.Message)" -ErrorAction Continue
+                        $lookupFailures.Add("Assigned user '$principalId' of '$AppDisplayName'")
                     }
                     [PSCustomObject]@{
                         AppId              = $AppId
@@ -504,7 +563,7 @@ try {
                         AssignmentRequired = $AssignmentRequired
                         PrincipalRole      = "Member"
                         PrincipalType      = "User"
-                        PrincipalId        = $userobject.userPrincipalName
+                        PrincipalId        = if ($userobject) { $userobject.userPrincipalName } else { "$principalId (lookup failed)" }
                         Notes              = $Notes
                     }
                 }
@@ -515,6 +574,7 @@ try {
                     }
                     catch {
                         Write-Error "Failed to read the assigned group '$principalId' of '$AppDisplayName': $($_.Exception.Message)" -ErrorAction Continue
+                        $lookupFailures.Add("Assigned group '$principalId' of '$AppDisplayName'")
                     }
                     [PSCustomObject]@{
                         AppId              = $AppId
@@ -524,7 +584,7 @@ try {
                         AssignmentRequired = $AssignmentRequired
                         PrincipalRole      = "Member"
                         PrincipalType      = "Group"
-                        PrincipalId        = "$($groupobject.mailNickname) ($($groupobject.displayName))"
+                        PrincipalId        = if ($groupobject) { "$($groupobject.mailNickname) ($($groupobject.displayName))" } else { "$principalId (lookup failed)" }
                         Notes              = $Notes
                     }
                 }
@@ -558,6 +618,13 @@ $totalRows = $reportData.Count
 $appCount = ($servicePrincipals | Measure-Object).Count
 $scopeDescription = if ($entAppsOnly) { "Enterprise Applications" } else { "All Service Principals / Applications" }
 
+$failedLookupCount = $lookupFailures.Count
+if ($failedLookupCount -gt 0) {
+    $lookupWarning = "$failedLookupCount Graph lookup(s) failed (first: $($lookupFailures[0])). The affected rows show '(lookup failed)' as PrincipalId instead of an owner, user or group."
+    Write-RjRbLog -Message "WARNING: $lookupWarning"
+    Write-Warning $lookupWarning
+}
+
 #endregion Data Processing
 
 ############################################################
@@ -571,18 +638,25 @@ $fileNameCsv = "enterpriseApps.csv"
 $fileNameXlsx = "enterpriseApps.xlsx"
 
 if (($EmailTo -or $CreateDownloadLink) -and $totalRows -gt 0) {
-    if ($ReportFileFormat -ne 'XLSX only') {
-        $csvPath = Join-Path -Path $((Get-Location).Path) -ChildPath $fileNameCsv
-        $reportData | Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
-        $reportFiles += $csvPath
-        Write-Output "Exported $totalRows rows to: $csvPath"
-    }
+    try {
+        if ($ReportFileFormat -ne 'XLSX only') {
+            $csvPath = Join-Path -Path $((Get-Location).Path) -ChildPath $fileNameCsv
+            $reportFiles += $csvPath
+            $reportData | Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
+            Write-Output "Exported $totalRows rows to: $csvPath"
+        }
 
-    if ($ReportFileFormat -ne 'CSV only') {
-        $xlsxPath = Join-Path -Path $((Get-Location).Path) -ChildPath $fileNameXlsx
-        $reportData | Export-RjRbXlsx -Path $xlsxPath -WorksheetName "Enterprise App Users"
-        $reportFiles += $xlsxPath
-        Write-Output "Exported $totalRows rows to: $xlsxPath"
+        if ($ReportFileFormat -ne 'CSV only') {
+            $xlsxPath = Join-Path -Path $((Get-Location).Path) -ChildPath $fileNameXlsx
+            $reportFiles += $xlsxPath
+            $reportData | Export-RjRbXlsx -Path $xlsxPath -WorksheetName "Enterprise App Users"
+            Write-Output "Exported $totalRows rows to: $xlsxPath"
+        }
+    }
+    catch {
+        # A failed export fails the run without leaving a partly written report behind
+        Invoke-RunbookCleanup -ReportFiles $reportFiles -BrandingMailParams $null
+        throw
     }
 }
 elseif (($EmailTo -or $CreateDownloadLink) -and $totalRows -eq 0) {
@@ -599,14 +673,21 @@ else {
 ############################################################
 
 if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
-    $uploadResults = Publish-RjRbFilesToStorageContainer `
-        -FilePaths $reportFiles `
-        -ContainerName $ContainerName `
-        -ResourceGroupName $ResourceGroupName `
-        -StorageAccountName $StorageAccountName `
-        -SubscriptionId $SubscriptionId `
-        -LinkExpiryDays $LinkExpiryDays `
-        -AddBlobNamePrefix $true
+    try {
+        $uploadResults = Publish-RjRbFilesToStorageContainer `
+            -FilePaths $reportFiles `
+            -ContainerName $ContainerName `
+            -ResourceGroupName $ResourceGroupName `
+            -StorageAccountName $StorageAccountName `
+            -SubscriptionId $SubscriptionId `
+            -LinkExpiryDays $LinkExpiryDays `
+            -AddBlobNamePrefix $true
+    }
+    catch {
+        # The run still fails with the upload error, but the report files are removed first
+        Invoke-RunbookCleanup -ReportFiles $reportFiles -BrandingMailParams $null
+        throw
+    }
 
     "## App Owner/User List Export created."
     foreach ($uploadResult in $uploadResults) {
@@ -638,6 +719,7 @@ if ($EmailTo -and $reportFiles.Count -gt 0) {
 ## Summary
 - Applications / service principals: **$appCount**
 - Report rows (owners and assignments): **$totalRows**
+$(if ($failedLookupCount -gt 0) { "- Failed lookups (rows marked '(lookup failed)'): **$failedLookupCount**" })
 
 ## Data Files
 
@@ -660,6 +742,7 @@ $(if ($ReportFileFormat -ne 'CSV only') { "- **$($fileNameXlsx)**: The same list
 ## Summary
 - Applications / service principals: **$appCount**
 - Report rows (owners and assignments): **$totalRows**
+$(if ($failedLookupCount -gt 0) { "- Failed lookups (rows marked '(lookup failed)'): **$failedLookupCount**" })
 
 ## Data Files
 
@@ -694,6 +777,8 @@ $(if ($ReportFileFormat -ne 'CSV only') { "- **$($fileNameXlsx)**: The same list
         }
     }
     catch {
+        # The run still fails with the send error, but the report files and branding images are removed first
+        Invoke-RunbookCleanup -ReportFiles $reportFiles -BrandingMailParams $brandingMailParams
         Write-Error "Failed to send email report: $($_.Exception.Message)"
         throw
     }
@@ -712,6 +797,9 @@ $summaryRows = @(
     [PSCustomObject]@{ Metric = "Applications / service principals"; Value = "$appCount" }
     [PSCustomObject]@{ Metric = "Report rows (owners and assignments)"; Value = "$totalRows" }
 )
+if ($failedLookupCount -gt 0) {
+    $summaryRows += [PSCustomObject]@{ Metric = "Failed lookups"; Value = "$failedLookupCount" }
+}
 Write-Output ([PSCustomObject]@{ RjTableTitle = 'Summary' })
 Write-Output $summaryRows
 
@@ -730,24 +818,8 @@ else {
 #region     Cleanup
 ############################################################
 
-# Remove the report files created by this run
-foreach ($reportFile in $reportFiles) {
-    Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
-}
-
-# Remove the downloaded branding images, if any were used.
-foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
-    if ($brandingMailParams -and $brandingMailParams.ContainsKey($brandingKey) -and (Test-Path -LiteralPath $brandingMailParams[$brandingKey])) {
-        Remove-Item -LiteralPath $brandingMailParams[$brandingKey] -Force -ErrorAction SilentlyContinue
-    }
-}
-
-if (Get-MgContext -ErrorAction SilentlyContinue) {
-    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
-}
-if (Get-AzContext -ErrorAction SilentlyContinue) {
-    Disconnect-AzAccount -ErrorAction SilentlyContinue -Confirm:$false | Out-Null
-}
+# Report files, branding images and sessions; a failing export, upload or email step runs the same cleanup before it rethrows
+Invoke-RunbookCleanup -ReportFiles $reportFiles -BrandingMailParams $brandingMailParams
 
 Write-Output ""
 Write-Output "Done!"

@@ -354,8 +354,9 @@ try {
             for ($i = 0; $i -lt $result.Schema.Column.count; $i++) {
                 $properties.add($result.Schema.Column[$i], $row[$i])
             }
-            # Exclude compliant policies and not applicable policies
-            if ($properties.PolicyStatus -notin @(1, 2)) {
+            # Exclude compliant policies and not applicable policies. A device used by several users reports a policy once per
+            # user: keep the first non-compliant row, the settings are queried per device and policy anyway
+            if ($properties.PolicyStatus -notin @(1, 2) -and -not $policies.ContainsKey($properties.PolicyId)) {
                 $settingsBody = @{
                     select  = @(
                     )
@@ -406,6 +407,10 @@ try {
         }
     }
     ""
+}
+catch {
+    # Fail the run: without a catch, an error that only ends its statement would leave the collection incomplete
+    throw
 }
 finally {
     $PSDefaultParameterValues.Remove('Invoke-MgGraphRequest:OutputType')
@@ -480,8 +485,36 @@ foreach ($device in $deviceToPolicy.Keys) {
 }
 ""
 
-# Output Data rows: the rows and columns of the three CSV files, statistics sorted by number of non-compliant devices
-$deviceRows = @($fullCsv | Select-Object -Property DeviceName, UPN, ManagedDeviceOwnerType, OperatingSystem, PolicyName, PolicyStatus_loc, SettingName, SettingStatus_loc, @{ Name = "LastContact"; Expression = { ConvertTo-DisplayValue -Value $_.LastContact } }, SerialNumber, PolicyId, SettingId, DeviceId)
+# Output Data rows: the columns of the three CSV files, one device row per failing setting (one row with empty setting columns
+# for a policy without failing settings), statistics sorted by number of non-compliant devices
+$deviceRows = @(foreach ($device in $deviceToPolicy.Keys) {
+        $deviceObject = $devices | Where-Object { $_.id -eq $device }
+        foreach ($policy in $deviceToPolicy[$device].Keys) {
+            $policyObject = $deviceToPolicy[$device][$policy]
+            $settingIds = @($policyObject.Settings.Keys)
+            if ($settingIds.Count -eq 0) {
+                $settingIds = @("")
+            }
+            foreach ($setting in $settingIds) {
+                $settingObject = if ($setting) { $policyObject.Settings[$setting] } else { $null }
+                [PSCustomObject]@{
+                    DeviceName             = $deviceObject.deviceName
+                    UPN                    = $policyObject.UPN
+                    ManagedDeviceOwnerType = $deviceObject.managedDeviceOwnerType
+                    OperatingSystem        = $deviceObject.operatingSystem
+                    PolicyName             = $policyObject.PolicyName
+                    PolicyStatus_loc       = $policyObject.PolicyStatus_loc
+                    SettingName            = $settingObject.SettingName
+                    SettingStatus_loc      = $settingObject.SettingStatus_loc
+                    LastContact            = ConvertTo-DisplayValue -Value $policyObject.LastContact
+                    SerialNumber           = $deviceObject.serialNumber
+                    PolicyId               = $policy
+                    SettingId              = $setting
+                    DeviceId               = $device
+                }
+            }
+        }
+    })
 $policyRows = @(foreach ($policy in $policyStatistics.Keys | Sort-Object { $policyStatistics[$_][1] } -Descending) {
         $policyObject = $policyStatistics[$policy][0]
         [PSCustomObject]@{ PolicyName = "$($policyObject.PolicyName)"; NonCompliantDevices = $policyStatistics[$policy][1]; PolicyId = "$($policyObject.PolicyId)" }
@@ -535,6 +568,7 @@ if ($produceLinks) {
 #region     Upload / Download Link
 ########################################################
 
+$uploadError = $null
 if ($produceLinks) {
     $uploadParameters = @{
         ContainerName      = $ContainerName
@@ -561,7 +595,12 @@ if ($produceLinks) {
         }
         catch {
             Write-RjRbLog -Message "Upload to storage account '$StorageAccountName' failed: $($_.Exception.Message). The managed identity needs the 'Reader and Data Access' role on the storage account." -Verbose
-            $_
+            # The uploads are the delivery of this runbook: remove the local file, deliver the other files and the Output Data,
+            # then fail the job with the first error
+            Remove-Item -LiteralPath $upload.File -Force -ErrorAction SilentlyContinue
+            if (-not $uploadError) {
+                $uploadError = $_
+            }
         }
         ""
     }
@@ -621,6 +660,11 @@ if (Get-MgContext -ErrorAction SilentlyContinue) {
 }
 if ($produceLinks) {
     Disconnect-AzAccount -ErrorAction SilentlyContinue -Confirm:$false | Out-Null
+}
+
+# Fail the run only now that the Output Data is written and the sessions are closed
+if ($uploadError) {
+    throw $uploadError
 }
 
 Write-Output ""

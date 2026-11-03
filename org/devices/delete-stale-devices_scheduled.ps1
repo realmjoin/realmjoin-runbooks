@@ -3,10 +3,10 @@
 	Delete Intune devices that have been inactive for too long
 
 	.DESCRIPTION
-	Finds Intune devices that have not checked in for a given number of days, filtered by platform and optionally by the group membership of their primary user. By default it only lists what it would delete; deletion has to be switched on explicitly. The report can be sent by email or provided as a download link.
+	Finds Intune devices that have not checked in for a given number of days, filtered by platform and optionally by group membership. An include group limits the run to devices of its users; an exclude group protects devices of its users and devices that are members themselves. By default it only lists what it would delete; deletion has to be switched on explicitly. The report can be sent by email or provided as a download link.
 
 	.PARAMETER Days
-	Devices with no check-in for at least this many days count as stale.
+	Devices with no check-in for at least this many days count as stale. Allowed are 1 to 3650 days.
 
 	.PARAMETER Windows
 	Includes Windows devices.
@@ -66,13 +66,13 @@
 	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
 	.PARAMETER UseUserScope
-	Whether devices are filtered by the group membership of their primary user. Set by the "Filter by primary user group?" choice.
+	Set by the "Filter by primary user group?" choice; with "Yes", at least one group is required. A group in "Include users from group" or "Exclude users from group" applies whenever it is set, also without this choice.
 
 	.PARAMETER IncludeUserGroup
-	Only devices whose primary user is in this group.
+	Only devices whose primary user is a member of this group, directly or through nested groups. Devices without a primary user are left out.
 
 	.PARAMETER ExcludeUserGroup
-	Skips devices whose primary user is in this group.
+	Skips devices whose primary user is a member of this group and devices that are members themselves, directly or through nested groups. Skipped devices are never deleted.
 
 	.PARAMETER CallerName
 	Name of the user who started the runbook. Set by the portal and recorded for auditing.
@@ -219,6 +219,7 @@
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
+    [ValidateRange(1, 3650)]
     [int] $Days = 30,
     [bool] $Windows = $true,
     [bool] $MacOS = $true,
@@ -319,6 +320,22 @@ if ($EmailTo -and -not $EmailFrom) {
 if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
     Write-Warning -Message "A target storage account is required to create a download link. Configure the RJReport.StorageAccount.* settings in the runbook customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) or pass ResourceGroupName and StorageAccountName when starting the runbook." -Verbose
     throw "Missing Storage Account Configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)."
+}
+
+# The user groups apply whenever one is passed, also without UseUserScope (API calls and older schedules
+# may pass a group without it), so a group can only narrow the deletion scope, never be ignored
+$groupFilterActive = [bool]($IncludeUserGroup -or $ExcludeUserGroup)
+
+# "Yes, filter by group membership" without a group would delete without the filter that was asked for
+if ($UseUserScope -and -not $groupFilterActive) {
+    Write-Error "Filtering by primary user group is selected, but neither an include nor an exclude group was provided." -ErrorAction Continue
+    throw "Missing user group for the group filter (IncludeUserGroup / ExcludeUserGroup). No devices were deleted."
+}
+
+if ($groupFilterActive -and -not $UseUserScope) {
+    # Shown in the output: the portal also passes a group that was picked before switching to "No, include all devices"
+    Write-Output "A user group was passed although filtering by primary user group is not selected - the group filter is applied anyway."
+    Write-RjRbLog -Message "UseUserScope is not set, but a user group was passed - the user group filter applies anyway" -Verbose
 }
 
 #endregion Parameter Validation
@@ -436,7 +453,9 @@ $selectProperties = @(
     'lastSyncDateTime'
     'enrolledDateTime'
     'userPrincipalName'
+    'userId'
     'id'
+    'azureADDeviceId'
     'serialNumber'
     'manufacturer'
     'model'
@@ -464,22 +483,26 @@ finally {
 
 #region User Scope Filtering
 
-# Get group membership for filtering if UseUserScope is enabled
+# Get group membership for filtering when an include or exclude group is passed
 $includeUserIds = @()
 $excludeUserIds = @()
+$excludeDeviceIds = @()
 
-if ($UseUserScope) {
+if ($groupFilterActive) {
     Write-Output ""
     Write-Output "## Processing user scope filtering..."
 
     # The group filter fails closed: when a group cannot be read (or the include group has no users),
     # the run stops here, before any device is deleted, instead of running without the filter.
 
+    # transitiveMembers: members of nested groups count as members; the nested groups themselves are not taken.
+    # The include group takes user objects, the exclude group user and device objects.
+
     # Get users from include group
     if ($IncludeUserGroup) {
         Write-Output "Getting members from include group..."
         try {
-            $includeGroupUri = "https://graph.microsoft.com/v1.0/groups/$IncludeUserGroup/members?`$select=id,userPrincipalName"
+            $includeGroupUri = "https://graph.microsoft.com/v1.0/groups/$IncludeUserGroup/transitiveMembers?`$select=id,userPrincipalName"
             $includeMembers = Get-GraphPagedResult -Uri $includeGroupUri
             $includeUserIds = $includeMembers | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.user' } | ForEach-Object { $_.id }
             Write-Output "Include group contains $($includeUserIds.Count) users"
@@ -494,14 +517,17 @@ if ($UseUserScope) {
         }
     }
 
-    # Get users from exclude group (an empty exclude group excludes nothing)
+    # Get users and devices from exclude group (an empty exclude group excludes nothing)
     if ($ExcludeUserGroup) {
         Write-Output "Getting members from exclude group..."
         try {
-            $excludeGroupUri = "https://graph.microsoft.com/v1.0/groups/$ExcludeUserGroup/members?`$select=id,userPrincipalName"
+            $excludeGroupUri = "https://graph.microsoft.com/v1.0/groups/$ExcludeUserGroup/transitiveMembers?`$select=id,userPrincipalName,deviceId"
             $excludeMembers = Get-GraphPagedResult -Uri $excludeGroupUri
-            $excludeUserIds = $excludeMembers | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.user' } | ForEach-Object { $_.id }
+            $excludeUserIds = @($excludeMembers | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.user' } | ForEach-Object { $_.id })
+            # Device members are matched by their Entra device ID (deviceId), which Intune records as azureADDeviceId
+            $excludeDeviceIds = @($excludeMembers | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.device' -and $_.deviceId } | ForEach-Object { "$($_.deviceId)" })
             Write-Output "Exclude group contains $($excludeUserIds.Count) users"
+            Write-Output "Exclude group contains $($excludeDeviceIds.Count) devices"
         }
         catch {
             Write-Error "Failed to retrieve the members of the exclude group '$ExcludeUserGroup': $($_.Exception.Message)" -ErrorAction Continue
@@ -524,7 +550,6 @@ $filteredDevices = @()
 # Devices that are never deleted because their primary user could not be resolved while a user group filter is active
 $skippedDevices = @()
 $skippedStatus = "Skipped: primary user could not be resolved"
-$groupFilterActive = $UseUserScope -and ($IncludeUserGroup -or $ExcludeUserGroup)
 
 foreach ($device in $devices) {
     $include = $false
@@ -544,54 +569,61 @@ foreach ($device in $devices) {
     }
 
     if ($include) {
-        # Try to get additional user information
+        $userGroupCheckable = $true
+        if ($groupFilterActive) {
+            # Exclude group: a device that is a member itself (matched by its Entra device ID) is never deleted
+            $entraDeviceId = "$($device.azureADDeviceId)"
+            if ($ExcludeUserGroup -and $entraDeviceId -and ($entraDeviceId -in $excludeDeviceIds)) {
+                Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - the device is in the exclude group" -Verbose
+                continue
+            }
+
+            # The user groups are checked against the primary user's object ID as recorded by Intune, which stays
+            # the same when the UPN changes and is kept for deleted users (never in the include group, so out of scope)
+            $primaryUserId = "$($device.userId)"
+            if ((-not $primaryUserId) -and $device.userPrincipalName) {
+                # Fail closed: a primary user is recorded without its object ID, so the user groups cannot be checked
+                $userGroupCheckable = $false
+            }
+            elseif ($IncludeUserGroup -and (-not $primaryUserId)) {
+                # With an include group, a device without a primary user is out of scope (like a primary user outside the group).
+                # With only an exclude group it stays in scope.
+                Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - no primary user, so it is not in the include group" -Verbose
+                continue
+            }
+            elseif ($IncludeUserGroup -and ($primaryUserId -notin $includeUserIds)) {
+                Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - primary user '$($device.userPrincipalName)' not in include group" -Verbose
+                continue
+            }
+            elseif ($ExcludeUserGroup -and $primaryUserId -and ($primaryUserId -in $excludeUserIds)) {
+                Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - primary user '$($device.userPrincipalName)' in exclude group" -Verbose
+                continue
+            }
+        }
+
+        # Primary user details for the report only; a failed lookup does not affect the group filter
         if ($device.userPrincipalName) {
-            $userLookupFailed = $false
-            $userLookupError = $null
             try {
                 $encodedUserPrincipalName = [System.Uri]::EscapeDataString($device.userPrincipalName)
                 $userUri = "https://graph.microsoft.com/v1.0/users/{0}?`$select=id,displayName,city,usageLocation" -f $encodedUserPrincipalName
-                $userInfo = Invoke-MgGraphRequest -Uri $userUri -Method GET -ErrorAction SilentlyContinue -ErrorVariable userLookupError
+                $userInfo = Invoke-MgGraphRequest -Uri $userUri -Method GET -ErrorAction Stop
 
                 if ($userInfo) {
                     $device | Add-Member -Name "userDisplayName" -Value $userInfo.displayName -MemberType "NoteProperty" -Force
                     $device | Add-Member -Name "userLocation" -Value "$($userInfo.city), $($userInfo.usageLocation)" -MemberType "NoteProperty" -Force
-
-                    # Apply user scope filtering if enabled
-                    if ($UseUserScope) {
-                        $userId = $userInfo.id
-
-                        # Apply include filter
-                        if ($IncludeUserGroup -and ($includeUserIds.Count -gt 0) -and ($userId -notin $includeUserIds)) {
-                            Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - primary user '$($device.userPrincipalName)' not in include group" -Verbose
-                            continue
-                        }
-
-                        # Apply exclude filter
-                        if ($ExcludeUserGroup -and ($excludeUserIds.Count -gt 0) -and ($userId -in $excludeUserIds)) {
-                            Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - primary user '$($device.userPrincipalName)' in exclude group" -Verbose
-                            continue
-                        }
-                    }
-                }
-                else {
-                    $userLookupFailed = $true
                 }
             }
             catch {
                 Write-RjRbLog -Message "Could not retrieve user info for $($device.userPrincipalName): $($_.Exception.Message)" -Verbose
-                $userLookupFailed = $true
             }
+        }
 
-            # Fail closed: without the primary user the group filter cannot be checked, so the device is never deleted
-            if ($userLookupFailed -and $groupFilterActive) {
-                $lookupErrorText = if ($userLookupError) { " ($(@($userLookupError)[0].Exception.Message))" } else { "" }
-                Write-Output "Skipping device '$($device.deviceName)' - primary user '$($device.userPrincipalName)' could not be resolved, so the user group filter cannot be checked"
-                Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - primary user '$($device.userPrincipalName)' could not be resolved$($lookupErrorText)" -Verbose
-                $device | Add-Member -Name "deletionStatus" -Value $skippedStatus -MemberType "NoteProperty" -Force
-                $skippedDevices += $device
-                continue
-            }
+        if (-not $userGroupCheckable) {
+            Write-Output "Skipping device '$($device.deviceName)' - primary user '$($device.userPrincipalName)' could not be resolved, so the user group filter cannot be checked"
+            Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - Intune records the primary user '$($device.userPrincipalName)' without a user object ID" -Verbose
+            $device | Add-Member -Name "deletionStatus" -Value $skippedStatus -MemberType "NoteProperty" -Force
+            $skippedDevices += $device
+            continue
         }
 
         $filteredDevices += $device
@@ -730,25 +762,34 @@ if (($EmailTo -or $CreateDownloadLink) -and ($filteredDevices.Count + $skippedDe
 #region     Upload / Download Link
 ########################################################
 
+# An upload failure must not lose the report of devices that are already deleted: the email and the Output Data
+# are still delivered, and the job fails at the end
+$uploadError = $null
 if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
     Write-Output ""
     Write-Output "## Uploading report to storage account..."
 
     # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
     # transparently connects the managed identity if no Az context is active.
-    $uploadResults = Publish-RjRbFilesToStorageContainer `
-        -FilePaths $reportFiles `
-        -ContainerName $ContainerName `
-        -ResourceGroupName $ResourceGroupName `
-        -StorageAccountName $StorageAccountName `
-        -SubscriptionId $SubscriptionId `
-        -LinkExpiryDays $LinkExpiryDays `
-        -AddBlobNamePrefix $true
+    try {
+        $uploadResults = Publish-RjRbFilesToStorageContainer `
+            -FilePaths $reportFiles `
+            -ContainerName $ContainerName `
+            -ResourceGroupName $ResourceGroupName `
+            -StorageAccountName $StorageAccountName `
+            -SubscriptionId $SubscriptionId `
+            -LinkExpiryDays $LinkExpiryDays `
+            -AddBlobNamePrefix $true
 
-    foreach ($uploadResult in $uploadResults) {
-        Write-Output ""
-        Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
-        $uploadResult.SASLink | Out-String | Write-Output
+        foreach ($uploadResult in $uploadResults) {
+            Write-Output ""
+            Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
+            $uploadResult.SASLink | Out-String | Write-Output
+        }
+    }
+    catch {
+        $uploadError = $_.Exception.Message
+        Write-Error "Failed to upload the report file(s) to storage account '$StorageAccountName': $uploadError. The managed identity needs the 'Reader and Data Access' role on the storage account. The report is still sent by email (if requested) and written to Output Data; the job fails at the end." -ErrorAction Continue
     }
 }
 
@@ -777,7 +818,7 @@ $actionText = if ($DeleteDevices) { "have been deleted from Intune" } else { "**
 # Devices skipped because their primary user could not be resolved (only with an active user group filter)
 $skippedSection = ""
 if ($skippedDevices.Count -gt 0) {
-    $skippedSection = "## Skipped Devices`n`nThe following devices are never deleted because their primary user could not be resolved, so the user group filter could not be checked. Review them manually:`n"
+    $skippedSection = "## Skipped Devices`n`nThe following devices are never deleted because Intune records their primary user without a user ID, so the user group filter could not be checked. Review them manually:`n"
     foreach ($skippedDevice in @($skippedDevices | Select-Object -First 10)) {
         $skippedSection += "`n- $($skippedDevice.deviceName) (primary user: $($skippedDevice.userPrincipalName), ID: $($skippedDevice.id))"
     }
@@ -800,10 +841,10 @@ No managed devices matched the stale device criteria (inactive for at least **$D
 - Inactivity threshold: at least **$Days days**
 - Platforms evaluated: $($platformSummary)
 - Devices evaluated: $($totalDevicesEvaluated)
-$(if ($UseUserScope) {
+$(if ($groupFilterActive) {
     $filterInfo = @()
     if ($IncludeUserGroup) { $filterInfo += "Include group: $($includeUserIds.Count) users" }
-    if ($ExcludeUserGroup) { $filterInfo += "Exclude group: $($excludeUserIds.Count) users" }
+    if ($ExcludeUserGroup) { $filterInfo += "Exclude group: $($excludeUserIds.Count) users and $($excludeDeviceIds.Count) devices" }
     "- User scope filtering: $($filterInfo -join ', ')$(if ($skippedDevices.Count -gt 0) { "`n- Skipped, primary user could not be resolved: $($skippedDevices.Count)" })"
 })
 
@@ -817,10 +858,10 @@ else {
 # Stale Devices Deletion Report
 
 This report lists devices that have been inactive for at least **$Days days**. The listed devices $($actionText).
-$(if ($UseUserScope) {
+$(if ($groupFilterActive) {
     $filterInfo = @()
     if ($IncludeUserGroup) { $filterInfo += "Include group with $($includeUserIds.Count) users" }
-    if ($ExcludeUserGroup) { $filterInfo += "Exclude group with $($excludeUserIds.Count) users" }
+    if ($ExcludeUserGroup) { $filterInfo += "Exclude group with $($excludeUserIds.Count) users and $($excludeDeviceIds.Count) devices" }
     "`n**User Scope Filtering Applied:** $($filterInfo -join ', ')"
 })
 
@@ -1019,8 +1060,11 @@ $summaryValues = [ordered]@{
     "Platforms"                         = $platformSummary
     "Devices evaluated (all platforms)" = $totalDevicesEvaluated
 }
-if ($UseUserScope -and $IncludeUserGroup) { $summaryValues["Users in include group"] = $includeUserIds.Count }
-if ($UseUserScope -and $ExcludeUserGroup) { $summaryValues["Users in exclude group"] = $excludeUserIds.Count }
+if ($IncludeUserGroup) { $summaryValues["Users in include group"] = $includeUserIds.Count }
+if ($ExcludeUserGroup) {
+    $summaryValues["Users in exclude group"] = $excludeUserIds.Count
+    $summaryValues["Devices in exclude group"] = $excludeDeviceIds.Count
+}
 $summaryValues["Stale devices"] = $filteredDevices.Count
 if ($groupFilterActive) { $summaryValues["Skipped, primary user not resolved"] = $skippedDevices.Count }
 if ($Windows) { $summaryValues["Windows devices"] = $windowsCount }
@@ -1105,6 +1149,11 @@ else {
 }
 if ($skippedDevices.Count -gt 0) {
     Write-Output "Devices skipped (primary user could not be resolved): $($skippedDevices.Count)"
+}
+
+# Fail the job only now, after the email, the Output Data and the cleanup
+if ($uploadError) {
+    throw "Failed to create the download link: $uploadError"
 }
 
 Write-Output ""

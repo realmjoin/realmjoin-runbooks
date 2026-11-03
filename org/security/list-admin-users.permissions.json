@@ -7,7 +7,7 @@
             "AppRoleAssignments": [
                 {
                     "Value": "Directory.Read.All",
-                    "Reason": "Resolves role-holder principal ids to users, groups or service principals via /directoryObjects"
+                    "Reason": "Resolves role-holder principal ids to users, groups or service principals via /directoryObjects and lists the members of role-assignable groups that hold a role"
                 },
                 {
                     "Value": "RoleAssignmentSchedule.Read.Directory",

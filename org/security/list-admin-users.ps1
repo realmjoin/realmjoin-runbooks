@@ -3,7 +3,7 @@
 	List all Entra ID admins and check their MFA methods
 
 	.DESCRIPTION
-	Lists every user and service principal that holds a built-in Entra ID role, including PIM eligible assignments, as an admin-to-role report. Optionally the registered authentication methods of each admin are checked to show who is protected by MFA, with a choice of which methods count. The report can be uploaded as CSV to an Azure Storage account. Nothing is changed.
+	Lists every user and service principal that holds a built-in Entra ID role, also through PIM eligibility or a role-assignable group, as an admin-to-role report. Optionally the authentication methods of each admin are checked to show who is protected by MFA. The report can be uploaded as CSV to an Azure Storage account. Nothing is changed. The run fails when role assignments or the members of a role-assignable group cannot be read, or when the upload fails.
 
 	.PARAMETER ExportToFile
 	Uploads the report as CSV to the storage account configured in the tenant settings.
@@ -30,7 +30,7 @@
 	No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run.
 
 	.PARAMETER QueryMfaState
-	With the check, each admin gets a column showing whether a method that counts as MFA is registered; without it, the report lists only the role assignments.
+	With the check, each admin gets a column showing whether a method that counts as MFA is registered; without it, the report lists only the role assignments. Admins whose methods cannot be read are listed as not checkable.
 
 	.PARAMETER TrustEmailMfa
 	Counts email as a valid MFA method.
@@ -39,10 +39,10 @@
 	Counts phone calls and SMS as a valid MFA method.
 
 	.PARAMETER TrustSoftwareOathMfa
-	Counts software OATH tokens as a valid MFA method.
+	Counts software OATH tokens as a valid MFA method. Hardware OATH tokens always count.
 
 	.PARAMETER TrustWinHelloMFA
-	Counts Windows Hello for Business as a valid MFA method.
+	Counts Windows Hello for Business as a valid MFA method. The platform credential of macOS Platform SSO always counts.
 
 	.PARAMETER RJReportResourceGroupName
 	Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when ListAdminsReport.ResourceGroup is not set.
@@ -325,31 +325,90 @@ function Get-GraphPagedResult {
 
         .DESCRIPTION
         Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
-        by following the @odata.nextLink property in the response.
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
 
         .PARAMETER Uri
         The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
-        e.g., "https://graph.microsoft.com/v1.0/applications".
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
 
         .EXAMPLE
-        PS C:\> $allApps = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/applications"
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
     #>
     param(
         [string]$Uri
     )
 
-    $allResults = @()
+    $allResults = [System.Collections.Generic.List[object]]::new()
     $nextLink = $Uri
+    $pageCount = 0
 
     do {
-        $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
-        if ($response.value) {
-            $allResults += $response.value
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
         }
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
         $nextLink = $response.'@odata.nextLink'
     } while ($nextLink)
 
-    return $allResults
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
+}
+
+function Test-PimLicenseError {
+    <#
+        .SYNOPSIS
+        Tells whether a failed PIM read only means that the tenant has no PIM license.
+
+        .DESCRIPTION
+        PIM needs Microsoft Entra ID P2 or Microsoft Entra ID Governance. Without such a license the PIM APIs
+        are not available and the tenant has no PIM assignments, so the report is complete without them.
+
+        .PARAMETER ErrorRecord
+        The error record of the failed Graph request.
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Management.Automation.ErrorRecord]$ErrorRecord
+    )
+
+    $errorText = "$($ErrorRecord.ErrorDetails.Message) $($ErrorRecord.Exception.Message)"
+    return ($errorText -match 'AadPremiumLicenseRequired|licen[cs]e|premium')
+}
+
+function ConvertTo-ReportCsvField {
+    <#
+        .SYNOPSIS
+        Quotes a free-text value for the semicolon-separated CSV report.
+
+        .PARAMETER Value
+        The value to write into one CSV field.
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Value
+    )
+
+    if ($Value -match '[;"\r\n]') {
+        return '"' + $Value.Replace('"', '""') + '"'
+    }
+    return $Value
 }
 
 #endregion Helper Functions
@@ -382,31 +441,45 @@ catch {
 ## Get builtin AzureAD Roles
 $roles = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/roleManagement/directory/roleDefinitions?`$filter=isBuiltIn eq true"
 
-if ([array]$roles.count -eq 0) {
+if (@($roles).Count -eq 0) {
     "## Error - No AzureAD roles found. Missing permissions?"
     throw("no roles found")
 }
 
 ## Performance issue - Get all role assignments at once
+# A failed read fails the job: without these assignments the report would look complete but miss admins
 try {
     $allRoleHolders = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/roleManagement/directory/roleAssignments"
 }
 catch {
-    $allRoleHolders = @()
+    Write-Error "Reading the Entra ID role assignments failed, so the report would be incomplete. Ensure the managed identity holds RoleManagement.Read.All." -ErrorAction Continue
+    throw
 }
 
+# Without a Microsoft Entra ID P2 or ID Governance license the PIM APIs are not available and there are no PIM
+# assignments to list. Any other failed read fails the job. 2>$null: the error is reported here, not by the pager.
 try {
-    $allPimHolders = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/roleManagement/directory/roleEligibilitySchedules"
+    $allPimHolders = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/roleManagement/directory/roleEligibilitySchedules" 2>$null
 }
 catch {
+    if (-not (Test-PimLicenseError -ErrorRecord $_)) {
+        Write-Error "Reading the PIM eligible role assignments failed, so the report would be incomplete. Ensure the managed identity holds RoleManagement.Read.All. Error: $($_.Exception.Message)" -ErrorAction Continue
+        throw
+    }
+    Write-RjRbLog -Message "PIM is not licensed in this tenant - there are no PIM eligible assignments to list" -Verbose
     $allPimHolders = @()
 }
 
 try {
     # Includes permanent assignments and time-bound PIM activations.
-    $allPimActiveInstances = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/roleManagement/directory/roleAssignmentScheduleInstances?`$select=principalId,roleDefinitionId,startDateTime,endDateTime"
+    $allPimActiveInstances = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/roleManagement/directory/roleAssignmentScheduleInstances?`$select=principalId,roleDefinitionId,startDateTime,endDateTime" 2>$null
 }
 catch {
+    if (-not (Test-PimLicenseError -ErrorRecord $_)) {
+        Write-Error "Reading the active role assignment schedules failed, so the end dates in the report would be wrong. Ensure the managed identity holds RoleAssignmentSchedule.Read.Directory. Error: $($_.Exception.Message)" -ErrorAction Continue
+        throw
+    }
+    Write-RjRbLog -Message "PIM is not licensed in this tenant - active assignments are reported as permanent" -Verbose
     $allPimActiveInstances = @()
 }
 
@@ -595,6 +668,64 @@ if ($allPimActiveInstances -and ([array]$allPimActiveInstances).Count -gt 0) {
 
 $AdminUsers = @{}
 
+# Errors that leave the report incomplete but still allow it to be delivered: the job fails with the first one at the end
+$deferredErrors = [System.Collections.Generic.List[string]]::new()
+
+# A role assigned to a role-assignable group applies to all its members: they are listed under the group, get the role
+# in the CSV and are part of the MFA check
+$roleGroupNames = @{}
+$roleGroupMembers = @{}
+$AdminGroupIds = @{}
+
+$expandRoleGroup = {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$Group
+    )
+
+    if (-not $roleGroupMembers.ContainsKey($Group.id)) {
+        $roleGroupNames[$Group.id] = $Group.displayName
+        try {
+            # No OData cast to microsoft.graph.user here: the cast needs advanced query parameters the pager does not send
+            $roleGroupMembers[$Group.id] = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/groups/$($Group.id)/transitiveMembers")
+        }
+        catch {
+            $roleGroupMembers[$Group.id] = $null
+            $memberErrorMessage = "The members of the role-assignable group '$($Group.displayName)' could not be read, so they are missing from the report and the MFA check: $($_.Exception.Message)"
+            Write-RjRbLog -Message "WARNING: $memberErrorMessage"
+            Write-Warning $memberErrorMessage
+            $deferredErrors.Add($memberErrorMessage)
+        }
+
+        foreach ($member in @($roleGroupMembers[$Group.id] | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.user' })) {
+            if (-not $AdminUsers.ContainsKey($member.id)) {
+                $AdminUsers[$member.id] = $member.userPrincipalName
+            }
+            if (-not $AdminGroupIds.ContainsKey($member.id)) {
+                $AdminGroupIds[$member.id] = [System.Collections.Generic.List[string]]::new()
+            }
+            $AdminGroupIds[$member.id].Add($Group.id)
+        }
+    }
+
+    if ($null -eq $roleGroupMembers[$Group.id]) {
+        "    Members could not be read"
+        return
+    }
+
+    foreach ($member in ($roleGroupMembers[$Group.id] | Sort-Object { if ($_.userPrincipalName) { $_.userPrincipalName } else { $_.displayName } })) {
+        if ($member.'@odata.type' -eq '#microsoft.graph.user') {
+            "    $($member.userPrincipalName) (via group $($Group.displayName))"
+        }
+        elseif ($member.'@odata.type' -eq '#microsoft.graph.servicePrincipal') {
+            "    $($member.displayName) (ServicePrincipal, via group $($Group.displayName))"
+        }
+        else {
+            "    $($member.displayName) $($member.'@odata.type') (via group $($Group.displayName))"
+        }
+    }
+}
+
 $roles | ForEach-Object {
     $roleDefinitionId = $_.id
     $pimHolders = $allPimHolders | Where-Object { $_.roleDefinitionId -eq $roleDefinitionId }
@@ -632,6 +763,7 @@ $roles | ForEach-Object {
                 }
                 elseif ($principal."@odata.type" -eq "#microsoft.graph.group") {
                     "  $($principal.displayName) (Group)$activeUntilSuffix"
+                    & $expandRoleGroup -Group $principal
                 }
                 else {
                     "  $($principal.displayName) $($principal."@odata.type")$activeUntilSuffix"
@@ -669,6 +801,7 @@ $roles | ForEach-Object {
                 }
                 elseif ($principal."@odata.type" -eq "#microsoft.graph.group") {
                     "  $($principal.displayName) (Group)$eligibleSuffix"
+                    & $expandRoleGroup -Group $principal
                 }
                 else {
                     "  $($principal.displayName) $($principal."@odata.type")$eligibleSuffix"
@@ -714,28 +847,51 @@ if ($exportToFile) {
             $output += ($_.displayName + "_ActiveRemaining;")
         }
     }
+    # Added last, so the role columns keep their positions and their plain x/p values
+    $output += "RoleGroups;"
     $output > $filename
+
+    $roleHolderKeys = @{}
+    foreach ($roleHolder in $allRoleHolders) {
+        $roleHolderKeys["$($roleHolder.principalId)|$($roleHolder.roleDefinitionId)"] = $true
+    }
 
     $AdminUsers.GetEnumerator() | Sort-Object -Property Value | ForEach-Object {
         $AdminId = $_.Key
         $AdminUPN = $_.Value
+        # The admin's own assignments come first, then those of the role-assignable groups the admin is a member of
+        $principalIds = @($AdminId)
+        if ($AdminGroupIds.ContainsKey($AdminId)) {
+            $principalIds += @($AdminGroupIds[$AdminId] | Sort-Object { $roleGroupNames[$_] })
+        }
         [string]$output = $AdminUPN + ";"
+        # The role columns show x/p whether the role is held directly or through a role-assignable group;
+        # the groups are listed in the last column
+        $roleGroupEntries = [System.Collections.Generic.List[string]]::new()
         $roles | ForEach-Object {
             $roleDefinitionId = $_.id
-            if ($allRoleHolders | Where-Object { ($_.roleDefinitionId -eq $roleDefinitionId) -and ($_.principalId -eq $AdminId) }) {
+            $roleName = $_.displayName
+            $activeIds = @($principalIds | Where-Object { $roleHolderKeys.ContainsKey("$_|$roleDefinitionId") })
+            $eligibleIds = @($principalIds | Where-Object { $pimEligibleInfoByPrincipalRole.ContainsKey("$_|$roleDefinitionId") })
+            if ($activeIds.Count -gt 0) {
                 $output += "x;"
             }
-            elseif ($pimEligibleInfoByPrincipalRole.ContainsKey("$AdminId|$roleDefinitionId")) {
+            elseif ($eligibleIds.Count -gt 0) {
                 $output += "p;"
             }
             else {
                 $output += ";"
             }
+            foreach ($groupId in @($activeIds | Where-Object { $_ -ne $AdminId })) {
+                $roleGroupEntries.Add("$($roleGroupNames[$groupId]) ($roleName)")
+            }
+            foreach ($groupId in @($eligibleIds | Where-Object { $_ -ne $AdminId })) {
+                $roleGroupEntries.Add("$($roleGroupNames[$groupId]) ($roleName, eligible)")
+            }
 
             if ($pimEligibleUntilInCSV) {
-                $key = "$AdminId|$roleDefinitionId"
-                if ($pimEligibleInfoByPrincipalRole.ContainsKey($key)) {
-                    $eligibleInfo = $pimEligibleInfoByPrincipalRole[$key]
+                if ($eligibleIds.Count -gt 0) {
+                    $eligibleInfo = $pimEligibleInfoByPrincipalRole["$($eligibleIds[0])|$roleDefinitionId"]
                     $output += ([string]$eligibleInfo.UntilText + ";")
                     $output += ([string]$eligibleInfo.RemainingText + ";")
                 }
@@ -743,21 +899,27 @@ if ($exportToFile) {
                     $output += ";;"
                 }
 
-                if ($pimActiveInfoByPrincipalRole.ContainsKey($key)) {
-                    $activeInfo = $pimActiveInfoByPrincipalRole[$key]
-                    $output += ([string]$activeInfo.UntilText + ";")
-                    $output += ([string]$activeInfo.RemainingText + ";")
+                $activeText = ";;"
+                foreach ($principalId in $principalIds) {
+                    $key = "$principalId|$roleDefinitionId"
+                    if ($pimActiveInfoByPrincipalRole.ContainsKey($key)) {
+                        $activeInfo = $pimActiveInfoByPrincipalRole[$key]
+                        $activeText = ([string]$activeInfo.UntilText + ";") + ([string]$activeInfo.RemainingText + ";")
+                        break
+                    }
+                    if ($roleHolderKeys.ContainsKey($key)) {
+                        # Fallback if schedule instances are not accessible.
+                        $activeText = 'Permanent;;'
+                        break
+                    }
                 }
-                elseif ($allRoleHolders | Where-Object { ($_.roleDefinitionId -eq $roleDefinitionId) -and ($_.principalId -eq $AdminId) }) {
-                    # Fallback if schedule instances are not accessible.
-                    $output += ('Permanent;')
-                    $output += (';')
-                }
-                else {
-                    $output += ";;"
-                }
+                $output += $activeText
             }
         }
+        if ($roleGroupEntries.Count -gt 0) {
+            $output += (ConvertTo-ReportCsvField -Value ($roleGroupEntries -join ', '))
+        }
+        $output += ";"
         $output >> $filename
     }
     $content = Get-Content $filename
@@ -772,13 +934,12 @@ if ($exportToFile) {
 ############################################################
 
 if ($exportToFile) {
-    Connect-RjRbAzAccount
-
     if (-not $ContainerName) {
         $ContainerName = "adminoverview-" + (Get-Date -Format "yyyy-MM-dd")
     }
 
     try {
+        Connect-RjRbAzAccount
         Write-RjRbLog -Message "Upload" -Verbose
         $uploadResults = Publish-RjRbFilesToStorageContainer `
             -FilePaths $reportFiles `
@@ -798,11 +959,12 @@ if ($exportToFile) {
         "## Expiry of Links: $(@($uploadResults)[0].EndTime)"
     }
     catch {
-        # The MFA state below is still reported when the upload fails
+        # The MFA state below is still reported when the upload fails; the job fails at the end
         Write-RjRbLog -Message "Upload to storage account '$StorageAccountName' failed: $($_.Exception.Message). The managed identity needs the 'Reader and Data Access' role on the storage account." -Verbose
         "## Upload of report failed. Please see log."
         ""
         $_
+        $deferredErrors.Add("Upload of the report to storage account '$StorageAccountName' failed: $($_.Exception.Message)")
     }
 }
 
@@ -816,11 +978,20 @@ if ($QueryMfaState) {
     ""
     "## MFA State of each Admin:"
     $NoMFAAdmins = @()
+    $UnknownMFAAdmins = @()
     $AdminUsers.GetEnumerator() | Sort-Object -Property Value | ForEach-Object {
         $AdminId = $_.Key
         $AdminUPN = $_.Value
         $AuthenticationMethods = @()
-        [array]$MFAData = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/users/$AdminId/authentication/methods"
+        try {
+            # beta: only this version lists hardware OATH tokens
+            [array]$MFAData = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/users/$AdminId/authentication/methods"
+        }
+        catch {
+            # Methods that could not be read say nothing about MFA - keep the admin apart from those without valid MFA
+            $UnknownMFAAdmins += $AdminUPN
+            return
+        }
         foreach ($MFA in $MFAData) {
             switch ($MFA."@odata.type") {
                 "#microsoft.graph.microsoftAuthenticatorAuthenticationMethod" {
@@ -852,6 +1023,15 @@ if ($QueryMfaState) {
                         $AuthenticationMethods += "- SoftwareOath"
                     }
                 }
+                "#microsoft.graph.hardwareOathAuthenticationMethod" {
+                    $AuthenticationMethods += "- HardwareOath"
+                }
+                "#microsoft.graph.externalAuthenticationMethod" {
+                    $AuthenticationMethods += "- External authentication method"
+                }
+                "#microsoft.graph.platformCredentialAuthenticationMethod" {
+                    $AuthenticationMethods += "- Platform credential (macOS)"
+                }
             }
         }
         if ($AuthenticationMethods.count -eq 0) {
@@ -869,6 +1049,15 @@ if ($QueryMfaState) {
         "## Admins without valid MFA:"
         $NoMFAAdmins | Sort-Object -Unique
     }
+
+    if ($UnknownMFAAdmins.Count -ne 0) {
+        ""
+        "## Admins whose MFA state could not be read:"
+        $UnknownMFAAdmins | Sort-Object -Unique
+        $unknownMfaMessage = "The authentication methods of $(@($UnknownMFAAdmins | Sort-Object -Unique).Count) admin(s) could not be read. They are listed as not checkable, not as admins without valid MFA."
+        Write-RjRbLog -Message "WARNING: $unknownMfaMessage"
+        Write-Warning $unknownMfaMessage
+    }
 }
 
 #endregion Main Part
@@ -879,6 +1068,11 @@ if ($QueryMfaState) {
 
 foreach ($reportFile in $reportFiles) {
     Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
+}
+
+# Fail the job only now, after the MFA check and the cleanup
+if ($deferredErrors.Count -gt 0) {
+    throw $deferredErrors[0]
 }
 
 #endregion Cleanup

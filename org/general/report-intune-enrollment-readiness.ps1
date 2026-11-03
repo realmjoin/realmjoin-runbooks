@@ -18,7 +18,7 @@
 	Adds a column with the pilot group membership; non-members are reported as Not ready.
 
 	.PARAMETER PilotGroupDisplayName
-	Members of this group count as pilot users. The group is looked up by its display name.
+	Members of this group count as pilot users. The group is looked up by its display name. Used only when the pilot group membership is checked.
 
 	.PARAMETER EmailFrom
 	Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
@@ -1201,11 +1201,13 @@ if ($CheckPilotGroupMembership -and $PilotGroupDisplayName) {
         if ($groupResult.value.Count -eq 0) {
             Write-RjRbLog -Message "WARNING: Pilot group '$PilotGroupDisplayName' not found" -Verbose
         }
-        elseif ($groupResult.value.Count -gt 1) {
-            Write-RjRbLog -Message "WARNING: Multiple groups match display name '$PilotGroupDisplayName'; using first match" -Verbose
-            $pilotGroupId = $groupResult.value[0].id
-        }
         else {
+            # Display names are not unique: like the user runbook, the first match is used and the ambiguity reported
+            if ($groupResult.value.Count -gt 1) {
+                $pilotAmbiguityWarning = "Multiple groups match display name '$PilotGroupDisplayName'; using first match ($($groupResult.value[0].id)). Pilot group membership may be inaccurate - give the pilot group a unique name."
+                Write-RjRbLog -Message "WARNING: $pilotAmbiguityWarning" -Verbose
+                Write-Warning $pilotAmbiguityWarning
+            }
             $pilotGroupId = $groupResult.value[0].id
             $pilotGroupResolvedName = $groupResult.value[0].displayName
             Write-RjRbLog -Message "Resolved pilot group: $pilotGroupResolvedName" -Verbose
@@ -1246,6 +1248,7 @@ $userAuthMethods = @{}
 $userDeviceCounts = @{}
 $userEntraDeviceCounts = @{}
 $userManagedDeviceCounts = @{}
+$ownedDevicesTrustTypeWarned = $false
 
 $userCounter = 0
 foreach ($user in $targetUsers) {
@@ -1301,6 +1304,16 @@ foreach ($user in $targetUsers) {
         $userDeviceCounts[$user.id] = $ownedDevicesAll.Count
         # Entra registered or joined devices count against the Entra device quota; hybrid joined do not
         $userEntraDeviceCounts[$user.id] = @($ownedDevicesAll | Where-Object { $_.trustType -in @("Workplace", "AzureAd") }).Count
+        # Without Device.Read.All Graph returns the device objects with their id only, which would count as 0
+        if ($ownedDevicesAll.Count -gt 0 -and @($ownedDevicesAll | Where-Object { $_.trustType }).Count -eq 0) {
+            $userEntraDeviceCounts[$user.id] = $null
+            if (-not $ownedDevicesTrustTypeWarned) {
+                $ownedDevicesTrustTypeWarned = $true
+                $trustTypeWarning = "The devices of the users were returned without their trust type, so the Entra device limit is reported as Unknown. Grant the Device.Read.All application permission to the Automation Account's managed identity."
+                Write-RjRbLog -Message "WARNING: $trustTypeWarning" -Verbose
+                Write-Warning $trustTypeWarning
+            }
+        }
     }
     catch {
         # Non-fatal: this single user's device count is recorded as unknown; the report continues.
@@ -1315,7 +1328,7 @@ foreach ($user in $targetUsers) {
             Write-RjRbLog -Message "WARNING: User '$($user.userPrincipalName)' was not found when retrieving owned devices; the account may have been deleted since the report started. Recorded as unknown." -Verbose
         }
         else {
-            Write-RjRbLog -Message "WARNING: Failed to retrieve owned device count for user '$($user.userPrincipalName)': $($authError.Exception.Message)" -Verbose
+            Write-RjRbLog -Message "WARNING: Failed to retrieve owned device count for user '$($user.userPrincipalName)': $($deviceError.Exception.Message)" -Verbose
         }
         $userDeviceCounts[$user.id] = $null
         $userEntraDeviceCounts[$user.id] = $null
@@ -1362,9 +1375,15 @@ $intuneServicePlanIds = @($intuneServicePlanIds | Sort-Object -Unique)
 # Both feed the Conditional Access assignment-scope evaluation.
 $userGroupCache = @{}
 $userRoleCache = @{}
-# Entra 'Maximum number of devices per user', read once on first use; a failed read skips the quota check
+# Entra 'Maximum number of devices per user', read once on first use; a failed read leaves it $null (Unknown)
 $entraDeviceQuota = $null
 $entraDeviceQuotaLoaded = $false
+# Custom limit configurations assigned to or excluding a group: only these depend on a user's group memberships
+$groupScopedLimitConfigs = @($enrollmentLimitConfigs | Where-Object {
+        $_.priority -gt 0 -and @($_.assignments | Where-Object {
+                $_.target.'@odata.type' -like "*.groupAssignmentTarget" -or $_.target.'@odata.type' -like "*.exclusionGroupAssignmentTarget"
+            }).Count -gt 0
+    })
 
 # Track blocking reasons for summary statistics. Categories come from the Conditional Access assessment
 # at runtime, so the counter is initialised on first use rather than from a fixed list.
@@ -1458,7 +1477,7 @@ foreach ($user in $targetUsers) {
     $managedDeviceCount = $userManagedDeviceCounts[$user.id]
 
     # Group memberships decide which assigned limit configurations apply; resolved once per user and cached
-    # (the Conditional Access evaluation below reuses the same cache).
+    # (the Conditional Access evaluation below reuses the same cache). $null marks a failed lookup.
     if (-not $userGroupCache.ContainsKey($user.id)) {
         try {
             $memberOfResult = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/users/$($user.id)/transitiveMemberOf/microsoft.graph.group?`$select=id&`$top=999")
@@ -1466,11 +1485,17 @@ foreach ($user in $targetUsers) {
         }
         catch {
             $userGroupCache[$user.id] = $null
+            $groupLookupWarning = "Could not resolve group memberships for user '$($user.userPrincipalName)'; group-assigned enrollment limits and Conditional Access policies scoped to groups could not be evaluated for this user: $($_.Exception.Message)"
+            Write-RjRbLog -Message "WARNING: $groupLookupWarning" -Verbose
+            Write-Warning $groupLookupWarning
         }
     }
     $limitUserGroupIds = if ($null -eq $userGroupCache[$user.id]) { @() } else { @($userGroupCache[$user.id]) }
+    # Without the memberships a configuration assigned to or excluding a group can be neither ruled in nor out,
+    # so the limit stays unknown instead of falling back to the default
+    $enrollmentLimitUnknown = $null -eq $userGroupCache[$user.id] -and $groupScopedLimitConfigs.Count -gt 0
 
-    if ($enrollmentLimitConfigs -and $enrollmentLimitConfigs.Count -gt 0) {
+    if ($enrollmentLimitConfigs -and $enrollmentLimitConfigs.Count -gt 0 -and -not $enrollmentLimitUnknown) {
         # Select by priority: the assigned custom config (priority > 0) with the lowest priority number.
         # A config applies when assigned to All users or to a group of the user, unless an excluded group matches.
         $applicableConfig = $enrollmentLimitConfigs | Where-Object {
@@ -1504,22 +1529,41 @@ foreach ($user in $targetUsers) {
     else {
         $neutralWarnings += "Device count unknown"
     }
+    if ($enrollmentLimitUnknown) {
+        $neutralWarnings += "Device enrollment limit unknown - group memberships could not be read"
+    }
 
-    # Entra 'Maximum number of devices per user' (registered and joined devices); skipped when the policy cannot be read
+    # Entra 'Maximum number of devices per user' (registered and joined devices); read once. A failed read leaves
+    # EntraDeviceLimit 'Unknown' for every user and is reported once in the summary, like the MDM authority.
     if (-not $entraDeviceQuotaLoaded) {
         $entraDeviceQuotaLoaded = $true
         try {
             $deviceRegistrationPolicy = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/policies/deviceRegistrationPolicy?`$select=userDeviceQuota" -Method GET -ErrorAction Stop
+            # A missing value must not become 0 ('no devices allowed'), which would block every user
+            if ($null -eq $deviceRegistrationPolicy.userDeviceQuota) {
+                throw "The device registration policy returned no userDeviceQuota value."
+            }
             $entraDeviceQuota = [int]$deviceRegistrationPolicy.userDeviceQuota
         }
         catch {
-            Write-RjRbLog -Message "WARNING: Could not read the Entra device registration policy; the Entra device quota check is skipped: $($_.Exception.Message)" -Verbose
+            $entraQuotaError = $_
+            $entraQuotaWarning = if ($entraQuotaError.Exception.Message -like "*403*" -or $entraQuotaError.Exception.Message -like "*Forbidden*") {
+                "Access denied reading the Entra device registration policy. Grant the Policy.Read.DeviceConfiguration application permission to the Automation Account's managed identity. The Entra device limit is not checked and reported as Unknown. Detail: $($entraQuotaError.Exception.Message)"
+            }
+            else {
+                "Could not read the Entra device registration policy; the Entra device limit is not checked and reported as Unknown: $($entraQuotaError.Exception.Message)"
+            }
+            Write-RjRbLog -Message "WARNING: $entraQuotaWarning" -Verbose
+            Write-Warning $entraQuotaWarning
         }
     }
     $entraDeviceCount = $userEntraDeviceCounts[$user.id]
     if ($null -ne $entraDeviceQuota -and $null -ne $entraDeviceCount -and $entraDeviceCount -ge $entraDeviceQuota) {
         $neutralBlockingReasons += "Entra device limit reached ($entraDeviceCount of $entraDeviceQuota Entra registered or joined devices)"
         $blockingReasonCounts["Entra device limit reached"] += 1
+    }
+    elseif ($null -ne $entraDeviceQuota -and $null -eq $entraDeviceCount) {
+        $neutralWarnings += "Entra device count unknown - Entra device limit not checked"
     }
 
     # 5. Check platform restrictions
@@ -1601,17 +1645,8 @@ foreach ($user in $targetUsers) {
 
     # Group memberships and directory roles are needed to resolve CA assignment scope. Resolve each
     # once per user and cache it: a tenant with many policies would otherwise re-query per policy.
-    if (-not $userGroupCache.ContainsKey($user.id)) {
-        try {
-            $memberOfResult = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/users/$($user.id)/transitiveMemberOf/microsoft.graph.group?`$select=id&`$top=999")
-            $userGroupCache[$user.id] = @($memberOfResult | ForEach-Object { [string]$_.id })
-        }
-        catch {
-            # $null marks a failed lookup, so the result row says that the CA evaluation is incomplete
-            $userGroupCache[$user.id] = $null
-            Write-RjRbLog -Message "WARNING: Could not resolve group memberships for user '$($user.userPrincipalName)' when evaluating Conditional Access; policy scoping for this user may be incomplete: $($_.Exception.Message)" -Verbose
-        }
-    }
+    # The group memberships are already in the cache from the enrollment limit check above; $null marks a
+    # failed lookup, so the result row says that the CA evaluation is incomplete.
     if ($null -eq $userGroupCache[$user.id]) {
         $userGroupIds = @()
         $neutralWarnings += "Group memberships could not be read - Conditional Access policies scoped to groups were not fully evaluated"
@@ -1709,7 +1744,7 @@ foreach ($user in $targetUsers) {
             MdmAuthority               = $mdmAuthority
             PermittedPlatforms         = if ([string]::IsNullOrEmpty($permittedPlatforms)) { "Not determined" } else { $permittedPlatforms }
             RegisteredDeviceCount      = if ($null -ne $deviceCount) { $deviceCount.ToString() } else { "Unknown" }
-            DeviceEnrollmentLimit      = if ($null -ne $enrollmentLimitValue) { $enrollmentLimitValue.ToString() } else { "Not configured" }
+            DeviceEnrollmentLimit      = if ($null -ne $enrollmentLimitValue) { $enrollmentLimitValue.ToString() } elseif ($enrollmentLimitUnknown) { "Unknown" } else { "Not configured" }
             EnrollmentLimitPolicy      = if ($applicableConfig) { $applicableConfig.displayName } else { "Not determined" }
             IntuneDeviceCount          = if ($null -ne $managedDeviceCount) { $managedDeviceCount.ToString() } else { "Unknown" }
             EntraDeviceCount           = if ($null -ne $entraDeviceCount) { $entraDeviceCount.ToString() } else { "Unknown" }
@@ -1801,7 +1836,8 @@ if ($platformsToCheck.Count -gt 1) {
 }
 
 $summaryStats = @{
-    TotalUsersChecked    = $reportRows.Count
+    # Distinct users: with All platforms each user has one row per platform
+    TotalUsersChecked    = $targetUsers.Count
     ReadyCount           = $readyCount
     ReadyWithWarningsCount = $readyWithWarningsCount
     NotReadyCount        = $notReadyCount
@@ -1842,6 +1878,11 @@ else {
 }
 if ($pilotGroupResolvedName) {
     Write-Output ("{0,-22}: {1} ({2} member(s))" -f "Pilot group", $pilotGroupResolvedName, $pilotMemberIds.Count)
+}
+# The Entra device limit is a tenant setting too: an unreadable value is reported once here, not on every row
+if ($entraDeviceQuotaLoaded -and $null -eq $entraDeviceQuota) {
+    Write-Output ""
+    Write-Output "WARNING: The Entra setting 'Maximum number of devices per user' could not be read, so the Entra device limit was not checked for any user (EntraDeviceLimit shows Unknown). See the job log for the cause."
 }
 
 if ($topBlockingReasons.Count -gt 0) {
@@ -2053,6 +2094,9 @@ else {
         $summaryLines += "- Per platform: $($summaryStats.PlatformBreakdown)"
     }
     $summaryLines += "- Enrollment platform evaluated: $EnrollmentPlatform"
+    if ($entraDeviceQuotaLoaded -and $null -eq $entraDeviceQuota) {
+        $summaryLines += "- Entra device limit: not checked, the Entra setting 'Maximum number of devices per user' could not be read"
+    }
     $summaryMarkdown = $summaryLines -join "`n"
 
     $markdownContent = @"

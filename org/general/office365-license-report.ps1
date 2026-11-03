@@ -261,6 +261,7 @@ function Get-GraphPagedResult {
 # The Graph errors of the report functions are written as non-terminating errors and the run goes on with the next
 # report, as with the earlier RunbookHelper Graph calls: one missing permission or license must not cost the other reports.
 
+# Returns $null when the setting cannot be read
 function Get-ReportPrivacySetting {
     try {
         (Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/admin/reportSettings" -Method GET -ErrorAction Stop).displayConcealedNames
@@ -270,14 +271,17 @@ function Get-ReportPrivacySetting {
     }
 }
 
+# Returns $true when the setting was changed
 function Set-ReportPrivacySetting {
     param([bool]$concealNames)
     try {
         $body = @{ displayConcealedNames = $concealNames } | ConvertTo-Json
         Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/admin/reportSettings" -Method PATCH -Body $body -ContentType "application/json" -ErrorAction Stop | Out-Null
+        $true
     }
     catch {
         Write-Error "Failed to set the report privacy setting to concealed names '$concealNames': $($_.Exception.Message)" -ErrorAction Continue
+        $false
     }
 }
 
@@ -405,7 +409,7 @@ function Get-SharedMailboxLicensing {
             Write-RjRbLog -Message "Could not read the license details of '$($mail.UserPrincipalName)': $($_.Exception.Message)" -Verbose
         }
         if ($licenseDetails) {
-            Get-EXOMailbox $mailbox.UserPrincipalName | Export-Csv -LiteralPath $CSVPath -Append -NoTypeInformation -Delimiter ";"
+            Get-EXOMailbox -Identity $mail.UserPrincipalName | Export-Csv -LiteralPath $CSVPath -Append -NoTypeInformation -Delimiter ";"
         }
     }
     if (Test-Path -Path $CSVPath) {
@@ -720,13 +724,23 @@ if ($exportToFile) {
     try {
         if ($includeUserData) {
             $currentConcealSetting = Get-ReportPrivacySetting
-            if ($currentConcealSetting -eq $false) {
+            if ($null -eq $currentConcealSetting) {
+                # Without the current value the setting is left alone, so it cannot be restored to a value it never had
+                $privacyMessage = "The report privacy setting could not be read and is left unchanged - the activity reports may show concealed user names."
+                Write-RjRbLog -Message "WARNING: $privacyMessage"
+                Write-Warning $privacyMessage
+            }
+            elseif ($currentConcealSetting -eq $false) {
                 "## Report privacy setting is already disabled - no changes needed."
             }
-            else {
+            elseif (Set-ReportPrivacySetting -concealNames $false) {
                 "## Temporarily disabling report privacy setting to include user data..."
-                Set-ReportPrivacySetting -concealNames $false
                 $settingWasChanged = $true
+            }
+            else {
+                $privacyMessage = "The report privacy setting could not be disabled - the activity reports show concealed user names."
+                Write-RjRbLog -Message "WARNING: $privacyMessage"
+                Write-Warning $privacyMessage
             }
         }
         Get-GraphReport -CSVPath $OutPutPath
@@ -734,7 +748,11 @@ if ($exportToFile) {
     finally {
         if ($settingWasChanged) {
             "## Restoring report privacy setting..."
-            Set-ReportPrivacySetting -concealNames $true
+            if (-not (Set-ReportPrivacySetting -concealNames $true)) {
+                $privacyMessage = "The report privacy setting could not be restored - the reports of the tenant show real user names until it is switched on again in the Microsoft 365 admin center."
+                Write-RjRbLog -Message "WARNING: $privacyMessage"
+                Write-Warning $privacyMessage
+            }
         }
     }
 
@@ -837,13 +855,15 @@ $summaryRows.Add([PSCustomObject]@{ Metric = "Report files uploaded"; Value = "$
 Write-Output ([PSCustomObject]@{ RjTableTitle = 'Summary' })
 Write-Output $summaryRows
 
-if ($licenseOverview.Count -gt 0) {
-    "## Totals of licenses we have:"
-    Write-Output ([PSCustomObject]@{ RjTableTitle = 'License overview' })
-    Write-Output ($licenseOverview | Select-Object -Property Name, Total, Used, Available, Suspended)
-}
-else {
-    "## No active license SKUs found."
+if ($printOverview) {
+    if ($licenseOverview.Count -gt 0) {
+        "## Totals of licenses we have:"
+        Write-Output ([PSCustomObject]@{ RjTableTitle = 'License overview' })
+        Write-Output ($licenseOverview | Select-Object -Property Name, Total, Used, Available, Suspended)
+    }
+    else {
+        "## No active license SKUs found."
+    }
 }
 
 #endregion Structured Output (Output Data)

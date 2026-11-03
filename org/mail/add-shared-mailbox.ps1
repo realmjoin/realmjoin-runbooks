@@ -3,7 +3,7 @@
 	Create a shared mailbox with optional delegates
 
 	.DESCRIPTION
-	Creates a shared mailbox in Exchange Online with the chosen language and time zone. Delegates can get full access and send on behalf of the mailbox, and sent mails can be kept in the shared Sent Items folder. The user account behind the mailbox can be disabled so nobody signs in with it.
+	Creates a shared mailbox in Exchange Online with the chosen language and time zone. Delegates can get full access and send on behalf of the mailbox, and sent mails can be kept in the shared Sent Items folder. The user account behind the mailbox can be disabled so nobody signs in with it. If a setting cannot be applied, the mailbox is kept and the run fails, naming what is missing.
 
 	.PARAMETER MailboxName
 	Alias of the mailbox, which becomes the part of the email address in front of the @ sign.
@@ -33,7 +33,7 @@
 	Mails sent on behalf of the shared mailbox are also stored in its Sent Items folder.
 
 	.PARAMETER DisableUser
-	Blocks sign-in for the user account behind the mailbox. Delegates keep their access.
+	Blocks sign-in for the user account behind the mailbox. Delegates keep their access. If the account does not appear within a few minutes, the run fails and sign-in has to be blocked in Entra ID.
 
 	.PARAMETER CallerName
 	Name of the user who started the runbook. Set by the portal and recorded for auditing.
@@ -441,12 +441,13 @@ for ($attempt = 1; ($attempt -le $maxAttempts) -and ($null -eq $mailbox); $attem
 }
 if ($null -eq $mailbox) {
     Write-Error "The shared mailbox '$($identityToCheck)' was created but did not become available within five minutes." -ErrorAction Continue
-    throw "The shared mailbox '$($identityToCheck)' was created, but its delegates, Sent Items copies, language and time zone were not set because it did not become available in time. Set them in the Exchange admin center."
+    throw "The shared mailbox '$($identityToCheck)' was created, but its delegates, Sent Items copies, language and time zone were not set$(if ($DisableUser) { ' and the sign-in of its user account was not blocked' }) because it did not become available in time. Set them in the Exchange admin center$(if ($DisableUser) { ' and block the sign-in in Entra ID' })."
 }
 
-# A failure for one delegate does not stop the others; the run fails at the end so it is not reported as clean
+# A failure for one delegate or setting does not stop the others; the run fails at the end so it is not reported as clean
 $grantedDelegates = @()
 $failedDelegates = @()
+$failedSteps = @()
 foreach ($delegateAddress in $delegateAddresses) {
     Write-Output "Granting full access and send on behalf to '$($delegateAddress)'..."
     try {
@@ -460,40 +461,78 @@ foreach ($delegateAddress in $delegateAddresses) {
     }
 }
 
-$mailbox | Set-Mailbox -MessageCopyForSentAsEnabled $MessageCopyForSentAsEnabled | Out-Null
-$mailbox | Set-Mailbox -MessageCopyForSendOnBehalfEnabled $MessageCopyForSendOnBehalfEnabled | Out-Null
+try {
+    $mailbox | Set-Mailbox -MessageCopyForSentAsEnabled $MessageCopyForSentAsEnabled -ErrorAction Stop | Out-Null
+    $mailbox | Set-Mailbox -MessageCopyForSendOnBehalfEnabled $MessageCopyForSendOnBehalfEnabled -ErrorAction Stop | Out-Null
+}
+catch {
+    Write-RjRbLog -Message "WARNING: Could not set the Sent Items copies: $($_.Exception.Message)" -Verbose
+    $failedSteps += "Sent Items copies"
+}
 
 # Set Language ( i.e. rename folders like "inbox" )
 Write-Output "Configuring mailbox regional settings..."
-$mailbox |  Set-MailboxRegionalConfiguration -Language $Language -TimeZone $TimeZone -LocalizeDefaultFolderName
+# A new mailbox can reject regional settings for a short while, so retry a few times
+$regionalError = $null
+for ($attempt = 1; $attempt -le 3; $attempt++) {
+    try {
+        $mailbox | Set-MailboxRegionalConfiguration -Language $Language -TimeZone $TimeZone -LocalizeDefaultFolderName -ErrorAction Stop
+        $regionalError = $null
+        break
+    }
+    catch {
+        $regionalError = $_.Exception.Message
+        if ($attempt -lt 3) {
+            Start-Sleep -Seconds 15
+        }
+    }
+}
+if ($regionalError) {
+    Write-RjRbLog -Message "WARNING: Could not set language '$($Language)' and time zone '$($TimeZone)': $($regionalError)" -Verbose
+    $failedSteps += "language and time zone"
+}
 
 if ($DisableUser) {
     Write-Output "Disabling associated EntraID user account..."
-    # Deactive the user account using the Graph API
-    $user = $null
-    $retryCount = 0
-    $mailNicknameToCheck = if ($aliasConflict) { $aliasToUse } else { $MailboxName }
-    while (($null -eq $user) -and ($retryCount -lt 10)) {
-        $response = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users?`$filter=mailNickname eq '$mailNicknameToCheck'" -ErrorAction Stop
-        if ($response.value -and $response.value.Count -gt 0) {
-            $user = $response.value[0]
-        }
-        else {
-            $retryCount++
-            ".. Waiting for user object to be created..."
-            Start-Sleep -Seconds 5
-        }
+    # Take the account from the mailbox itself: mailNickname is not unique, a lookup by alias can hit another account
+    $entraUserId = [string]$mailbox.ExternalDirectoryObjectId
+    for ($attempt = 1; [string]::IsNullOrEmpty($entraUserId) -and ($attempt -le $maxAttempts); $attempt++) {
+        ".. Waiting for user object to be created..."
+        Start-Sleep -Seconds 10
+        $entraUserId = [string](Get-Mailbox -Identity ([string]$mailbox.Guid) -ErrorAction SilentlyContinue).ExternalDirectoryObjectId
     }
 
-    if ($null -eq $user) {
+    if ([string]::IsNullOrEmpty($entraUserId)) {
         Write-RjRbLog -Message "WARNING: The user account of the shared mailbox did not appear in Entra ID in time and was not disabled. Block its sign-in in Entra ID." -Verbose
         Write-Error "The user account of the shared mailbox '$($mailbox.PrimarySmtpAddress)' was not found in Entra ID, sign-in was not blocked." -ErrorAction Continue
+        $failedSteps += "block sign-in of the mailbox account"
     }
     else {
         $body = @{
             accountEnabled = $false
         } | ConvertTo-Json
-        Invoke-MgGraphRequest -Method PATCH -Uri "https://graph.microsoft.com/v1.0/users/$($user.id)" -Body $body -ContentType "application/json" -ErrorAction Stop
+        # Graph can lag a moment behind Exchange Online for a new account
+        $disableError = $null
+        for ($attempt = 1; $attempt -le 3; $attempt++) {
+            try {
+                Invoke-MgGraphRequest -Method PATCH -Uri "https://graph.microsoft.com/v1.0/users/$($entraUserId)" -Body $body -ContentType "application/json" -ErrorAction Stop | Out-Null
+                $disableError = $null
+                break
+            }
+            catch {
+                $disableError = $_.Exception.Message
+                if ($attempt -lt 3) {
+                    Start-Sleep -Seconds 10
+                }
+            }
+        }
+        if ($disableError) {
+            Write-RjRbLog -Message "WARNING: Could not block sign-in for the user account of the shared mailbox: $($disableError)" -Verbose
+            $failedSteps += "block sign-in of the mailbox account"
+        }
+        else {
+            Write-Output "Sign-in blocked for the user account of the shared mailbox."
+        }
     }
 }
 
@@ -517,10 +556,17 @@ if ($grantedDelegates.Count -gt 0) {
     Write-Output "   Delegates: $($grantedDelegates -join ', ')"
 }
 
+$incompleteParts = @()
 if ($failedDelegates.Count -gt 0) {
     Write-Error "Full access and send on behalf could not be granted completely to: $($failedDelegates -join ', '). The reason per delegate is in the warnings above." -ErrorAction Continue
-    throw "The shared mailbox was created, but the access of $($failedDelegates.Count) of $($delegateAddresses.Count) delegate(s) is incomplete: $($failedDelegates -join ', '). Check their full access and send on behalf in the Exchange admin center."
+    $incompleteParts += "the access of $($failedDelegates.Count) of $($delegateAddresses.Count) delegate(s) is incomplete: $($failedDelegates -join ', '). Check their full access and send on behalf in the Exchange admin center"
 }
+if ($failedSteps.Count -gt 0) {
+    Write-Error "Not completed for the shared mailbox: $($failedSteps -join ', '). The reason per step is in the warnings above." -ErrorAction Continue
+    $incompleteParts += "these steps failed: $($failedSteps -join ', '). Complete them in the Exchange admin center or, for the sign-in block, in Entra ID"
+}
+# The job fails after the cleanup so a partly configured mailbox is not reported as clean
+$failureMessage = if ($incompleteParts.Count -gt 0) { "The shared mailbox was created, but $($incompleteParts -join '; and ')." } else { $null }
 #endregion Main Part
 
 ########################################################
@@ -528,6 +574,10 @@ if ($failedDelegates.Count -gt 0) {
 ########################################################
 Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
 Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+
+if ($failureMessage) {
+    throw $failureMessage
+}
 
 Write-Output ""
 Write-Output "Done!"

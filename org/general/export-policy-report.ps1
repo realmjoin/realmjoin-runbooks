@@ -198,31 +198,90 @@ function Get-GraphPagedResult {
 
         .DESCRIPTION
         Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
-        by following the @odata.nextLink property in the response.
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
 
         .PARAMETER Uri
         The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
-        e.g., "https://graph.microsoft.com/v1.0/applications".
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
 
         .EXAMPLE
-        PS C:\> $allApps = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/applications"
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
     #>
     param(
         [string]$Uri
     )
 
-    $allResults = @()
+    $allResults = [System.Collections.Generic.List[object]]::new()
     $nextLink = $Uri
+    $pageCount = 0
 
     do {
-        $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
-        if ($response.value) {
-            $allResults += $response.value
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
         }
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
         $nextLink = $response.'@odata.nextLink'
     } while ($nextLink)
 
-    return $allResults
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
+}
+
+# Reads the items of one report part. A failed request leaves that part empty with a warning, so the other parts are still
+# reported; the run fails at the end, as it did before when a part could not be read
+$failedReportParts = [System.Collections.Generic.List[string]]::new()
+function Get-ReportPartItem {
+    param(
+        [string]$Uri,
+        [string]$Part
+    )
+
+    try {
+        Get-GraphPagedResult -Uri $Uri
+    }
+    catch {
+        $partMessage = "$Part could not be read and are missing from the report: $($_.Exception.Message)"
+        Write-RjRbLog -Message "WARNING: $partMessage"
+        Write-Warning $partMessage
+        $failedReportParts.Add($Part)
+    }
+}
+
+# Display name of an assigned group; a group that cannot be read (deleted, or no permission to read groups) is shown by its ID
+function Get-AssignmentGroupName {
+    param(
+        [string]$groupId
+    )
+
+    try {
+        (Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/groups/$($groupId)?`$select=displayName" -ErrorAction Stop).displayName
+    }
+    catch {
+        Write-RjRbLog -Message "Group '$groupId' of an assignment could not be read: $($_.Exception.Message)" -Verbose
+        if ("$($_.Exception.Response.StatusCode)" -eq 'NotFound') {
+            "$groupId (not found)"
+        }
+        else {
+            "$groupId (not readable)"
+        }
+    }
 }
 
 function ConvertTo-MarkdownPolicyAssignment {
@@ -235,19 +294,13 @@ function ConvertTo-MarkdownPolicyAssignment {
     # enumerate the assignments, will not do anything if there are no assignments
     foreach ($assignment in $assignments.value) {
         if (($assignment.target.'@odata.type' -eq "#microsoft.graph.groupAssignmentTarget") -or ($assignment.target.'@odata.type' -eq "#microsoft.graph.includeDeviceGroupsAssignmentTarget") -or ($assignment.target.'@odata.type' -eq "#microsoft.graph.includeUsersAssignmentTarget")) {
-            try {
-                $groupID = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/groups/$($assignment.target.groupId)?`$select=displayName"
-            }
-            catch {
-                # Suppress PSAvoidUsingEmptyCatchBlock — group may have been deleted, continue report rendering
-                $null = $_
-            }
+            $groupName = Get-AssignmentGroupName -groupId $assignment.target.groupId
             if ($assignment.target.deviceAndAppManagementAssignmentFilterType -ne "none") {
                 $filter = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/assignmentFilters/$($assignment.target.deviceAndAppManagementAssignmentFilterId)?`$select=displayName"
-                "| Included Groups | $($groupID.displayName), Filter ($($assignment.target.deviceAndAppManagementAssignmentFilterType)): $($filter.displayName) |"
+                "| Included Groups | $groupName, Filter ($($assignment.target.deviceAndAppManagementAssignmentFilterType)): $($filter.displayName) |"
             }
             else {
-                "| Included Groups | $($groupID.displayName) |"
+                "| Included Groups | $groupName |"
             }
         }
         #Include all users
@@ -271,19 +324,13 @@ function ConvertTo-MarkdownPolicyAssignment {
             }
         }
         elseif (($assignment.target.'@odata.type' -eq "#microsoft.graph.exclusionGroupAssignmentTarget") -or ($assignment.target.'@odata.type' -eq "microsoft.graph.allDevicesExcludingGroupsAssignmentTarget")) {
-            try {
-                $groupID = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/groups/$($assignment.target.groupId)?`$select=displayName"
-            }
-            catch {
-                # Suppress PSAvoidUsingEmptyCatchBlock — group may have been deleted, continue report rendering
-                $null = $_
-            }
+            $groupName = Get-AssignmentGroupName -groupId $assignment.target.groupId
             if ($assignment.target.deviceAndAppManagementAssignmentFilterType -ne "none") {
                 $filter = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/assignmentFilters/$($assignment.target.deviceAndAppManagementAssignmentFilterId)?`$select=displayName"
-                "| Excluded Groups | $($groupID.displayName), Filter ($($assignment.target.deviceAndAppManagementAssignmentFilterType)): $($filter.displayName) |"
+                "| Excluded Groups | $groupName, Filter ($($assignment.target.deviceAndAppManagementAssignmentFilterType)): $($filter.displayName) |"
             }
             else {
-                "| Excluded Groups | $($groupID.displayName) |"
+                "| Excluded Groups | $groupName |"
             }
 
         }
@@ -650,7 +697,7 @@ function ConvertTo-MarkdownConditionalAccessPolicy {
             if ($app -match '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$') {
                 try {
                     $displayApp = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/servicePrincipals?`$filter=appId eq '$app'"
-                    if ($null -ne $displayCloudApp.value.appDescription) {
+                    if ($null -ne $displayApp.value.appDescription) {
                         "|Exclude application|$($displayApp.value.displayName)|$($displayApp.value.appDescription)|"
                     }
                     else {
@@ -894,7 +941,7 @@ function ConvertTo-MarkdownConfigurationPolicy {
     "|Setting|Value|Description|"
     "|-------|-----|-----------|"
 
-    $settings = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/settings?`$expand=settingDefinitions"
+    $settings = Get-ReportPartItem -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/settings?`$expand=settingDefinitions" -Part "Settings of configuration policy '$($policy.name)'"
     foreach ($setting in $settings) {
         if ($setting.settingInstance."@odata.type" -eq "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance") {
             $definition = $setting.settingdefinitions | Where-Object { $_.id -eq $setting.settingInstance.settingDefinitionId }
@@ -1331,13 +1378,13 @@ toc-own-page: true
 "## Configuration Policies (Settings Catalog)" >> $outputFileMarkdown
 "" >> $outputFileMarkdown
 
-$policies = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies"
+$policies = @(Get-ReportPartItem -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies" -Part "Configuration Policies (Settings Catalog)")
 "Found $($policies.Count) Configuration Policies"
 
 foreach ($policy in $policies) {
     if ($exportJson) {
         $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-confPol-$($policy.id).json" -Encoding UTF8
-        $settings = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/settings?`$expand=settingDefinitions"
+        $settings = Get-ReportPartItem -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/settings?`$expand=settingDefinitions" -Part "Settings of configuration policy '$($policy.name)'"
         $settings | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-confPol-$($policy.id)-settings.json" -Encoding UTF8
         $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/assignments"
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-confPol-$($policy.id)-assignments.json" -Encoding UTF8
@@ -1356,7 +1403,7 @@ foreach ($policy in $policies) {
 "## Device Configurations" >> $outputFileMarkdown
 "" >> $outputFileMarkdown
 
-$deviceConfigurations = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations"
+$deviceConfigurations = @(Get-ReportPartItem -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations" -Part "Device Configurations")
 "Found $($deviceConfigurations.Count) Device Configurations"
 
 foreach ($policy in $deviceConfigurations) {
@@ -1379,7 +1426,7 @@ foreach ($policy in $deviceConfigurations) {
 "## Group Policy Configurations" >> $outputFileMarkdown
 "" >> $outputFileMarkdown
 
-$groupPolicyConfigurations = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations"
+$groupPolicyConfigurations = @(Get-ReportPartItem -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations" -Part "Group Policy Configurations")
 "Found $($groupPolicyConfigurations.Count) Group Policy Configurations"
 
 foreach ($policy in $groupPolicyConfigurations) {
@@ -1404,7 +1451,7 @@ foreach ($policy in $groupPolicyConfigurations) {
 "## Compliance Policies" >> $outputFileMarkdown
 "" >> $outputFileMarkdown
 
-$compliancePolicies = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies"
+$compliancePolicies = @(Get-ReportPartItem -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies" -Part "Compliance Policies")
 "Found $($compliancePolicies.Count) Compliance Policies"
 
 foreach ($policy in $compliancePolicies) {
@@ -1427,7 +1474,7 @@ foreach ($policy in $compliancePolicies) {
 "## Conditional Access Policies" >> $outputFileMarkdown
 "" >> $outputFileMarkdown
 
-$conditionalAccessPolicies = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/identity/conditionalAccess/policies"
+$conditionalAccessPolicies = @(Get-ReportPartItem -Uri "https://graph.microsoft.com/beta/identity/conditionalAccess/policies" -Part "Conditional Access Policies")
 "Found $($conditionalAccessPolicies.Count) Conditional Access Policies"
 
 foreach ($policy in $conditionalAccessPolicies) {
@@ -1531,7 +1578,11 @@ catch {
     Write-RjRbLog -Message "Upload to storage account '$StorageAccountName' failed: $($_.Exception.Message). The managed identity needs the 'Reader and Data Access' role on the storage account." -Verbose
     "## Upload of report failed. Please see log."
     ""
-    $_
+    # The upload is the delivery of this runbook: fail the job, but remove the local report files first
+    foreach ($reportFile in $reportFiles) {
+        Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
+    }
+    throw
 }
 
 #endregion Upload / Download Link
@@ -1546,6 +1597,10 @@ foreach ($reportFile in $reportFiles) {
 
 Disconnect-AzAccount -ErrorAction SilentlyContinue | Out-Null
 Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+
+if ($failedReportParts.Count -gt 0) {
+    throw "The report is incomplete - these parts could not be read: $($failedReportParts -join '; ')"
+}
 
 Write-Output ""
 Write-Output "Done!"

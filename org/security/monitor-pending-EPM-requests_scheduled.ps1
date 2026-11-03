@@ -286,6 +286,35 @@ function Get-GraphPagedResult {
     return $allResults.ToArray()
 }
 
+function ConvertTo-MarkdownSafeText {
+    <#
+        .SYNOPSIS
+        Escapes a request value for use in a cell of the Markdown table of the report email.
+
+        .DESCRIPTION
+        The justification is free text of the requesting user, and the file name and the other request values come
+        from the user's device. ConvertFrom-RjRbMarkdownToHtml passes raw HTML through and turns Markdown links and
+        images into live elements, so an unescaped value could place a link or an image of the requester's choosing
+        into the email that asks the approvers to act. '&', '<' and '>' are encoded - '&' first, otherwise the
+        entities introduced afterwards would be escaped a second time - and the Markdown markup characters are
+        backslash-escaped, which the converter resolves back to the literal character. The section sign (U+00A7) is
+        encoded as well: the converter builds its internal placeholders from it and turns a typed placeholder back
+        into a raw '<'. Line breaks would end the table row and are replaced by a space.
+
+        .PARAMETER Value
+        The raw value as reported by Intune.
+    #>
+    param(
+        [string]$Value
+    )
+
+    if ([string]::IsNullOrEmpty($Value)) { return $Value }
+
+    $encodedValue = $Value.Replace('&', '&amp;').Replace('<', '&lt;').Replace('>', '&gt;').Replace([string][char]0xA7, '&#167;')
+    $encodedValue = $encodedValue -replace '\n', ' ' -replace '\r', ''
+    return ($encodedValue -replace '([\\`*\[\]|~])', '\$1')
+}
+
 #endregion Function Definitions
 
 ########################################################
@@ -481,6 +510,8 @@ if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
 #region     Send Email Report
 ########################################################
 
+# A failed email fails the run only after the Output Data and the cleanup
+$emailError = $null
 if ($EmailTo -and $processedRequests.Count -gt 0) {
     Write-Output ""
     Write-Output "## Preparing email report to send to $($EmailTo)"
@@ -502,9 +533,13 @@ if ($EmailTo -and $processedRequests.Count -gt 0) {
             } else {
                 "Unknown"
             }
-            $justificationText = $req.Justification -replace '\|', '&#124;' -replace '\n', ' ' -replace '\r', ''
+            # The request values are chosen by the requesting user and must not become markup in the approvers' email
+            $requestedByText = ConvertTo-MarkdownSafeText -Value "$($req.RequestedBy)"
+            $fileNameText = ConvertTo-MarkdownSafeText -Value "$($req.FileName)"
+            $deviceIdText = ConvertTo-MarkdownSafeText -Value "$($req.DeviceId)"
+            $justificationText = ConvertTo-MarkdownSafeText -Value "$($req.Justification)"
 
-            "| $createdText | $($req.RequestedBy) | $($req.FileName) | $($req.DeviceId) | $expiryText | $justificationText |"
+            "| $createdText | $requestedByText | $fileNameText | $deviceIdText | $expiryText | $justificationText |"
         }
 
         $additionalRowsNote = if ($sortedRequests.Count -gt $maxRowsInEmail) {
@@ -598,9 +633,22 @@ To receive detailed request information including a report file export, enable t
     # Resolve optional tenant email branding once per run (never fails the send)
     $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
 
+    # Send-RjRbReportEmail only throws when no recipient got the email; a partial failure surfaces as its warning
+    $sendWarnings = $null
     try {
         if ($DetailedReport -and $reportFiles.Count -gt 0) {
-            $markdownFallback = @"
+            $guardParams = @{
+                EmailFrom             = $EmailFrom
+                EmailTo               = $EmailTo
+                Subject               = $emailSubject
+                MarkdownContent       = $markdownContent
+                TenantDisplayName     = $tenantDisplayName
+                ReportVersion         = $Version
+                UseNativeGraphRequest = $true
+            }
+            # The fallback names the workbook, so it is only built when there is one ("CSV only" has none)
+            if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFilePath) {
+                $markdownFallback = @"
 # Pending EPM Elevation Requests Report
 
 Tenant **$($tenantDisplayName)** (ID: $($tenantId))
@@ -623,31 +671,28 @@ There are currently **$($processedRequests.Count)** pending Endpoint Privilege M
 *This email was automatically generated. Please do not reply to this email.*
 
 "@
-
-            $guardParams = @{
-                EmailFrom             = $EmailFrom
-                EmailTo               = $EmailTo
-                Subject               = $emailSubject
-                MarkdownContent       = $markdownContent
-                TenantDisplayName     = $tenantDisplayName
-                ReportVersion         = $Version
-                UseNativeGraphRequest = $true
-            }
-            if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFilePath) {
-                Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
+                Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback -WarningVariable sendWarnings
             }
             else {
-                Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
+                Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -WarningVariable sendWarnings
             }
         }
         else {
-            Send-RjRbReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version -UseNativeGraphRequest @brandingMailParams
-            Write-Output "Email report sent successfully to: $EmailTo"
+            Send-RjRbReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version -UseNativeGraphRequest @brandingMailParams -WarningVariable sendWarnings
         }
+        Write-Output "Email report sent successfully to: $EmailTo"
     }
     catch {
         Write-Error "Failed to send email report: $($_.Exception.Message)" -ErrorAction Continue
-        throw
+        $emailError = $_
+    }
+
+    $failedRecipientWarnings = @($sendWarnings | Where-Object { "$_" -match 'Failed recipients: ' })
+    if ($failedRecipientWarnings.Count -gt 0) {
+        $failedRecipientList = ("$($failedRecipientWarnings[-1])" -split 'Failed recipients: ', 2)[1]
+        $partialSendMessage = "The email report did not reach every recipient - failed: $failedRecipientList. See the errors above for the reason."
+        Write-RjRbLog -Message "WARNING: $partialSendMessage" -Verbose
+        Write-Warning $partialSendMessage
     }
 }
 
@@ -716,6 +761,10 @@ foreach ($reportFilePath in $reportFiles) {
 
 if (Get-MgContext -ErrorAction SilentlyContinue) {
     Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
+
+if ($emailError) {
+    throw $emailError
 }
 
 Write-Output ""

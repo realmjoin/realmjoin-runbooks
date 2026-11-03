@@ -3,13 +3,13 @@
 	Report devices that have been inactive for too long
 
 	.DESCRIPTION
-	Lists Intune devices that have not checked in for a given number of days, optionally within a maximum age. The list can be filtered by platform and by the group membership of the primary user. Nothing is changed. The report can be sent by email or provided as a download link.
+	Lists Intune devices that have not checked in for a given number of days, optionally within a maximum age. The list can be filtered by platform and by group membership of the primary user; the exclude group also skips devices that are members themselves. Nothing is changed. The report can be sent by email or provided as a download link.
 
 	.PARAMETER Days
 	Devices with no check-in for at least this many days count as stale.
 
 	.PARAMETER MaxDays
-	Only devices inactive for at most this many days are included. Leave empty for no upper limit.
+	Only devices inactive for at most this many days are included. Leave empty for no upper limit. A value not above "Days without activity" is ignored.
 
 	.PARAMETER Windows
 	Includes Windows devices.
@@ -27,10 +27,10 @@
 	Not used any more. The primary user group filter applies as soon as a group is selected in "Include users from group" or "Exclude users from group". Kept so existing schedules keep working.
 
 	.PARAMETER IncludeUserGroup
-	Only devices whose primary user is a direct member of this group. Leave empty for all devices.
+	Only devices whose primary user is a member of this group, directly or through nested groups. Leave empty for all devices.
 
 	.PARAMETER ExcludeUserGroup
-	Skips devices whose primary user is a direct member of this group. Leave empty to skip none.
+	Skips devices whose primary user is a member of this group and devices that are members themselves, directly or through nested groups. Leave empty to skip none.
 
 	.PARAMETER SendEmailReport
 	Send the report to the recipient email address.
@@ -331,6 +331,10 @@ if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccoun
 
 # A maximum age only applies when it is above the minimum inactivity
 $useMaxDays = ($null -ne $MaxDays -and $MaxDays -gt $Days)
+if ($MaxDays -ne 0 -and $MaxDays -le $Days) {
+    Write-RjRbLog -Message "WARNING: The maximum inactivity ($MaxDays days) is not above the minimum inactivity ($Days days) and is ignored. The report lists all devices inactive for at least $Days days." -Verbose
+    Write-Warning "The maximum inactivity ($MaxDays days) is not above the minimum inactivity ($Days days) and is ignored. The report lists all devices inactive for at least $Days days."
+}
 $inactivityText = if ($useMaxDays) { "$Days-$MaxDays days" } else { "$Days+ days" }
 
 Write-Output "Inactivity: $inactivityText"
@@ -419,10 +423,10 @@ function Format-ReportDateTime {
 function Get-UserGroupFilter {
     <#
         .SYNOPSIS
-        Returns the display name and the user object IDs of the direct members of a group.
+        Returns the display name, the user object IDs and the Entra device IDs of the members of a group, including members of nested groups.
 
         .DESCRIPTION
-        Returns an object with Name, UserIds and Error. Error is empty when the members were read.
+        Returns an object with Name, UserIds, DeviceIds and Error. Error is empty when the members were read.
 
         .PARAMETER GroupId
         Object ID of the group.
@@ -442,16 +446,20 @@ function Get-UserGroupFilter {
     }
 
     $userIds = @()
+    $deviceIds = @()
     $errorText = $null
     try {
-        $members = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/groups/$($GroupId)/members?`$select=id,userPrincipalName"
+        # transitiveMembers: members of nested groups count as members; only user and device objects are taken (not the nested groups)
+        $members = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/groups/$($GroupId)/transitiveMembers?`$select=id,userPrincipalName,deviceId"
         $userIds = @($members | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.user' } | ForEach-Object { $_.id })
+        # Device members are matched by their Entra device ID (deviceId), which Intune records as azureADDeviceId
+        $deviceIds = @($members | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.device' -and $_.deviceId } | ForEach-Object { "$($_.deviceId)" })
     }
     catch {
         $errorText = $_.Exception.Message
     }
 
-    return [PSCustomObject]@{ Name = $groupName; UserIds = $userIds; Error = $errorText }
+    return [PSCustomObject]@{ Name = $groupName; UserIds = $userIds; DeviceIds = $deviceIds; Error = $errorText }
 }
 
 #endregion Function Definitions
@@ -516,6 +524,7 @@ $selectProperties = @(
     'userPrincipalName'
     'userId'
     'id'
+    'azureADDeviceId'
     'serialNumber'
     'manufacturer'
     'model'
@@ -534,6 +543,7 @@ Write-Output "Retrieved $($devices.Count) stale device(s) from Intune (all platf
 # The filter applies as soon as a group is selected. UseUserScope is kept for existing schedules but has no effect.
 $includeUserIds = @()
 $excludeUserIds = @()
+$excludeDeviceIds = @()
 $includeGroupName = $null
 $excludeGroupName = $null
 
@@ -555,11 +565,13 @@ if ($ExcludeUserGroup) {
     $excludeGroup = Get-UserGroupFilter -GroupId $ExcludeUserGroup
     $excludeGroupName = $excludeGroup.Name
     $excludeUserIds = @($excludeGroup.UserIds)
+    $excludeDeviceIds = @($excludeGroup.DeviceIds)
     if ($excludeGroup.Error) {
         Write-Error "Failed to retrieve the members of the exclude group '$excludeGroupName': $($excludeGroup.Error)" -ErrorAction Continue
         throw "Unable to read the exclude user group - the report scope cannot be determined"
     }
     Write-Output "The exclude group '$excludeGroupName' contains $($excludeUserIds.Count) user(s)."
+    Write-Output "The exclude group '$excludeGroupName' contains $($excludeDeviceIds.Count) device(s)."
 }
 #endregion User group filter
 
@@ -576,6 +588,7 @@ Write-Output "---------------------"
 $reportRows = [System.Collections.Generic.List[object]]::new()
 $skippedByIncludeGroup = 0
 $skippedByExcludeGroup = 0
+$skippedByExcludeDevice = 0
 $userCache = @{}
 $now = Get-Date
 
@@ -599,6 +612,13 @@ foreach ($device in $devices) {
     if ($ExcludeUserGroup -and $primaryUserId -and ($primaryUserId -in $excludeUserIds)) {
         Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - primary user '$($device.userPrincipalName)' in exclude group" -Verbose
         $skippedByExcludeGroup++
+        continue
+    }
+    # Devices that are members of the exclude group themselves, matched by their Entra device ID
+    $entraDeviceId = "$($device.azureADDeviceId)"
+    if ($ExcludeUserGroup -and $entraDeviceId -and ($entraDeviceId -in $excludeDeviceIds)) {
+        Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - the device is in the exclude group" -Verbose
+        $skippedByExcludeDevice++
         continue
     }
 
@@ -670,9 +690,12 @@ foreach ($platform in $platformCounts.Keys) {
     Write-Output "$($platform) devices: $($platformCounts[$platform])"
 }
 if ($IncludeUserGroup) { Write-Output "Skipped, primary user not in '$includeGroupName': $skippedByIncludeGroup" }
-if ($ExcludeUserGroup) { Write-Output "Skipped, primary user in '$excludeGroupName': $skippedByExcludeGroup" }
+if ($ExcludeUserGroup) {
+    Write-Output "Skipped, primary user in '$excludeGroupName': $skippedByExcludeGroup"
+    Write-Output "Skipped, device in '$excludeGroupName': $skippedByExcludeDevice"
+}
 Write-Output "Stale devices in the report: $($sortedRows.Count)"
-Write-RjRbLog -Message "Stale in Intune: $($devices.Count); in report: $($sortedRows.Count); skipped include: $skippedByIncludeGroup; skipped exclude: $skippedByExcludeGroup" -Verbose
+Write-RjRbLog -Message "Stale in Intune: $($devices.Count); in report: $($sortedRows.Count); skipped include: $skippedByIncludeGroup; skipped exclude: $skippedByExcludeGroup; skipped exclude (device): $skippedByExcludeDevice" -Verbose
 
 #endregion Data Processing
 
@@ -773,7 +796,7 @@ else {
 
     $groupFilterParts = @()
     if ($IncludeUserGroup) { $groupFilterParts += "include group '$includeGroupName' ($($includeUserIds.Count) users)" }
-    if ($ExcludeUserGroup) { $groupFilterParts += "exclude group '$excludeGroupName' ($($excludeUserIds.Count) users)" }
+    if ($ExcludeUserGroup) { $groupFilterParts += "exclude group '$excludeGroupName' ($($excludeUserIds.Count) users, $($excludeDeviceIds.Count) devices)" }
     $groupFilterText = if ($groupFilterParts.Count -gt 0) { "`n**User scope filtering applied:** $($groupFilterParts -join ', ')`n" } else { "" }
     $groupFilterBullet = if ($groupFilterParts.Count -gt 0) { "- User scope filtering: $($groupFilterParts -join ', ')" } else { "" }
 
@@ -932,7 +955,10 @@ foreach ($platform in $platformCounts.Keys) {
     $summaryValues["$platform devices"] = $platformCounts[$platform]
 }
 if ($IncludeUserGroup) { $summaryValues["Skipped, primary user not in '$includeGroupName'"] = $skippedByIncludeGroup }
-if ($ExcludeUserGroup) { $summaryValues["Skipped, primary user in '$excludeGroupName'"] = $skippedByExcludeGroup }
+if ($ExcludeUserGroup) {
+    $summaryValues["Skipped, primary user in '$excludeGroupName'"] = $skippedByExcludeGroup
+    $summaryValues["Skipped, device in '$excludeGroupName'"] = $skippedByExcludeDevice
+}
 $summaryValues["Stale devices in the report"] = $sortedRows.Count
 
 $summaryRows = @(foreach ($metric in $summaryValues.Keys) {

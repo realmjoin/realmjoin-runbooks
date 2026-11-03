@@ -3,13 +3,13 @@
     Set a new password for this user
 
     .DESCRIPTION
-    Sets a new password for this user in Entra ID and shows it in the output. A disabled account can be enabled first, and the user can be made to choose their own password at the next sign-in.
+    Sets a new password for this user in Entra ID and shows it in the output. A disabled account can be enabled once the new password is set, and the user can be made to choose their own password at the next sign-in.
 
     .PARAMETER UserName
     User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
     .PARAMETER EnableUserIfNeeded
-    Enables a disabled account before the password is set.
+    Enables a disabled account after the new password is set. If the password cannot be set, the account stays disabled.
 
     .PARAMETER ForceChangePasswordNextSignIn
     Makes the user choose their own password at the next sign-in.
@@ -240,21 +240,6 @@ Write-Output ""
 Write-Output "Reset password"
 Write-Output "---------------------"
 
-if (-not $targetUser.accountEnabled) {
-    if ($EnableUserIfNeeded) {
-        try {
-            Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($targetUser.id)" -Method PATCH -Body (@{ accountEnabled = $true } | ConvertTo-Json) -ContentType "application/json" -ErrorAction Stop | Out-Null
-        }
-        catch {
-            Stop-UserChangeFailure -ErrorRecord $_ -Action "enable the account of" -UserPrincipalName $targetUser.userPrincipalName -DirectoryRoles $directoryRoles
-        }
-        Write-Output "Account of '$($targetUser.userPrincipalName)' enabled."
-    }
-    else {
-        Write-Output "The account of '$($targetUser.userPrincipalName)' stays disabled; the new password works once it is enabled."
-    }
-}
-
 # Optional: Set a password for every reset. Otherwise, a random PW will be generated every time (preferred!).
 [String] $initialPassword = ""
 if ($initialPassword -eq "") {
@@ -274,6 +259,25 @@ catch {
     Stop-UserChangeFailure -ErrorRecord $_ -Action "reset the password of" -UserPrincipalName $targetUser.userPrincipalName -DirectoryRoles $directoryRoles
 }
 
+# Enable only after the new password is set, so a failed reset never leaves the account enabled with the old password.
+# If enabling fails, the new password is still shown and the run fails at the end.
+$enableError = $null
+if (-not $targetUser.accountEnabled) {
+    if ($EnableUserIfNeeded) {
+        try {
+            Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($targetUser.id)" -Method PATCH -Body (@{ accountEnabled = $true } | ConvertTo-Json) -ContentType "application/json" -ErrorAction Stop | Out-Null
+            Write-Output "Account of '$($targetUser.userPrincipalName)' enabled."
+        }
+        catch {
+            $enableError = $_
+            Write-Output "The account of '$($targetUser.userPrincipalName)' stays disabled; the new password works once it is enabled."
+        }
+    }
+    else {
+        Write-Output "The account of '$($targetUser.userPrincipalName)' stays disabled; the new password works once it is enabled."
+    }
+}
+
 Write-Output "Password reset for '$($targetUser.userPrincipalName)'."
 if ($ForceChangePasswordNextSignIn) {
     Write-Output "The user has to choose a new password at the next sign-in."
@@ -290,6 +294,10 @@ Write-Output $initialPassword
 
 if (Get-MgContext -ErrorAction SilentlyContinue) {
     Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
+
+if ($enableError) {
+    Stop-UserChangeFailure -ErrorRecord $enableError -Action "enable the account of" -UserPrincipalName $targetUser.userPrincipalName -DirectoryRoles $directoryRoles
 }
 
 Write-Output ""

@@ -42,7 +42,7 @@
 	Page the guest lands on after accepting, for example a SharePoint site.
 
 	.PARAMETER UsageLocation
-	Two-letter country code, for example US or DE, needed before licenses can be assigned.
+	Two-letter ISO country code, for example US, DE or GB for the United Kingdom, needed before licenses can be assigned. An unknown code such as UK stops the run before the invitation is sent.
 
 	.PARAMETER CallerName
 	Name of the user who started the runbook. Set by the portal and recorded for auditing.
@@ -222,13 +222,34 @@ if ([string]::IsNullOrWhiteSpace($InvitedUserDisplayName) -and -not [string]::Is
     Write-RjRbLog -Message "InvitedUserDisplayName derived from Surname/GivenName: '$InvitedUserDisplayName'" -Verbose
 }
 
-# Entra ID accepts only a country code as usage location; check it before the guest is invited
-$UsageLocation = $UsageLocation.Trim()
-if (-not [string]::IsNullOrEmpty($UsageLocation) -and $UsageLocation -notmatch '^[A-Za-z]{2}$') {
-    Write-Error "Invalid usage location '$UsageLocation'. Use a two-letter country code such as DE or US." -ErrorAction Continue
-    throw "Invalid usage location '$UsageLocation'. Use a two-letter country code such as DE or US."
+# Entra ID accepts only an ISO 3166-1 alpha-2 country code as usage location. Check it before the guest is invited:
+# a rejected code (UK instead of GB) would leave an invited guest without profile, manager, sponsor and group.
+# XK (Kosovo) is not in ISO 3166-1, but Microsoft uses it as country code.
+$UsageLocation = $UsageLocation.Trim().ToUpperInvariant()
+$countryCodes = @(
+    'AD', 'AE', 'AF', 'AG', 'AI', 'AL', 'AM', 'AO', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AW', 'AX', 'AZ',
+    'BA', 'BB', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BL', 'BM', 'BN', 'BO', 'BQ', 'BR', 'BS', 'BT', 'BV', 'BW', 'BY', 'BZ',
+    'CA', 'CC', 'CD', 'CF', 'CG', 'CH', 'CI', 'CK', 'CL', 'CM', 'CN', 'CO', 'CR', 'CU', 'CV', 'CW', 'CX', 'CY', 'CZ',
+    'DE', 'DJ', 'DK', 'DM', 'DO', 'DZ', 'EC', 'EE', 'EG', 'EH', 'ER', 'ES', 'ET', 'FI', 'FJ', 'FK', 'FM', 'FO', 'FR',
+    'GA', 'GB', 'GD', 'GE', 'GF', 'GG', 'GH', 'GI', 'GL', 'GM', 'GN', 'GP', 'GQ', 'GR', 'GS', 'GT', 'GU', 'GW', 'GY',
+    'HK', 'HM', 'HN', 'HR', 'HT', 'HU', 'ID', 'IE', 'IL', 'IM', 'IN', 'IO', 'IQ', 'IR', 'IS', 'IT', 'JE', 'JM', 'JO', 'JP',
+    'KE', 'KG', 'KH', 'KI', 'KM', 'KN', 'KP', 'KR', 'KW', 'KY', 'KZ', 'LA', 'LB', 'LC', 'LI', 'LK', 'LR', 'LS', 'LT', 'LU', 'LV', 'LY',
+    'MA', 'MC', 'MD', 'ME', 'MF', 'MG', 'MH', 'MK', 'ML', 'MM', 'MN', 'MO', 'MP', 'MQ', 'MR', 'MS', 'MT', 'MU', 'MV', 'MW', 'MX', 'MY', 'MZ',
+    'NA', 'NC', 'NE', 'NF', 'NG', 'NI', 'NL', 'NO', 'NP', 'NR', 'NU', 'NZ', 'OM', 'PA', 'PE', 'PF', 'PG', 'PH', 'PK', 'PL', 'PM', 'PN', 'PR', 'PS', 'PT', 'PW', 'PY',
+    'QA', 'RE', 'RO', 'RS', 'RU', 'RW', 'SA', 'SB', 'SC', 'SD', 'SE', 'SG', 'SH', 'SI', 'SJ', 'SK', 'SL', 'SM', 'SN', 'SO', 'SR', 'SS', 'ST', 'SV', 'SX', 'SY', 'SZ',
+    'TC', 'TD', 'TF', 'TG', 'TH', 'TJ', 'TK', 'TL', 'TM', 'TN', 'TO', 'TR', 'TT', 'TV', 'TW', 'TZ', 'UA', 'UG', 'UM', 'US', 'UY', 'UZ',
+    'VA', 'VC', 'VE', 'VG', 'VI', 'VN', 'VU', 'WF', 'WS', 'XK', 'YE', 'YT', 'ZA', 'ZM', 'ZW'
+)
+if (-not [string]::IsNullOrEmpty($UsageLocation) -and $UsageLocation -notin $countryCodes) {
+    $countryHint = switch ($UsageLocation) {
+        'UK' { ' For the United Kingdom use GB.' }
+        'EL' { ' For Greece use GR.' }
+        'EU' { ' EU is no country; use the code of the country.' }
+        default { '' }
+    }
+    Write-Error "Invalid usage location '$UsageLocation'. Use a two-letter country code such as DE or US.$countryHint No invitation was sent." -ErrorAction Continue
+    throw "Invalid usage location '$UsageLocation'. Use a two-letter country code such as DE or US.$countryHint"
 }
-$UsageLocation = $UsageLocation.ToUpperInvariant()
 
 if (-not $SendInvitationMessage -and $CustomizeInvitation -and -not [string]::IsNullOrWhiteSpace($InvitationMessage)) {
     Write-RjRbLog -Message "WARNING: No invitation email is sent, so the invitation message is not used."

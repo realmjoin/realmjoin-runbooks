@@ -750,7 +750,7 @@ function Resolve-NotificationUsers {
         handles the chunking (20 requests per call), the transport and the retry of throttled inner requests
         (status 429) with the Retry-After interval reported by Graph. Lookups that are still throttled after the
         last retry and other failed lookups are marked and reported so that the affected users are skipped instead
-        of aborting the run.
+        of aborting the run. The object id returned by Graph identifies the person behind each lookup.
 
         .PARAMETER Users
         The user identities to resolve, as objects with Key, Id and UserPrincipalName.
@@ -798,6 +798,7 @@ function Resolve-NotificationUsers {
                 # The UPN returned by Graph is authoritative; the one recorded by Intune can be outdated
                 $upn = if (-not [string]::IsNullOrWhiteSpace($item.body.userPrincipalName)) { $item.body.userPrincipalName } else { $user.UserPrincipalName }
                 $resolvedUsers[$user.Key] = [PSCustomObject]@{
+                    Id                = $item.body.id
                     UserPrincipalName = $upn
                     DisplayName       = $item.body.displayName
                     Recipient         = if (-not [string]::IsNullOrWhiteSpace($mail)) { $mail } else { $upn }
@@ -817,6 +818,7 @@ function Resolve-NotificationUsers {
                 $errorDetail = if ($errorCode -or $errorMessage) { " - $($errorCode): $($errorMessage)" } else { "" }
                 Write-RjRbLog -Message "User lookup for '$identityLabel' failed with status $($item.status).$errorDetail" -Verbose
                 $resolvedUsers[$user.Key] = [PSCustomObject]@{
+                    Id                = $null
                     UserPrincipalName = $user.UserPrincipalName
                     DisplayName       = $null
                     Recipient         = $null
@@ -834,6 +836,7 @@ function Resolve-NotificationUsers {
             $identityLabel = if (-not [string]::IsNullOrWhiteSpace($user.UserPrincipalName)) { $user.UserPrincipalName } else { $user.Id }
             Write-RjRbLog -Message "User lookup for '$identityLabel' returned no result." -Verbose
             $resolvedUsers[$user.Key] = [PSCustomObject]@{
+                Id                = $null
                 UserPrincipalName = $user.UserPrincipalName
                 DisplayName       = $null
                 Recipient         = $null
@@ -990,9 +993,10 @@ function ConvertTo-MarkdownSafeText {
         replaced first, otherwise the entities introduced afterwards would be escaped a second time.
         The remaining characters are Markdown markup - a device named 'PC-A*B*C' would otherwise arrive with
         an emphasised middle - and are backslash-escaped, which the converter resolves back to the literal
-        character. '_' is left alone because the converter has no underscore markup. The escape set is kept
-        identical to ConvertTo-MarkdownTableCell in the report counterpart, minus nothing, so both runbooks
-        render a given device name the same way.
+        character. '_' is left alone because the converter has no underscore markup. The section sign (U+00A7)
+        is encoded as well: the converter builds its internal placeholders from it and turns a typed placeholder
+        back into a raw '<'. The escape set is kept identical to ConvertTo-MarkdownTableCell in the report
+        counterpart, so both runbooks render a given device name the same way.
 
         .PARAMETER Value
         The raw value as reported by Intune.
@@ -1003,8 +1007,8 @@ function ConvertTo-MarkdownSafeText {
 
     if ([string]::IsNullOrEmpty($Value)) { return $Value }
 
-    $encodedValue = $Value.Replace('&', '&amp;').Replace('<', '&lt;').Replace('>', '&gt;')
-    return ($encodedValue -replace '([\\`*\[\]|])', '\$1')
+    $encodedValue = $Value.Replace('&', '&amp;').Replace('<', '&lt;').Replace('>', '&gt;').Replace([string][char]0xA7, '&#167;')
+    return ($encodedValue -replace '([\\`*\[\]|~])', '\$1')
 }
 
 function ConvertTo-MarkdownSafeLinkTarget {
@@ -1439,35 +1443,12 @@ foreach ($device in $devices) {
     $devicesByUser[$userKey] += $flaggedDevice
 }
 
-# Intune reports a userId on some devices of a person and only a UPN on others, which splits that person
-# into two buckets: two lookups, two mails each listing only part of her devices - the one without the
-# Critical device even with the mild subject - and every user counter counting her twice. The UPN-keyed
-# buckets are therefore folded into the id-keyed bucket of the same user before anything consumes them.
-$userKeyByUpn = @{}
-foreach ($userKey in @($devicesByUser.Keys)) {
-    foreach ($userDevice in $devicesByUser[$userKey]) {
-        if (-not [string]::IsNullOrWhiteSpace($userDevice.PrimaryUserId) -and -not [string]::IsNullOrWhiteSpace($userDevice.PrimaryUser)) {
-            $userKeyByUpn[$userDevice.PrimaryUser.ToLowerInvariant()] = $userKey
-        }
-    }
-}
-foreach ($userKey in @($devicesByUser.Keys)) {
-    $canonicalUserKey = $userKeyByUpn[$userKey]
-    if ($canonicalUserKey -and $canonicalUserKey -ne $userKey) {
-        Write-RjRbLog -Message "Merging the devices grouped by UPN '$($userKey)' into the user object id '$($canonicalUserKey)'" -Verbose
-        $devicesByUser[$canonicalUserKey] += $devicesByUser[$userKey]
-        $devicesByUser.Remove($userKey)
-    }
-}
-
-# Worst devices first, both in the overall list and per user. The sort key has to follow the active threshold type: in percent mode a large
-# disk with a small percentage is worse than a small disk with more absolute gigabytes free, and sorting
-# by gigabytes there would rank Critical devices below Warning ones and push them out of any Top-N view.
+# Worst devices first, in the overall list and, once the users are resolved, per user. The sort key has to follow
+# the active threshold type: in percent mode a large disk with a small percentage is worse than a small disk with
+# more absolute gigabytes free, and sorting by gigabytes there would rank Critical devices below Warning ones and
+# push them out of any Top-N view.
 $deviceSortProperty = if ($ThresholdType -eq 'Free space in percent') { @('FreePercent', 'FreeSpaceGB') } else { @('FreeSpaceGB', 'FreePercent') }
 $flaggedDevices = @($flaggedDevices | Sort-Object -Property $deviceSortProperty)
-foreach ($userKey in @($devicesByUser.Keys)) {
-    $devicesByUser[$userKey] = @($devicesByUser[$userKey] | Sort-Object -Property $deviceSortProperty)
-}
 
 $criticalCount = ($flaggedDevices | Where-Object { $_.Severity -eq 'Critical' } | Measure-Object).Count
 $warningCount = ($flaggedDevices | Where-Object { $_.Severity -eq 'Warning' } | Measure-Object).Count
@@ -1477,19 +1458,29 @@ $usersToNotify = @()
 $usersSkippedDisabled = @()
 $usersSkippedLookupFailed = @()
 $lookupPermissionDenied = $false
+$lookupFailedOtherThanNotFound = $false
 # One row per user with affected devices for the Output Data table "Notifications"
 $notificationResults = [System.Collections.Generic.List[object]]::new()
 
 if ($devicesByUser.Count -gt 0) {
+    # UPNs that devices with a userId recorded; a UPN-keyed bucket with such a UPN belongs to that id-keyed bucket and
+    # is not counted as a user of its own
+    $userKeyByUpn = @{}
+    foreach ($userKey in @($devicesByUser.Keys)) {
+        foreach ($userDevice in $devicesByUser[$userKey]) {
+            if (-not [string]::IsNullOrWhiteSpace($userDevice.PrimaryUserId) -and -not [string]::IsNullOrWhiteSpace($userDevice.PrimaryUser)) {
+                $userKeyByUpn[$userDevice.PrimaryUser.ToLowerInvariant()] = $userKey
+            }
+        }
+    }
     Write-Output ""
-    Write-Output "Resolving $($devicesByUser.Count) user(s) with affected devices..."
+    Write-Output "Resolving $(@($devicesByUser.Keys | Where-Object { -not $userKeyByUpn.ContainsKey($_) }).Count) user(s) with affected devices..."
 
     $userIdentities = @($devicesByUser.Keys | ForEach-Object {
             $identityKey = $_
             $identityDevices = $devicesByUser[$identityKey]
-            # A bucket merged from an id-keyed and a UPN-keyed group can start with a device that reports no
-            # userId, so both identifiers are taken from the first device that carries one - the lookup has to
-            # stay id-first even then
+            # Every device of an id-keyed bucket carries the userId, none of a UPN-keyed one; the UPN is taken
+            # from the first device that recorded one, as a device can report a userId without a UPN
             $identityIds = @($identityDevices | Where-Object { -not [string]::IsNullOrWhiteSpace($_.PrimaryUserId) })
             $identityUpns = @($identityDevices | Where-Object { -not [string]::IsNullOrWhiteSpace($_.PrimaryUser) })
             [PSCustomObject]@{
@@ -1499,6 +1490,47 @@ if ($devicesByUser.Count -gt 0) {
             }
         })
     $resolvedUsers = Resolve-NotificationUsers -Users $userIdentities
+    # A deleted primary user is not found (404) and could not be notified anyway. Any other failed lookup (denied,
+    # still throttled, server error, no response) concerns a user who may well exist and was not reached.
+    $lookupFailedOtherThanNotFound = @($resolvedUsers.Values | Where-Object { $_.LookupFailed -and $_.FailureStatus -ne 404 }).Count -gt 0
+
+    # Intune reports a userId on some devices of a person and only a UPN on others, and the UPN it recorded can be
+    # outdated (renamed account) or by now belong to another account (reused UPN). The buckets are therefore merged
+    # by the object id Graph resolved for them - one email per person listing all of her devices, never a device in
+    # the email of another account. A UPN-keyed bucket whose lookup failed has no resolved identity and is folded,
+    # as before, into the id-keyed bucket whose devices recorded the same UPN.
+    $mergedDevicesByUser = @{}
+    $mergedResolvedUsers = @{}
+    foreach ($userKey in ($devicesByUser.Keys | Sort-Object)) {
+        $userInfo = $resolvedUsers[$userKey]
+        $lookupSucceeded = $null -ne $userInfo -and -not $userInfo.LookupFailed -and -not [string]::IsNullOrWhiteSpace($userInfo.Id)
+        # The id-keyed buckets are keyed on the lowercased object id, so a resolved id lands on the same key
+        $mergedUserKey = if ($lookupSucceeded) {
+            "$($userInfo.Id)".ToLowerInvariant()
+        }
+        elseif ($userKeyByUpn.ContainsKey($userKey)) {
+            $userKeyByUpn[$userKey]
+        }
+        else {
+            $userKey
+        }
+        if ($mergedUserKey -ne $userKey) {
+            Write-RjRbLog -Message "Merging the devices grouped by '$($userKey)' into the user object id '$($mergedUserKey)'" -Verbose
+        }
+        if (-not $mergedDevicesByUser.ContainsKey($mergedUserKey)) {
+            $mergedDevicesByUser[$mergedUserKey] = @()
+        }
+        $mergedDevicesByUser[$mergedUserKey] += $devicesByUser[$userKey]
+        # A successful lookup of any part stands for the whole merged bucket
+        if (-not $mergedResolvedUsers.ContainsKey($mergedUserKey) -or ($lookupSucceeded -and $mergedResolvedUsers[$mergedUserKey].LookupFailed)) {
+            $mergedResolvedUsers[$mergedUserKey] = $userInfo
+        }
+    }
+    foreach ($mergedUserKey in @($mergedDevicesByUser.Keys)) {
+        $mergedDevicesByUser[$mergedUserKey] = @($mergedDevicesByUser[$mergedUserKey] | Sort-Object -Property $deviceSortProperty)
+    }
+    $devicesByUser = $mergedDevicesByUser
+    $resolvedUsers = $mergedResolvedUsers
 
     foreach ($userKey in ($devicesByUser.Keys | Sort-Object)) {
         $userDevices = $devicesByUser[$userKey]
@@ -1967,6 +1999,13 @@ if (Get-MgContext -ErrorAction SilentlyContinue) {
 if ($emailsSent -eq 0 -and $emailsFailed -gt 0) {
     # A completed job with no delivered notification would stay unnoticed in a schedule
     throw "None of the $($emailsFailed) notification(s) could be sent - see the warnings above for the individual errors."
+}
+
+# The same applies when not a single affected user could be looked up and at least one lookup failed for another
+# reason than a deleted user (missing User.Read.All, throttling): nobody was notified. Lookups that only found
+# deleted users keep the warning, and a simulation run only lists the users and keeps ending as completed.
+if (-not $SimulationMode -and $devicesByUser.Count -gt 0 -and $usersSkippedLookupFailed.Count -eq $devicesByUser.Count -and $lookupFailedOtherThanNotFound) {
+    throw "None of the $($devicesByUser.Count) affected user(s) could be resolved via Microsoft Graph, so no notification was sent - see the warnings above."
 }
 
 Write-Output ""

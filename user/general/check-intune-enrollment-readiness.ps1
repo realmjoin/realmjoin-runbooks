@@ -15,7 +15,7 @@
 	Also requires the user to be in the pilot group. Non-members are reported as Not ready.
 
 	.PARAMETER PilotGroupDisplayName
-	Members of this group count as pilot users. The group is looked up by its display name.
+	Members of this group count as pilot users. The group is looked up by its display name. Used only when the pilot group membership is checked.
 
 	.PARAMETER CallerName
 	Name of the user who started the runbook. Set by the portal and recorded for auditing.
@@ -37,7 +37,25 @@
                 }
             },
             "CheckPilotGroupMembership": {
-                "DisplayName": "Check pilot group membership?"
+                "DisplayName": "Check pilot group membership?",
+                "Select": {
+                    "Options": [
+                        {
+                            "Display": "No",
+                            "ParameterValue": false,
+                            "Customization": {
+                                "Hide": [ "PilotGroupDisplayName" ]
+                            }
+                        },
+                        {
+                            "Display": "Yes",
+                            "ParameterValue": true,
+                            "Customization": {
+                                "Show": [ "PilotGroupDisplayName" ]
+                            }
+                        }
+                    ]
+                }
             },
             "PilotGroupDisplayName": {
                 "DisplayName": "Pilot group name"
@@ -1129,8 +1147,19 @@ try {
     }
 }
 catch {
-    Write-RjRbLog -Message "WARNING: Could not read the group memberships of '$userLabel' to select the enrollment limit configuration; group-assigned limits are ignored: $($_.Exception.Message)" -Verbose
+    # A partial list from an interrupted paging run would select the wrong configuration, so it counts as failed.
+    $limitUserGroupIds = $null
+    $limitGroupWarning = "Could not read the group memberships of '$userLabel' to select the enrollment limit configuration; group-assigned limits cannot be evaluated: $($_.Exception.Message)"
+    Write-RjRbLog -Message "WARNING: $limitGroupWarning" -Verbose
+    Write-Warning $limitGroupWarning
 }
+# Without the memberships a configuration assigned to or excluding a group can be neither ruled in nor out, so
+# the limit is reported as unknown instead of falling back to the default.
+$limitGroupsUnknown = $null -eq $limitUserGroupIds -and @($CurrentEnrollmentLimitConfigs | Where-Object {
+        $_.priority -gt 0 -and @($_.assignments | Where-Object {
+                $_.target.'@odata.type' -like "*.groupAssignmentTarget" -or $_.target.'@odata.type' -like "*.exclusionGroupAssignmentTarget"
+            }).Count -gt 0
+    }).Count -gt 0
 
 # The applicable limit is the assigned custom configuration (priority > 0) with the lowest priority number.
 # A configuration applies when it is assigned to All users or to a group the user is a member of, unless an
@@ -1159,6 +1188,9 @@ else { "Global" }
 if ($null -eq $deviceCount) {
     Add-ReadinessFinding -Check "Device enrollment limit" -Result "Warning" -Detail "The number of Intune-enrolled devices of this user could not be read, so the enrollment limit could not be evaluated."
 }
+elseif ($limitGroupsUnknown) {
+    Add-ReadinessFinding -Check "Device enrollment limit" -Result "Warning" -Detail "The user has $deviceCount Intune-enrolled device(s), but the group memberships of this user could not be read, so the applicable enrollment limit could not be determined."
+}
 elseif ($null -eq $enrollmentLimit) {
     Add-ReadinessFinding -Check "Device enrollment limit" -Result "Pass" -Detail "The user has $deviceCount Intune-enrolled device(s). No device enrollment limit could be determined from the enrollment restrictions."
 }
@@ -1174,26 +1206,54 @@ $entraDeviceQuota = $null
 $entraDeviceCount = $null
 try {
     $deviceRegistrationPolicy = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/policies/deviceRegistrationPolicy?`$select=userDeviceQuota" -Method GET -ErrorAction Stop
+    # A missing value must not become 0 ('no devices allowed'), which would report a blocker for every user
+    if ($null -eq $deviceRegistrationPolicy.userDeviceQuota) {
+        throw "The device registration policy returned no userDeviceQuota value."
+    }
     $entraDeviceQuota = [int]$deviceRegistrationPolicy.userDeviceQuota
     $entraDeviceCount = 0
+    $ownedDeviceCount = 0
+    $ownedDevicesWithTrustType = 0
     $entraDevicesUri = "https://graph.microsoft.com/v1.0/users/$($targetUser.id)/ownedDevices?`$select=id,trustType&`$top=999"
     while ($entraDevicesUri) {
         $entraDevices = Invoke-MgGraphRequest -Uri $entraDevicesUri -Method GET -ErrorAction Stop
+        $ownedDeviceCount += @($entraDevices.value).Count
+        $ownedDevicesWithTrustType += @($entraDevices.value | Where-Object { $_.trustType }).Count
         $entraDeviceCount += @($entraDevices.value | Where-Object { $_.trustType -in @("Workplace", "AzureAd") }).Count
         $entraDevicesUri = $entraDevices.'@odata.nextLink'
+    }
+    # Without Device.Read.All Graph returns the device objects with their id only, which would count as 0
+    if ($ownedDeviceCount -gt 0 -and $ownedDevicesWithTrustType -eq 0) {
+        throw "The devices were returned without their trust type. Grant the Device.Read.All application permission to the Automation Account's managed identity."
     }
 }
 catch {
     $entraDeviceCount = $null
-    Write-RjRbLog -Message "WARNING: Could not evaluate the Entra device quota for '$userLabel'; the check is skipped: $($_.Exception.Message)" -Verbose
-}
-if ($null -ne $entraDeviceCount -and $null -ne $entraDeviceQuota) {
-    if ($entraDeviceCount -ge $entraDeviceQuota) {
-        Add-ReadinessFinding -Check "Entra device limit" -Result "Blocker" -Detail "The user has $entraDeviceCount Entra registered or joined device(s) and the Entra setting 'Maximum number of devices per user' is $entraDeviceQuota. Registering or joining another device will be refused until a device is removed or the setting is raised."
+    $errorMessage = $_.Exception.Message
+    # The quota is set once the policy was read, so a $null quota means the policy read failed
+    $entraLimitWarning = if ($null -ne $entraDeviceQuota) {
+        "Could not read the Entra registered and joined devices of '$userLabel'; the Entra device limit check will be reported as a warning: $errorMessage"
+    }
+    elseif ($errorMessage -like "*Forbidden*" -or $errorMessage -like "*403*" -or $errorMessage -like "*Authorization_RequestDenied*") {
+        "Access to the Entra device registration policy was denied (403). The managed identity is missing the 'Policy.Read.DeviceConfiguration' Microsoft Graph application permission. The Entra device limit check will be reported as a warning. Error: $errorMessage"
     }
     else {
-        Add-ReadinessFinding -Check "Entra device limit" -Result "Pass" -Detail "The user has $entraDeviceCount of $entraDeviceQuota permitted Entra registered or joined device(s)."
+        "Could not read the Entra device registration policy; the Entra device limit check will be reported as a warning: $errorMessage"
     }
+    Write-RjRbLog -Message "WARNING: $entraLimitWarning" -Verbose
+    Write-Warning $entraLimitWarning
+}
+if ($null -eq $entraDeviceQuota) {
+    Add-ReadinessFinding -Check "Entra device limit" -Result "Warning" -Detail "The Entra setting 'Maximum number of devices per user' could not be read, so the Entra device limit could not be checked."
+}
+elseif ($null -eq $entraDeviceCount) {
+    Add-ReadinessFinding -Check "Entra device limit" -Result "Warning" -Detail "The Entra registered and joined devices of this user could not be read, so the Entra device limit could not be checked."
+}
+elseif ($entraDeviceCount -ge $entraDeviceQuota) {
+    Add-ReadinessFinding -Check "Entra device limit" -Result "Blocker" -Detail "The user has $entraDeviceCount Entra registered or joined device(s) and the Entra setting 'Maximum number of devices per user' is $entraDeviceQuota. Registering or joining another device will be refused until a device is removed or the setting is raised."
+}
+else {
+    Add-ReadinessFinding -Check "Entra device limit" -Result "Pass" -Detail "The user has $entraDeviceCount of $entraDeviceQuota permitted Entra registered or joined device(s)."
 }
 
 #endregion Device enrollment limit
