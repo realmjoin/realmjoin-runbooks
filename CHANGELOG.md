@@ -203,6 +203,14 @@
   - Announce the removal of send on behalf permissions when the mailbox is turned back into a regular mailbox, and check the license group membership across all members
 - Update **Report Devices Low Diskspace (Scheduled)** Runbook in Org/Devices (v1.2.0)
   - Escape the section sign and `~` in device values, so a device name cannot add markup to the email
+- Update **List Group Memberships**, **List Group Ownerships**, **Sync Channel Or Group Members (Scheduled)** and **Sync MFA Secure Users To Group (Scheduled)** with the "Report delivery" choice and Output Data tables
+  - One "Report delivery" choice (Output Data only, Also email the report, Also create a download link, Also email & download link) replaces the two yes/no choices for the email and the download link; before, the report file format could be hidden although the email attached files
+  - Every run shows its results as Output Data tables: a Summary plus the group memberships, the group ownerships, the sync actions or the membership changes. The text output, the report files and the emails stay the same
+  - Scheduled runs and API calls that pass the email and download link parameters directly keep working as before. When a scheduled run saved before this change is edited, the choice shows "Output Data only": select the delivery again before saving
+  - **List Group Memberships** and **List Group Ownerships** call Microsoft Graph with `Connect-MgGraph` and `Invoke-MgGraphRequest` and require Microsoft.Graph.Authentication 2.41.2; **Sync MFA Secure Users To Group (Scheduled)** sends its email through the same Microsoft Graph session as its other calls
+  - **Sync Channel Or Group Members (Scheduled)** and **Sync MFA Secure Users To Group (Scheduled)** stop before any change when a list of members, users or role assignments cannot be read completely; before, a failed read could lead to wrong removals, add admins to the group or skip the exclusion group. Without an Entra ID P2 license, Sync MFA Secure Users To Group still falls back to the active role assignments
+  - **Sync MFA Secure Users To Group (Scheduled)** shows the right number of added and removed users when exactly one user was added or removed
+  - Versions stay as listed above
 
 ## 2026-10-23
 

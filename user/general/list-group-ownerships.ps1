@@ -1,176 +1,186 @@
 <#
-    .SYNOPSIS
-    List the groups this user owns
+	.SYNOPSIS
+	List the groups this user owns
 
-    .DESCRIPTION
-    Lists the Entra ID groups this user owns, with their names and IDs. The report can be sent by email or provided as a download link.
+	.DESCRIPTION
+	Lists the Entra ID groups this user owns, with their names, IDs and type (Microsoft 365, security or distribution). Every run shows the list as Output Data tables in the portal. Nothing is changed. The report can be sent by email or provided as a download link.
 
-    .PARAMETER UserName
-    User principal name of the user the runbook acts on. Set by the portal from the selected user.
+	.PARAMETER UserName
+	User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
-    .PARAMETER SendMail
-    Send the report to the recipient email address.
+	.PARAMETER SendMail
+	Send the report to the recipient email address. Set by the "Report delivery" selection; schedules and API calls can pass it directly.
 
-    .PARAMETER ReportFileFormat
-    Deliver the report as CSV, as an Excel workbook, or both.
+	.PARAMETER ReportFileFormat
+	Deliver the report as CSV, as an Excel workbook, or both.
 
-    .PARAMETER EmailTo
-    Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
+	.PARAMETER EmailTo
+	Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
-    .PARAMETER EmailFrom
-    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
+	.PARAMETER EmailFrom
+	Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
-    .PARAMETER BrandingHeaderImageUrl
-    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
+	.PARAMETER BrandingHeaderImageUrl
+	Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
-    .PARAMETER BrandingFooterImageUrl
-    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
+	.PARAMETER BrandingFooterImageUrl
+	Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
-    .PARAMETER BrandingFooterLink
-    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
+	.PARAMETER BrandingFooterLink
+	Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
-    .PARAMETER BrandingAccentColor
-    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
+	.PARAMETER BrandingAccentColor
+	Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
-    .PARAMETER BrandingTextColor
-    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
+	.PARAMETER BrandingTextColor
+	Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
-    .PARAMETER CreateDownloadLink
-    Also upload the report and return a download link that expires after a few days.
+	.PARAMETER CreateDownloadLink
+	Also upload the report and return a download link that expires after a few days. Set by the "Report delivery" selection; schedules and API calls can pass it directly.
 
-    .PARAMETER ContainerName
-    Storage container the report files are uploaded to. Set per runbook.
+	.PARAMETER ContainerName
+	Storage container the report files are uploaded to. Set per runbook.
 
-    .PARAMETER ResourceGroupName
-    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
+	.PARAMETER ResourceGroupName
+	Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
-    .PARAMETER StorageAccountName
-    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
+	.PARAMETER StorageAccountName
+	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
-    .PARAMETER SubscriptionId
-    Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty.
+	.PARAMETER SubscriptionId
+	Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty.
 
-    .PARAMETER LinkExpiryDays
-    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
+	.PARAMETER LinkExpiryDays
+	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
+	.PARAMETER CallerName
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
-    .INPUTS
-    RunbookCustomization: {
-        "Parameters": {
-            "UserName": {
-                "Hide": true
-            },
-            "SendMail": {
-                "DisplayName": "Send the report by email?",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Yes - send the report via email",
-                            "ParameterValue": true,
-                            "Customization": {
-                                "Show": ["EmailTo", "ReportFileFormat"]
-                            }
-                        },
-                        {
-                            "Display": "No - do not send an email",
-                            "ParameterValue": false,
-                            "Customization": {
-                                "Hide": ["EmailTo", "ReportFileFormat"]
-                            }
-                        }
-                    ]
-                }
-            },
-            "CreateDownloadLink": {
-                "DisplayName": "Create a download link?",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Yes - upload report and return a download link",
-                            "ParameterValue": true,
-                            "Customization": {
-                                "Show": ["ReportFileFormat"]
-                            }
-                        },
-                        {
-                            "Display": "No - do not create a download link",
-                            "ParameterValue": false,
-                            "Customization": {
-                                "Hide": ["ReportFileFormat"]
-                            }
-                        }
-                    ]
-                }
-            },
-            "ReportFileFormat": {
-                "DisplayName": "Report file format",
-                "Hide": true,
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "CSV & XLSX",
-                            "ParameterValue": "CSV & XLSX"
-                        },
-                        {
-                            "Display": "CSV only",
-                            "ParameterValue": "CSV only"
-                        },
-                        {
-                            "Display": "XLSX only",
-                            "ParameterValue": "XLSX only"
-                        }
-                    ],
-                    "ShowValue": false
-                }
-            },
-            "EmailTo": {
-                "DisplayName": "Recipient email address(es)",
-                "Hide": true
-            },
-            "BrandingHeaderImageUrl": {
-                "Hide": true
-            },
-            "BrandingFooterImageUrl": {
-                "Hide": true
-            },
-            "BrandingFooterLink": {
-                "Hide": true
-            },
-            "BrandingAccentColor": {
-                "Hide": true
-            },
-            "BrandingTextColor": {
-                "Hide": true
-            },
-            "EmailFrom": {
-                "Hide": true
-            },
-            "ContainerName": {
-                "Hide": true
-            },
-            "ResourceGroupName": {
-                "Hide": true
-            },
-            "StorageAccountName": {
-                "Hide": true
-            },
-            "SubscriptionId": {
-                "Hide": true
-            },
-            "LinkExpiryDays": {
-                "Hide": true
-            },
-            "CallerName": {
-                "Hide": true
-            }
-        }
-    }
-
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"UserName": {
+				"Hide": true
+			},
+			"SendMail": {
+				"Hide": true
+			},
+			"CreateDownloadLink": {
+				"Hide": true
+			},
+			"ReportFileFormat": {
+				"DisplayName": "Report file format",
+				"Hide": true,
+				"Select": {
+					"Options": [
+						{
+							"Display": "CSV & XLSX",
+							"ParameterValue": "CSV & XLSX"
+						},
+						{
+							"Display": "CSV only",
+							"ParameterValue": "CSV only"
+						},
+						{
+							"Display": "XLSX only",
+							"ParameterValue": "XLSX only"
+						}
+					],
+					"ShowValue": false
+				}
+			},
+			"EmailTo": {
+				"DisplayName": "Recipient email address(es)",
+				"Hide": true
+			},
+			"BrandingHeaderImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterLink": {
+				"Hide": true
+			},
+			"BrandingAccentColor": {
+				"Hide": true
+			},
+			"BrandingTextColor": {
+				"Hide": true
+			},
+			"EmailFrom": {
+				"Hide": true
+			},
+			"ContainerName": {
+				"Hide": true
+			},
+			"ResourceGroupName": {
+				"Hide": true
+			},
+			"StorageAccountName": {
+				"Hide": true
+			},
+			"SubscriptionId": {
+				"Hide": true
+			},
+			"LinkExpiryDays": {
+				"Hide": true
+			},
+			"CallerName": {
+				"Hide": true
+			}
+		},
+		"ParameterList": [
+			{
+				"DisplayName": "Report delivery",
+				"DisplayAfter": "SendMail",
+				"Select": {
+					"Options": [
+						{
+							"Display": "Output Data only",
+							"ParameterValue": "Output Data only",
+							"Customization": {
+								"Default": { "SendMail": false, "CreateDownloadLink": false },
+								"Hide": [ "EmailTo", "ReportFileFormat" ]
+							}
+						},
+						{
+							"Display": "Also email the report",
+							"ParameterValue": "Also email the report",
+							"Customization": {
+								"Default": { "SendMail": true, "CreateDownloadLink": false },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also create a download link",
+							"ParameterValue": "Also create a download link",
+							"Customization": {
+								"Default": { "SendMail": false, "CreateDownloadLink": true },
+								"Show": [ "ReportFileFormat" ],
+								"Hide": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also email & download link",
+							"ParameterValue": "Also email & download link",
+							"Customization": {
+								"Default": { "SendMail": true, "CreateDownloadLink": true },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						}
+					]
+				},
+				"Default": "Output Data only"
+			}
+		]
+	}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
@@ -252,7 +262,7 @@ if ($CreateDownloadLink) {
     Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
 }
 
-#endregion
+#endregion RJ Log Part
 
 ########################################################
 #region     Parameter Validation
@@ -275,19 +285,93 @@ if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccoun
     throw "Missing Storage Account Configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)."
 }
 
-#endregion
+#endregion Parameter Validation
 
 ########################################################
 #region     Function Definitions
 ########################################################
 
-#endregion
+function Get-GraphPagedResult {
+    <#
+        .SYNOPSIS
+        Retrieves all items from a paginated Microsoft Graph API endpoint.
+
+        .DESCRIPTION
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
+
+        .PARAMETER Uri
+        The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
+
+        .EXAMPLE
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
+    #>
+    param(
+        [string]$Uri
+    )
+
+    $allResults = [System.Collections.Generic.List[object]]::new()
+    $nextLink = $Uri
+    $pageCount = 0
+
+    do {
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
+        }
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
+        $nextLink = $response.'@odata.nextLink'
+    } while ($nextLink)
+
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
+}
+
+#endregion Function Definitions
 
 ########################################################
-#region     Connect and Initialize
+#region     Connect Part
 ########################################################
 
-Connect-RjRbGraph
+Write-Output "## Connecting to Microsoft Graph..."
+try {
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+}
+catch {
+    Write-Error "Failed to connect to Microsoft Graph. Ensure the managed identity is configured correctly. Error: $($_.Exception.Message)" -ErrorAction Continue
+    throw
+}
+
+# Tenant display name for the report email header; only needed when the report is emailed
+$tenantDisplayName = "Unknown Tenant"
+if ($SendMail) {
+    try {
+        $organizationResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization?`$select=displayName" -Method GET -ErrorAction Stop
+        if ($organizationResponse.value -and $organizationResponse.value[0].displayName) {
+            $tenantDisplayName = $organizationResponse.value[0].displayName
+        }
+    }
+    catch {
+        Write-RjRbLog -Message "Failed to retrieve tenant display name: $($_.Exception.Message)" -Verbose
+    }
+}
 
 if ($CreateDownloadLink) {
     try {
@@ -300,16 +384,28 @@ if ($CreateDownloadLink) {
     }
 }
 
-#endregion
+#endregion Connect Part
 
 ########################################################
-#region     Main Code
+#region     Data Collection
 ########################################################
 
-$User = Invoke-RjRbRestMethodGraph -Resource "/users/$UserName"
-$OwnedGroups = Invoke-RjRbRestMethodGraph -Resource "/users/$($User.id)/ownedObjects/microsoft.graph.group/" -FollowPaging
+try {
+    $User = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$([uri]::EscapeDataString($UserName))" -Method GET -ErrorAction Stop
+}
+catch {
+    Write-Error "Failed to retrieve user '$UserName': $($_.Exception.Message)" -ErrorAction Continue
+    throw
+}
+$OwnedGroups = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/users/$($User.id)/ownedObjects/microsoft.graph.group/"
 
-# Build a structured report object per owned group (used for console output, CSV file, and email)
+#endregion Data Collection
+
+########################################################
+#region     Data Processing
+########################################################
+
+# Build a structured report object per owned group (used for console output, Output Data, CSV file, and email)
 $reportData = @()
 if ($OwnedGroups) {
     $reportData = foreach ($OwnedGroup in $OwnedGroups) {
@@ -332,7 +428,7 @@ if ($OwnedGroups) {
     $reportData = @($reportData)
 }
 
-"## Listing group ownerships for '$($User.UserPrincipalName)':"
+"## Listing group ownerships for '$($User.userPrincipalName)':"
 if ($reportData.Count -gt 0) {
     foreach ($item in $reportData) {
         "## Group '$($item.DisplayName)' with id '$($item.ID)'"
@@ -341,10 +437,10 @@ if ($reportData.Count -gt 0) {
     "## User is not an owner of any groups."
 }
 
-#endregion
+#endregion Data Processing
 
 ########################################################
-#region     Output/Export, Upload and Email
+#region     Report File Export
 ########################################################
 
 # The report files are only needed when they will be uploaded and/or attached to an email
@@ -353,7 +449,7 @@ $xlsxFilePath = $null
 $reportFiles = @()
 if (($SendMail -or $CreateDownloadLink) -and $reportData.Count -gt 0) {
     if ($ReportFileFormat -ne 'XLSX only') {
-        $csvFileName = "group-ownerships_$($User.UserPrincipalName)_$(Get-Date -Format 'yyyyMMdd').csv"
+        $csvFileName = "group-ownerships_$($User.userPrincipalName)_$(Get-Date -Format 'yyyyMMdd').csv"
         $csvFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath $csvFileName
         $reportData | Export-Csv -Path $csvFilePath -NoTypeInformation -Encoding UTF8
         $reportFiles += $csvFilePath
@@ -361,7 +457,7 @@ if (($SendMail -or $CreateDownloadLink) -and $reportData.Count -gt 0) {
     }
 
     if ($ReportFileFormat -ne 'CSV only') {
-        $xlsxFileName = "group-ownerships_$($User.UserPrincipalName)_$(Get-Date -Format 'yyyyMMdd').xlsx"
+        $xlsxFileName = "group-ownerships_$($User.userPrincipalName)_$(Get-Date -Format 'yyyyMMdd').xlsx"
         $xlsxFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath $xlsxFileName
         $reportData | Export-RjRbXlsx -Path $xlsxFilePath -WorksheetName "Group Ownerships"
         $reportFiles += $xlsxFilePath
@@ -373,8 +469,11 @@ elseif (($SendMail -or $CreateDownloadLink) -and $reportData.Count -eq 0) {
     Write-Output "## No groups found - skipping report export, upload and email."
 }
 
-#region Upload / Download Link (optional)
-##############################
+#endregion Report File Export
+
+########################################################
+#region     Upload / Download Link
+########################################################
 
 if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
     Write-Output ""
@@ -400,31 +499,20 @@ if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
 
 #endregion Upload / Download Link
 
-#region Send Email Report (optional)
-##############################
+########################################################
+#region     Send Email Report
+########################################################
 
 if ($SendMail -and $reportFiles.Count -gt 0) {
     Write-Output ""
     Write-Output "## Preparing email report to send to '$($EmailTo)'..."
 
-    # Resolve tenant display name for the report header
-    $tenantDisplayName = "Unknown Tenant"
-    try {
-        $tenantInfo = Invoke-RjRbRestMethodGraph -Resource "/organization" -OdSelect "displayName"
-        if ($tenantInfo -and $tenantInfo[0].displayName) {
-            $tenantDisplayName = $tenantInfo[0].displayName
-        }
-    }
-    catch {
-        Write-RjRbLog -Message "Failed to retrieve tenant display name: $($_.Exception.Message)" -Verbose
-    }
-
-    $subject = "Group Ownerships - $($User.UserPrincipalName) - $(Get-Date -Format 'yyyy-MM-dd')"
+    $subject = "Group Ownerships - $($User.userPrincipalName) - $(Get-Date -Format 'yyyy-MM-dd')"
 
     $markdownContent = @"
 # Group Ownerships Report
 
-**User:** $($User.UserPrincipalName)
+**User:** $($User.userPrincipalName)
 **Generated:** $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
 
 ## Summary
@@ -440,7 +528,7 @@ The report file(s) are attached for your review.
     $markdownFallback = @"
 # Group Ownerships Report
 
-**User:** $($User.UserPrincipalName)
+**User:** $($User.userPrincipalName)
 **Generated:** $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
 
 ## Summary
@@ -459,13 +547,15 @@ The report file(s) are attached for your review.
     $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
 
     try {
+        # -UseNativeGraphRequest sends through the Connect-MgGraph session established above
         $guardParams = @{
-            EmailFrom         = $EmailFrom
-            EmailTo           = $EmailTo
-            Subject           = $subject
-            MarkdownContent   = $markdownContent
-            TenantDisplayName = $tenantDisplayName
-            ReportVersion     = $Version
+            EmailFrom             = $EmailFrom
+            EmailTo               = $EmailTo
+            Subject               = $subject
+            MarkdownContent       = $markdownContent
+            TenantDisplayName     = $tenantDisplayName
+            ReportVersion         = $Version
+            UseNativeGraphRequest = $true
         }
         if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFilePath) {
             Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
@@ -482,11 +572,39 @@ The report file(s) are attached for your review.
 
 #endregion Send Email Report
 
-#endregion
+########################################################
+#region     Structured Output (Output Data)
+########################################################
+
+# Emitted last so the tables are not interleaved with the progress output. Every table has its own
+# RjTableTitle marker and its own column set; a marker is only written when rows follow it.
+Write-Output ""
+
+$summaryRows = @(
+    [PSCustomObject]@{ Metric = "Groups owned by the user"; Value = $reportData.Count }
+    [PSCustomObject]@{ Metric = "Microsoft 365 groups"; Value = @($reportData | Where-Object { $_.Type -eq 'M365' }).Count }
+    [PSCustomObject]@{ Metric = "Security groups"; Value = @($reportData | Where-Object { $_.Type -eq 'Security' }).Count }
+    [PSCustomObject]@{ Metric = "Distribution groups"; Value = @($reportData | Where-Object { $_.Type -eq 'Distribution' }).Count }
+    [PSCustomObject]@{ Metric = "Other groups"; Value = @($reportData | Where-Object { $_.Type -eq 'Other' }).Count }
+)
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
+Write-Output $summaryRows
+
+if ($reportData.Count -gt 0) {
+    # Same rows and columns as the CSV file and the "Group Ownerships" worksheet
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Group Ownerships" })
+    Write-Output $reportData
+}
+else {
+    Write-Output "No group ownerships were found for '$($User.userPrincipalName)'."
+}
+
+#endregion Structured Output (Output Data)
 
 ########################################################
 #region     Cleanup
 ########################################################
+
 # Remove the downloaded branding images, if any were used.
 foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
     if ($brandingMailParams -and $brandingMailParams.ContainsKey($brandingKey) -and (Test-Path -LiteralPath $brandingMailParams[$brandingKey])) {
@@ -509,4 +627,11 @@ if ($CreateDownloadLink) {
     Disconnect-AzAccount -ErrorAction SilentlyContinue -Confirm:$false | Out-Null
 }
 
-#endregion
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
+
+Write-Output ""
+Write-Output "Done!"
+
+#endregion Cleanup
