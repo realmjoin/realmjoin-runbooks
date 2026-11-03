@@ -1,0 +1,37 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "User.ReadWrite.All",
+                    "Reason": "Lists all guest accounts, disables inactive guests (accountEnabled = false) and deletes disabled guests"
+                },
+                {
+                    "Value": "AuditLog.Read.All",
+                    "Reason": "Reads signInActivity of the guest accounts to determine the last sign-in"
+                },
+                {
+                    "Value": "GroupMember.Read.All",
+                    "Reason": "Reads the transitive members of the ignore groups"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads /organization to show the tenant display name in the report"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the report email via Send-RjReportEmail when EmailTo is configured"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": [
+        "Azure Storage Account: 'Storage Account Contributor' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required when CreateDownloadLink is used)"
+    ]
+}
