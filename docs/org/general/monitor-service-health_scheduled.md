@@ -12,7 +12,7 @@ Org \ General \ Monitor Service Health_Scheduled
 
 - Schedule the runbook to run at or slightly more often than `LookbackHours` to catch every new Service Health issue exactly once.
 - Set `Services` to a comma-separated list of service names or short ids (matched case-insensitively) to monitor only specific services, such as Exchange Online or Teams; leave it empty to monitor all services.
-- Leave `IncludeAdvisories` and `IncludeResolvedIssues` at their default of `false` for the lowest-noise setup, which alerts only on unresolved incidents; set either to `true` to also surface advisories or issues Microsoft has already marked as resolved.
+- By default the runbook alerts on unresolved incidents and advisories (`IncludeAdvisories` is `true`, `IncludeResolvedIssues` is `false`). Set `IncludeAdvisories` to `false` for the lowest-noise setup, which alerts only on unresolved incidents; set `IncludeResolvedIssues` to `true` to also surface issues Microsoft has already marked as resolved.
 
 ## Parameter interactions
 

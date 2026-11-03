@@ -1114,7 +1114,7 @@ Delete Intune devices that have been inactive for too long
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| Days |  | Int32 | Devices with no check-in for at least this many days count as stale. |
+| Days |  | Int32 | Devices with no check-in for at least this many days count as stale. Allowed are 1 to 3650 days. |
 | Windows |  | Boolean | Includes Windows devices. |
 | MacOS |  | Boolean | Includes macOS devices. |
 | iOS |  | Boolean | Includes iOS and iPadOS devices. |
@@ -1133,9 +1133,9 @@ Delete Intune devices that have been inactive for too long
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
 | SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
-| UseUserScope |  | Boolean | Whether devices are filtered by the group membership of their primary user. Set by the "Filter by primary user group?" choice. |
-| IncludeUserGroup |  | String | Only devices whose primary user is in this group. |
-| ExcludeUserGroup |  | String | Skips devices whose primary user is in this group. |
+| UseUserScope |  | Boolean | Set by the "Filter by primary user group?" choice; with "Yes", at least one group is required. A group in "Include users from group" or "Exclude users from group" applies whenever it is set, also without this choice. |
+| IncludeUserGroup |  | String | Only devices whose primary user is a member of this group, directly or through nested groups. Devices without a primary user are left out. |
+| ExcludeUserGroup |  | String | Skips devices whose primary user is a member of this group and devices that are members themselves, directly or through nested groups. Skipped devices are never deleted. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -1427,14 +1427,14 @@ Report devices that have been inactive for too long
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | Days |  | Int32 | Devices with no check-in for at least this many days count as stale. |
-| MaxDays |  | Int32 | Only devices inactive for at most this many days are included. Leave empty for no upper limit. |
+| MaxDays |  | Int32 | Only devices inactive for at most this many days are included. Leave empty for no upper limit. A value not above "Days without activity" is ignored. |
 | Windows |  | Boolean | Includes Windows devices. |
 | MacOS |  | Boolean | Includes macOS devices. |
 | iOS |  | Boolean | Includes iOS and iPadOS devices. |
 | Android |  | Boolean | Includes Android devices. |
 | UseUserScope |  | Boolean | Not used any more. The primary user group filter applies as soon as a group is selected in "Include users from group" or "Exclude users from group". Kept so existing schedules keep working. |
-| IncludeUserGroup |  | String | Only devices whose primary user is a direct member of this group. Leave empty for all devices. |
-| ExcludeUserGroup |  | String | Skips devices whose primary user is a direct member of this group. Leave empty to skip none. |
+| IncludeUserGroup |  | String | Only devices whose primary user is a member of this group, directly or through nested groups. Leave empty for all devices. |
+| ExcludeUserGroup |  | String | Skips devices whose primary user is a member of this group and devices that are members themselves, directly or through nested groups. Leave empty to skip none. |
 | SendEmailReport |  | Boolean | Send the report to the recipient email address. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
@@ -1802,7 +1802,7 @@ Keep unenrolled Autopilot devices in a compliance exclusion group
 <a name='organization-general-enrolled-devices-report-scheduled'></a>
 
 ### Enrolled Devices Report (Scheduled)
-Report first-time device enrollments of the last weeks
+Report recent first-time enrollments of Windows Autopilot devices
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
@@ -1937,7 +1937,7 @@ Invite an external person as a guest user
 | CustomizeInvitation |  | Boolean | Shows fields for an own invitation message and redirect URL. |
 | InvitationMessage |  | String | Text included in the invitation email. Not used when no invitation email is sent. |
 | InviteRedirectUrl |  | String | Page the guest lands on after accepting, for example a SharePoint site. |
-| UsageLocation |  | String | Two-letter country code, for example US or DE, needed before licenses can be assigned. |
+| UsageLocation |  | String | Two-letter ISO country code, for example US, DE or GB for the United Kingdom, needed before licenses can be assigned. An unknown code such as UK stops the run before the invitation is sent. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-general-list-all-administrative-template-policies'></a>
@@ -2029,7 +2029,7 @@ Report which users can enroll devices in Intune
 | GroupName |  | String | Group whose members are checked, nested groups included. Can be combined with individual users. |
 | EnrollmentPlatform |  | String | Platform of the device the users want to enroll. Conditional Access policies scoped to other platforms are ignored; All platforms checks every platform and reports each one. |
 | CheckPilotGroupMembership |  | Boolean | Adds a column with the pilot group membership; non-members are reported as Not ready. |
-| PilotGroupDisplayName |  | String | Members of this group count as pilot users. The group is looked up by its display name. |
+| PilotGroupDisplayName |  | String | Members of this group count as pilot users. The group is looked up by its display name. Used only when the pilot group membership is checked. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
 | BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
@@ -2280,7 +2280,7 @@ Create a shared mailbox with optional delegates
 | AutoMapping |  | Boolean | The mailbox opens automatically in the delegates' Outlook. |
 | MessageCopyForSentAsEnabled |  | Boolean | Mails sent as the shared mailbox are also stored in its Sent Items folder. |
 | MessageCopyForSendOnBehalfEnabled |  | Boolean | Mails sent on behalf of the shared mailbox are also stored in its Sent Items folder. |
-| DisableUser |  | Boolean | Blocks sign-in for the user account behind the mailbox. Delegates keep their access. |
+| DisableUser |  | Boolean | Blocks sign-in for the user account behind the mailbox. Delegates keep their access. If the account does not appear within a few minutes, the run fails and sign-in has to be blocked in Entra ID. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-mail-hide-mailboxes-scheduled'></a>
@@ -2427,11 +2427,11 @@ List all Entra ID admins and check their MFA methods
 | SubscriptionId |  | String | Subscription ID of the storage account given in ResourceGroupName and StorageAccountName. Not taken from a tenant setting; the subscription the managed identity signs in to is used when empty. |
 | StorageAccountLocation |  | String | No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run. |
 | StorageAccountSku |  | String | No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run. |
-| QueryMfaState |  | Boolean | With the check, each admin gets a column showing whether a method that counts as MFA is registered; without it, the report lists only the role assignments. |
+| QueryMfaState |  | Boolean | With the check, each admin gets a column showing whether a method that counts as MFA is registered; without it, the report lists only the role assignments. Admins whose methods cannot be read are listed as not checkable. |
 | TrustEmailMfa |  | Boolean | Counts email as a valid MFA method. |
 | TrustPhoneMfa |  | Boolean | Counts phone calls and SMS as a valid MFA method. |
-| TrustSoftwareOathMfa |  | Boolean | Counts software OATH tokens as a valid MFA method. |
-| TrustWinHelloMFA |  | Boolean | Counts Windows Hello for Business as a valid MFA method. |
+| TrustSoftwareOathMfa |  | Boolean | Counts software OATH tokens as a valid MFA method. Hardware OATH tokens always count. |
+| TrustWinHelloMFA |  | Boolean | Counts Windows Hello for Business as a valid MFA method. The platform credential of macOS Platform SSO always counts. |
 | RJReportResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when ListAdminsReport.ResourceGroup is not set. |
 | RJReportStorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when ListAdminsReport.StorageAccount.Name is not set. |
 | RJReportSubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount. |
@@ -2733,7 +2733,7 @@ Check whether this user can enroll devices in Intune
 | UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
 | EnrollmentPlatform |  | String | Platform of the device the user wants to enroll. Conditional Access policies scoped to other platforms are ignored; All platforms checks every platform and reports each one. |
 | CheckPilotGroupMembership |  | Boolean | Also requires the user to be in the pilot group. Non-members are reported as Not ready. |
-| PilotGroupDisplayName |  | String | Members of this group count as pilot users. The group is looked up by its display name. |
+| PilotGroupDisplayName |  | String | Members of this group count as pilot users. The group is looked up by its display name. Used only when the pilot group membership is checked. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='user-general-list-group-memberships'></a>
@@ -2951,9 +2951,9 @@ Convert this user's mailbox to a shared mailbox or back
 | delegateTo |  | String | User who gets full access to the shared mailbox. Leave empty to grant no access. |
 | Remove |  | Boolean | Whether the shared mailbox is turned back into a regular mailbox. Set by the "Action" choice. |
 | AutoMapping |  | Boolean | Makes the shared mailbox appear automatically in the delegate's Outlook. |
-| RemoveGroups |  | Boolean | Takes the user out of all groups, including license groups, when converting to shared. |
-| ArchivalLicenseGroup |  | String | Group that assigns an Exchange Online Plan 2 license, needed when the shared mailbox has an archive, is larger than 50 GB or is on litigation hold. Leave empty if not needed. |
-| RegularLicenseGroup |  | String | Group that assigns the mailbox license when converting back to a regular mailbox. Leave empty to assign none. |
+| RemoveGroups |  | Boolean | Takes the user out of all groups, including license groups, when converting to shared. This happens only once Exchange Online reports the mailbox as shared. |
+| ArchivalLicenseGroup |  | String | Group that assigns an Exchange Online Plan 2 license, needed when the shared mailbox has an archive, is larger than 50 GB or is on litigation hold. Leave empty if not needed. A name shared by several groups stops the run. |
+| RegularLicenseGroup |  | String | Group that assigns the mailbox license when converting back to a regular mailbox. Leave empty to assign none. A name shared by several groups stops the run. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='user-mail-delegate-full-access'></a>
@@ -3291,7 +3291,7 @@ Set a new password for this user
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
-| EnableUserIfNeeded |  | Boolean | Enables a disabled account before the password is set. |
+| EnableUserIfNeeded |  | Boolean | Enables a disabled account after the new password is set. If the password cannot be set, the account stays disabled. |
 | ForceChangePasswordNextSignIn |  | Boolean | Makes the user choose their own password at the next sign-in. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 

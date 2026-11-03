@@ -3,7 +3,7 @@
 List all Entra ID admins and check their MFA methods
 
 ## Detailed description
-Lists every user and service principal that holds a built-in Entra ID role, including PIM eligible assignments, as an admin-to-role report. Optionally the registered authentication methods of each admin are checked to show who is protected by MFA, with a choice of which methods count. The report can be uploaded as CSV to an Azure Storage account. Nothing is changed.
+Lists every user and service principal that holds a built-in Entra ID role, also through PIM eligibility or a role-assignable group, as an admin-to-role report. Optionally the authentication methods of each admin are checked to show who is protected by MFA. The report can be uploaded as CSV to an Azure Storage account. Nothing is changed. The run fails when role assignments or the members of a role-assignable group cannot be read, or when the upload fails.
 
 ## Where to find
 Org \ Security \ List Admin Users
@@ -95,7 +95,7 @@ No longer used, because the storage account is not created any more. Kept so exi
 | Type | String |
 
 ### QueryMfaState
-With the check, each admin gets a column showing whether a method that counts as MFA is registered; without it, the report lists only the role assignments.
+With the check, each admin gets a column showing whether a method that counts as MFA is registered; without it, the report lists only the role assignments. Admins whose methods cannot be read are listed as not checkable.
 
 | Property | Value |
 |----------|-------|
@@ -122,7 +122,7 @@ Counts phone calls and SMS as a valid MFA method.
 | Type | Boolean |
 
 ### TrustSoftwareOathMfa
-Counts software OATH tokens as a valid MFA method.
+Counts software OATH tokens as a valid MFA method. Hardware OATH tokens always count.
 
 | Property | Value |
 |----------|-------|
@@ -131,7 +131,7 @@ Counts software OATH tokens as a valid MFA method.
 | Type | Boolean |
 
 ### TrustWinHelloMFA
-Counts Windows Hello for Business as a valid MFA method.
+Counts Windows Hello for Business as a valid MFA method. The platform credential of macOS Platform SSO always counts.
 
 | Property | Value |
 |----------|-------|

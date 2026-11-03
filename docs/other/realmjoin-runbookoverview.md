@@ -1364,6 +1364,14 @@ Lists all enterprise applications, or all service principals, with their owners 
 
 Org \ Applications \ Export Enterprise Application Users
 
+## How owners and assignments are shown
+
+Each row is one owner (`PrincipalRole` `Owner`) or one assignment (`PrincipalRole` `Member`) of an application. An application without an owner gets one owner row with an empty `PrincipalId`.
+
+- Owners can be users or service principals, told apart by `PrincipalType`. A user is shown with its user principal name, a service principal with its display name and its application ID in brackets.
+- Assigned users are shown with their user principal name, assigned groups with their mail nickname and display name, assigned service principals with their object ID.
+- When a lookup fails, for example because of a missing permission, `PrincipalId` shows `(lookup failed)`, after the object ID where it is known, and the run writes a warning. Such a row does not mean that the application has no owner or assignment.
+
 ## Setup regarding email sending
 
 Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
@@ -2010,7 +2018,7 @@ Autopilot display name changes made via `updateDeviceProperties` take effect at 
 
 #### Description
 
-Finds Intune devices that have not checked in for a given number of days, filtered by platform and optionally by the group membership of their primary user. By default it only lists what it would delete; deletion has to be switched on explicitly. The report can be sent by email or provided as a download link.
+Finds Intune devices that have not checked in for a given number of days, filtered by platform and optionally by group membership. An include group limits the run to devices of its users; an exclude group protects devices of its users and devices that are members themselves. By default it only lists what it would delete; deletion has to be switched on explicitly. The report can be sent by email or provided as a download link.
 
 #### Where to find
 
@@ -2024,9 +2032,29 @@ This runbook deletes managed devices from Intune based on inactivity, so use it 
 - Simulation runs (report-only mode) before enabling the actual deletion
 - Scheduled lifecycle management with an audit trail via the email report
 
+## Inactivity threshold
+
+*Days without activity* accepts 1 to 3650 days. A device counts as stale when its last check-in is at least that many days ago.
+
 ## User scope filtering
 
-The runbook supports optional user scope filtering to include or exclude devices based on the group membership of their primary user. This acts as an additional safety net when deletion is enabled.
+The runbook supports optional group filtering as an additional safety net when deletion is enabled. Members of nested groups count as well.
+
+- **Include group** - only devices whose primary user is a member are in scope. Devices without a primary user, and devices whose primary user was deleted from Entra ID, are left out.
+- **Exclude group** - devices whose primary user is a member are skipped, and so are devices whose Entra ID device object is a member of the group itself. A device group such as "Intune - do not delete" therefore protects its devices. Devices of deleted users stay in scope.
+
+Group membership is checked against the primary user's object ID as recorded by Intune, so a changed user principal name does not affect the filter.
+
+A group applies whenever it is set, also when the runbook is started through the API or by a schedule without the *Filter by primary user group?* choice. Choosing *Yes, filter by group membership* without selecting a group stops the run before anything is deleted.
+
+The filter fails closed:
+
+- If a selected group cannot be read, or the include group contains no users, the run stops with an error and no device is deleted.
+- If Intune records a primary user for a device but no user object ID, the device is not deleted. It is listed with the status *Skipped: primary user could not be resolved* for manual review.
+
+## Download link
+
+If the upload for the download link fails, the email report and the Output Data are still delivered, so the list of deleted devices is not lost. The job then ends as failed.
 
 ## Setup regarding email sending
 
@@ -2239,7 +2267,7 @@ Every device below the threshold is rated: devices below half of the configured 
 
 The runbook sends **one email per primary user** that lists all affected devices of that user with operating system, model, free and total disk space, rating and the date of the last inventory. The email contains practical cleanup steps for the platforms of the listed devices: the Windows section is included for Windows devices, the macOS section for macOS devices, and both when the user has affected devices of both kinds.
 
-Recipients are resolved via Microsoft Graph: the primary user of a device is looked up by the Entra object id that Intune reports in `userId`, so guest accounts and users whose current UPN differs from the address recorded at enrollment resolve correctly; devices without a `userId` fall back to a lookup by user principal name. The email is then sent to the user's `mail` attribute, with the user principal name as fallback when no mail attribute is set. Disabled accounts and users that cannot be resolved are skipped; they are listed in the console output and, with the reason, in the Output Data table "Notifications". Devices without a primary user cannot be notified; they appear in the Output Data table "Low disk space devices" with the reason "No primary user" for central follow-up (the report runbook covers them as well).
+Recipients are resolved via Microsoft Graph: the primary user of a device is looked up by the Entra object id that Intune reports in `userId`, so guest accounts and users whose current UPN differs from the address recorded at enrollment resolve correctly; devices without a `userId` fall back to a lookup by user principal name. Devices are grouped by the account that Graph returns, so a user whose devices report the object id on some and only the UPN on others still gets a single email. The email is then sent to the user's `mail` attribute, with the user principal name as fallback when no mail attribute is set. Disabled accounts and users that cannot be resolved are skipped; they are listed in the console output and, with the reason, in the Output Data table "Notifications". If not a single affected user can be resolved and at least one lookup failed for another reason than a deleted user, for example because the managed identity lacks `User.Read.All` or Graph throttles the lookups, nobody is notified and the job ends as failed after writing its Output Data. A run whose failed lookups all concern deleted users (not found) completes with a warning, and a simulation run always completes. Devices without a primary user cannot be notified; they appear in the Output Data table "Low disk space devices" with the reason "No primary user" for central follow-up (the report runbook covers them as well).
 
 `SimulationMode` lists the affected users, their devices and the intended recipients in the console output and the Output Data tables without sending any email. Use it to validate thresholds and scope filters before the first productive run.
 
@@ -2971,7 +2999,7 @@ See the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runb
 
 #### Description
 
-Lists Intune devices that have not checked in for a given number of days, optionally within a maximum age. The list can be filtered by platform and by the group membership of the primary user. Nothing is changed. The report can be sent by email or provided as a download link.
+Lists Intune devices that have not checked in for a given number of days, optionally within a maximum age. The list can be filtered by platform and by group membership of the primary user; the exclude group also skips devices that are members themselves. Nothing is changed. The report can be sent by email or provided as a download link.
 
 #### Where to find
 
@@ -2986,11 +3014,15 @@ Org \ Devices \ Report Stale Devices_Scheduled
 - Staged reporting with a maximum inactivity, for example 30 to 60 days and 60 to 90 days
 - User scope filtering to focus on specific departments or to exclude service accounts
 
+## Inactivity range
+
+A *Maximum days without activity* only applies when it is above *Days without activity*. A lower or equal value is ignored with a warning, and the report lists all devices inactive for at least *Days without activity*.
+
 ## User scope filtering
 
-The runbook can include or exclude devices based on the group membership of their primary user. The filter applies as soon as a group is selected in *Include users from group* or *Exclude users from group*; both can be combined. Only direct members of a group count.
+The runbook can include or exclude devices based on the group membership of their primary user. The filter applies as soon as a group is selected in *Include users from group* or *Exclude users from group*; both can be combined. Members of nested groups count as well.
 
-With an include group, only devices whose primary user is a member are reported; devices without a primary user are left out. The exclude group skips devices whose primary user is a member. If a selected group cannot be read, the run stops with an error instead of reporting an unfiltered list.
+With an include group, only devices whose primary user is a member are reported; devices without a primary user are left out. The exclude group skips devices whose primary user is a member, and also devices whose Entra ID device object is a member of the group itself, so a device group can be used to leave devices out of the report. If a selected group cannot be read, the run stops with an error instead of reporting an unfiltered list.
 
 Earlier versions asked *Filter by primary user group?* before the group pickers were shown. That choice is gone; schedules created with it keep working, and the groups stored in them now apply directly.
 
@@ -3090,15 +3122,23 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 
 #### Description
 
-Lists Windows device objects in Entra ID that no Windows Autopilot registration refers to. Such orphaned objects are usually left over from devices that were reset, re-imaged or replaced without cleanup, so the list shows what can be reviewed and deleted. Nothing is changed. The report can be sent by email or provided as a download link.
+Lists Windows device objects in Entra ID that no Windows Autopilot registration refers to, with their join type. Entra joined objects in the list are often left over from devices that were reset, re-imaged or replaced without cleanup and can be reviewed for deletion. Hybrid joined and Entra registered devices are listed too, but are usually in use. Nothing is changed. The report can be sent by email or provided as a download link.
 
 #### Where to find
 
 Org \ Devices \ Report Windows Devices Without Autopilot_Scheduled
 
-## Reporting orphaned Windows devices
+## Reporting Windows devices without an Autopilot object
 
-This runbook lists every Windows device object in Entra ID and matches it against the Windows Autopilot device identities in Intune. Devices that have no associated Autopilot object (matched via the Autopilot object's `azureActiveDirectoryDeviceId`) are reported as clean-up candidates.
+This runbook lists every Windows device object in Entra ID and matches it against the Windows Autopilot device identities in Intune. Devices that have no associated Autopilot object (matched via the Autopilot object's `azureActiveDirectoryDeviceId`) are reported with their join type.
+
+The `JoinType` column, the last column of the report, is derived from the device object's `trustType`:
+
+- **Entra joined** (`AzureAd`) - objects without an Autopilot object are typically left over from devices that were reset, re-imaged or replaced without cleanup. These are the clean-up candidates; review them before you delete them.
+- **Hybrid joined** (`ServerAd`) - domain joined devices synchronized to Entra ID. They show up whenever no Autopilot object refers to their device object, but are usually in use and not orphaned.
+- **Entra registered** (`Workplace`) - personal or BYOD devices registered by a user. They are usually in use and not orphaned.
+
+Do not delete hybrid joined or Entra registered devices because of this report alone.
 
 Every run writes the result as Output Data tables (`Summary` and `Devices`), which can be sorted, filtered and exported in the RealmJoin portal. The **Report delivery** option adds report files on top:
 
@@ -3768,15 +3808,30 @@ Org \ General \ Check Device Onboarding Exclusion_Scheduled
 <a name='org-general-enrolled-devices-report-(scheduled)'></a>
 
 ### Enrolled Devices Report (Scheduled)
-#### Report first-time device enrollments of the last weeks
+#### Report recent first-time enrollments of Windows Autopilot devices
 
 #### Description
 
-Lists devices that enrolled for the first time within the chosen number of weeks. They are grouped by an attribute of your choice, such as country or department, so you can see where new devices show up. The report can be exported as CSV to an Azure Storage account and downloaded from there.
+Lists Windows devices registered in Autopilot that enrolled for the first time within the chosen number of weeks. They are grouped by an attribute of your choice, such as country or department, so you can see where new devices show up. iOS, Android and macOS devices and Windows devices enrolled without Autopilot are not included. The report can be exported as CSV to an Azure Storage account and downloaded from there.
 
 #### Where to find
 
 Org \ General \ Enrolled Devices Report_Scheduled
+
+## Which devices are included
+
+The report starts from the Windows Autopilot device identities in Intune, so it lists only Windows devices registered in Autopilot. iOS, Android and macOS devices and Windows devices enrolled without Autopilot are not included, even when they enrolled within the time range.
+
+- **Date of Autopilot profile assignment** counts a device from the day its Autopilot profile was assigned.
+- **Date of Intune enrollment** counts a device from the day it enrolled in Intune. An Autopilot device without an Intune object is not listed.
+
+## Attribute to group by
+
+The attribute is a property of the object chosen under **Group by data from**, for example `country` or `department` of the Entra ID user, `manufacturer` of the Intune device or `groupTag` of the Autopilot device. It must not be empty, and `apDevice`, `intuneDevice`, `APAssignmentDate` and `IntuneEnrolledDate` are names the report uses itself. With one of these values the run stops with an error before it reads any data.
+
+## Failed lookups
+
+For every device the runbook reads the Intune device and, depending on the grouping, the Entra ID user or device. A device or user that does not exist counts as not enrolled or leaves the attribute empty. Any other error, such as a missing Graph permission (403 Forbidden) or a service error, is counted: the report is still created, uploaded and shown as Output Data, but it may miss devices or have empty columns, so the run then ends as failed with the number of failed lookups and the first error.
 
 ## Configure the storage account for the CSV export
 
@@ -3927,6 +3982,7 @@ Org \ General \ Invite External Guest Users
 
 - Profile properties (`givenName`, `surname`, `companyName`, `usageLocation`) are applied only when they are not empty; omitting them skips the update call entirely.
 - Manager assignment, sponsor assignment and group membership each require their respective parameters; all of them are skipped silently when not provided.
+- The usage location must be a two-letter ISO 3166-1 country code, for example `GB` for the United Kingdom (not `UK`) and `GR` for Greece (not `EL`). An unknown code stops the run before the invitation is sent, so no guest account and no invitation email are created.
 
 ## Invitation without email
 
@@ -4000,7 +4056,7 @@ Org \ General \ Monitor Service Health_Scheduled
 
 - Schedule the runbook to run at or slightly more often than `LookbackHours` to catch every new Service Health issue exactly once.
 - Set `Services` to a comma-separated list of service names or short ids (matched case-insensitively) to monitor only specific services, such as Exchange Online or Teams; leave it empty to monitor all services.
-- Leave `IncludeAdvisories` and `IncludeResolvedIssues` at their default of `false` for the lowest-noise setup, which alerts only on unresolved incidents; set either to `true` to also surface advisories or issues Microsoft has already marked as resolved.
+- By default the runbook alerts on unresolved incidents and advisories (`IncludeAdvisories` is `true`, `IncludeResolvedIssues` is `false`). Set `IncludeAdvisories` to `false` for the lowest-noise setup, which alerts only on unresolved incidents; set `IncludeResolvedIssues` to `true` to also surface issues Microsoft has already marked as resolved.
 
 ## Parameter interactions
 
@@ -4155,6 +4211,8 @@ Org \ General \ Report Intune Enrollment Readiness
 
 - Checks performed per user: account state, Intune license and service plan, tenant MDM authority, device enrollment limit, platform restrictions, registered authentication methods, Conditional Access policies and, optionally, pilot group membership.
 - The device enrollment limit is the assigned limit configuration with the lowest priority number that targets All users or one of the user's groups (excluded groups are honored), falling back to the default limit. It is compared with the user's Intune-enrolled devices; the user's Entra registered and joined devices are also compared with the Entra setting *Maximum number of devices per user*, and reaching either one is reported as a blocking reason.
+- A limit that cannot be read is not guessed. If a user's group memberships cannot be read while group-assigned limit configurations exist, `DeviceEnrollmentLimit` shows *Unknown* and the user gets a warning instead of the default limit. If the Entra setting cannot be read, `EntraDeviceLimit` shows *Unknown* for every user and the job output and report email say that the Entra device limit was not checked.
+- The pilot group is looked up by its display name. If several groups share that name, the first match is used and a warning is logged.
 - Conditional Access is evaluated as a static "What If" against the enrollment sign-in for each user's `EnrollmentPlatform`; Entra's own What If tool remains the authority.
 - Compliant-device requirements on "All resources" policies do not block enrollment (a documented Entra exemption); only policies targeting device registration or the Intune enrollment apps are treated as strict gates.
 - Not evaluated statically: named locations, device filters, sign-in frequency and terms of use.
@@ -4772,7 +4830,7 @@ Org \ Mail \ Add Room Mailbox
 
 #### Description
 
-Creates a shared mailbox in Exchange Online with the chosen language and time zone. Delegates can get full access and send on behalf of the mailbox, and sent mails can be kept in the shared Sent Items folder. The user account behind the mailbox can be disabled so nobody signs in with it.
+Creates a shared mailbox in Exchange Online with the chosen language and time zone. Delegates can get full access and send on behalf of the mailbox, and sent mails can be kept in the shared Sent Items folder. The user account behind the mailbox can be disabled so nobody signs in with it. If a setting cannot be applied, the mailbox is kept and the run fails, naming what is missing.
 
 #### Where to find
 
@@ -5122,7 +5180,7 @@ Org \ Security \ Find SMS Auth Phone Number
 
 #### Description
 
-Lists every user and service principal that holds a built-in Entra ID role, including PIM eligible assignments, as an admin-to-role report. Optionally the registered authentication methods of each admin are checked to show who is protected by MFA, with a choice of which methods count. The report can be uploaded as CSV to an Azure Storage account. Nothing is changed.
+Lists every user and service principal that holds a built-in Entra ID role, also through PIM eligibility or a role-assignable group, as an admin-to-role report. Optionally the authentication methods of each admin are checked to show who is protected by MFA. The report can be uploaded as CSV to an Azure Storage account. Nothing is changed. The run fails when role assignments or the members of a role-assignable group cannot be read, or when the upload fails.
 
 #### Where to find
 
@@ -5255,7 +5313,7 @@ Org \ Security \ List Users By MFA Methods Count
 
 #### Description
 
-Checks the key credentials of every app registration in Entra ID for signs of CVE-2021-42306, where private key material was stored in the credential by mistake. App registrations that may be affected are listed. The result can be shown in the run output or exported as a CSV file to an Azure Storage account. Nothing is changed.
+Checks the key credentials of every app registration in Entra ID for signs of CVE-2021-42306, where private key material was stored in the credential by mistake. App registrations that may be affected are listed; those whose credentials cannot be read are named as not checked. The result can be shown in the run output or exported as a CSV file to an Azure Storage account. Nothing is changed.
 
 #### Where to find
 
@@ -5294,8 +5352,10 @@ An hourly schedule is recommended.
 ## Email behaviour
 
 - Emails are sent individually to each recipient.
+- If some recipients cannot be reached, a warning in the job output names them; the job fails only when no recipient got the email.
 - No email is sent when there are no pending requests.
 - Report file attachments (see `ReportFileFormat`) are only included when `DetailedReport` is enabled.
+- The request details in the email (requesting user, file name, device, justification) are shown as plain text: links, images or formatting typed by the requesting user are not rendered.
 
 ## Setup regarding email sending
 
@@ -5883,7 +5943,7 @@ The tenant MDM authority must be "intune" or "office365"; other values block eve
 The readiness verdict combines these checks:
 
 - Account status (enabled, not blocked) and an Intune license assigned to the user.
-- The tenant's device enrollment limit for the user and the platform restrictions of the enrollment configuration. The limit is the assigned limit configuration with the lowest priority number that targets All users or one of the user's groups (excluded groups are honored), falling back to the default limit, and is compared with the user's Intune-enrolled devices. The user's Entra registered and joined devices are also compared with the Entra setting *Maximum number of devices per user*.
+- The tenant's device enrollment limit for the user and the platform restrictions of the enrollment configuration. The limit is the assigned limit configuration with the lowest priority number that targets All users or one of the user's groups (excluded groups are honored), falling back to the default limit, and is compared with the user's Intune-enrolled devices. The user's Entra registered and joined devices are also compared with the Entra setting *Maximum number of devices per user*. If the user's group memberships (while group-assigned limit configurations exist) or the Entra setting cannot be read, the affected limit is reported as a warning instead of being guessed.
 - Conditional Access policies that explicitly target device registration or Intune enrollment. Policies that require a compliant device via *All resources* are exempted by Microsoft Entra design and therefore not counted as blockers.
 - Platform-scoped policies and browser-only client-app requirements are evaluated against the chosen enrollment platform; with *All platforms* every platform is evaluated and reported separately.
 
@@ -6326,7 +6386,7 @@ User \ Mail \ Assign Owa Mailbox Policy
 
 #### Description
 
-Turns the mailbox of this user into a shared mailbox, or turns a shared mailbox back into a regular user mailbox. When converting to shared, a delegate can get full access and the user's group memberships can be removed. A license group can be assigned when the mailbox needs an Exchange Online Plan 2.
+Turns the mailbox of this user into a shared mailbox, or turns a shared mailbox back into a regular user mailbox. When converting to shared, a delegate can get full access and the user's group memberships can be removed. A license group can be assigned when the mailbox needs an Exchange Online Plan 2. Turning it back removes the full access, send as and send on behalf permissions of all other users. A Bookings mailbox or another type that Exchange Online cannot convert stops the run before anything changes.
 
 #### Where to find
 
@@ -7100,7 +7160,7 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 
 #### Description
 
-Sets a new password for this user in Entra ID and shows it in the output. A disabled account can be enabled first, and the user can be made to choose their own password at the next sign-in.
+Sets a new password for this user in Entra ID and shows it in the output. A disabled account can be enabled once the new password is set, and the user can be made to choose their own password at the next sign-in.
 
 #### Where to find
 
@@ -7132,7 +7192,7 @@ Before anything changes, the job output lists the Entra ID roles assigned direct
 
 #### Description
 
-Blocks this user from signing in and ends the current sessions, so stolen tokens stop working immediately, for example during an incident. Re-enable user lifts the block again; ended sessions are not restored.
+Blocks this user from signing in and ends the current sessions, for example during an incident. Access tokens that were already issued stay valid until they expire, usually within an hour; apps with continuous access evaluation, such as Exchange Online, SharePoint and Teams, react within minutes. Re-enable user lifts the block again; ended sessions are not restored.
 
 #### Where to find
 

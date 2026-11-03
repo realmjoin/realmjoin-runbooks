@@ -3,7 +3,7 @@
 Set a new password for this user
 
 ## Detailed description
-Sets a new password for this user in Entra ID and shows it in the output. A disabled account can be enabled first, and the user can be made to choose their own password at the next sign-in.
+Sets a new password for this user in Entra ID and shows it in the output. A disabled account can be enabled once the new password is set, and the user can be made to choose their own password at the next sign-in.
 
 ## Where to find
 User \ Security \ Reset Password
@@ -41,7 +41,7 @@ User principal name of the user the runbook acts on. Set by the portal from the 
 | Type | String |
 
 ### EnableUserIfNeeded
-Enables a disabled account before the password is set.
+Enables a disabled account after the new password is set. If the password cannot be set, the account stays disabled.
 
 | Property | Value |
 |----------|-------|

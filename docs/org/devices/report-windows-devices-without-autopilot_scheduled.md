@@ -3,14 +3,22 @@
 Report Windows devices in Entra ID without an Autopilot record
 
 ## Detailed description
-Lists Windows device objects in Entra ID that no Windows Autopilot registration refers to. Such orphaned objects are usually left over from devices that were reset, re-imaged or replaced without cleanup, so the list shows what can be reviewed and deleted. Nothing is changed. The report can be sent by email or provided as a download link.
+Lists Windows device objects in Entra ID that no Windows Autopilot registration refers to, with their join type. Entra joined objects in the list are often left over from devices that were reset, re-imaged or replaced without cleanup and can be reviewed for deletion. Hybrid joined and Entra registered devices are listed too, but are usually in use. Nothing is changed. The report can be sent by email or provided as a download link.
 
 ## Where to find
 Org \ Devices \ Report Windows Devices Without Autopilot_Scheduled
 
-## Reporting orphaned Windows devices
+## Reporting Windows devices without an Autopilot object
 
-This runbook lists every Windows device object in Entra ID and matches it against the Windows Autopilot device identities in Intune. Devices that have no associated Autopilot object (matched via the Autopilot object's `azureActiveDirectoryDeviceId`) are reported as clean-up candidates.
+This runbook lists every Windows device object in Entra ID and matches it against the Windows Autopilot device identities in Intune. Devices that have no associated Autopilot object (matched via the Autopilot object's `azureActiveDirectoryDeviceId`) are reported with their join type.
+
+The `JoinType` column, the last column of the report, is derived from the device object's `trustType`:
+
+- **Entra joined** (`AzureAd`) - objects without an Autopilot object are typically left over from devices that were reset, re-imaged or replaced without cleanup. These are the clean-up candidates; review them before you delete them.
+- **Hybrid joined** (`ServerAd`) - domain joined devices synchronized to Entra ID. They show up whenever no Autopilot object refers to their device object, but are usually in use and not orphaned.
+- **Entra registered** (`Workplace`) - personal or BYOD devices registered by a user. They are usually in use and not orphaned.
+
+Do not delete hybrid joined or Entra registered devices because of this report alone.
 
 Every run writes the result as Output Data tables (`Summary` and `Devices`), which can be sorted, filtered and exported in the RealmJoin portal. The **Report delivery** option adds report files on top:
 

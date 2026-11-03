@@ -3,7 +3,7 @@
 Create a shared mailbox with optional delegates
 
 ## Detailed description
-Creates a shared mailbox in Exchange Online with the chosen language and time zone. Delegates can get full access and send on behalf of the mailbox, and sent mails can be kept in the shared Sent Items folder. The user account behind the mailbox can be disabled so nobody signs in with it.
+Creates a shared mailbox in Exchange Online with the chosen language and time zone. Delegates can get full access and send on behalf of the mailbox, and sent mails can be kept in the shared Sent Items folder. The user account behind the mailbox can be disabled so nobody signs in with it. If a setting cannot be applied, the mailbox is kept and the run fails, naming what is missing.
 
 ## Where to find
 Org \ Mail \ Add Shared Mailbox
@@ -163,7 +163,7 @@ Mails sent on behalf of the shared mailbox are also stored in its Sent Items fol
 | Type | Boolean |
 
 ### DisableUser
-Blocks sign-in for the user account behind the mailbox. Delegates keep their access.
+Blocks sign-in for the user account behind the mailbox. Delegates keep their access. If the account does not appear within a few minutes, the run fails and sign-in has to be blocked in Entra ID.
 
 | Property | Value |
 |----------|-------|

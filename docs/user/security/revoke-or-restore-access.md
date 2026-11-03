@@ -3,7 +3,7 @@
 Block this user's sign-in and sessions, or restore access
 
 ## Detailed description
-Blocks this user from signing in and ends the current sessions, so stolen tokens stop working immediately, for example during an incident. Re-enable user lifts the block again; ended sessions are not restored.
+Blocks this user from signing in and ends the current sessions, for example during an incident. Access tokens that were already issued stay valid until they expire, usually within an hour; apps with continuous access evaluation, such as Exchange Online, SharePoint and Teams, react within minutes. Re-enable user lifts the block again; ended sessions are not restored.
 
 ## Where to find
 User \ Security \ Revoke Or Restore Access

@@ -3,7 +3,7 @@
 List app registrations possibly affected by CVE-2021-42306
 
 ## Detailed description
-Checks the key credentials of every app registration in Entra ID for signs of CVE-2021-42306, where private key material was stored in the credential by mistake. App registrations that may be affected are listed. The result can be shown in the run output or exported as a CSV file to an Azure Storage account. Nothing is changed.
+Checks the key credentials of every app registration in Entra ID for signs of CVE-2021-42306, where private key material was stored in the credential by mistake. App registrations that may be affected are listed; those whose credentials cannot be read are named as not checked. The result can be shown in the run output or exported as a CSV file to an Azure Storage account. Nothing is changed.
 
 ## Where to find
 Org \ Security \ List Vulnerable App Regs

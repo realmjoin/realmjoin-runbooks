@@ -17,6 +17,7 @@ Org \ General \ Invite External Guest Users
 
 - Profile properties (`givenName`, `surname`, `companyName`, `usageLocation`) are applied only when they are not empty; omitting them skips the update call entirely.
 - Manager assignment, sponsor assignment and group membership each require their respective parameters; all of them are skipped silently when not provided.
+- The usage location must be a two-letter ISO 3166-1 country code, for example `GB` for the United Kingdom (not `UK`) and `GR` for Greece (not `EL`). An unknown code stops the run before the invitation is sent, so no guest account and no invitation email are created.
 
 ## Invitation without email
 
@@ -147,7 +148,7 @@ Page the guest lands on after accepting, for example a SharePoint site.
 | Type | String |
 
 ### UsageLocation
-Two-letter country code, for example US or DE, needed before licenses can be assigned.
+Two-letter ISO country code, for example US, DE or GB for the United Kingdom, needed before licenses can be assigned. An unknown code such as UK stops the run before the invitation is sent.
 
 | Property | Value |
 |----------|-------|
