@@ -6,26 +6,26 @@
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
                 {
-                    "Value": "DeviceManagementServiceConfig.Read.All",
-                    "Reason": "Lists all Autopilot devices as the report's base data set"
+                    "Value": "Device.ReadWrite.All",
+                    "Reason": "Reads Entra device objects for device-property grouping"
                 },
                 {
                     "Value": "DeviceManagementManagedDevices.Read.All",
                     "Reason": "Reads each Intune device for enrollment date and user info"
                 },
                 {
-                    "Value": "User.Read.All",
-                    "Reason": "Reads the grouping attribute from each device's user when grouping by user properties"
+                    "Value": "DeviceManagementServiceConfig.Read.All",
+                    "Reason": "Lists all Autopilot devices as the report's base data set"
                 },
                 {
-                    "Value": "Device.ReadWrite.All",
-                    "Reason": "Reads Entra device objects for device-property grouping"
+                    "Value": "User.Read.All",
+                    "Reason": "Reads the grouping attribute from each device's user when grouping by user properties"
                 }
             ]
         }
     ],
     "Roles": [],
     "ManualPermissions": [
-        "Azure: Contributor on Storage Account"
+        "Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the CSV export)"
     ]
 }

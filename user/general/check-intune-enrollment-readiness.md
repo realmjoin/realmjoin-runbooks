@@ -15,7 +15,7 @@ The tenant MDM authority must be "intune" or "office365"; other values block eve
 The readiness verdict combines these checks:
 
 - Account status (enabled, not blocked) and an Intune license assigned to the user.
-- The tenant's device enrollment limit for the user and the platform restrictions of the enrollment configuration.
+- The tenant's device enrollment limit for the user and the platform restrictions of the enrollment configuration. The limit is the assigned limit configuration with the lowest priority number that targets All users or one of the user's groups (excluded groups are honored), falling back to the default limit, and is compared with the user's Intune-enrolled devices. The user's Entra registered and joined devices are also compared with the Entra setting *Maximum number of devices per user*. If the user's group memberships (while group-assigned limit configurations exist) or the Entra setting cannot be read, the affected limit is reported as a warning instead of being guessed.
 - Conditional Access policies that explicitly target device registration or Intune enrollment. Policies that require a compliant device via *All resources* are exempted by Microsoft Entra design and therefore not counted as blockers.
 - Platform-scoped policies and browser-only client-app requirements are evaluated against the chosen enrollment platform; with *All platforms* every platform is evaluated and reported separately.
 

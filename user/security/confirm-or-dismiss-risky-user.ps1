@@ -39,7 +39,7 @@
 param(
     [Parameter(Mandatory = $true)]
     [String] $UserName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Textarea -DisplayName "Action" } )]
+    [ValidateScript( { Use-RJInterface -Type Textarea -DisplayName "Action" } )]
     [boolean] $Dismiss = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

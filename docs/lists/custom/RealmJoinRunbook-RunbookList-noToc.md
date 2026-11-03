@@ -32,6 +32,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Remove Primary User | Remove the primary user from this device |
 | Rename Device | Rename this device in Intune and Autopilot |
 | Set Primary User | Set a new primary user on this device |
+| Sync Device | Trigger an Intune sync on this device |
 | Unenroll Updatable Assets | Unenroll this device from Windows Update for Business |
 | Wipe Device | Wipe this Windows or macOS device and clean up its records |
 | Wipe Managed App Data | Remove company app data from this MAM-managed device |
@@ -161,7 +162,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Check Assignments Of Users | Show which Intune policies and apps target given users |
 | Check Autopilot Serialnumbers | Check which serial numbers are registered in Autopilot |
 | Check Device Onboarding Exclusion (Scheduled) | Keep unenrolled Autopilot devices in a compliance exclusion group |
-| Enrolled Devices Report (Scheduled) | Report first-time device enrollments of the last weeks |
+| Enrolled Devices Report (Scheduled) | Report recent first-time enrollments of Windows Autopilot devices |
 | Export All Autopilot Devices | List or export all Windows Autopilot devices |
 | Export All Intune Devices | Export all Intune devices with their primary users' usage location |
 | Export Cloudpc Usage (Scheduled) | Write daily Windows 365 usage data to an Azure table |
@@ -192,7 +193,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Add Or Remove Teams Mailcontact | Give a Teams channel a friendly email address or remove it |
 | Add Or Remove Tenant Allow Block List | Add or remove a Tenant Allow/Block List entry |
 | Add Room Mailbox | Create a room mailbox with optional booking delegates |
-| Add Shared Mailbox | Create a shared mailbox with optional delegate |
+| Add Shared Mailbox | Create a shared mailbox with optional delegates |
 | Hide Mailboxes (Scheduled) | Hide or show all Bookings calendars in the address book |
 | Set Booking Config | Configure the Microsoft Bookings settings of the tenant |
 

@@ -1,249 +1,262 @@
 <#
-    .SYNOPSIS
-    Keep a group filled with users who registered a secure MFA method
+	.SYNOPSIS
+	Keep a group filled with users who registered a secure MFA method
 
-    .DESCRIPTION
-    Keeps an Entra ID group in sync with the users who registered at least one secure authentication method, such as a passkey or the Microsoft Authenticator app. Users who lose their secure method are removed. Admins, an exclusion group and individual users can be kept out, for example when the group controls self-service password reset. A dry run only shows the changes, and the report can be sent by email or provided as a download link. Details on the options are in the runbook documentation (docs.realmjoin.com).
+	.DESCRIPTION
+	Keeps an Entra ID group in sync with the users who registered at least one secure authentication method, such as a passkey or the Microsoft Authenticator app. Users who lose their secure method are removed, and admins, an exclusion group and individual users can be kept out, for example when the group controls self-service password reset. A dry run only shows the changes, and every run writes a summary and the changes as Output Data. The report can be sent by email or provided as a download link. Details on the options are in the runbook documentation (docs.realmjoin.com).
 
-    .PARAMETER TargetGroupId
-    Group whose members are managed by this runbook. Members that no longer qualify are removed.
+	.PARAMETER TargetGroupId
+	Group whose members are managed by this runbook. Members that no longer qualify are removed.
 
-    .PARAMETER IncludePasskeys
-    Passkeys and FIDO2 security keys, which are phishing-resistant, count as secure.
+	.PARAMETER IncludePasskeys
+	Passkeys and FIDO2 security keys, which are phishing-resistant, count as secure.
 
-    .PARAMETER IncludePlatformCredentials
-    Windows Hello for Business and macOS platform credentials count as secure.
+	.PARAMETER IncludePlatformCredentials
+	Windows Hello for Business and macOS platform credentials count as secure.
 
-    .PARAMETER IncludeMicrosoftAuthenticator
-    The Microsoft Authenticator app, with push or passwordless sign-in, counts as secure.
+	.PARAMETER IncludeMicrosoftAuthenticator
+	The Microsoft Authenticator app, with push or passwordless sign-in, counts as secure.
 
-    .PARAMETER IncludeSoftwareOtp
-    Time-based one-time codes from authenticator apps count as secure.
+	.PARAMETER IncludeSoftwareOtp
+	Time-based one-time codes from authenticator apps count as secure.
 
-    .PARAMETER IncludeHardwareOtp
-    Hardware one-time password tokens count as secure.
+	.PARAMETER IncludeHardwareOtp
+	Hardware one-time password tokens count as secure.
 
-    .PARAMETER IncludeCertificateBasedAuth
-    Sign-in with a certificate, for example from a smart card, counts as secure.
+	.PARAMETER IncludeCertificateBasedAuth
+	Sign-in with a certificate, for example from a smart card, counts as secure.
 
-    .PARAMETER SecureOnly
-    Strict mode: users who also have a phone, email or security question method registered never qualify, even with a secure method.
+	.PARAMETER SecureOnly
+	Strict mode: users who also have a phone, email or security question method registered never qualify, even with a secure method.
 
-    .PARAMETER SecureMethodsOverride
-    Custom list of method names that count as secure, separated by commas. When set, the individual method switches are ignored. Preset in the runbook customization; the method names are listed in the runbook documentation.
+	.PARAMETER SecureMethodsOverride
+	Custom list of method names that count as secure, separated by commas. When set, the individual method switches are ignored. Preset in the runbook customization; the method names are listed in the runbook documentation.
 
-    .PARAMETER UnsecureMethodsOverride
-    Custom list of method names that count as unsecure in strict mode, separated by commas. Preset in the runbook customization.
+	.PARAMETER UnsecureMethodsOverride
+	Custom list of method names that count as unsecure in strict mode, separated by commas. Preset in the runbook customization.
 
-    .PARAMETER ExcludeAdmins
-    Users with an Entra ID directory role, active or eligible, never qualify and are removed from the group. Useful when the group drives self-service password reset.
+	.PARAMETER ExcludeAdmins
+	Users with an Entra ID directory role, active or eligible, never qualify and are removed from the group. Useful when the group drives self-service password reset.
 
-    .PARAMETER ExcludeGroupId
-    Members of this group, for example break glass or service accounts, never qualify and are removed from the target group. Leave empty for none.
+	.PARAMETER ExcludeGroupId
+	Members of this group, for example break glass or service accounts, never qualify and are removed from the target group. Leave empty for none.
 
-    .PARAMETER ExcludeUserIds
-    Users who never qualify and are removed from the target group. Several can be picked.
+	.PARAMETER ExcludeUserIds
+	Users who never qualify and are removed from the target group. Several can be picked.
 
-    .PARAMETER WhatIfMode
-    Only logs which users would be added or removed without changing the group.
+	.PARAMETER WhatIfMode
+	Only logs which users would be added or removed without changing the group.
 
-    .PARAMETER SendEmail
-    Send the report by email after the run.
+	.PARAMETER SendEmail
+	Send the report to the recipient email address. Set by the "Report delivery" option in the portal.
 
-    .PARAMETER EmailTo
-    Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
+	.PARAMETER EmailTo
+	Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
-    .PARAMETER EmailFrom
-    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
+	.PARAMETER EmailFrom
+	Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
-    .PARAMETER BrandingHeaderImageUrl
-    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
+	.PARAMETER BrandingHeaderImageUrl
+	Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
-    .PARAMETER BrandingFooterImageUrl
-    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
+	.PARAMETER BrandingFooterImageUrl
+	Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
-    .PARAMETER BrandingFooterLink
-    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
+	.PARAMETER BrandingFooterLink
+	Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
-    .PARAMETER BrandingAccentColor
-    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
+	.PARAMETER BrandingAccentColor
+	Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
-    .PARAMETER BrandingTextColor
-    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
+	.PARAMETER BrandingTextColor
+	Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
-    .PARAMETER ReportFileFormat
-    Deliver the report as CSV, as an Excel workbook, or both.
+	.PARAMETER ReportFileFormat
+	Deliver the report as CSV, as an Excel workbook, or both.
 
-    .PARAMETER CreateDownloadLink
-    Also upload the report and return a download link that expires after a few days.
+	.PARAMETER CreateDownloadLink
+	Also upload the report and return a download link that expires after a few days. Set by the "Report delivery" option in the portal.
 
-    .PARAMETER ContainerName
-    Storage container the report files are uploaded to. Set per runbook.
+	.PARAMETER ContainerName
+	Storage container the report files are uploaded to. Set per runbook.
 
-    .PARAMETER ResourceGroupName
-    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
+	.PARAMETER ResourceGroupName
+	Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
-    .PARAMETER StorageAccountName
-    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
+	.PARAMETER StorageAccountName
+	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
-    .PARAMETER LinkExpiryDays
-    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
+	.PARAMETER SubscriptionId
+	Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
+	.PARAMETER LinkExpiryDays
+	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
-    .INPUTS
-    RunbookCustomization: {
-        "Parameters": {
-            "TargetGroupId": {
-                "DisplayName": "Target group"
-            },
-            "IncludePasskeys": {
-                "DisplayName": "Passkeys and FIDO2 keys count as secure?"
-            },
-            "IncludePlatformCredentials": {
-                "DisplayName": "Platform credentials count as secure?"
-            },
-            "IncludeMicrosoftAuthenticator": {
-                "DisplayName": "Microsoft Authenticator counts as secure?"
-            },
-            "IncludeSoftwareOtp": {
-                "DisplayName": "Software OTP counts as secure?"
-            },
-            "IncludeHardwareOtp": {
-                "DisplayName": "Hardware OTP tokens count as secure?"
-            },
-            "IncludeCertificateBasedAuth": {
-                "DisplayName": "Certificate-based auth counts as secure?"
-            },
-            "SecureOnly": {
-                "DisplayName": "Strict mode?"
-            },
-            "SecureMethodsOverride": {
-                "DisplayName": "Custom secure methods",
-                "Hide": true
-            },
-            "UnsecureMethodsOverride": {
-                "DisplayName": "Custom unsecure methods",
-                "Hide": true
-            },
-            "ExcludeAdmins": {
-                "DisplayName": "Exclude admins?"
-            },
-            "ExcludeGroupId": {
-                "DisplayName": "Exclusion group"
-            },
-            "ExcludeUserIds": {
-                "DisplayName": "Excluded users"
-            },
-            "WhatIfMode": {
-                "DisplayName": "Dry run?"
-            },
-            "SendEmail": {
-                "DisplayName": "Send report by email?",
-                "Default": false,
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Yes - send the report via email",
-                            "ParameterValue": true,
-                            "Customization": {
-                                "Show": ["EmailTo", "ReportFileFormat"],
-                                "Mandatory": ["EmailTo"]
-                            }
-                        },
-                        {
-                            "Display": "No - do not send an email",
-                            "ParameterValue": false,
-                            "Customization": {
-                                "Hide": ["EmailTo", "ReportFileFormat"]
-                            }
-                        }
-                    ],
-                    "ShowValue": false
-                }
-            },
-            "EmailTo": {
-                "DisplayName": "Recipient email address(es)"
-            },
-            "EmailFrom": {
-                "Hide": true
-            },
-            "BrandingHeaderImageUrl": {
-                "Hide": true
-            },
-            "BrandingFooterImageUrl": {
-                "Hide": true
-            },
-            "BrandingFooterLink": {
-                "Hide": true
-            },
-            "BrandingAccentColor": {
-                "Hide": true
-            },
-            "BrandingTextColor": {
-                "Hide": true
-            },
-            "CreateDownloadLink": {
-                "DisplayName": "Create a download link?",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Yes - upload report and return a download link",
-                            "ParameterValue": true,
-                            "Customization": {
-                                "Show": ["ReportFileFormat"]
-                            }
-                        },
-                        {
-                            "Display": "No - do not create a download link",
-                            "ParameterValue": false,
-                            "Customization": {
-                                "Hide": ["ReportFileFormat"]
-                            }
-                        }
-                    ],
-                    "ShowValue": false
-                }
-            },
-            "ReportFileFormat": {
-                "DisplayName": "Report file format",
-                "Hide": true,
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "CSV & XLSX",
-                            "ParameterValue": "CSV & XLSX"
-                        },
-                        {
-                            "Display": "CSV only",
-                            "ParameterValue": "CSV only"
-                        },
-                        {
-                            "Display": "XLSX only",
-                            "ParameterValue": "XLSX only"
-                        }
-                    ],
-                    "ShowValue": false
-                }
-            },
-            "ContainerName": {
-                "Hide": true
-            },
-            "ResourceGroupName": {
-                "Hide": true
-            },
-            "StorageAccountName": {
-                "Hide": true
-            },
-            "LinkExpiryDays": {
-                "Hide": true
-            },
-            "CallerName": {
-                "Hide": true
-            }
-        }
-    }
+	.PARAMETER CallerName
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
+
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"TargetGroupId": {
+				"DisplayName": "Target group"
+			},
+			"IncludePasskeys": {
+				"DisplayName": "Passkeys and FIDO2 keys count as secure?"
+			},
+			"IncludePlatformCredentials": {
+				"DisplayName": "Platform credentials count as secure?"
+			},
+			"IncludeMicrosoftAuthenticator": {
+				"DisplayName": "Microsoft Authenticator counts as secure?"
+			},
+			"IncludeSoftwareOtp": {
+				"DisplayName": "Software OTP counts as secure?"
+			},
+			"IncludeHardwareOtp": {
+				"DisplayName": "Hardware OTP tokens count as secure?"
+			},
+			"IncludeCertificateBasedAuth": {
+				"DisplayName": "Certificate-based auth counts as secure?"
+			},
+			"SecureOnly": {
+				"DisplayName": "Strict mode?"
+			},
+			"SecureMethodsOverride": {
+				"DisplayName": "Custom secure methods",
+				"Hide": true
+			},
+			"UnsecureMethodsOverride": {
+				"DisplayName": "Custom unsecure methods",
+				"Hide": true
+			},
+			"ExcludeAdmins": {
+				"DisplayName": "Exclude admins?"
+			},
+			"ExcludeGroupId": {
+				"DisplayName": "Exclusion group"
+			},
+			"ExcludeUserIds": {
+				"DisplayName": "Excluded users"
+			},
+			"WhatIfMode": {
+				"DisplayName": "Dry run?"
+			},
+			"SendEmail": {
+				"Hide": true
+			},
+			"EmailTo": {
+				"DisplayName": "Recipient email address(es)",
+				"Hide": true
+			},
+			"EmailFrom": {
+				"Hide": true
+			},
+			"BrandingHeaderImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterLink": {
+				"Hide": true
+			},
+			"BrandingAccentColor": {
+				"Hide": true
+			},
+			"BrandingTextColor": {
+				"Hide": true
+			},
+			"CreateDownloadLink": {
+				"Hide": true
+			},
+			"ReportFileFormat": {
+				"DisplayName": "Report file format",
+				"Hide": true,
+				"Select": {
+					"Options": [
+						{
+							"Display": "CSV & XLSX",
+							"ParameterValue": "CSV & XLSX"
+						},
+						{
+							"Display": "CSV only",
+							"ParameterValue": "CSV only"
+						},
+						{
+							"Display": "XLSX only",
+							"ParameterValue": "XLSX only"
+						}
+					],
+					"ShowValue": false
+				}
+			},
+			"ContainerName": {
+				"Hide": true
+			},
+			"ResourceGroupName": {
+				"Hide": true
+			},
+			"StorageAccountName": {
+				"Hide": true
+			},
+			"SubscriptionId": {
+				"Hide": true
+			},
+			"LinkExpiryDays": {
+				"Hide": true
+			},
+			"CallerName": {
+				"Hide": true
+			}
+		},
+		"ParameterList": [
+			{
+				"DisplayName": "Report delivery",
+				"DisplayAfter": "WhatIfMode",
+				"Select": {
+					"Options": [
+						{
+							"Display": "Output Data only",
+							"ParameterValue": "Output Data only",
+							"Customization": {
+								"Default": { "SendEmail": false, "CreateDownloadLink": false },
+								"Hide": [ "EmailTo", "ReportFileFormat" ]
+							}
+						},
+						{
+							"Display": "Also email the report",
+							"ParameterValue": "Also email the report",
+							"Customization": {
+								"Default": { "SendEmail": true, "CreateDownloadLink": false },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also create a download link",
+							"ParameterValue": "Also create a download link",
+							"Customization": {
+								"Default": { "SendEmail": false, "CreateDownloadLink": true },
+								"Show": [ "ReportFileFormat" ],
+								"Hide": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also email & download link",
+							"ParameterValue": "Also email & download link",
+							"Customization": {
+								"Default": { "SendEmail": true, "CreateDownloadLink": true },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						}
+					]
+				},
+				"Default": "Output Data only"
+			}
+		]
+	}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
@@ -315,6 +328,8 @@ param (
 
     [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" })]
     [string]$StorageAccountName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.SubscriptionId" } )]
+    [string]$SubscriptionId,
 
     [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" })]
     [ValidateRange(1, 3650)]
@@ -333,7 +348,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.5.0"
+$Version = "1.6.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
 Write-RjRbLog -Message "TargetGroupId: $TargetGroupId" -Verbose
@@ -366,10 +381,11 @@ if ($CreateDownloadLink) {
     Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
     Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
     Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+    Write-RjRbLog -Message "SubscriptionId: $SubscriptionId" -Verbose
     Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
 }
 
-#endregion
+#endregion RJ Log Part
 
 ########################################################
 #region     Parameter Validation
@@ -449,7 +465,7 @@ if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccoun
     throw "Missing Storage Account Configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)."
 }
 
-#endregion
+#endregion Parameter Validation
 
 ########################################################
 #region     Function Definitions
@@ -462,11 +478,15 @@ function Get-GraphPagedResult {
 
         .DESCRIPTION
         Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
-        by following the @odata.nextLink property in the response. Uses a generic list to stay
-        efficient for large tenants (tens of thousands of items across many pages).
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
 
         .PARAMETER Uri
-        The initial Microsoft Graph API endpoint URI to query.
+        The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
+
+        .EXAMPLE
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
     #>
     param(
         [string]$Uri
@@ -474,19 +494,37 @@ function Get-GraphPagedResult {
 
     $allResults = [System.Collections.Generic.List[object]]::new()
     $nextLink = $Uri
+    $pageCount = 0
 
     do {
-        $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
-        if ($response.value) {
-            $allResults.AddRange([object[]]@($response.value))
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
         }
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
         $nextLink = $response.'@odata.nextLink'
     } while ($nextLink)
 
-    return $allResults
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
 }
 
-#endregion
+#endregion Function Definitions
 
 ########################################################
 #region     Connect Part
@@ -503,17 +541,17 @@ catch {
 
 if ($SendEmail -or $CreateDownloadLink) {
     # Get tenant information for the report cover sheet and email
-    $tenantInfo = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization" -Method Get
+    $tenantInfo = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization?`$select=displayName" -Method Get
     $TenantDisplayName = $tenantInfo.value[0].displayName
 }
 
 if ($SendEmail) {
-    # Connect RJ RunbookHelper for email reporting
+    # Send-RjRbReportEmail -UseNativeGraphRequest sends through the Connect-MgGraph session above; the line stays
+    # for clients that read the job output
     Write-Output "Graph connection for RJ RunbookHelper..."
-    Connect-RjRbGraph
 }
 
-#endregion
+#endregion Connect Part
 
 ########################################################
 #region     StatusQuo & Preflight-Check Part
@@ -590,7 +628,7 @@ Write-Output "Exclusion group:  $(if ($excludeGroup) { $excludeGroup.displayName
 Write-Output "Excluded users:   $(if ($excludeUsers.Count -gt 0) { @($excludeUsers.userPrincipalName) -join ', ' } else { "(none)" })"
 Write-Output "Mode:             $(if ($WhatIfMode) { "WhatIf (no changes will be made)" } else { "Live" })"
 
-#endregion
+#endregion StatusQuo & Preflight-Check Part
 
 ########################################################
 #region     Main Part
@@ -603,9 +641,10 @@ Write-Output "Note: This may take a while depending on the number of users in yo
 
 $reportSelect = "`$select=id,userPrincipalName,userDisplayName,userType,methodsRegistered"
 try {
-    # $top=999 keeps the page count low in large tenants; fall back to default paging if the endpoint rejects it
+    # $top=999 keeps the page count low in large tenants; fall back to default paging if the endpoint rejects it.
+    # The retry reads the full report or fails the job, so the first attempt's error record is not written.
     try {
-        $registrationDetails = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/reports/authenticationMethods/userRegistrationDetails?`$top=999&$reportSelect")
+        $registrationDetails = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/reports/authenticationMethods/userRegistrationDetails?`$top=999&$reportSelect" 2>$null)
     }
     catch {
         Write-RjRbLog -Message "Report query with `$top paging failed, retrying with default page size. Error: $($_.Exception.Message)" -Verbose
@@ -663,14 +702,21 @@ if ($ExcludeAdmins) {
         if ($assignment.principalId) { [void]$adminPrincipalIds.Add($assignment.principalId) }
     }
 
-    # PIM-eligible assignments require Entra ID P2 - degrade to active assignments only if unavailable
+    # PIM-eligible assignments require Entra ID P2 - degrade to active assignments only if unavailable. Without the
+    # license Graph answers AadPremiumLicenseRequired and no eligible assignment exists. Any other failure fails the
+    # job, because eligible admins would otherwise be added to the group. The catch decides and reports, so the
+    # pager's own error record is not written.
     try {
-        $eligibleSchedules = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/roleManagement/directory/roleEligibilitySchedules?`$select=principalId")
+        $eligibleSchedules = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/roleManagement/directory/roleEligibilitySchedules?`$select=principalId" 2>$null)
         foreach ($schedule in $eligibleSchedules) {
             if ($schedule.principalId) { [void]$adminPrincipalIds.Add($schedule.principalId) }
         }
     }
     catch {
+        if ("$($_.ErrorDetails.Message) $($_.Exception.Message)" -notmatch 'AadPremiumLicenseRequired|licen[cs]e|premium') {
+            Write-Error "Failed to retrieve PIM-eligible role assignments: $($_.Exception.Message)" -ErrorAction Continue
+            throw "PIM-eligible role assignment query failed."
+        }
         Write-Output "Warning: PIM-eligible role assignments could not be queried (requires Entra ID P2) - only active role assignments are excluded. Error: $($_.Exception.Message)"
     }
 
@@ -828,9 +874,10 @@ else {
             })
 
         $addResponses = Invoke-RjRbGraphBatch -Requests $addRequests -ProgressLabel "adds"
-        $addedCount = ($addResponses | Where-Object { $_.status -in 200, 201, 204 }).Count
-        $alreadyExisted = ($addResponses | Where-Object { $_.status -eq 400 -and $_.body.error.message -like "*already exist*" }).Count
-        $addFailedCount = $addResponses.Count - $addedCount - $alreadyExisted
+        # @() keeps a single response countable - its Count would otherwise be the number of keys of its hashtable
+        $addedCount = @($addResponses | Where-Object { $_.status -in 200, 201, 204 }).Count
+        $alreadyExisted = @($addResponses | Where-Object { $_.status -eq 400 -and $_.body.error.message -like "*already exist*" }).Count
+        $addFailedCount = @($addResponses).Count - $addedCount - $alreadyExisted
 
         $addedCount += $alreadyExisted  # already-member is not an error
 
@@ -860,9 +907,9 @@ else {
             })
 
         $removeResponses = Invoke-RjRbGraphBatch -Requests $removeRequests -ProgressLabel "removes"
-        $removedCount = ($removeResponses | Where-Object { $_.status -in 200, 204 }).Count
-        $alreadyGone = ($removeResponses | Where-Object { $_.status -eq 404 }).Count
-        $removeFailedCount = $removeResponses.Count - $removedCount - $alreadyGone
+        $removedCount = @($removeResponses | Where-Object { $_.status -in 200, 204 }).Count
+        $alreadyGone = @($removeResponses | Where-Object { $_.status -eq 404 }).Count
+        $removeFailedCount = @($removeResponses).Count - $removedCount - $alreadyGone
 
         $removedCount += $alreadyGone  # already-removed is not an error
 
@@ -883,10 +930,10 @@ if ($toAdd.Count -eq 0 -and $toRemove.Count -eq 0) {
     Write-Output "Group is already up to date. No changes needed."
 }
 
-#endregion
+#endregion Main Part
 
 ########################################################
-#region     Report File Export (if email or download link is enabled)
+#region     Report File Export
 ########################################################
 
 $reportFiles = @()
@@ -897,64 +944,64 @@ $fileName_AllUsers = "mfa-secure-users-group-sync-all-users.csv"
 $fileName_Xlsx = "mfa-secure-users-group-sync-report.xlsx"
 $actionAddLabel = if ($WhatIfMode) { "Would add" } else { "Added" }
 $actionRemoveLabel = if ($WhatIfMode) { "Would remove" } else { "Removed" }
-$changeRows = @()
+
+# Unsecure classification for the report columns - the active strict-mode list, or the built-in list for information
+$reportUnsecureSet = if ($unsecureSet.Count -gt 0) {
+    $unsecureSet
+}
+else {
+    [System.Collections.Generic.HashSet[string]]::new([string[]]$builtInUnsecureMethods, [System.StringComparer]::OrdinalIgnoreCase)
+}
+
+# Per-user evaluation of all member users from the registration report, built on every run: the Output Data
+# table "Changes" is taken from it, and the report files (when a delivery is selected) hold all of it.
+# "Qualifies" reflects the pure methods evaluation; exclusions are shown separately,
+# the effective add/remove decision ("Action") comes from the exclusion-filtered desired set.
+$qualifiesSet = [System.Collections.Generic.HashSet[string]]::new([string[]]$qualifyingUserIds, [System.StringComparer]::OrdinalIgnoreCase)
+$allUserRows = [System.Collections.Generic.List[object]]::new()
+foreach ($row in $memberRows) {
+    $methods = [string[]]@($row.methodsRegistered | Where-Object { $_ })
+    $qualifies = $qualifiesSet.Contains($row.id)
+    $isDesired = $desiredSet.Contains($row.id)
+    $isMember = $currentSet.Contains($row.id)
+    $action = if ($isDesired -and -not $isMember) { $actionAddLabel } elseif (-not $isDesired -and $isMember) { $actionRemoveLabel } else { "" }
+    $allUserRows.Add([PSCustomObject]@{
+            UserPrincipalName    = $row.userPrincipalName
+            DisplayName          = $row.userDisplayName
+            Qualifies            = if ($qualifies) { "yes" } else { "no" }
+            ExclusionReason      = if ($exclusionReasons.ContainsKey($row.id)) { $exclusionReasons[$row.id] } else { "" }
+            GroupMemberBefore    = if ($isMember) { "yes" } else { "no" }
+            Action               = $action
+            SecureMethods        = @($methods | Where-Object { $secureSet.Contains($_) }) -join ', '
+            UnsecureMethods      = @($methods | Where-Object { $reportUnsecureSet.Contains($_) }) -join ', '
+            AllMethodsRegistered = $methods -join ', '
+        })
+}
+
+# Group members that are missing from the registration report (disabled or deleted accounts)
+$reportRowIds = [System.Collections.Generic.HashSet[string]]::new([string[]]@($memberRows | Select-Object -ExpandProperty id), [System.StringComparer]::OrdinalIgnoreCase)
+foreach ($member in $currentUserMembers) {
+    if (-not $reportRowIds.Contains($member.id)) {
+        $allUserRows.Add([PSCustomObject]@{
+                UserPrincipalName    = $member.userPrincipalName
+                DisplayName          = ""
+                Qualifies            = "no"
+                ExclusionReason      = if ($exclusionReasons.ContainsKey($member.id)) { $exclusionReasons[$member.id] } else { "" }
+                GroupMemberBefore    = "yes"
+                Action               = $actionRemoveLabel
+                SecureMethods        = ""
+                UnsecureMethods      = ""
+                AllMethodsRegistered = "(not in registration report - disabled or deleted account)"
+            })
+    }
+}
+
+$allUserRows = @($allUserRows | Sort-Object UserPrincipalName)
+$changeRows = @($allUserRows | Where-Object { $_.Action } | Sort-Object Action, UserPrincipalName)
 
 if ($SendEmail -or $CreateDownloadLink) {
     Write-Output ""
     Write-Output "Generating report files..."
-
-    # Unsecure classification for the report columns - the active strict-mode list, or the built-in list for information
-    $reportUnsecureSet = if ($unsecureSet.Count -gt 0) {
-        $unsecureSet
-    }
-    else {
-        [System.Collections.Generic.HashSet[string]]::new([string[]]$builtInUnsecureMethods, [System.StringComparer]::OrdinalIgnoreCase)
-    }
-
-    # Per-user evaluation of all member users from the registration report.
-    # "Qualifies" reflects the pure methods evaluation; exclusions are shown separately,
-    # the effective add/remove decision ("Action") comes from the exclusion-filtered desired set.
-    $qualifiesSet = [System.Collections.Generic.HashSet[string]]::new([string[]]$qualifyingUserIds, [System.StringComparer]::OrdinalIgnoreCase)
-    $allUserRows = [System.Collections.Generic.List[object]]::new()
-    foreach ($row in $memberRows) {
-        $methods = [string[]]@($row.methodsRegistered | Where-Object { $_ })
-        $qualifies = $qualifiesSet.Contains($row.id)
-        $isDesired = $desiredSet.Contains($row.id)
-        $isMember = $currentSet.Contains($row.id)
-        $action = if ($isDesired -and -not $isMember) { $actionAddLabel } elseif (-not $isDesired -and $isMember) { $actionRemoveLabel } else { "" }
-        $allUserRows.Add([PSCustomObject]@{
-                UserPrincipalName    = $row.userPrincipalName
-                DisplayName          = $row.userDisplayName
-                Qualifies            = if ($qualifies) { "yes" } else { "no" }
-                ExclusionReason      = if ($exclusionReasons.ContainsKey($row.id)) { $exclusionReasons[$row.id] } else { "" }
-                GroupMemberBefore    = if ($isMember) { "yes" } else { "no" }
-                Action               = $action
-                SecureMethods        = @($methods | Where-Object { $secureSet.Contains($_) }) -join ', '
-                UnsecureMethods      = @($methods | Where-Object { $reportUnsecureSet.Contains($_) }) -join ', '
-                AllMethodsRegistered = $methods -join ', '
-            })
-    }
-
-    # Group members that are missing from the registration report (disabled or deleted accounts)
-    $reportRowIds = [System.Collections.Generic.HashSet[string]]::new([string[]]@($memberRows | Select-Object -ExpandProperty id), [System.StringComparer]::OrdinalIgnoreCase)
-    foreach ($member in $currentUserMembers) {
-        if (-not $reportRowIds.Contains($member.id)) {
-            $allUserRows.Add([PSCustomObject]@{
-                    UserPrincipalName    = $member.userPrincipalName
-                    DisplayName          = ""
-                    Qualifies            = "no"
-                    ExclusionReason      = if ($exclusionReasons.ContainsKey($member.id)) { $exclusionReasons[$member.id] } else { "" }
-                    GroupMemberBefore    = "yes"
-                    Action               = $actionRemoveLabel
-                    SecureMethods        = ""
-                    UnsecureMethods      = ""
-                    AllMethodsRegistered = "(not in registration report - disabled or deleted account)"
-                })
-        }
-    }
-
-    $allUserRows = @($allUserRows | Sort-Object UserPrincipalName)
-    $changeRows = @($allUserRows | Where-Object { $_.Action } | Sort-Object Action, UserPrincipalName)
 
     $tempDir = New-Item -ItemType Directory -Path ([System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "MfaSecureUsersGroupSync_$(Get-Date -Format 'yyyyMMdd_HHmmss')"))
 
@@ -1022,10 +1069,10 @@ if ($SendEmail -or $CreateDownloadLink) {
     }
 }
 
-#endregion
+#endregion Report File Export
 
 ########################################################
-#region     Upload / Download Link (if CreateDownloadLink is enabled)
+#region     Upload / Download Link
 ########################################################
 
 if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
@@ -1039,6 +1086,7 @@ if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
         -ContainerName $ContainerName `
         -ResourceGroupName $ResourceGroupName `
         -StorageAccountName $StorageAccountName `
+        -SubscriptionId $SubscriptionId `
         -LinkExpiryDays $LinkExpiryDays `
         -AddBlobNamePrefix $true
 
@@ -1048,10 +1096,10 @@ if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
     }
 }
 
-#endregion
+#endregion Upload / Download Link
 
 ########################################################
-#region     Send Email Report (if SendEmail is enabled)
+#region     Send Email Report
 ########################################################
 
 $brandingMailParams = @{}
@@ -1130,7 +1178,7 @@ $summarySection
 
 - **$($fileName_Xlsx)**: Formatted Excel workbook with an info cover sheet, the performed changes and the per-user evaluation of all member users
 
-> **Note:** The CSV files were not attached because they exceed the email attachment size limit. The Excel workbook contains the complete data ("Changes" and "All Users" worksheets). Enable the download link option (CreateDownloadLink) to obtain the raw CSV files.
+> **Note:** The CSV files were not attached because they exceed the email attachment size limit. The Excel workbook contains the complete data ("Changes" and "All Users" worksheets). Choose a report delivery with a download link to obtain the raw CSV files.
 $emailFooter
 "@
 
@@ -1139,12 +1187,13 @@ $emailFooter
     # Attachment size guarded: with "CSV & XLSX" the email falls back to the workbook alone
     # when the full set exceeds the size budget; otherwise a failed send throws.
     $guardParams = @{
-        EmailFrom         = $EmailFrom
-        EmailTo           = $EmailTo
-        Subject           = $emailSubject
-        MarkdownContent   = $markdownContent
-        TenantDisplayName = $TenantDisplayName
-        ReportVersion     = $Version
+        EmailFrom             = $EmailFrom
+        EmailTo               = $EmailTo
+        Subject               = $emailSubject
+        MarkdownContent       = $markdownContent
+        TenantDisplayName     = $TenantDisplayName
+        ReportVersion         = $Version
+        UseNativeGraphRequest = $true   # sends through the Connect-MgGraph session (no Connect-RjRbGraph)
     }
     if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxPath) {
         Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
@@ -1154,7 +1203,69 @@ $emailFooter
     }
 }
 
-#endregion
+#endregion Send Email Report
+
+########################################################
+#region     Structured Output (Output Data)
+########################################################
+
+# Every table has its own RjTableTitle marker and its own column set; a marker is only written when rows follow it.
+# "Changes" holds the rows and columns of the report file and worksheet of the same name. The per-user evaluation of
+# all member users stays in the report files only: one row per user on every run would bloat the job output.
+Write-Output ""
+
+$summaryValues = [ordered]@{
+    "Target group"             = $targetGroup.displayName
+    "Mode"                     = $(if ($WhatIfMode) { "WhatIf (no changes were made)" } else { "Live" })
+    "Secure methods"           = ($secureMethods -join ', ')
+    "Strict mode (SecureOnly)" = "$SecureOnly"
+}
+if ($SecureOnly) {
+    $summaryValues["Unsecure methods"] = ($unsecureMethods -join ', ')
+}
+$summaryValues["Exclude admins"] = "$ExcludeAdmins"
+if ($excludeGroup) {
+    $summaryValues["Exclusion group"] = $excludeGroup.displayName
+}
+if ($excludeUsers.Count -gt 0) {
+    $summaryValues["Excluded users (individual)"] = "$($excludeUsers.Count)"
+}
+$summaryValues["Report entries"] = "$($registrationDetails.Count)"
+$summaryValues["Member users evaluated"] = "$($memberRows.Count)"
+if ($exclusionReasons.Count -gt 0) {
+    $summaryValues["Excluded users"] = "$excludedQualifyingCount"
+}
+$summaryValues["Qualifying users"] = "$($desiredUserIds.Count)"
+$summaryValues["Previous members"] = "$($currentMemberIds.Count)"
+if ($WhatIfMode) {
+    $summaryValues["Would add"] = "$($toAdd.Count)"
+    $summaryValues["Would remove"] = "$($toRemove.Count)"
+}
+else {
+    $summaryValues["Added"] = "$addedCount"
+    if ($addFailedCount -gt 0) {
+        $summaryValues["Add failed"] = "$addFailedCount"
+    }
+    $summaryValues["Removed"] = "$removedCount"
+    if ($removeFailedCount -gt 0) {
+        $summaryValues["Remove failed"] = "$removeFailedCount"
+    }
+}
+$summaryRows = @(foreach ($metric in $summaryValues.Keys) {
+        [PSCustomObject]@{ Metric = $metric; Value = "$($summaryValues[$metric])" }
+    })
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
+Write-Output $summaryRows
+
+if ($changeRows.Count -gt 0) {
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Changes" })
+    Write-Output $changeRows
+}
+else {
+    Write-Output "No changes - the group is already in sync."
+}
+
+#endregion Structured Output (Output Data)
 
 ########################################################
 #region     Cleanup
@@ -1201,9 +1312,9 @@ else {
     Write-Output "Removed:              $removedCount$(if ($removeFailedCount -gt 0) { " (failed: $removeFailedCount)" })"
 }
 
-Disconnect-MgGraph | Out-Null
+Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
 
 Write-Output ""
 Write-Output "Done!"
 
-#endregion
+#endregion Cleanup

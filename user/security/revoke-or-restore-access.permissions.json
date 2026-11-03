@@ -8,6 +8,12 @@
                 {
                     "Value": "User.ReadWrite.All",
                     "Reason": "Sets accountEnabled and revokes sign-in sessions on the user"
+                },
+                {
+                    "Value": "RoleManagement.Read.Directory",
+                    "Optional": true,
+                    "Feature": "Administrator role check",
+                    "Reason": "Reads the Entra ID roles of the user to show them and to name the role when Entra ID denies the change for an administrator account"
                 }
             ]
         }
@@ -16,7 +22,7 @@
         {
             "Name": "User Administrator",
             "TemplateId": "fe930be7-5e62-47db-91af-98c3a49a38b1",
-            "Reason": "Required so blocking sign-in and revoking sessions also succeed for role-assigned users"
+            "Reason": "Required to block or restore sign-in and revoke sessions for users without administrator roles and with a few roles such as Helpdesk Administrator; other administrators need Privileged Authentication Administrator or Global Administrator"
         }
     ],
     "ManualPermissions": []

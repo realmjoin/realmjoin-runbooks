@@ -26,6 +26,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Remove Primary User](#remove-primary-user)
       - [Rename Device](#rename-device)
       - [Set Primary User](#set-primary-user)
+      - [Sync Device](#sync-device)
       - [Unenroll Updatable Assets](#unenroll-updatable-assets)
       - [Wipe Device](#wipe-device)
       - [Wipe Managed App Data](#wipe-managed-app-data)
@@ -472,6 +473,36 @@ Assigns the chosen user as the new primary user of this device in Intune and rep
 #### Where to find
 
 Device \ General \ Set Primary User
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='device-general-sync-device'></a>
+
+### Sync Device
+#### Trigger an Intune sync on this device
+
+#### Description
+
+Asks this device to check in with Intune, so pending policies, apps and configuration are applied without waiting for the next regular check-in. The device name, operating system, primary user and last check-in are shown first. If this device is offline, it syncs when it comes back online. The device must be enrolled in Intune.
+
+#### Where to find
+
+Device \ General \ Sync Device
+
+## How it works
+
+The runbook looks up this device in Intune by its Entra ID device ID, shows its current state and sends the same sync request as **Sync** in the Intune admin center. Intune wakes the device through the push service of its platform; the device then checks in, applies pending policies, apps and configuration and reports its state back. An offline device receives the request when it comes back online. The last check-in time in Intune changes only after the check-in has completed.
+
+If an earlier enrollment left more than one Intune record with the same Entra ID device ID, the sync request goes to the record that checked in last and the run shows a warning. Remove the stale records in the Intune admin center.
+
+## Sync without the RealmJoin app permission
+
+The **Sync** button in the [device details](https://docs.realmjoin.com/ugd-management/user-list/device-details) of the RealmJoin Portal asks Intune through the RealmJoin app, which then needs the Intune permission for remote actions on devices. This runbook sends the request with the managed identity of the Automation account instead. Use it when the RealmJoin app does not hold that permission but help desk staff should still be able to sync a device. Who may start the runbook is controlled by the runbook permissions in RealmJoin.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1333,6 +1364,14 @@ Lists all enterprise applications, or all service principals, with their owners 
 
 Org \ Applications \ Export Enterprise Application Users
 
+## How owners and assignments are shown
+
+Each row is one owner (`PrincipalRole` `Owner`) or one assignment (`PrincipalRole` `Member`) of an application. An application without an owner gets one owner row with an empty `PrincipalId`.
+
+- Owners can be users or service principals, told apart by `PrincipalType`. A user is shown with its user principal name, a service principal with its display name and its application ID in brackets.
+- Assigned users are shown with their user principal name, assigned groups with their mail nickname and display name, assigned service principals with their object ID.
+- When a lookup fails, for example because of a missing permission, `PrincipalId` shows `(lookup failed)`, after the object ID where it is known, and the run writes a warning. Such a row does not mean that the application has no owner or assignment.
+
 ## Setup regarding email sending
 
 Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
@@ -1979,7 +2018,7 @@ Autopilot display name changes made via `updateDeviceProperties` take effect at 
 
 #### Description
 
-Finds Intune devices that have not checked in for a given number of days, filtered by platform and optionally by the group membership of their primary user. By default it only lists what it would delete; deletion has to be switched on explicitly. The report can be sent by email or provided as a download link.
+Finds Intune devices that have not checked in for a given number of days, filtered by platform and optionally by group membership. An include group limits the run to devices of its users; an exclude group protects devices of its users and devices that are members themselves. By default it only lists what it would delete; deletion has to be switched on explicitly. The report can be sent by email or provided as a download link.
 
 #### Where to find
 
@@ -1993,9 +2032,29 @@ This runbook deletes managed devices from Intune based on inactivity, so use it 
 - Simulation runs (report-only mode) before enabling the actual deletion
 - Scheduled lifecycle management with an audit trail via the email report
 
+## Inactivity threshold
+
+*Days without activity* accepts 1 to 3650 days. A device counts as stale when its last check-in is at least that many days ago.
+
 ## User scope filtering
 
-The runbook supports optional user scope filtering to include or exclude devices based on the group membership of their primary user. This acts as an additional safety net when deletion is enabled.
+The runbook supports optional group filtering as an additional safety net when deletion is enabled. Members of nested groups count as well.
+
+- **Include group** - only devices whose primary user is a member are in scope. Devices without a primary user, and devices whose primary user was deleted from Entra ID, are left out.
+- **Exclude group** - devices whose primary user is a member are skipped, and so are devices whose Entra ID device object is a member of the group itself. A device group such as "Intune - do not delete" therefore protects its devices. Devices of deleted users stay in scope.
+
+Group membership is checked against the primary user's object ID as recorded by Intune, so a changed user principal name does not affect the filter.
+
+A group applies whenever it is set, also when the runbook is started through the API or by a schedule without the *Filter by primary user group?* choice. Choosing *Yes, filter by group membership* without selecting a group stops the run before anything is deleted.
+
+The filter fails closed:
+
+- If a selected group cannot be read, or the include group contains no users, the run stops with an error and no device is deleted.
+- If Intune records a primary user for a device but no user object ID, the device is not deleted. It is listed with the status *Skipped: primary user could not be resolved* for manual review.
+
+## Download link
+
+If the upload for the download link fails, the email report and the Output Data are still delivered, so the list of deleted devices is not lost. The job then ends as failed.
 
 ## Setup regarding email sending
 
@@ -2208,9 +2267,9 @@ Every device below the threshold is rated: devices below half of the configured 
 
 The runbook sends **one email per primary user** that lists all affected devices of that user with operating system, model, free and total disk space, rating and the date of the last inventory. The email contains practical cleanup steps for the platforms of the listed devices: the Windows section is included for Windows devices, the macOS section for macOS devices, and both when the user has affected devices of both kinds.
 
-Recipients are resolved via Microsoft Graph: the primary user of a device is looked up by the Entra object id that Intune reports in `userId`, so guest accounts and users whose current UPN differs from the address recorded at enrollment resolve correctly; devices without a `userId` fall back to a lookup by user principal name. The email is then sent to the user's `mail` attribute, with the user principal name as fallback when no mail attribute is set. Disabled accounts and users that cannot be resolved are skipped and listed in the console output. Devices without a primary user cannot be notified; they are listed in the console output for central follow-up (the report runbook covers them as well).
+Recipients are resolved via Microsoft Graph: the primary user of a device is looked up by the Entra object id that Intune reports in `userId`, so guest accounts and users whose current UPN differs from the address recorded at enrollment resolve correctly; devices without a `userId` fall back to a lookup by user principal name. Devices are grouped by the account that Graph returns, so a user whose devices report the object id on some and only the UPN on others still gets a single email. The email is then sent to the user's `mail` attribute, with the user principal name as fallback when no mail attribute is set. Disabled accounts and users that cannot be resolved are skipped; they are listed in the console output and, with the reason, in the Output Data table "Notifications". If not a single affected user can be resolved and at least one lookup failed for another reason than a deleted user, for example because the managed identity lacks `User.Read.All` or Graph throttles the lookups, nobody is notified and the job ends as failed after writing its Output Data. A run whose failed lookups all concern deleted users (not found) completes with a warning, and a simulation run always completes. Devices without a primary user cannot be notified; they appear in the Output Data table "Low disk space devices" with the reason "No primary user" for central follow-up (the report runbook covers them as well).
 
-`SimulationMode` lists the affected users, their devices and the intended recipients in the console output without sending any email. Use it to validate thresholds and scope filters before the first productive run.
+`SimulationMode` lists the affected users, their devices and the intended recipients in the console output and the Output Data tables without sending any email. Use it to validate thresholds and scope filters before the first productive run.
 
 `OverrideEmailRecipient` redirects **ALL** notifications to the given address (comma-separated for multiple recipients) instead of the end users. A warning is logged on every run while the override is active, and each redirected email states the affected user in the subject and body. Use this for testing the email content or for routing everything to a shared mailbox.
 
@@ -2288,7 +2347,7 @@ The custom template consists of a subject, a text before the device list and a t
 - Markdown formatting (##, ###, **, -) is supported in the template text
 - All three custom template parameters (Subject, BeforeDeviceDetails, AfterDeviceDetails) should be configured
 - If any parameter is missing, the runbook automatically falls back to the English (EN) template
-- When using the custom template, select "Custom - Use Template from Runbook Customizations" in the Mail Template dropdown
+- When using the custom template, select "Custom template from runbook customization" in the "Mail template" field
 - The device list labels are rendered in English for the custom template
 
 
@@ -2940,7 +2999,7 @@ See the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runb
 
 #### Description
 
-Lists Intune devices that have not checked in for a given number of days, optionally within a maximum age. The list can be filtered by platform and by the group membership of the primary user. Nothing is changed. The report can be sent by email or provided as a download link.
+Lists Intune devices that have not checked in for a given number of days, optionally within a maximum age. The list can be filtered by platform and by group membership of the primary user; the exclude group also skips devices that are members themselves. Nothing is changed. The report can be sent by email or provided as a download link.
 
 #### Where to find
 
@@ -2955,11 +3014,15 @@ Org \ Devices \ Report Stale Devices_Scheduled
 - Staged reporting with a maximum inactivity, for example 30 to 60 days and 60 to 90 days
 - User scope filtering to focus on specific departments or to exclude service accounts
 
+## Inactivity range
+
+A *Maximum days without activity* only applies when it is above *Days without activity*. A lower or equal value is ignored with a warning, and the report lists all devices inactive for at least *Days without activity*.
+
 ## User scope filtering
 
-The runbook can include or exclude devices based on the group membership of their primary user. The filter applies as soon as a group is selected in *Include users from group* or *Exclude users from group*; both can be combined. Only direct members of a group count.
+The runbook can include or exclude devices based on the group membership of their primary user. The filter applies as soon as a group is selected in *Include users from group* or *Exclude users from group*; both can be combined. Members of nested groups count as well.
 
-With an include group, only devices whose primary user is a member are reported; devices without a primary user are left out. The exclude group skips devices whose primary user is a member. If a selected group cannot be read, the run stops with an error instead of reporting an unfiltered list.
+With an include group, only devices whose primary user is a member are reported; devices without a primary user are left out. The exclude group skips devices whose primary user is a member, and also devices whose Entra ID device object is a member of the group itself, so a device group can be used to leave devices out of the report. If a selected group cannot be read, the run stops with an error instead of reporting an unfiltered list.
 
 Earlier versions asked *Filter by primary user group?* before the group pickers were shown. That choice is gone; schedules created with it keep working, and the groups stored in them now apply directly.
 
@@ -3059,22 +3122,32 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 
 #### Description
 
-Lists Windows device objects in Entra ID that no Windows Autopilot registration refers to. Such orphaned objects are usually left over from devices that were reset, re-imaged or replaced without cleanup, so the list shows what can be reviewed and deleted. Nothing is changed. The report can be sent by email or provided as a download link.
+Lists Windows device objects in Entra ID that no Windows Autopilot registration refers to, with their join type. Entra joined objects in the list are often left over from devices that were reset, re-imaged or replaced without cleanup and can be reviewed for deletion. Hybrid joined and Entra registered devices are listed too, but are usually in use. Nothing is changed. The report can be sent by email or provided as a download link.
 
 #### Where to find
 
 Org \ Devices \ Report Windows Devices Without Autopilot_Scheduled
 
-## Reporting orphaned Windows devices
+## Reporting Windows devices without an Autopilot object
 
-This runbook lists every Windows device object in Entra ID and matches it against the Windows Autopilot device identities in Intune. Devices that have no associated Autopilot object (matched via the Autopilot object's `azureActiveDirectoryDeviceId`) are reported as clean-up candidates.
+This runbook lists every Windows device object in Entra ID and matches it against the Windows Autopilot device identities in Intune. Devices that have no associated Autopilot object (matched via the Autopilot object's `azureActiveDirectoryDeviceId`) are reported with their join type.
 
-Two Yes/No toggles control the output:
+The `JoinType` column, the last column of the report, is derived from the device object's `trustType`:
 
-- **Send the report via email?** — when enabled, the recipient address field (`EmailTo`) is shown and the report is sent via email with the CSV attached.
-- **Create a file download link?** — when enabled, the CSV is uploaded to an Azure Storage Account and a time-limited download link is returned.
+- **Entra joined** (`AzureAd`) - objects without an Autopilot object are typically left over from devices that were reset, re-imaged or replaced without cleanup. These are the clean-up candidates; review them before you delete them.
+- **Hybrid joined** (`ServerAd`) - domain joined devices synchronized to Entra ID. They show up whenever no Autopilot object refers to their device object, but are usually in use and not orphaned.
+- **Entra registered** (`Workplace`) - personal or BYOD devices registered by a user. They are usually in use and not orphaned.
 
-Both can be combined or used independently. If both are disabled, the report is only printed to the runbook output.
+Do not delete hybrid joined or Entra registered devices because of this report alone.
+
+Every run writes the result as Output Data tables (`Summary` and `Devices`), which can be sorted, filtered and exported in the RealmJoin portal. The **Report delivery** option adds report files on top:
+
+- **Output Data only** - no report files.
+- **Also email the report** - the recipient address field (`EmailTo`) is shown and the report is sent via email with the report file(s) attached.
+- **Also create a download link** (default) - the report file(s) are uploaded to an Azure Storage Account and a time-limited download link is returned.
+- **Also email & download link** - both.
+
+**Report file format** chooses CSV, XLSX or both for the report files.
 
 ## Setup regarding the storage account
 
@@ -3082,13 +3155,14 @@ The CSV report is uploaded to an Azure Storage Account. The target storage accou
 
 - `RJReport.StorageAccount.ResourceGroup`
 - `RJReport.StorageAccount.StorageAccountName`
+- `RJReport.StorageAccount.SubscriptionId` (optional, recommended; see [Subscription of the Storage Account](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#subscription-of-the-storage-account))
 - `RJReport.StorageAccount.LinkExpiryDays` (optional, defaults to 6)
 
 The container name is configured per runbook (parameter `ContainerName`, default `windows-devices-without-autopilot`) and is intentionally not part of the global RJReport settings.
 
 See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
 
-The runbook's managed identity needs at least `Contributor` access on the subscription or resource group containing the storage account.
+The managed identity of the Automation Account needs the `Reader and Data Access` role on the storage account.
 
 ## Setup regarding email sending
 
@@ -3734,34 +3808,53 @@ Org \ General \ Check Device Onboarding Exclusion_Scheduled
 <a name='org-general-enrolled-devices-report-(scheduled)'></a>
 
 ### Enrolled Devices Report (Scheduled)
-#### Report first-time device enrollments of the last weeks
+#### Report recent first-time enrollments of Windows Autopilot devices
 
 #### Description
 
-Lists devices that enrolled for the first time within the chosen number of weeks. They are grouped by an attribute of your choice, such as country or department, so you can see where new devices show up. The report can be exported as CSV to an Azure Storage account and downloaded from there.
+Lists Windows devices registered in Autopilot that enrolled for the first time within the chosen number of weeks. They are grouped by an attribute of your choice, such as country or department, so you can see where new devices show up. iOS, Android and macOS devices and Windows devices enrolled without Autopilot are not included. The report can be exported as CSV to an Azure Storage account and downloaded from there.
 
 #### Where to find
 
 Org \ General \ Enrolled Devices Report_Scheduled
 
+## Which devices are included
+
+The report starts from the Windows Autopilot device identities in Intune, so it lists only Windows devices registered in Autopilot. iOS, Android and macOS devices and Windows devices enrolled without Autopilot are not included, even when they enrolled within the time range.
+
+- **Date of Autopilot profile assignment** counts a device from the day its Autopilot profile was assigned.
+- **Date of Intune enrollment** counts a device from the day it enrolled in Intune. An Autopilot device without an Intune object is not listed.
+
+## Attribute to group by
+
+The attribute is a property of the object chosen under **Group by data from**, for example `country` or `department` of the Entra ID user, `manufacturer` of the Intune device or `groupTag` of the Autopilot device. It must not be empty, and `apDevice`, `intuneDevice`, `APAssignmentDate` and `IntuneEnrolledDate` are names the report uses itself. With one of these values the run stops with an error before it reads any data.
+
+## Failed lookups
+
+For every device the runbook reads the Intune device and, depending on the grouping, the Entra ID user or device. A device or user that does not exist counts as not enrolled or leaves the attribute empty. Any other error, such as a missing Graph permission (403 Forbidden) or a service error, is counted: the report is still created, uploaded and shown as Output Data, but it may miss devices or have empty columns, so the run then ends as failed with the number of failed lookups and the first error.
+
 ## Configure the storage account for the CSV export
 
-The CSV export uploads the report to an Azure Storage account. Its resource group, name, region and performance tier come from the tenant settings below; the container name is taken from `EnrolledDevicesReport.Container`.
+The CSV export uploads the report to an existing Azure Storage account and returns a download link. The runbook creates the container when it is missing, but not the storage account. The managed identity of the Automation Account needs the `Reader and Data Access` role on the storage account.
+
+Configure the storage account in the tenant settings under `RJReport.StorageAccount`, the same settings all report runbooks use (see [Runbook report settings](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings)). `LinkExpiryDays` sets how many days the download link stays valid; without it, the link expires after 6 days. `SubscriptionId` is optional, but recommended: it makes sure the upload uses the subscription that contains the storage account (see [Subscription of the Storage Account](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#subscription-of-the-storage-account)).
 
 ```json
 {
   "Settings": {
-    "EnrolledDevicesReport": {
-      "ResourceGroup": "rj-test-runbooks-01",
+    "RJReport": {
       "StorageAccount": {
-        "Name": "rjrbexports01",
-        "Location": "West Europe",
-        "Sku": "Standard_LRS"
+        "ResourceGroup": "rj-test-runbooks-01",
+        "StorageAccountName": "rjrbexports01",
+        "SubscriptionId": "00000000-0000-0000-0000-000000000000",
+        "LinkExpiryDays": 6
       }
     }
   }
 }
 ```
+
+The runbook-specific settings `EnrolledDevicesReport.ResourceGroup` and `EnrolledDevicesReport.StorageAccount.Name` are still read and take precedence over `RJReport.StorageAccount`. `EnrolledDevicesReport.StorageAccount.Location` and `EnrolledDevicesReport.StorageAccount.Sku` are no longer needed and are ignored. The container name is taken from `EnrolledDevicesReport.Container`; without it, the runbook uses `enrolled-devices-<weeks>w-<date>`.
 
 For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
 
@@ -3779,7 +3872,7 @@ For more information on how to customize runbooks, please refer to the [Runbook 
 
 #### Description
 
-Lists every Windows Autopilot registration with its details, either in the run output or as a CSV file uploaded to an Azure Storage account with a time-limited download link. Nothing is changed.
+Lists every Windows Autopilot registration with its details in the Output Data tables of the run. The list can also be exported as a CSV file to an Azure Storage account with a time-limited download link. Nothing is changed.
 
 #### Where to find
 
@@ -3874,7 +3967,7 @@ Org \ General \ Export Policy Report
 
 #### Description
 
-Sends a Microsoft Entra ID guest invitation to an external email address. Optionally the guest is added to a group, and profile details such as name, company, usage location, manager and sponsor are set on the guest account right away. The invitation email and the landing page can be customized.
+Sends a Microsoft Entra ID guest invitation to an external email address. Optionally the guest is added to a group, and profile details such as name, company, usage location, manager and sponsor are set on the guest account right away. The invitation email and the landing page can be customized. Without the email, the job output shows the link the guest uses to accept the invitation.
 
 #### Where to find
 
@@ -3889,6 +3982,17 @@ Org \ General \ Invite External Guest Users
 
 - Profile properties (`givenName`, `surname`, `companyName`, `usageLocation`) are applied only when they are not empty; omitting them skips the update call entirely.
 - Manager assignment, sponsor assignment and group membership each require their respective parameters; all of them are skipped silently when not provided.
+- The usage location must be a two-letter ISO 3166-1 country code, for example `GB` for the United Kingdom (not `UK`) and `GR` for Greece (not `EL`). An unknown code stops the run before the invitation is sent, so no guest account and no invitation email are created.
+
+## Invitation without email
+
+When "Send the invitation email?" is turned off, Entra ID creates the guest account without sending an email, the same as clearing "Send invite message" in the Entra admin center. The guest stays in the state "pending acceptance" until the first sign-in.
+
+- The job output shows the redemption link once, in the section "Invite Guest User". Pass it to the guest through another channel, for example your own email or a chat message.
+- Instead of the redemption link, the guest can sign in through a link that contains your tenant, for example `https://myapps.microsoft.com/?tenantid=<tenant id>`. The consent prompt appears at the first sign-in.
+- Guests who sign in with an alias of the invited address need the redemption link.
+- The redirect URL from "Customize the invitation?" still applies: after accepting through the redemption link, the guest lands there.
+- The invitation message is part of the email only and is not used without it.
 
 
 
@@ -3952,7 +4056,7 @@ Org \ General \ Monitor Service Health_Scheduled
 
 - Schedule the runbook to run at or slightly more often than `LookbackHours` to catch every new Service Health issue exactly once.
 - Set `Services` to a comma-separated list of service names or short ids (matched case-insensitively) to monitor only specific services, such as Exchange Online or Teams; leave it empty to monitor all services.
-- Leave `IncludeAdvisories` and `IncludeResolvedIssues` at their default of `false` for the lowest-noise setup, which alerts only on unresolved incidents; set either to `true` to also surface advisories or issues Microsoft has already marked as resolved.
+- By default the runbook alerts on unresolved incidents and advisories (`IncludeAdvisories` is `true`, `IncludeResolvedIssues` is `false`). Set `IncludeAdvisories` to `false` for the lowest-noise setup, which alerts only on unresolved incidents; set `IncludeResolvedIssues` to `true` to also surface issues Microsoft has already marked as resolved.
 
 ## Parameter interactions
 
@@ -4006,7 +4110,26 @@ Org \ General \ Office365 License Report
 
 ## Configure the storage account for the export
 
-The report files are uploaded to an Azure Storage account. Its subscription, resource group and name come from the tenant settings below; the container name is taken from `OfficeLicensingReport.Container`. The switches of this runbook are backed by `OfficeLicensingReport.*` settings as well, so their defaults can be fixed per tenant.
+The report files are uploaded to an existing Azure Storage account; it is not created automatically. The recommended configuration is the shared `RJReport.StorageAccount` setting that the other report runbooks use as well (see [Runbook Report Settings](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings)). `LinkExpiryDays` sets how many days the download links stay valid (default 6). `SubscriptionId` is optional, but recommended: it makes sure the upload uses the subscription that contains the storage account (see [Subscription of the Storage Account](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#subscription-of-the-storage-account)). The container name is taken from `OfficeLicensingReport.Container`. The switches of this runbook are backed by `OfficeLicensingReport.*` settings as well, so their defaults can be fixed per tenant.
+
+```json
+{
+	"Settings": {
+		"RJReport": {
+			"StorageAccount": {
+				"ResourceGroup": "rj-test-runbooks-01",
+				"StorageAccountName": "rbexports01",
+				"SubscriptionId": "00000000-0000-0000-0000-000000000000",
+				"LinkExpiryDays": 6
+			}
+		}
+	}
+}
+```
+
+The Automation Account's managed identity needs the `Reader and Data Access` role on the storage account.
+
+The runbook-specific settings below are still read. When their resource group and storage account name are set, they take precedence over `RJReport.StorageAccount`; `SubscriptionId` is only used together with them.
 
 ```json
 {
@@ -4087,6 +4210,9 @@ Org \ General \ Report Intune Enrollment Readiness
 ## Interpretation notes
 
 - Checks performed per user: account state, Intune license and service plan, tenant MDM authority, device enrollment limit, platform restrictions, registered authentication methods, Conditional Access policies and, optionally, pilot group membership.
+- The device enrollment limit is the assigned limit configuration with the lowest priority number that targets All users or one of the user's groups (excluded groups are honored), falling back to the default limit. It is compared with the user's Intune-enrolled devices; the user's Entra registered and joined devices are also compared with the Entra setting *Maximum number of devices per user*, and reaching either one is reported as a blocking reason.
+- A limit that cannot be read is not guessed. If a user's group memberships cannot be read while group-assigned limit configurations exist, `DeviceEnrollmentLimit` shows *Unknown* and the user gets a warning instead of the default limit. If the Entra setting cannot be read, `EntraDeviceLimit` shows *Unknown* for every user and the job output and report email say that the Entra device limit was not checked.
+- The pilot group is looked up by its display name. If several groups share that name, the first match is used and a warning is logged.
 - Conditional Access is evaluated as a static "What If" against the enrollment sign-in for each user's `EnrollmentPlatform`; Entra's own What If tool remains the authority.
 - Compliant-device requirements on "All resources" policies do not block enrollment (a documented Entra exemption); only policies targeting device registration or the Intune enrollment apps are treated as strict gates.
 - Not evaluated statically: named locations, device filters, sign-in frequency and terms of use.
@@ -4125,7 +4251,6 @@ The report email honors the optional `RJReport.Branding.*` tenant settings:
 When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email - the corresponding default is used instead.
 
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
-
 
 
 [Back to Table of Content](#table-of-contents)
@@ -4364,7 +4489,7 @@ Org \ General \ Sync Apple Tokens
 
 #### Description
 
-Copies the members of a source into a target on every run. The source and target can be a shared channel and a security group, two groups, or a group and a shared channel. Missing members are always added; members that exist only in the target are removed only when asked. A dry run shows the changes without applying them, and the report can be sent by email or provided as a download link. Details on the options are in the runbook documentation (docs.realmjoin.com).
+Copies the members of a source into a target on every run. The source and target can be a shared channel and a security group, two groups, or a group and a shared channel. Missing members are always added; members that exist only in the target are removed only when asked. A dry run shows the changes without applying them, and every run lists the changes in the Output Data tab. The report can be sent by email or provided as a download link. Details on the options are in the runbook documentation (docs.realmjoin.com).
 
 #### Where to find
 
@@ -4382,7 +4507,7 @@ single direction per run. On each run it:
 
 ### Directions
 
-The `Direction` parameter selects what is synced into what:
+**Direction** selects what is synced into what:
 
 - **`SharedChannelToGroup`** - the members of a Teams shared channel are copied into a target security group.
 - **`GroupToGroup`** - the members of a source group are copied into a target group (for example a Microsoft 365 group into a security group, or the reverse by swapping source and target).
@@ -4391,8 +4516,11 @@ The `Direction` parameter selects what is synced into what:
 ### Adding and removing
 
 Adding missing members is always performed. Removing members that exist only in the target is **opt-in**
-via `RemoveExtraMembers` (default off). With removal enabled, the target is mirrored exactly against the
+via **Remove members missing in the source?** (`RemoveExtraMembers`, default off). With removal enabled, the target is mirrored exactly against the
 source; with it disabled, the runbook is add-only.
+
+If a member list cannot be read completely from Microsoft Graph, the run fails before any member is added
+or removed, so an incomplete source never leads to removals.
 
 ### Group member expansion
 
@@ -4402,7 +4530,7 @@ operations act on direct membership.
 
 ### Guest handling
 
-`IncludeGuests` (default off) controls whether guest users take part in the sync. When it is off, guests
+**Include guest users?** (`IncludeGuests`, default off) controls whether guest users take part in the sync. When it is off, guests
 are skipped on both sides and are never added or removed. Shared channels frequently reject guests, so
 this is off by default.
 
@@ -4412,39 +4540,69 @@ this is off by default.
   membership, so the runbook first ensures the user is a member of the host team and then adds the user
   to the channel.
 - When members are **removed** from a shared channel, only the channel membership is removed by default.
-  Enable `RemoveFromTeam` to also remove the user from the host team membership.
+  Enable **Also remove from the host team?** (`RemoveFromTeam`) to also remove the user from the host team membership.
 
 ### Dry run
 
-Set `WhatIfMode` to log what would change without writing anything.
-
-### Reporting (optional, both default off)
-
-- **`SendEmailReport`** sends a RealmJoin-branded email (via `Send-RjRbReportEmail`) with run statistics and
-  a CSV attachment listing every individual change. The sender is taken from the `RJReport.EmailSender`
-  setting.
-- **`CreateDownloadLink`** uploads the same CSV to a storage account and returns a time-limited SAS
-  download link (also embedded into the email when both options are enabled). The target storage account
-  is taken from the `RJReport.StorageAccount.*` settings.
-
-The storage upload authenticates with the Automation account's managed identity; that identity needs the
-**Reader and Data Access** RBAC role on the target storage account (this is an Azure RBAC
-assignment, not a Graph application permission).
+Select **Dry run?** (`WhatIfMode`) to log what would change without writing anything. The Output Data tables then list the planned changes.
 
 ### Scheduling
 
 Designed to run unattended on a schedule. Because the runbook is idempotent, a single recurring schedule
 keeps the target in sync with the source as members come and go.
 
-## Email branding
+## Report delivery
+
+Every run writes its results to the Output Data tab of the RealmJoin portal:
+
+- **Summary** - mode (live or dry run), direction, source and target, the member counts of both sides,
+  the members added and removed, and whether removal and guests were enabled (the same figures as in the
+  report email).
+- **Actions** - one row per change (target, user, user ID, add or remove, mode); in a dry run these are
+  the planned changes. Failed changes are not listed; they appear in the runbook output. When nothing
+  changes, a status line replaces the table.
+
+Each table can be exported to Excel there.
+
+Report files are only generated when a delivery method is selected via the **Report delivery** option
+(email and/or download link): the per-change list as a CSV file and/or as an Excel workbook with the
+worksheet *Actions*, as chosen in **Report file format**. With *Output Data only* selected, the results
+are read directly in the Output Data tab. Email delivery and download link generation are independent
+and can be combined; when both are selected, the download links are also embedded into the email.
+
+For the download link, the report files are uploaded to the Azure storage account configured in the
+`RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The
+storage upload authenticates with the Automation account's managed identity; that identity needs the
+**Reader and Data Access** RBAC role on the target storage account (this is an Azure RBAC assignment,
+not a Graph application permission).
+
+Schedules that were saved before the **Report delivery** option existed keep their delivery, because they
+pass `SendEmailReport` and `CreateDownloadLink` directly. When such a schedule is opened for editing, the
+option shows *Output Data only*. Select the delivery again first: as soon as another choice in the dialog
+changes, such as **Direction**, the dialog applies *Output Data only*, and saving then turns the email and
+the download link off.
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when *Also email the report* or *Also email &
+download link* is selected as report delivery; a recipient is then required. The RealmJoin-branded email
+(sent via `Send-RjRbReportEmail`) contains the run statistics and the report files as attachments. The
+sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to
+configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
+
+### Email branding
 
 The report email honors the optional `RJReport.Branding.*` tenant settings:
 
-- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
-- **Footer link** – target of the footer image
-- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+- **Header and footer image** - public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** - target of the footer image
+- **Accent and text color** - 6-digit hex values, e.g. `#0052cc`
 
-When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email - the corresponding default is used instead.
 
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
@@ -4701,11 +4859,11 @@ Org \ Mail \ Add Room Mailbox
 <a name='org-mail-add-shared-mailbox'></a>
 
 ### Add Shared Mailbox
-#### Create a shared mailbox with optional delegate
+#### Create a shared mailbox with optional delegates
 
 #### Description
 
-Creates a shared mailbox in Exchange Online with the chosen language and time zone. A delegate can get full access, and sent mails can be kept in the shared Sent Items folder. The user account behind the mailbox can be disabled so nobody signs in with it.
+Creates a shared mailbox in Exchange Online with the chosen language and time zone. Delegates can get full access and send on behalf of the mailbox, and sent mails can be kept in the shared Sent Items folder. The user account behind the mailbox can be disabled so nobody signs in with it. If a setting cannot be applied, the mailbox is kept and the run fails, naming what is missing.
 
 #### Where to find
 
@@ -4739,6 +4897,35 @@ The domain of the new mailbox is free text by default. With a runbook customizat
     }
 }
 ```
+
+## Offer only the time zones you use
+
+The time zone list holds the Windows time zones named after places, sorted by their offset from UTC as in Windows and Outlook. The offset in each entry is the standard time. Exchange Online applies daylight saving time on its own, so Sydney is listed as UTC+10:00 and runs at UTC+11:00 from October to April.
+
+With a runbook customization the operator sees only the time zones of your locations:
+
+```json
+{
+    "Runbooks": {
+        "rjgit-org_mail_add-shared-mailbox": {
+            "ParameterList": [
+                {
+                    "Name": "TimeZone",
+                    "SelectSimple": {
+                        "(UTC-05:00) Eastern Time (US & Canada)": "Eastern Standard Time",
+                        "(UTC+00:00) Dublin, Edinburgh, Lisbon, London": "GMT Standard Time",
+                        "(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna": "W. Europe Standard Time",
+                        "(UTC+10:00) Canberra, Melbourne, Sydney": "AUS Eastern Standard Time"
+                    },
+                    "Default": "W. Europe Standard Time"
+                }
+            ]
+        }
+    }
+}
+```
+
+The text on the left is shown in the portal, the value on the right is the Windows time zone ID that Exchange Online stores. Take both from the portal options of the time zone parameter below. `Default` names the ID that is preselected.
 
 For more information on how to customize runbooks, please refer to the [Runbook Customization Guide](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
 
@@ -5026,7 +5213,7 @@ Org \ Security \ Find SMS Auth Phone Number
 
 #### Description
 
-Lists every user and service principal that holds a built-in Entra ID role, including PIM eligible assignments, as an admin-to-role report. Optionally the registered authentication methods of each admin are checked to show who is protected by MFA, with a choice of which methods count. The report can be uploaded as CSV to an Azure Storage account. Nothing is changed.
+Lists every user and service principal that holds a built-in Entra ID role, also through PIM eligibility or a role-assignable group, as an admin-to-role report. Optionally the authentication methods of each admin are checked to show who is protected by MFA. The report can be uploaded as CSV to an Azure Storage account. Nothing is changed. The run fails when role assignments or the members of a role-assignable group cannot be read, or when the upload fails.
 
 #### Where to find
 
@@ -5064,7 +5251,7 @@ Org \ Security \ List Expiring Role Assignments
 
 #### Description
 
-Lists the devices whose last Intune sync, or whose last sign-in recorded in Entra ID, is older than the chosen number of days. The result can be shown in the run output or exported as a CSV file to an Azure Storage account. Nothing is changed.
+Lists the devices whose last Intune sync, or whose last sign-in recorded in Entra ID, is older than the chosen number of days. The result is shown in the Output Data tables of the run and can also be exported as a CSV file to an Azure Storage account. Nothing is changed.
 
 #### Where to find
 
@@ -5159,7 +5346,7 @@ Org \ Security \ List Users By MFA Methods Count
 
 #### Description
 
-Checks the key credentials of every app registration in Entra ID for signs of CVE-2021-42306, where private key material was stored in the credential by mistake. App registrations that may be affected are listed. The result can be shown in the run output or exported as a CSV file to an Azure Storage account. Nothing is changed.
+Checks the key credentials of every app registration in Entra ID for signs of CVE-2021-42306, where private key material was stored in the credential by mistake. App registrations that may be affected are listed; those whose credentials cannot be read are named as not checked. The result can be shown in the run output or exported as a CSV file to an Azure Storage account. Nothing is changed.
 
 #### Where to find
 
@@ -5198,8 +5385,10 @@ An hourly schedule is recommended.
 ## Email behaviour
 
 - Emails are sent individually to each recipient.
+- If some recipients cannot be reached, a warning in the job output names them; the job fails only when no recipient got the email.
 - No email is sent when there are no pending requests.
 - Report file attachments (see `ReportFileFormat`) are only included when `DetailedReport` is enabled.
+- The request details in the email (requesting user, file name, device, justification) are shown as plain text: links, images or formatting typed by the requesting user are not rendered.
 
 ## Setup regarding email sending
 
@@ -5333,7 +5522,7 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 
 #### Description
 
-Keeps an Entra ID group in sync with the users who registered at least one secure authentication method, such as a passkey or the Microsoft Authenticator app. Users who lose their secure method are removed. Admins, an exclusion group and individual users can be kept out, for example when the group controls self-service password reset. A dry run only shows the changes, and the report can be sent by email or provided as a download link. Details on the options are in the runbook documentation (docs.realmjoin.com).
+Keeps an Entra ID group in sync with the users who registered at least one secure authentication method, such as a passkey or the Microsoft Authenticator app. Users who lose their secure method are removed, and admins, an exclusion group and individual users can be kept out, for example when the group controls self-service password reset. A dry run only shows the changes, and every run writes a summary and the changes as Output Data. The report can be sent by email or provided as a download link. Details on the options are in the runbook documentation (docs.realmjoin.com).
 
 #### Where to find
 
@@ -5380,7 +5569,7 @@ Excluded users never qualify regardless of their registered methods: they are ne
 Users holding an Entra ID directory role are excluded. This covers:
 
 - **Active role assignments** (`roleManagement/directory/roleAssignments`)
-- **PIM-eligible assignments** (`roleManagement/directory/roleEligibilitySchedules`, requires Entra ID P2 — without P2 the runbook falls back to active assignments and logs a warning)
+- **PIM-eligible assignments** (`roleManagement/directory/roleEligibilitySchedules`, requires Entra ID P2 — when Graph reports the missing license, the runbook falls back to active assignments and logs a warning; any other error fails the job before the group is changed)
 - **Role-assignable groups**: groups holding a role are expanded to their transitive user members
 
 Background: when the target group drives **SSPR** and the SSPR administrator policy is disabled, admins in the group would still be forced to register a second factor once two SSPR methods are required. Keeping admins out of the group avoids this.
@@ -5460,14 +5649,29 @@ Both override parameters are hidden by default and intended for RealmJoin runboo
 
 Unknown values produce a warning but are still evaluated, so future Graph values can be used before this documentation catches up.
 
-## Email report and download links
+## Output Data
 
-Optionally, a detailed report can be delivered - especially useful for reviewing the very first run (ideally combined with the dry run mode):
+Every run writes its results to the Output Data tab of the RealmJoin portal, where each table can be exported to Excel:
 
-- **Send report via email** (`SendEmail`, off by default): sends the report to the configured recipient(s). The recipient field only appears when email is enabled. Requires the `RJReport.EmailSender` tenant setting (see the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings)).
-- **Create file download links** (`CreateDownloadLink`, off by default): uploads the report files to an Azure Storage Account and returns time-limited download links (uses the `RJReport.StorageAccount.*` tenant settings).
+- *Summary* - the chosen configuration and the result counts: report entries, evaluated member users, qualifying users, previous members and the added and removed users (in dry run mode the users that would be added or removed; failed adds and removes are listed separately). A user who already was a member counts as added, one who already was gone counts as removed.
+- *Changes* - every user added to or removed from the group (in dry run mode the pending changes) with the per-user method details
 
-Report files are only generated when at least one of the two options is enabled. The report consists of:
+*Changes* has the same rows and columns as the report file and worksheet of the same name. A run without changes shows a status line instead of the *Changes* table. The evaluation of every member user is only in the report files (*All Users*): one row per user on every run would make the job output of large tenants too big.
+
+## Report delivery
+
+The **Report delivery** option in the run dialog decides whether the report is also delivered as files - especially useful for reviewing the very first run (ideally combined with the dry run mode):
+
+- *Output Data only* (default): no report files, no email.
+- *Also email the report*: sends the report to the recipient email address(es), which then is a required field. Requires the `RJReport.EmailSender` tenant setting (see the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings)).
+- *Also create a download link*: uploads the report files to an Azure Storage Account and returns time-limited download links (uses the `RJReport.StorageAccount.*` tenant settings).
+- *Also email & download link*: both.
+
+With an email or a download link, **Report file format** selects CSV files, the Excel workbook or both. The option sets the hidden parameters `SendEmail` and `CreateDownloadLink`; schedules and API calls that pass these parameters directly work as before.
+
+Schedules created before the **Report delivery** option existed keep their delivery. When such a schedule is opened for editing, the option shows *Output Data only* although the stored email or download link stays active; select the delivery again before saving so that the dialog matches what the schedule does.
+
+Report files are only generated when email or a download link is selected. The report consists of:
 
 - **mfa-secure-users-group-sync-changes.csv** - all performed (or, in dry run, pending) changes with per-user method details
 - **mfa-secure-users-group-sync-all-users.csv** - the evaluation of every member user: registered methods, secure/unsecure classification, qualification, exclusion reason and group membership
@@ -5491,6 +5695,7 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 
 - The registration report requires an **Entra ID P1 or P2** license.
 - PIM-eligible role assignments (admin exclusion) require an **Entra ID P2** license — without it, only active role assignments are excluded.
+- If a list read fails (registration report, role assignments, members of a role-assignable group or of the exclusion group, current members of the target group), the job fails before the group is changed, so a sync never runs on incomplete data.
 - The report does not include **disabled** or soft-deleted users — such accounts are removed from the group on the next run.
 - Report data can lag behind recent registration changes; a newly registered method may take one sync cycle to be reflected.
 - The runbook processes large tenants (20k+ users) via paged report reads and batched group writes with automatic throttling retries.
@@ -5787,12 +5992,11 @@ The tenant MDM authority must be "intune" or "office365"; other values block eve
 The readiness verdict combines these checks:
 
 - Account status (enabled, not blocked) and an Intune license assigned to the user.
-- The tenant's device enrollment limit for the user and the platform restrictions of the enrollment configuration.
+- The tenant's device enrollment limit for the user and the platform restrictions of the enrollment configuration. The limit is the assigned limit configuration with the lowest priority number that targets All users or one of the user's groups (excluded groups are honored), falling back to the default limit, and is compared with the user's Intune-enrolled devices. The user's Entra registered and joined devices are also compared with the Entra setting *Maximum number of devices per user*. If the user's group memberships (while group-assigned limit configurations exist) or the Entra setting cannot be read, the affected limit is reported as a warning instead of being guessed.
 - Conditional Access policies that explicitly target device registration or Intune enrollment. Policies that require a compliant device via *All resources* are exempted by Microsoft Entra design and therefore not counted as blockers.
 - Platform-scoped policies and browser-only client-app requirements are evaluated against the chosen enrollment platform; with *All platforms* every platform is evaluated and reported separately.
 
 The runbook only reads; it changes nothing on the user or the tenant.
-
 
 
 [Back to Table of Content](#table-of-contents)
@@ -5807,15 +6011,44 @@ The runbook only reads; it changes nothing on the user or the tenant.
 
 #### Description
 
-Lists the groups this user is a member of, with filters for group type, membership type, role assignability, Teams, source and writeback. The result is shown as CSV text. The report can be sent by email or provided as a download link.
+Lists the groups this user is a member of, with filters for group type, membership type, role assignability, Teams, source and writeback. The result is shown as CSV text and as Output Data tables. The report can also be sent by email or provided as a download link. Nothing is changed.
 
 #### Where to find
 
 User \ General \ List Group Memberships
 
+## Output and report delivery
+
+Every run lists the matching groups as CSV text in the runbook output and writes two Output Data tables, which can be sorted, filtered and exported in the RealmJoin portal:
+
+- `Summary` - the user, the selected filters, the number of direct group memberships and the number of groups matching the filters.
+- `Group Memberships` - one row per matching group with the same columns as the CSV file and the `Group Memberships` worksheet. When no group matches, a status line is shown instead.
+
+The **Report delivery** option adds report files on top:
+
+- **Output Data only** (default) - no report files.
+- **Also email the report** - the recipient address field (`EmailTo`) is shown and required, and the report is sent via email with the report file(s) attached.
+- **Also create a download link** - the report file(s) are uploaded to an Azure Storage Account and a time-limited download link is returned.
+- **Also email & download link** - both.
+
+**Report file format** chooses CSV, XLSX or both for the report files. When no group matches the filters, no report files are created, uploaded or emailed.
+
+The option sets the parameters `SendMail` and `CreateDownloadLink`. Schedules and API calls that pass these parameters directly keep working as before.
+
+## Setup regarding the storage account
+
+For the download link, the report files are uploaded to an Azure Storage Account. The target storage account is taken from the shared **RJReport** tenant settings, so it can be configured once and reused across all report runbooks:
+
+- `RJReport.StorageAccount.ResourceGroup`
+- `RJReport.StorageAccount.StorageAccountName`
+- `RJReport.StorageAccount.SubscriptionId` (optional, recommended; see [Subscription of the Storage Account](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#subscription-of-the-storage-account))
+- `RJReport.StorageAccount.LinkExpiryDays` (optional, defaults to 6)
+
+The container name is configured per runbook (parameter `ContainerName`, default `user-group-memberships`). The managed identity of the Automation Account needs the `Reader and Data Access` role on the storage account.
+
 ## Setup regarding email sending
 
-Sending an email report is optional and only happens when the `SendMail` option is enabled; a recipient (`EmailTo`) is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+Sending an email report is optional and only happens when *Also email the report* or *Also email & download link* is selected as report delivery (parameter `SendMail`); a recipient (`EmailTo`) is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
@@ -5847,15 +6080,37 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 
 #### Description
 
-Lists the Entra ID groups this user owns, with their names and IDs. The report can be sent by email or provided as a download link.
+Lists the Entra ID groups this user owns, with their names, IDs and type (Microsoft 365, security or distribution). Every run shows the list as Output Data tables in the portal. Nothing is changed. The report can be sent by email or provided as a download link.
 
 #### Where to find
 
 User \ General \ List Group Ownerships
 
+## Output Data and report delivery
+
+Every run writes the result as Output Data tables, which can be sorted, filtered and exported in the RealmJoin portal:
+
+- **Summary** - the number of groups the user owns, in total and per group type.
+- **Group Ownerships** - one row per owned group with `DisplayName`, `ID` and `Type` (`M365`, `Security`, `Distribution` or `Other`), the same rows and columns as the report files. When the user owns no groups, a status line is shown instead.
+
+The **Report delivery** option adds report files on top:
+
+- **Output Data only** (default) - no report files.
+- **Also email the report** - the recipient address field (`EmailTo`) is shown and required, and the report is sent via email with the report file(s) attached.
+- **Also create a download link** - the report file(s) are uploaded to an Azure Storage Account and a time-limited download link is returned.
+- **Also email & download link** - both.
+
+**Report file format** chooses CSV, XLSX or both for the report files. Report files are only created when the user owns at least one group.
+
+The option sets the parameters `SendMail` and `CreateDownloadLink`. Schedules and API calls that pass these parameters directly keep working as before. A schedule saved before the option existed opens with *Output Data only* selected but keeps its stored delivery until another option is chosen.
+
+## Setup regarding the storage account
+
+For the download link, the report files are uploaded to the Azure Storage Account configured in the shared `RJReport.StorageAccount.*` tenant settings (`ResourceGroup`, `StorageAccountName`, optionally `SubscriptionId` and `LinkExpiryDays`). The container name is configured per runbook (parameter `ContainerName`, default `user-group-ownerandmemberships`). The managed identity of the Automation Account needs the `Reader and Data Access` role on the storage account.
+
 ## Setup regarding email sending
 
-Sending an email report is optional and only happens when a recipient (`EmailTo`) is provided. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+Sending an email report is optional and only happens when *Also email the report* or *Also email & download link* is selected as report delivery; a recipient is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
@@ -5936,6 +6191,7 @@ Most switches of this runbook are backed by tenant settings, so an organization 
             "StorageAccount": {
                 "ResourceGroup": "rj-test-runbooks-01",
                 "StorageAccountName": "rjrbexports01",
+                "SubscriptionId": "00000000-0000-0000-0000-000000000000",
                 "LinkExpiryDays": 6
             }
         }
@@ -6012,6 +6268,7 @@ Most switches of this runbook are backed by tenant settings, so an organization 
             "StorageAccount": {
                 "ResourceGroup": "rj-test-runbooks-01",
                 "StorageAccountName": "rjrbexports01",
+                "SubscriptionId": "00000000-0000-0000-0000-000000000000",
                 "LinkExpiryDays": 6
             }
         }
@@ -6229,7 +6486,7 @@ User \ Mail \ Assign Owa Mailbox Policy
 
 #### Description
 
-Turns the mailbox of this user into a shared mailbox, or turns a shared mailbox back into a regular user mailbox. When converting to shared, a delegate can get full access and the user's group memberships can be removed. A license group can be assigned when the mailbox needs an Exchange Online Plan 2.
+Turns the mailbox of this user into a shared mailbox, or turns a shared mailbox back into a regular user mailbox. When converting to shared, a delegate can get full access and the user's group memberships can be removed. A license group can be assigned when the mailbox needs an Exchange Online Plan 2. Turning it back removes the full access, send as and send on behalf permissions of all other users. A Bookings mailbox or another type that Exchange Online cannot convert stops the run before anything changes.
 
 #### Where to find
 
@@ -7003,11 +7260,24 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 
 #### Description
 
-Sets a new password for this user in Entra ID and shows it in the output. A disabled account can be enabled first, and the user can be made to choose their own password at the next sign-in.
+Sets a new password for this user in Entra ID and shows it in the output. A disabled account can be enabled once the new password is set, and the user can be made to choose their own password at the next sign-in.
 
 #### Where to find
 
 User \ Security \ Reset Password
+
+## Users with administrator roles
+
+Entra ID protects users who hold an administrator role from changes by lower-privileged administrators. With the User Administrator role, the RealmJoin managed identity can reset the password and enable the account of users without administrator roles and of users with a few roles such as Helpdesk Administrator, Password Administrator, Groups Administrator or User Administrator.
+
+For users with any other role, for example Power Platform Administrator, Exchange Administrator or Global Administrator, and for members and owners of role-assignable groups, Entra ID requires a Privileged Authentication Administrator or Global Administrator. The run then stops with "Insufficient privileges" and names the roles of the user. Reset the password of such a user in the Entra admin center with a Privileged Authentication Administrator or Global Administrator account.
+
+Granting one of these two roles to the RealmJoin managed identity is not recommended, because both can also reset the credentials of Global Administrators. Microsoft lists which role can reset which administrator's password in [Who can reset passwords](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/privileged-roles-permissions#who-can-reset-passwords).
+
+### Roles in the job output
+
+Before anything changes, the job output lists the Entra ID roles assigned directly to the user. This needs the optional permission for the administrator role check; without it the output shows "could not be read" and the run continues.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -7022,11 +7292,24 @@ User \ Security \ Reset Password
 
 #### Description
 
-Blocks this user from signing in and ends the current sessions, so stolen tokens stop working immediately, for example during an incident. Re-enable user lifts the block again; ended sessions are not restored.
+Blocks this user from signing in and ends the current sessions, for example during an incident. Access tokens that were already issued stay valid until they expire, usually within an hour; apps with continuous access evaluation, such as Exchange Online, SharePoint and Teams, react within minutes. Re-enable user lifts the block again; ended sessions are not restored.
 
 #### Where to find
 
 User \ Security \ Revoke Or Restore Access
+
+## Users with administrator roles
+
+Entra ID protects users who hold an administrator role from changes by lower-privileged administrators. With the User Administrator role, the RealmJoin managed identity can block or restore sign-in and revoke sessions for users without administrator roles and for users with a few roles such as Helpdesk Administrator, Password Administrator, Groups Administrator or User Administrator.
+
+For users with any other role, for example Power Platform Administrator, Exchange Administrator or Global Administrator, and for members and owners of role-assignable groups, Entra ID requires a Privileged Authentication Administrator or Global Administrator. The run then stops with "Insufficient privileges" and names the roles of the user. Make the change for such a user in the Entra admin center with a Privileged Authentication Administrator or Global Administrator account.
+
+Granting one of these two roles to the RealmJoin managed identity is not recommended, because both can also reset the credentials of Global Administrators. Microsoft lists which role can change which administrator in [Who can perform sensitive actions](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/privileged-roles-permissions#who-can-perform-sensitive-actions).
+
+### Roles in the job output
+
+Before anything changes, the job output lists the Entra ID roles assigned directly to the user. This needs the optional permission for the administrator role check; without it the output shows "could not be read" and the run continues.
+
 
 
 [Back to Table of Content](#table-of-contents)

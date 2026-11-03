@@ -71,7 +71,7 @@
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
 
 param(
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Action" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Action" } )]
     [int] $Action = 2,
     # Not mandatory to allow an example value
     [String] $LinkPattern = "https://*.microsoft.com/*",
@@ -79,7 +79,7 @@ param(
     [Parameter(Mandatory = $true)]
     [String] $DefaultPolicyName = "Default SafeLinks Policy",
     # Using "PolicyName" will overwrite the defaults
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Safe Links policy name" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Safe Links policy name" } )]
     [String] $PolicyName,
     [boolean] $CreateNewPolicyIfNeeded = $true,
     # CallerName is tracked purely for auditing purposes

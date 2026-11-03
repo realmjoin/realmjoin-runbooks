@@ -3,7 +3,7 @@
 	Invite an external person as a guest user
 
 	.DESCRIPTION
-	Sends a Microsoft Entra ID guest invitation to an external email address. Optionally the guest is added to a group, and profile details such as name, company, usage location, manager and sponsor are set on the guest account right away. The invitation email and the landing page can be customized.
+	Sends a Microsoft Entra ID guest invitation to an external email address. Optionally the guest is added to a group, and profile details such as name, company, usage location, manager and sponsor are set on the guest account right away. The invitation email and the landing page can be customized. Without the email, the job output shows the link the guest uses to accept the invitation.
 
 	.PARAMETER InvitedUserEmail
 	Email address of the person to invite.
@@ -29,17 +29,20 @@
 	.PARAMETER SponsorName
 	User recorded as the guest's sponsor.
 
+	.PARAMETER SendInvitationMessage
+	Emails the invitation to the guest. Without the email, the job output shows the link the guest uses to accept the invitation, to pass on by other means.
+
 	.PARAMETER CustomizeInvitation
 	Shows fields for an own invitation message and redirect URL.
 
 	.PARAMETER InvitationMessage
-	Text included in the invitation email.
+	Text included in the invitation email. Not used when no invitation email is sent.
 
 	.PARAMETER InviteRedirectUrl
 	Page the guest lands on after accepting, for example a SharePoint site.
 
 	.PARAMETER UsageLocation
-	Two-letter country code, for example US or DE, needed before licenses can be assigned.
+	Two-letter ISO country code, for example US, DE or GB for the United Kingdom, needed before licenses can be assigned. An unknown code such as UK stops the run before the invitation is sent.
 
 	.PARAMETER CallerName
 	Name of the user who started the runbook. Set by the portal and recorded for auditing.
@@ -81,6 +84,10 @@
 			{
 				"Name": "SponsorName",
 				"DisplayName": "Sponsor"
+			},
+			{
+				"Name": "SendInvitationMessage",
+				"DisplayName": "Send the invitation email?"
 			},
 			{
 				"Name": "CustomizeInvitation",
@@ -157,6 +164,9 @@ param(
     [string]$SponsorName = "",
 
     [Parameter(Mandatory = $false)]
+    [bool]$SendInvitationMessage = $true,
+
+    [Parameter(Mandatory = $false)]
     [bool]$CustomizeInvitation = $false,
 
     [Parameter(Mandatory = $false)]
@@ -179,7 +189,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "2.0.3"
+$Version = "2.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "InvitedUserEmail: $InvitedUserEmail" -Verbose
@@ -190,12 +200,13 @@ Write-RjRbLog -Message "Surname: $Surname" -Verbose
 Write-RjRbLog -Message "CompanyName: $CompanyName" -Verbose
 Write-RjRbLog -Message "ManagerName: $ManagerName" -Verbose
 Write-RjRbLog -Message "SponsorName: $SponsorName" -Verbose
+Write-RjRbLog -Message "SendInvitationMessage: $SendInvitationMessage" -Verbose
 Write-RjRbLog -Message "CustomizeInvitation: $CustomizeInvitation" -Verbose
 Write-RjRbLog -Message "InvitationMessage: $InvitationMessage" -Verbose
 Write-RjRbLog -Message "InviteRedirectUrl: $InviteRedirectUrl" -Verbose
 Write-RjRbLog -Message "UsageLocation: $UsageLocation" -Verbose
 
-#endregion
+#endregion RJ Log Part
 
 ########################################################
 #region     Parameter Validation
@@ -211,7 +222,40 @@ if ([string]::IsNullOrWhiteSpace($InvitedUserDisplayName) -and -not [string]::Is
     Write-RjRbLog -Message "InvitedUserDisplayName derived from Surname/GivenName: '$InvitedUserDisplayName'" -Verbose
 }
 
-#endregion
+# Entra ID accepts only an ISO 3166-1 alpha-2 country code as usage location. Check it before the guest is invited:
+# a rejected code (UK instead of GB) would leave an invited guest without profile, manager, sponsor and group.
+# XK (Kosovo) is not in ISO 3166-1, but Microsoft uses it as country code.
+$UsageLocation = $UsageLocation.Trim().ToUpperInvariant()
+$countryCodes = @(
+    'AD', 'AE', 'AF', 'AG', 'AI', 'AL', 'AM', 'AO', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AW', 'AX', 'AZ',
+    'BA', 'BB', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BL', 'BM', 'BN', 'BO', 'BQ', 'BR', 'BS', 'BT', 'BV', 'BW', 'BY', 'BZ',
+    'CA', 'CC', 'CD', 'CF', 'CG', 'CH', 'CI', 'CK', 'CL', 'CM', 'CN', 'CO', 'CR', 'CU', 'CV', 'CW', 'CX', 'CY', 'CZ',
+    'DE', 'DJ', 'DK', 'DM', 'DO', 'DZ', 'EC', 'EE', 'EG', 'EH', 'ER', 'ES', 'ET', 'FI', 'FJ', 'FK', 'FM', 'FO', 'FR',
+    'GA', 'GB', 'GD', 'GE', 'GF', 'GG', 'GH', 'GI', 'GL', 'GM', 'GN', 'GP', 'GQ', 'GR', 'GS', 'GT', 'GU', 'GW', 'GY',
+    'HK', 'HM', 'HN', 'HR', 'HT', 'HU', 'ID', 'IE', 'IL', 'IM', 'IN', 'IO', 'IQ', 'IR', 'IS', 'IT', 'JE', 'JM', 'JO', 'JP',
+    'KE', 'KG', 'KH', 'KI', 'KM', 'KN', 'KP', 'KR', 'KW', 'KY', 'KZ', 'LA', 'LB', 'LC', 'LI', 'LK', 'LR', 'LS', 'LT', 'LU', 'LV', 'LY',
+    'MA', 'MC', 'MD', 'ME', 'MF', 'MG', 'MH', 'MK', 'ML', 'MM', 'MN', 'MO', 'MP', 'MQ', 'MR', 'MS', 'MT', 'MU', 'MV', 'MW', 'MX', 'MY', 'MZ',
+    'NA', 'NC', 'NE', 'NF', 'NG', 'NI', 'NL', 'NO', 'NP', 'NR', 'NU', 'NZ', 'OM', 'PA', 'PE', 'PF', 'PG', 'PH', 'PK', 'PL', 'PM', 'PN', 'PR', 'PS', 'PT', 'PW', 'PY',
+    'QA', 'RE', 'RO', 'RS', 'RU', 'RW', 'SA', 'SB', 'SC', 'SD', 'SE', 'SG', 'SH', 'SI', 'SJ', 'SK', 'SL', 'SM', 'SN', 'SO', 'SR', 'SS', 'ST', 'SV', 'SX', 'SY', 'SZ',
+    'TC', 'TD', 'TF', 'TG', 'TH', 'TJ', 'TK', 'TL', 'TM', 'TN', 'TO', 'TR', 'TT', 'TV', 'TW', 'TZ', 'UA', 'UG', 'UM', 'US', 'UY', 'UZ',
+    'VA', 'VC', 'VE', 'VG', 'VI', 'VN', 'VU', 'WF', 'WS', 'XK', 'YE', 'YT', 'ZA', 'ZM', 'ZW'
+)
+if (-not [string]::IsNullOrEmpty($UsageLocation) -and $UsageLocation -notin $countryCodes) {
+    $countryHint = switch ($UsageLocation) {
+        'UK' { ' For the United Kingdom use GB.' }
+        'EL' { ' For Greece use GR.' }
+        'EU' { ' EU is no country; use the code of the country.' }
+        default { '' }
+    }
+    Write-Error "Invalid usage location '$UsageLocation'. Use a two-letter country code such as DE or US.$countryHint No invitation was sent." -ErrorAction Continue
+    throw "Invalid usage location '$UsageLocation'. Use a two-letter country code such as DE or US.$countryHint"
+}
+
+if (-not $SendInvitationMessage -and $CustomizeInvitation -and -not [string]::IsNullOrWhiteSpace($InvitationMessage)) {
+    Write-RjRbLog -Message "WARNING: No invitation email is sent, so the invitation message is not used."
+}
+
+#endregion Parameter Validation
 
 ########################################################
 #region     Connect Part
@@ -225,7 +269,7 @@ catch {
     throw
 }
 
-#endregion
+#endregion Connect Part
 
 ########################################################
 #region     StatusQuo & Preflight-Check Part
@@ -236,7 +280,9 @@ Write-Output "Get StatusQuo"
 Write-Output "---------------------"
 
 # Check if a guest user with the same email already exists
-$existingUsersResult = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users?`$filter=mail eq '$InvitedUserEmail'&`$select=id,displayName,mail,userType" -ErrorAction Stop
+# Double apostrophes for the OData string literal before URL-encoding the value
+$filterMail = [uri]::EscapeDataString(($InvitedUserEmail -replace "'", "''"))
+$existingUsersResult = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users?`$filter=mail eq '$($filterMail)'&`$select=id,displayName,mail,userType" -ErrorAction Stop
 $existingUser = $existingUsersResult.value | Select-Object -First 1
 
 if ($existingUser) {
@@ -267,7 +313,7 @@ if (-not [string]::IsNullOrEmpty($GroupId)) {
     }
 }
 
-#endregion
+#endregion StatusQuo & Preflight-Check Part
 
 ########################################################
 #region     Main Part
@@ -297,10 +343,10 @@ $invitationBody = @{
     invitedUserEmailAddress = $InvitedUserEmail
     invitedUserDisplayName  = $InvitedUserDisplayName
     inviteRedirectUrl       = $effectiveRedirectUrl
-    sendInvitationMessage   = $true
+    sendInvitationMessage   = $SendInvitationMessage
 }
 
-if ($CustomizeInvitation -and -not [string]::IsNullOrEmpty($InvitationMessage)) {
+if ($SendInvitationMessage -and $CustomizeInvitation -and -not [string]::IsNullOrEmpty($InvitationMessage)) {
     $invitationBody["invitedUserMessageInfo"] = @{
         customizedMessageBody = $InvitationMessage
     }
@@ -309,7 +355,15 @@ if ($CustomizeInvitation -and -not [string]::IsNullOrEmpty($InvitationMessage)) 
 try {
     $invitationResponse = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/v1.0/invitations" -Body ($invitationBody | ConvertTo-Json -Depth 5) -ContentType "application/json" -ErrorAction Stop
     $invitedUserId = $invitationResponse.invitedUser.id
+    $inviteRedeemUrl = $invitationResponse.inviteRedeemUrl
     Write-Output "Guest user successfully invited. User ID: $invitedUserId"
+    if ($SendInvitationMessage) {
+        Write-Output "Invitation email sent to $InvitedUserEmail."
+    }
+    else {
+        Write-Output "No invitation email sent. Pass this link to the guest to accept the invitation:"
+        Write-Output $inviteRedeemUrl
+    }
     # Allow time for the user object to replicate in Entra ID
     Start-Sleep -Seconds 5
 }
@@ -449,17 +503,18 @@ Write-Output "---------------------"
 Write-Output "  Email:        $InvitedUserEmail"
 Write-Output "  Display Name: $InvitedUserDisplayName"
 Write-Output "  User ID:      $invitedUserId"
+Write-Output "  Invitation:   $(if ($SendInvitationMessage) { 'Email sent' } else { "Email not sent, link under 'Invite Guest User'" })"
 if (-not [string]::IsNullOrEmpty($GivenName)) { Write-Output "  Given Name:   $GivenName" }
 if (-not [string]::IsNullOrEmpty($Surname)) { Write-Output "  Surname:      $Surname" }
 if (-not [string]::IsNullOrEmpty($CompanyName)) { Write-Output "  Company:      $CompanyName" }
 if (-not [string]::IsNullOrEmpty($UsageLocation)) { Write-Output "  Usage Loc.:   $UsageLocation" }
 if (-not [string]::IsNullOrEmpty($ManagerName)) { Write-Output "  Manager:      $managerUpn" }
 if (-not [string]::IsNullOrEmpty($SponsorName)) { Write-Output "  Sponsor:      $sponsorUpn" }
-if ($CustomizeInvitation -and -not [string]::IsNullOrEmpty($InvitationMessage)) { Write-Output "  Message:      $InvitationMessage" }
+if ($SendInvitationMessage -and $CustomizeInvitation -and -not [string]::IsNullOrEmpty($InvitationMessage)) { Write-Output "  Message:      $InvitationMessage" }
 if ($CustomizeInvitation -and -not [string]::IsNullOrEmpty($InviteRedirectUrl)) { Write-Output "  Redirect URL: $InviteRedirectUrl" }
 Write-Output "  Group:        $(if ([string]::IsNullOrEmpty($GroupId)) { 'None' } else { "$($preflightGroup.displayName) ($GroupId)" })"
 
-#endregion
+#endregion Main Part
 
 ########################################################
 #region     Cleanup
@@ -470,4 +525,4 @@ Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
 Write-Output ""
 Write-Output "Done!"
 
-#endregion
+#endregion Cleanup

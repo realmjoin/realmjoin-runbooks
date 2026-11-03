@@ -43,6 +43,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Remove Primary User](docs/device/general/remove-primary-user.md)
     - [Rename Device](docs/device/general/rename-device.md)
     - [Set Primary User](docs/device/general/set-primary-user.md)
+    - [Sync Device](docs/device/general/sync-device.md)
     - [Unenroll Updatable Assets](docs/device/general/unenroll-updatable-assets.md)
     - [Wipe Device](docs/device/general/wipe-device.md)
     - [Wipe Managed App Data](docs/device/general/wipe-managed-app-data.md)

@@ -71,11 +71,11 @@
 
 param
 (
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User  -DisplayName "User/Mailbox" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User  -DisplayName "User/Mailbox" } )]
     [Parameter(Mandatory = $true)] [string] $UserName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
     [Parameter(Mandatory = $true)] [string] $delegateTo,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Remove this delegation" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Remove this delegation" } )]
     [bool] $Remove = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

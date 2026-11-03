@@ -108,10 +108,10 @@
 param(
     [Parameter(Mandatory = $true)]
     [String]$UserName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Number -DisplayName "Lifetime (minutes)" } )]
+    [ValidateScript( { Use-RJInterface -Type Number -DisplayName "Lifetime (minutes)" } )]
     [ValidateRange(60, 480)]
     [int] $LifetimeInMinutes = 240,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "One-time use?" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "One-time use?" } )]
     [bool] $OneTimeUseOnly = $true,
     [bool] $NotifyUser = $false,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]

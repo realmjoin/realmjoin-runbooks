@@ -3,7 +3,7 @@
 Convert this user's mailbox to a shared mailbox or back
 
 ## Detailed description
-Turns the mailbox of this user into a shared mailbox, or turns a shared mailbox back into a regular user mailbox. When converting to shared, a delegate can get full access and the user's group memberships can be removed. A license group can be assigned when the mailbox needs an Exchange Online Plan 2.
+Turns the mailbox of this user into a shared mailbox, or turns a shared mailbox back into a regular user mailbox. When converting to shared, a delegate can get full access and the user's group memberships can be removed. A license group can be assigned when the mailbox needs an Exchange Online Plan 2. Turning it back removes the full access, send as and send on behalf permissions of all other users. A Bookings mailbox or another type that Exchange Online cannot convert stops the run before anything changes.
 
 ## Where to find
 User \ Mail \ Convert To Shared Mailbox
@@ -59,7 +59,7 @@ Makes the shared mailbox appear automatically in the delegate's Outlook.
 | Type | Boolean |
 
 ### RemoveGroups
-Takes the user out of all groups, including license groups, when converting to shared.
+Takes the user out of all groups, including license groups, when converting to shared. This happens only once Exchange Online reports the mailbox as shared.
 
 | Property | Value |
 |----------|-------|
@@ -68,7 +68,7 @@ Takes the user out of all groups, including license groups, when converting to s
 | Type | Boolean |
 
 ### ArchivalLicenseGroup
-Group that assigns an Exchange Online Plan 2 license, needed when the shared mailbox has an archive, is larger than 50 GB or is on litigation hold. Leave empty if not needed.
+Group that assigns an Exchange Online Plan 2 license, needed when the shared mailbox has an archive, is larger than 50 GB or is on litigation hold. Leave empty if not needed. A name shared by several groups stops the run.
 
 | Property | Value |
 |----------|-------|
@@ -77,7 +77,7 @@ Group that assigns an Exchange Online Plan 2 license, needed when the shared mai
 | Type | String |
 
 ### RegularLicenseGroup
-Group that assigns the mailbox license when converting back to a regular mailbox. Leave empty to assign none.
+Group that assigns the mailbox license when converting back to a regular mailbox. Leave empty to assign none. A name shared by several groups stops the run.
 
 | Property | Value |
 |----------|-------|

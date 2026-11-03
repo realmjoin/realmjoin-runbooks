@@ -3,7 +3,7 @@
 Delete Intune devices that have been inactive for too long
 
 ## Detailed description
-Finds Intune devices that have not checked in for a given number of days, filtered by platform and optionally by the group membership of their primary user. By default it only lists what it would delete; deletion has to be switched on explicitly. The report can be sent by email or provided as a download link.
+Finds Intune devices that have not checked in for a given number of days, filtered by platform and optionally by group membership. An include group limits the run to devices of its users; an exclude group protects devices of its users and devices that are members themselves. By default it only lists what it would delete; deletion has to be switched on explicitly. The report can be sent by email or provided as a download link.
 
 ## Where to find
 Org \ Devices \ Delete Stale Devices_Scheduled
@@ -16,9 +16,29 @@ This runbook deletes managed devices from Intune based on inactivity, so use it 
 - Simulation runs (report-only mode) before enabling the actual deletion
 - Scheduled lifecycle management with an audit trail via the email report
 
+## Inactivity threshold
+
+*Days without activity* accepts 1 to 3650 days. A device counts as stale when its last check-in is at least that many days ago.
+
 ## User scope filtering
 
-The runbook supports optional user scope filtering to include or exclude devices based on the group membership of their primary user. This acts as an additional safety net when deletion is enabled.
+The runbook supports optional group filtering as an additional safety net when deletion is enabled. Members of nested groups count as well.
+
+- **Include group** - only devices whose primary user is a member are in scope. Devices without a primary user, and devices whose primary user was deleted from Entra ID, are left out.
+- **Exclude group** - devices whose primary user is a member are skipped, and so are devices whose Entra ID device object is a member of the group itself. A device group such as "Intune - do not delete" therefore protects its devices. Devices of deleted users stay in scope.
+
+Group membership is checked against the primary user's object ID as recorded by Intune, so a changed user principal name does not affect the filter.
+
+A group applies whenever it is set, also when the runbook is started through the API or by a schedule without the *Filter by primary user group?* choice. Choosing *Yes, filter by group membership* without selecting a group stops the run before anything is deleted.
+
+The filter fails closed:
+
+- If a selected group cannot be read, or the include group contains no users, the run stops with an error and no device is deleted.
+- If Intune records a primary user for a device but no user object ID, the device is not deleted. It is listed with the status *Skipped: primary user could not be resolved* for manual review.
+
+## Download link
+
+If the upload for the download link fails, the email report and the Output Data are still delivered, so the list of deleted devices is not lost. The job then ends as failed.
 
 ## Setup regarding email sending
 
@@ -47,11 +67,12 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
   - DeviceManagementManagedDevices.ReadWrite.All
   - Directory.Read.All
   - Mail.Send *(optional: Email report)*
+  - Organization.Read.All *(optional: Email report)*
 
 
 ## Parameters
 ### Days
-Devices with no check-in for at least this many days count as stale.
+Devices with no check-in for at least this many days count as stale. Allowed are 1 to 3650 days.
 
 | Property | Value |
 |----------|-------|
@@ -203,6 +224,15 @@ Storage account for report uploads. Taken from the tenant setting RJReport.Stora
 | Required | false |
 | Type | String |
 
+### SubscriptionId
+Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
 ### LinkExpiryDays
 Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
@@ -213,7 +243,7 @@ Number of days a download link stays valid. Taken from the tenant setting RJRepo
 | Type | Int32 |
 
 ### UseUserScope
-Whether devices are filtered by the group membership of their primary user. Set by the "Filter by primary user group?" choice.
+Set by the "Filter by primary user group?" choice; with "Yes", at least one group is required. A group in "Include users from group" or "Exclude users from group" applies whenever it is set, also without this choice.
 
 | Property | Value |
 |----------|-------|
@@ -222,7 +252,7 @@ Whether devices are filtered by the group membership of their primary user. Set 
 | Type | Boolean |
 
 ### IncludeUserGroup
-Only devices whose primary user is in this group.
+Only devices whose primary user is a member of this group, directly or through nested groups. Devices without a primary user are left out.
 
 | Property | Value |
 |----------|-------|
@@ -231,7 +261,7 @@ Only devices whose primary user is in this group.
 | Type | String |
 
 ### ExcludeUserGroup
-Skips devices whose primary user is in this group.
+Skips devices whose primary user is a member of this group and devices that are members themselves, directly or through nested groups. Skipped devices are never deleted.
 
 | Property | Value |
 |----------|-------|

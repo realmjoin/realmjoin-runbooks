@@ -11,6 +11,9 @@ Org \ General \ Report Intune Enrollment Readiness
 ## Interpretation notes
 
 - Checks performed per user: account state, Intune license and service plan, tenant MDM authority, device enrollment limit, platform restrictions, registered authentication methods, Conditional Access policies and, optionally, pilot group membership.
+- The device enrollment limit is the assigned limit configuration with the lowest priority number that targets All users or one of the user's groups (excluded groups are honored), falling back to the default limit. It is compared with the user's Intune-enrolled devices; the user's Entra registered and joined devices are also compared with the Entra setting *Maximum number of devices per user*, and reaching either one is reported as a blocking reason.
+- A limit that cannot be read is not guessed. If a user's group memberships cannot be read while group-assigned limit configurations exist, `DeviceEnrollmentLimit` shows *Unknown* and the user gets a warning instead of the default limit. If the Entra setting cannot be read, `EntraDeviceLimit` shows *Unknown* for every user and the job output and report email say that the Entra device limit was not checked.
+- The pilot group is looked up by its display name. If several groups share that name, the first match is used and a warning is logged.
 - Conditional Access is evaluated as a static "What If" against the enrollment sign-in for each user's `EnrollmentPlatform`; Entra's own What If tool remains the authority.
 - Compliant-device requirements on "All resources" policies do not block enrollment (a documented Entra exemption); only policies targeting device registration or the Intune enrollment apps are treated as strict gates.
 - Not evaluated statically: named locations, device filters, sign-in frequency and terms of use.
@@ -50,15 +53,17 @@ When these settings are not configured, the default RealmJoin graphics and color
 
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
 
-
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
+  - Device.Read.All
+  - DeviceManagementManagedDevices.Read.All
   - DeviceManagementServiceConfig.Read.All
   - Group.Read.All
   - GroupMember.Read.All
   - Organization.Read.All
   - Policy.Read.All
+  - Policy.Read.DeviceConfiguration
   - RoleManagement.Read.Directory
   - User.Read.All
   - UserAuthenticationMethod.Read.All
@@ -106,7 +111,7 @@ Adds a column with the pilot group membership; non-members are reported as Not r
 | Type | Boolean |
 
 ### PilotGroupDisplayName
-Members of this group count as pilot users. The group is looked up by its display name.
+Members of this group count as pilot users. The group is looked up by its display name. Used only when the pilot group membership is checked.
 
 | Property | Value |
 |----------|-------|
@@ -224,6 +229,15 @@ Resource group of the storage account for report uploads. Taken from the tenant 
 
 ### StorageAccountName
 Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### SubscriptionId
+Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty.
 
 | Property | Value |
 |----------|-------|

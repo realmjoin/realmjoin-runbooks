@@ -71,6 +71,9 @@
 	.PARAMETER StorageAccountName
 	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
+	.PARAMETER SubscriptionId
+	Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty.
+
 	.PARAMETER LinkExpiryDays
 	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
@@ -168,6 +171,9 @@
 			"StorageAccountName": {
 				"Hide": true
 			},
+			"SubscriptionId": {
+				"Hide": true
+			},
 			"LinkExpiryDays": {
 				"Hide": true
 			},
@@ -263,6 +269,8 @@ param(
     [string]$ResourceGroupName,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" } )]
     [string]$StorageAccountName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.SubscriptionId" } )]
+    [string]$SubscriptionId,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" } )]
     [ValidateRange(1, 3650)]
     [int]$LinkExpiryDays = 6,
@@ -277,7 +285,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
@@ -303,6 +311,7 @@ Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
 Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
 Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
 Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+Write-RjRbLog -Message "SubscriptionId: $SubscriptionId" -Verbose
 Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
 
 #endregion RJ Log Part
@@ -937,6 +946,7 @@ if ($CreateDownloadLink) {
                 -ContainerName $ContainerName `
                 -ResourceGroupName $ResourceGroupName `
                 -StorageAccountName $StorageAccountName `
+                -SubscriptionId $SubscriptionId `
                 -LinkExpiryDays $LinkExpiryDays `
                 -AddBlobNamePrefix $true
         }

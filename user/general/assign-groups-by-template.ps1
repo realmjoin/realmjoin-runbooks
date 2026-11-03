@@ -48,7 +48,7 @@
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "GroupsTemplate")]
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "User" } )]
     [String] $UserId,
     # GroupsTemplate is not used directly, but is used to populate the GroupsString parameter via RJ Portal Customization
     [string] $GroupsTemplate,

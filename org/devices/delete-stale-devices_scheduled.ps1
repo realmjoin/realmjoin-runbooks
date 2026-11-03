@@ -1,211 +1,217 @@
 <#
-    .SYNOPSIS
-    Delete Intune devices that have been inactive for too long
+	.SYNOPSIS
+	Delete Intune devices that have been inactive for too long
 
-    .DESCRIPTION
-    Finds Intune devices that have not checked in for a given number of days, filtered by platform and optionally by the group membership of their primary user. By default it only lists what it would delete; deletion has to be switched on explicitly. The report can be sent by email or provided as a download link.
+	.DESCRIPTION
+	Finds Intune devices that have not checked in for a given number of days, filtered by platform and optionally by group membership. An include group limits the run to devices of its users; an exclude group protects devices of its users and devices that are members themselves. By default it only lists what it would delete; deletion has to be switched on explicitly. The report can be sent by email or provided as a download link.
 
-    .PARAMETER Days
-    Devices with no check-in for at least this many days count as stale.
+	.PARAMETER Days
+	Devices with no check-in for at least this many days count as stale. Allowed are 1 to 3650 days.
 
-    .PARAMETER Windows
-    Includes Windows devices.
+	.PARAMETER Windows
+	Includes Windows devices.
 
-    .PARAMETER MacOS
-    Includes macOS devices.
+	.PARAMETER MacOS
+	Includes macOS devices.
 
-    .PARAMETER iOS
-    Includes iOS and iPadOS devices.
+	.PARAMETER iOS
+	Includes iOS and iPadOS devices.
 
-    .PARAMETER Android
-    Includes Android devices.
+	.PARAMETER Android
+	Includes Android devices.
 
-    .PARAMETER DeleteDevices
-    Delete removes the stale devices from Intune. Report only lists them and changes nothing.
+	.PARAMETER DeleteDevices
+	Delete removes the stale devices from Intune. Report only lists them and changes nothing.
 
-    .PARAMETER EmailTo
-    Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
+	.PARAMETER EmailTo
+	Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
-    .PARAMETER EmailFrom
-    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
+	.PARAMETER EmailFrom
+	Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
-    .PARAMETER BrandingHeaderImageUrl
-    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
+	.PARAMETER BrandingHeaderImageUrl
+	Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
-    .PARAMETER BrandingFooterImageUrl
-    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
+	.PARAMETER BrandingFooterImageUrl
+	Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
-    .PARAMETER BrandingFooterLink
-    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
+	.PARAMETER BrandingFooterLink
+	Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
-    .PARAMETER BrandingAccentColor
-    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
+	.PARAMETER BrandingAccentColor
+	Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
-    .PARAMETER BrandingTextColor
-    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
+	.PARAMETER BrandingTextColor
+	Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
-    .PARAMETER ReportFileFormat
-    Deliver the report as CSV, as an Excel workbook, or both.
+	.PARAMETER ReportFileFormat
+	Deliver the report as CSV, as an Excel workbook, or both.
 
-    .PARAMETER CreateDownloadLink
-    Also upload the report and return a download link that expires after a few days.
+	.PARAMETER CreateDownloadLink
+	Also upload the report and return a download link that expires after a few days.
 
-    .PARAMETER ContainerName
-    Storage container the report files are uploaded to. Set per runbook.
+	.PARAMETER ContainerName
+	Storage container the report files are uploaded to. Set per runbook.
 
-    .PARAMETER ResourceGroupName
-    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
+	.PARAMETER ResourceGroupName
+	Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
-    .PARAMETER StorageAccountName
-    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
+	.PARAMETER StorageAccountName
+	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
-    .PARAMETER LinkExpiryDays
-    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
+	.PARAMETER SubscriptionId
+	Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty.
 
-    .PARAMETER UseUserScope
-    Whether devices are filtered by the group membership of their primary user. Set by the "Filter by primary user group?" choice.
+	.PARAMETER LinkExpiryDays
+	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
-    .PARAMETER IncludeUserGroup
-    Only devices whose primary user is in this group.
+	.PARAMETER UseUserScope
+	Set by the "Filter by primary user group?" choice; with "Yes", at least one group is required. A group in "Include users from group" or "Exclude users from group" applies whenever it is set, also without this choice.
 
-    .PARAMETER ExcludeUserGroup
-    Skips devices whose primary user is in this group.
+	.PARAMETER IncludeUserGroup
+	Only devices whose primary user is a member of this group, directly or through nested groups. Devices without a primary user are left out.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
+	.PARAMETER ExcludeUserGroup
+	Skips devices whose primary user is a member of this group and devices that are members themselves, directly or through nested groups. Skipped devices are never deleted.
 
-    .INPUTS
-    RunbookCustomization: {
-        "Parameters": {
-            "Days": {
-                "DisplayName": "Days without activity"
-            },
-            "Windows": {
-                "DisplayName": "Include Windows devices?"
-            },
-            "MacOS": {
-                "DisplayName": "Include macOS devices?"
-            },
-            "iOS": {
-                "DisplayName": "Include iOS devices?"
-            },
-            "Android": {
-                "DisplayName": "Include Android devices?"
-            },
-            "DeleteDevices": {
-                "DisplayName": "Deletion mode",
-                "SelectSimple": {
-                    "Report only - show what would be deleted (simulation)": false,
-                    "Delete stale devices from Intune": true
-                }
-            },
-            "CallerName": {
-                "Hide": true
-            },
-            "EmailTo": {
-                "DisplayName": "Recipient email address(es)"
-            },
-            "BrandingHeaderImageUrl": {
-                "Hide": true
-            },
-            "BrandingFooterImageUrl": {
-                "Hide": true
-            },
-            "BrandingFooterLink": {
-                "Hide": true
-            },
-            "BrandingAccentColor": {
-                "Hide": true
-            },
-            "BrandingTextColor": {
-                "Hide": true
-            },
-            "EmailFrom": {
-                "Hide": true
-            },
-            "ReportFileFormat": {
-                "DisplayName": "Report file format",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "CSV & XLSX",
-                            "ParameterValue": "CSV & XLSX"
-                        },
-                        {
-                            "Display": "CSV only",
-                            "ParameterValue": "CSV only"
-                        },
-                        {
-                            "Display": "XLSX only",
-                            "ParameterValue": "XLSX only"
-                        }
-                    ],
-                    "ShowValue": false
-                }
-            },
-            "CreateDownloadLink": {
-                "DisplayName": "Create a download link?",
-                "SelectSimple": {
-                    "Yes - upload report and return a download link": true,
-                    "No - do not create a download link": false
-                }
-            },
-            "ContainerName": {
-                "Hide": true
-            },
-            "ResourceGroupName": {
-                "Hide": true
-            },
-            "StorageAccountName": {
-                "Hide": true
-            },
-            "LinkExpiryDays": {
-                "Hide": true
-            },
-            "UseUserScope": {
-                "Hide": true
-            },
-            "IncludeUserGroup": {
-                "DisplayName": "Include users from group",
-                "Hide": true
-            },
-            "ExcludeUserGroup": {
-                "DisplayName": "Exclude users from group",
-                "Hide": true
-            }
-        },
-        "ParameterList": [
-            {
-                "DisplayName": "Filter by primary user group?",
-                "DisplayAfter": "EmailFrom",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Yes, filter by group membership",
-                            "ParameterValue": true,
-                            "Customization": {
-                                "Hide": [],
-                                "Show": ["IncludeUserGroup", "ExcludeUserGroup"],
-                                "Default": {
-                                    "UseUserScope": true
-                                }
-                            }
-                        },
-                        {
-                            "Display": "No, include all devices",
-                            "Customization": {
-                                "Hide": ["IncludeUserGroup", "ExcludeUserGroup"],
-                                "Default": {
-                                    "UseUserScope": false
-                                }
-                            },
-                            "ParameterValue": false
-                        }
-                    ]
-                }
-            }
-        ]
-    }
+	.PARAMETER CallerName
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
+
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"Days": {
+				"DisplayName": "Days without activity"
+			},
+			"Windows": {
+				"DisplayName": "Include Windows devices?"
+			},
+			"MacOS": {
+				"DisplayName": "Include macOS devices?"
+			},
+			"iOS": {
+				"DisplayName": "Include iOS devices?"
+			},
+			"Android": {
+				"DisplayName": "Include Android devices?"
+			},
+			"DeleteDevices": {
+				"DisplayName": "Deletion mode",
+				"SelectSimple": {
+					"Report only - show what would be deleted (simulation)": false,
+					"Delete stale devices from Intune": true
+				}
+			},
+			"CallerName": {
+				"Hide": true
+			},
+			"EmailTo": {
+				"DisplayName": "Recipient email address(es)"
+			},
+			"BrandingHeaderImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterLink": {
+				"Hide": true
+			},
+			"BrandingAccentColor": {
+				"Hide": true
+			},
+			"BrandingTextColor": {
+				"Hide": true
+			},
+			"EmailFrom": {
+				"Hide": true
+			},
+			"ReportFileFormat": {
+				"DisplayName": "Report file format",
+				"Select": {
+					"Options": [
+						{
+							"Display": "CSV & XLSX",
+							"ParameterValue": "CSV & XLSX"
+						},
+						{
+							"Display": "CSV only",
+							"ParameterValue": "CSV only"
+						},
+						{
+							"Display": "XLSX only",
+							"ParameterValue": "XLSX only"
+						}
+					],
+					"ShowValue": false
+				}
+			},
+			"CreateDownloadLink": {
+				"DisplayName": "Create a download link?",
+				"SelectSimple": {
+					"Yes - upload report and return a download link": true,
+					"No - do not create a download link": false
+				}
+			},
+			"ContainerName": {
+				"Hide": true
+			},
+			"ResourceGroupName": {
+				"Hide": true
+			},
+			"StorageAccountName": {
+				"Hide": true
+			},
+			"SubscriptionId": {
+				"Hide": true
+			},
+			"LinkExpiryDays": {
+				"Hide": true
+			},
+			"UseUserScope": {
+				"Hide": true
+			},
+			"IncludeUserGroup": {
+				"DisplayName": "Include users from group",
+				"Hide": true
+			},
+			"ExcludeUserGroup": {
+				"DisplayName": "Exclude users from group",
+				"Hide": true
+			}
+		},
+		"ParameterList": [
+			{
+				"DisplayName": "Filter by primary user group?",
+				"DisplayAfter": "EmailFrom",
+				"Select": {
+					"Options": [
+						{
+							"Display": "Yes, filter by group membership",
+							"ParameterValue": true,
+							"Customization": {
+								"Hide": [],
+								"Show": ["IncludeUserGroup", "ExcludeUserGroup"],
+								"Default": {
+									"UseUserScope": true
+								}
+							}
+						},
+						{
+							"Display": "No, include all devices",
+							"Customization": {
+								"Hide": ["IncludeUserGroup", "ExcludeUserGroup"],
+								"Default": {
+									"UseUserScope": false
+								}
+							},
+							"ParameterValue": false
+						}
+					]
+				}
+			}
+		]
+	}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
@@ -213,6 +219,7 @@
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
+    [ValidateRange(1, 3650)]
     [int] $Days = 30,
     [bool] $Windows = $true,
     [bool] $MacOS = $true,
@@ -239,13 +246,15 @@ param(
     [string] $ResourceGroupName,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" } )]
     [string] $StorageAccountName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.SubscriptionId" } )]
+    [string] $SubscriptionId,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" } )]
     [ValidateRange(1, 3650)]
     [int] $LinkExpiryDays = 6,
     [bool] $UseUserScope = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Include users from group" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Include users from group" } )]
     [string]$IncludeUserGroup,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude users from group" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclude users from group" } )]
     [string]$ExcludeUserGroup,
     [Parameter(Mandatory = $false)]
     [string] $EmailTo,
@@ -263,7 +272,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "2.2.0"
+$Version = "2.3.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
@@ -290,6 +299,7 @@ if ($CreateDownloadLink) {
     Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
     Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
     Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+    Write-RjRbLog -Message "SubscriptionId: $SubscriptionId" -Verbose
     Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
 }
 
@@ -312,6 +322,22 @@ if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccoun
     throw "Missing Storage Account Configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)."
 }
 
+# The user groups apply whenever one is passed, also without UseUserScope (API calls and older schedules
+# may pass a group without it), so a group can only narrow the deletion scope, never be ignored
+$groupFilterActive = [bool]($IncludeUserGroup -or $ExcludeUserGroup)
+
+# "Yes, filter by group membership" without a group would delete without the filter that was asked for
+if ($UseUserScope -and -not $groupFilterActive) {
+    Write-Error "Filtering by primary user group is selected, but neither an include nor an exclude group was provided." -ErrorAction Continue
+    throw "Missing user group for the group filter (IncludeUserGroup / ExcludeUserGroup). No devices were deleted."
+}
+
+if ($groupFilterActive -and -not $UseUserScope) {
+    # Shown in the output: the portal also passes a group that was picked before switching to "No, include all devices"
+    Write-Output "A user group was passed although filtering by primary user group is not selected - the group filter is applied anyway."
+    Write-RjRbLog -Message "UseUserScope is not set, but a user group was passed - the user group filter applies anyway" -Verbose
+}
+
 #endregion Parameter Validation
 
 ########################################################
@@ -325,31 +351,50 @@ function Get-GraphPagedResult {
 
         .DESCRIPTION
         Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
-        by following the @odata.nextLink property in the response.
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
 
         .PARAMETER Uri
         The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
-        e.g., "https://graph.microsoft.com/v1.0/applications".
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
 
         .EXAMPLE
-        PS C:\> $allApps = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/applications"
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
     #>
     param(
         [string]$Uri
     )
 
-    $allResults = @()
+    $allResults = [System.Collections.Generic.List[object]]::new()
     $nextLink = $Uri
+    $pageCount = 0
 
     do {
-        $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
-        if ($response.value) {
-            $allResults += $response.value
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
         }
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
         $nextLink = $response.'@odata.nextLink'
     } while ($nextLink)
 
-    return $allResults
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
 }
 
 #endregion Function Definitions
@@ -358,8 +403,14 @@ function Get-GraphPagedResult {
 #region     Connect Part
 ########################################################
 
-# Connect to Microsoft Graph
-Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+# Connect to Microsoft Graph (the report email is sent through this session as well)
+try {
+    Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
+}
+catch {
+    Write-Error "Failed to connect to Microsoft Graph. Ensure the managed identity is configured correctly. Error: $($_.Exception.Message)" -ErrorAction Continue
+    throw
+}
 
 # Get tenant information
 Write-Output "## Retrieving tenant information..."
@@ -380,10 +431,6 @@ try {
 catch {
     Write-RjRbLog -Message "Failed to retrieve tenant information: $($_.Exception.Message)" -Verbose
 }
-
-# Connect RJ RunbookHelper for email reporting
-Write-Output "Graph connection for RJ RunbookHelper..."
-Connect-RjRbGraph
 
 Write-Output ""
 
@@ -406,7 +453,9 @@ $selectProperties = @(
     'lastSyncDateTime'
     'enrolledDateTime'
     'userPrincipalName'
+    'userId'
     'id'
+    'azureADDeviceId'
     'serialNumber'
     'manufacturer'
     'model'
@@ -422,50 +471,73 @@ Write-Output ""
 
 $encodedFilter = [System.Uri]::EscapeDataString($filter)
 $devicesUri = "https://graph.microsoft.com/v1.0/deviceManagement/managedDevices?`$select=$selectString&`$filter=$encodedFilter"
-$devices = Get-GraphPagedResult -Uri $devicesUri
+# Return the devices as PSCustomObjects in the property order of the Graph response instead of hashtables,
+# because the deletion status is attached to them with Add-Member below
+$PSDefaultParameterValues['Invoke-MgGraphRequest:OutputType'] = 'PSObject'
+try {
+    $devices = Get-GraphPagedResult -Uri $devicesUri
+}
+finally {
+    $PSDefaultParameterValues.Remove('Invoke-MgGraphRequest:OutputType')
+}
 
-    #region User Scope Filtering
-    ##############################
+#region User Scope Filtering
 
-# Get group membership for filtering if UseUserScope is enabled
+# Get group membership for filtering when an include or exclude group is passed
 $includeUserIds = @()
 $excludeUserIds = @()
+$excludeDeviceIds = @()
 
-if ($UseUserScope) {
+if ($groupFilterActive) {
     Write-Output ""
     Write-Output "## Processing user scope filtering..."
+
+    # The group filter fails closed: when a group cannot be read (or the include group has no users),
+    # the run stops here, before any device is deleted, instead of running without the filter.
+
+    # transitiveMembers: members of nested groups count as members; the nested groups themselves are not taken.
+    # The include group takes user objects, the exclude group user and device objects.
 
     # Get users from include group
     if ($IncludeUserGroup) {
         Write-Output "Getting members from include group..."
         try {
-            $includeGroupUri = "https://graph.microsoft.com/v1.0/groups/$IncludeUserGroup/members?`$select=id,userPrincipalName"
+            $includeGroupUri = "https://graph.microsoft.com/v1.0/groups/$IncludeUserGroup/transitiveMembers?`$select=id,userPrincipalName"
             $includeMembers = Get-GraphPagedResult -Uri $includeGroupUri
             $includeUserIds = $includeMembers | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.user' } | ForEach-Object { $_.id }
             Write-Output "Include group contains $($includeUserIds.Count) users"
         }
         catch {
-            Write-Warning "Failed to retrieve include group members: $_"
+            Write-Error "Failed to retrieve the members of the include group '$IncludeUserGroup': $($_.Exception.Message)" -ErrorAction Continue
+            throw "Unable to read the include user group - the deletion scope cannot be determined. No devices were deleted."
+        }
+        if ($includeUserIds.Count -eq 0) {
+            Write-Error "The include group '$IncludeUserGroup' has no user members - no device can match the include filter." -ErrorAction Continue
+            throw "The include user group has no user members - the deletion scope cannot be determined. No devices were deleted."
         }
     }
 
-    # Get users from exclude group
+    # Get users and devices from exclude group (an empty exclude group excludes nothing)
     if ($ExcludeUserGroup) {
         Write-Output "Getting members from exclude group..."
         try {
-            $excludeGroupUri = "https://graph.microsoft.com/v1.0/groups/$ExcludeUserGroup/members?`$select=id,userPrincipalName"
+            $excludeGroupUri = "https://graph.microsoft.com/v1.0/groups/$ExcludeUserGroup/transitiveMembers?`$select=id,userPrincipalName,deviceId"
             $excludeMembers = Get-GraphPagedResult -Uri $excludeGroupUri
-            $excludeUserIds = $excludeMembers | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.user' } | ForEach-Object { $_.id }
+            $excludeUserIds = @($excludeMembers | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.user' } | ForEach-Object { $_.id })
+            # Device members are matched by their Entra device ID (deviceId), which Intune records as azureADDeviceId
+            $excludeDeviceIds = @($excludeMembers | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.device' -and $_.deviceId } | ForEach-Object { "$($_.deviceId)" })
             Write-Output "Exclude group contains $($excludeUserIds.Count) users"
+            Write-Output "Exclude group contains $($excludeDeviceIds.Count) devices"
         }
         catch {
-            Write-Warning "Failed to retrieve exclude group members: $_"
+            Write-Error "Failed to retrieve the members of the exclude group '$ExcludeUserGroup': $($_.Exception.Message)" -ErrorAction Continue
+            throw "Unable to read the exclude user group - the deletion scope cannot be determined. No devices were deleted."
         }
     }
     Write-Output ""
 }
 
-    #endregion User Scope Filtering
+#endregion User Scope Filtering
 
 #endregion Data Collection
 
@@ -475,6 +547,9 @@ if ($UseUserScope) {
 
 # Filter devices by platform based on user selection
 $filteredDevices = @()
+# Devices that are never deleted because their primary user could not be resolved while a user group filter is active
+$skippedDevices = @()
+$skippedStatus = "Skipped: primary user could not be resolved"
 
 foreach ($device in $devices) {
     $include = $false
@@ -494,38 +569,61 @@ foreach ($device in $devices) {
     }
 
     if ($include) {
-        # Try to get additional user information
+        $userGroupCheckable = $true
+        if ($groupFilterActive) {
+            # Exclude group: a device that is a member itself (matched by its Entra device ID) is never deleted
+            $entraDeviceId = "$($device.azureADDeviceId)"
+            if ($ExcludeUserGroup -and $entraDeviceId -and ($entraDeviceId -in $excludeDeviceIds)) {
+                Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - the device is in the exclude group" -Verbose
+                continue
+            }
+
+            # The user groups are checked against the primary user's object ID as recorded by Intune, which stays
+            # the same when the UPN changes and is kept for deleted users (never in the include group, so out of scope)
+            $primaryUserId = "$($device.userId)"
+            if ((-not $primaryUserId) -and $device.userPrincipalName) {
+                # Fail closed: a primary user is recorded without its object ID, so the user groups cannot be checked
+                $userGroupCheckable = $false
+            }
+            elseif ($IncludeUserGroup -and (-not $primaryUserId)) {
+                # With an include group, a device without a primary user is out of scope (like a primary user outside the group).
+                # With only an exclude group it stays in scope.
+                Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - no primary user, so it is not in the include group" -Verbose
+                continue
+            }
+            elseif ($IncludeUserGroup -and ($primaryUserId -notin $includeUserIds)) {
+                Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - primary user '$($device.userPrincipalName)' not in include group" -Verbose
+                continue
+            }
+            elseif ($ExcludeUserGroup -and $primaryUserId -and ($primaryUserId -in $excludeUserIds)) {
+                Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - primary user '$($device.userPrincipalName)' in exclude group" -Verbose
+                continue
+            }
+        }
+
+        # Primary user details for the report only; a failed lookup does not affect the group filter
         if ($device.userPrincipalName) {
             try {
                 $encodedUserPrincipalName = [System.Uri]::EscapeDataString($device.userPrincipalName)
                 $userUri = "https://graph.microsoft.com/v1.0/users/{0}?`$select=id,displayName,city,usageLocation" -f $encodedUserPrincipalName
-                $userInfo = Invoke-MgGraphRequest -Uri $userUri -Method GET -ErrorAction SilentlyContinue
+                $userInfo = Invoke-MgGraphRequest -Uri $userUri -Method GET -ErrorAction Stop
 
                 if ($userInfo) {
                     $device | Add-Member -Name "userDisplayName" -Value $userInfo.displayName -MemberType "NoteProperty" -Force
                     $device | Add-Member -Name "userLocation" -Value "$($userInfo.city), $($userInfo.usageLocation)" -MemberType "NoteProperty" -Force
-
-                    # Apply user scope filtering if enabled
-                    if ($UseUserScope) {
-                        $userId = $userInfo.id
-
-                        # Apply include filter
-                        if ($IncludeUserGroup -and ($includeUserIds.Count -gt 0) -and ($userId -notin $includeUserIds)) {
-                            Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - primary user '$($device.userPrincipalName)' not in include group" -Verbose
-                            continue
-                        }
-
-                        # Apply exclude filter
-                        if ($ExcludeUserGroup -and ($excludeUserIds.Count -gt 0) -and ($userId -in $excludeUserIds)) {
-                            Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - primary user '$($device.userPrincipalName)' in exclude group" -Verbose
-                            continue
-                        }
-                    }
                 }
             }
             catch {
                 Write-RjRbLog -Message "Could not retrieve user info for $($device.userPrincipalName): $($_.Exception.Message)" -Verbose
             }
+        }
+
+        if (-not $userGroupCheckable) {
+            Write-Output "Skipping device '$($device.deviceName)' - primary user '$($device.userPrincipalName)' could not be resolved, so the user group filter cannot be checked"
+            Write-RjRbLog -Message "Skipping device '$($device.deviceName)' - Intune records the primary user '$($device.userPrincipalName)' without a user object ID" -Verbose
+            $device | Add-Member -Name "deletionStatus" -Value $skippedStatus -MemberType "NoteProperty" -Force
+            $skippedDevices += $device
+            continue
         }
 
         $filteredDevices += $device
@@ -554,6 +652,10 @@ if ($iOS) {
 if ($Android) {
     $androidCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "Android" } | Measure-Object).Count
     Write-Output "Android devices: $($androidCount)"
+}
+
+if ($skippedDevices.Count -gt 0) {
+    Write-Output "Skipped, primary user could not be resolved (not deleted): $($skippedDevices.Count)"
 }
 
 #endregion Data Processing
@@ -601,28 +703,101 @@ elseif ($filteredDevices.Count -gt 0) {
 #endregion Device Deletion
 
 ########################################################
-#region     Output & Report
+#region     Report File Export
 ########################################################
 
-Write-Output ""
-Write-Output "## Detailed list of stale devices:"
-Write-Output ""
+# Create report files in current location (only needed for the email report and/or download link)
+$fileNameBase = "StaleDevicesDeletionReport_$($tenantDisplayName)_$($Days)Days"
+$csvFilePath = $null
+$xlsxFilePath = $null
+$reportFiles = @()
+if (($EmailTo -or $CreateDownloadLink) -and ($filteredDevices.Count + $skippedDevices.Count) -gt 0) {
+    # Build clean export rows including the deletion status (skipped devices included)
+    $exportDevices = @()
+    foreach ($device in (@($filteredDevices) + @($skippedDevices))) {
+        $exportDevices += [PSCustomObject]@{
+            DeviceName      = $device.deviceName
+            DeviceId        = $device.id
+            SerialNumber    = $device.serialNumber
+            Manufacturer    = $device.manufacturer
+            Model           = $device.model
+            OperatingSystem = $device.operatingSystem
+            OSVersion       = $device.osVersion
+            ComplianceState = $device.complianceState
+            LastSync        = $device.lastSyncDateTime
+            EnrolledDate    = $device.enrolledDateTime
+            PrimaryUser     = $device.userPrincipalName
+            UserDisplayName = $device.userDisplayName
+            UserLocation    = $device.userLocation
+            DeletionStatus  = $device.deletionStatus
+        }
+    }
+    $exportDevices = @($exportDevices | Sort-Object -Property LastSync)
 
-# Convert to PSCustomObject array for consistent formatting
-$displayDevices = @()
-foreach ($device in $filteredDevices) {
-    $displayDevices += [PSCustomObject]@{
-        LastSync     = if ($device.lastSyncDateTime) { Get-Date $device.lastSyncDateTime -Format yyyy-MM-dd } else { "N/A" }
-        DeviceName   = if ($device.deviceName -and $device.deviceName.Length -gt 15) { $device.deviceName.Substring(0, 14) + ".." } elseif ($device.deviceName) { $device.deviceName } else { "N/A" }
-        DeviceID     = if ($device.id -and $device.id.Length -gt 15) { $device.id.Substring(0, 14) + ".." } elseif ($device.id) { $device.id } else { "N/A" }
-        SerialNumber = if ($device.serialNumber -and $device.serialNumber.Length -gt 15) { $device.serialNumber.Substring(0, 14) + ".." } elseif ($device.serialNumber) { $device.serialNumber } else { "N/A" }
-        PrimaryUser  = if ($device.userPrincipalName -and $device.userPrincipalName.Length -gt 20) { $device.userPrincipalName.Substring(0, 19) + ".." } elseif ($device.userPrincipalName) { $device.userPrincipalName } else { "N/A" }
-        Status       = if ($device.deletionStatus) { $device.deletionStatus } else { "N/A" }
+    if ($ReportFileFormat -ne 'XLSX only') {
+        $csvFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath "$fileNameBase.csv"
+        $exportDevices | Export-Csv -Path $csvFilePath -NoTypeInformation
+        $reportFiles += $csvFilePath
+        Write-RjRbLog -Message "Exported stale devices to CSV: $($csvFilePath)" -Verbose
+    }
+    if ($ReportFileFormat -ne 'CSV only') {
+        $xlsxFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath "$fileNameBase.xlsx"
+        $highlightRules = @(
+            @{ Column = 'DeletionStatus'; Value = 'Deleted'; Color = 'Green' }
+            @{ Column = 'DeletionStatus'; Value = 'Failed'; Color = 'Red' }
+            @{ Column = 'DeletionStatus'; Value = 'Would be deleted'; Color = 'Yellow' }
+        )
+        if ($skippedDevices.Count -gt 0) {
+            $highlightRules += @{ Column = 'DeletionStatus'; Value = $skippedStatus; Color = 'Yellow' }
+        }
+        $exportDevices | Export-RjRbXlsx -Path $xlsxFilePath -WorksheetName "Stale Devices" -HighlightRules $highlightRules
+        $reportFiles += $xlsxFilePath
+        Write-RjRbLog -Message "Exported stale devices to XLSX: $($xlsxFilePath)" -Verbose
     }
 }
 
-# Display the filtered devices
-$displayDevices | Sort-Object -Property LastSync | Format-Table -AutoSize
+#endregion Report File Export
+
+########################################################
+#region     Upload / Download Link
+########################################################
+
+# An upload failure must not lose the report of devices that are already deleted: the email and the Output Data
+# are still delivered, and the job fails at the end
+$uploadError = $null
+if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
+    Write-Output ""
+    Write-Output "## Uploading report to storage account..."
+
+    # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
+    # transparently connects the managed identity if no Az context is active.
+    try {
+        $uploadResults = Publish-RjRbFilesToStorageContainer `
+            -FilePaths $reportFiles `
+            -ContainerName $ContainerName `
+            -ResourceGroupName $ResourceGroupName `
+            -StorageAccountName $StorageAccountName `
+            -SubscriptionId $SubscriptionId `
+            -LinkExpiryDays $LinkExpiryDays `
+            -AddBlobNamePrefix $true
+
+        foreach ($uploadResult in $uploadResults) {
+            Write-Output ""
+            Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
+            $uploadResult.SASLink | Out-String | Write-Output
+        }
+    }
+    catch {
+        $uploadError = $_.Exception.Message
+        Write-Error "Failed to upload the report file(s) to storage account '$StorageAccountName': $uploadError. The managed identity needs the 'Reader and Data Access' role on the storage account. The report is still sent by email (if requested) and written to Output Data; the job fails at the end." -ErrorAction Continue
+    }
+}
+
+#endregion Upload / Download Link
+
+########################################################
+#region     Send Email Report
+########################################################
 
 # Prepare additional metadata for the report body
 $selectedPlatforms = @()
@@ -640,6 +815,19 @@ if ($filteredDevices.Count -gt 10) {
 $modeText = if ($DeleteDevices) { "deletion" } else { "report-only (simulation)" }
 $actionText = if ($DeleteDevices) { "have been deleted from Intune" } else { "**would be deleted** from Intune (report-only mode - no changes were made)" }
 
+# Devices skipped because their primary user could not be resolved (only with an active user group filter)
+$skippedSection = ""
+if ($skippedDevices.Count -gt 0) {
+    $skippedSection = "## Skipped Devices`n`nThe following devices are never deleted because Intune records their primary user without a user ID, so the user group filter could not be checked. Review them manually:`n"
+    foreach ($skippedDevice in @($skippedDevices | Select-Object -First 10)) {
+        $skippedSection += "`n- $($skippedDevice.deviceName) (primary user: $($skippedDevice.userPrincipalName), ID: $($skippedDevice.id))"
+    }
+    if ($skippedDevices.Count -gt 10) {
+        $skippedSection += "`n`nShowing 10 of $($skippedDevices.Count) skipped devices. The report file(s) contain the complete list."
+    }
+    $skippedSection += "`n`n"
+}
+
 # Build Markdown content
 $markdownContent = if ($filteredDevices.Count -eq 0) {
     @"
@@ -653,14 +841,14 @@ No managed devices matched the stale device criteria (inactive for at least **$D
 - Inactivity threshold: at least **$Days days**
 - Platforms evaluated: $($platformSummary)
 - Devices evaluated: $($totalDevicesEvaluated)
-$(if ($UseUserScope) {
+$(if ($groupFilterActive) {
     $filterInfo = @()
     if ($IncludeUserGroup) { $filterInfo += "Include group: $($includeUserIds.Count) users" }
-    if ($ExcludeUserGroup) { $filterInfo += "Exclude group: $($excludeUserIds.Count) users" }
-    "- User scope filtering: $($filterInfo -join ', ')"
+    if ($ExcludeUserGroup) { $filterInfo += "Exclude group: $($excludeUserIds.Count) users and $($excludeDeviceIds.Count) devices" }
+    "- User scope filtering: $($filterInfo -join ', ')$(if ($skippedDevices.Count -gt 0) { "`n- Skipped, primary user could not be resolved: $($skippedDevices.Count)" })"
 })
 
----
+$($skippedSection)---
 
 *This email was automatically generated. Please do not reply to this email.*
 "@
@@ -670,10 +858,10 @@ else {
 # Stale Devices Deletion Report
 
 This report lists devices that have been inactive for at least **$Days days**. The listed devices $($actionText).
-$(if ($UseUserScope) {
+$(if ($groupFilterActive) {
     $filterInfo = @()
     if ($IncludeUserGroup) { $filterInfo += "Include group with $($includeUserIds.Count) users" }
-    if ($ExcludeUserGroup) { $filterInfo += "Exclude group with $($excludeUserIds.Count) users" }
+    if ($ExcludeUserGroup) { $filterInfo += "Exclude group with $($excludeUserIds.Count) users and $($excludeDeviceIds.Count) devices" }
     "`n**User Scope Filtering Applied:** $($filterInfo -join ', ')"
 })
 
@@ -689,6 +877,9 @@ $(
         if ($failedDeletions.Count -gt 0) {
             $summaryLines += "| **Failed Deletions** | $($failedDeletions.Count) |"
         }
+    }
+    if ($skippedDevices.Count -gt 0) {
+        $summaryLines += "| **Skipped (Primary User Not Resolved)** | $($skippedDevices.Count) |"
     }
     if ($Windows) {
         $windowsCount = ($filteredDevices | Where-Object { $_.operatingSystem -eq "Windows" } | Measure-Object).Count
@@ -773,7 +964,7 @@ This was a simulation run - **no devices were deleted**. Review the listed devic
 "@
 })
 
-## Attachments
+$($skippedSection)## Attachments
 
 The report file(s) attached to this email contain the full list of affected devices for further analysis.
 
@@ -783,81 +974,6 @@ The report file(s) attached to this email contain the full list of affected devi
 
 "@
 }
-
-# Create report files in current location (only needed for the email report and/or download link)
-$fileNameBase = "StaleDevicesDeletionReport_$($tenantDisplayName)_$($Days)Days"
-$csvFilePath = $null
-$xlsxFilePath = $null
-$reportFiles = @()
-if (($EmailTo -or $CreateDownloadLink) -and $filteredDevices.Count -gt 0) {
-    # Build clean export rows including the deletion status
-    $exportDevices = @()
-    foreach ($device in $filteredDevices) {
-        $exportDevices += [PSCustomObject]@{
-            DeviceName      = $device.deviceName
-            DeviceId        = $device.id
-            SerialNumber    = $device.serialNumber
-            Manufacturer    = $device.manufacturer
-            Model           = $device.model
-            OperatingSystem = $device.operatingSystem
-            OSVersion       = $device.osVersion
-            ComplianceState = $device.complianceState
-            LastSync        = $device.lastSyncDateTime
-            EnrolledDate    = $device.enrolledDateTime
-            PrimaryUser     = $device.userPrincipalName
-            UserDisplayName = $device.userDisplayName
-            UserLocation    = $device.userLocation
-            DeletionStatus  = $device.deletionStatus
-        }
-    }
-    $exportDevices = @($exportDevices | Sort-Object -Property LastSync)
-
-    if ($ReportFileFormat -ne 'XLSX only') {
-        $csvFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath "$fileNameBase.csv"
-        $exportDevices | Export-Csv -Path $csvFilePath -NoTypeInformation
-        $reportFiles += $csvFilePath
-        Write-RjRbLog -Message "Exported stale devices to CSV: $($csvFilePath)" -Verbose
-    }
-    if ($ReportFileFormat -ne 'CSV only') {
-        $xlsxFilePath = Join-Path -Path $((Get-Location).Path) -ChildPath "$fileNameBase.xlsx"
-        $highlightRules = @(
-            @{ Column = 'DeletionStatus'; Value = 'Deleted'; Color = 'Green' }
-            @{ Column = 'DeletionStatus'; Value = 'Failed'; Color = 'Red' }
-            @{ Column = 'DeletionStatus'; Value = 'Would be deleted'; Color = 'Yellow' }
-        )
-        $exportDevices | Export-RjRbXlsx -Path $xlsxFilePath -WorksheetName "Stale Devices" -HighlightRules $highlightRules
-        $reportFiles += $xlsxFilePath
-        Write-RjRbLog -Message "Exported stale devices to XLSX: $($xlsxFilePath)" -Verbose
-    }
-}
-
-# Upload / Download Link (optional)
-if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
-    Write-Output ""
-    Write-Output "## Uploading report to storage account..."
-
-    # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
-    # transparently connects the managed identity if no Az context is active.
-    $uploadResults = Publish-RjRbFilesToStorageContainer `
-        -FilePaths $reportFiles `
-        -ContainerName $ContainerName `
-        -ResourceGroupName $ResourceGroupName `
-        -StorageAccountName $StorageAccountName `
-        -LinkExpiryDays $LinkExpiryDays `
-        -AddBlobNamePrefix $true
-
-    foreach ($uploadResult in $uploadResults) {
-        Write-Output ""
-        Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
-        $uploadResult.SASLink | Out-String | Write-Output
-    }
-}
-
-#endregion Output & Report
-
-########################################################
-#region     Email Report
-########################################################
 
 # Send email report (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSV is too large)
 $emailSubject = "Stale Devices Report"
@@ -885,7 +1001,7 @@ This report lists devices that have been inactive for at least **$Days days**. T
 $(if ($DeleteDevices) {
     "- Successfully deleted: **$($deletedDevices.Count)**"
     if ($failedDeletions.Count -gt 0) { "`n- Failed deletions: **$($failedDeletions.Count)**" }
-})
+})$(if ($skippedDevices.Count -gt 0) { "`n- Skipped, primary user could not be resolved: **$($skippedDevices.Count)**" })
 
 ## Attachments
 
@@ -899,12 +1015,13 @@ $(if ($DeleteDevices) {
 "@
 
             $guardParams = @{
-                EmailFrom         = $EmailFrom
-                EmailTo           = $EmailTo
-                Subject           = $emailSubject
-                MarkdownContent   = $markdownContent
-                TenantDisplayName = $tenantDisplayName
-                ReportVersion     = $Version
+                EmailFrom             = $EmailFrom
+                EmailTo               = $EmailTo
+                Subject               = $emailSubject
+                MarkdownContent       = $markdownContent
+                TenantDisplayName     = $tenantDisplayName
+                ReportVersion         = $Version
+                UseNativeGraphRequest = $true
             }
             if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFilePath) {
                 Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFilePath) -FallbackMarkdownContent $markdownFallback
@@ -914,7 +1031,7 @@ $(if ($DeleteDevices) {
             }
         }
         else {
-            Send-RjRbReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version @brandingMailParams
+            Send-RjRbReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject $emailSubject -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version -UseNativeGraphRequest @brandingMailParams
         }
 
         Write-RjRbLog -Message "Email report sent successfully to: $($EmailTo)" -Verbose
@@ -929,7 +1046,66 @@ else {
     Write-RjRbLog -Message "No recipient email address provided - email report skipped" -Verbose
 }
 
-#endregion Email Report
+#endregion Send Email Report
+
+########################################################
+#region     Structured Output (Output Data)
+########################################################
+
+# Emitted last so the tables are not interleaved with the progress output. Every table has its own
+# RjTableTitle marker and its own column set; a marker is only written when rows follow it.
+$summaryValues = [ordered]@{
+    "Run mode"                          = $modeText
+    "Inactive for at least"             = "$Days days"
+    "Platforms"                         = $platformSummary
+    "Devices evaluated (all platforms)" = $totalDevicesEvaluated
+}
+if ($IncludeUserGroup) { $summaryValues["Users in include group"] = $includeUserIds.Count }
+if ($ExcludeUserGroup) {
+    $summaryValues["Users in exclude group"] = $excludeUserIds.Count
+    $summaryValues["Devices in exclude group"] = $excludeDeviceIds.Count
+}
+$summaryValues["Stale devices"] = $filteredDevices.Count
+if ($groupFilterActive) { $summaryValues["Skipped, primary user not resolved"] = $skippedDevices.Count }
+if ($Windows) { $summaryValues["Windows devices"] = $windowsCount }
+if ($MacOS) { $summaryValues["macOS devices"] = $macOSCount }
+if ($iOS) { $summaryValues["iOS devices"] = $iOSCount }
+if ($Android) { $summaryValues["Android devices"] = $androidCount }
+if ($DeleteDevices) {
+    $summaryValues["Successfully deleted"] = $deletedDevices.Count
+    $summaryValues["Failed deletions"] = $failedDeletions.Count
+}
+
+$summaryRows = @(foreach ($metric in $summaryValues.Keys) {
+        [PSCustomObject]@{ Metric = $metric; Value = "$($summaryValues[$metric])" }
+    })
+Write-Output ""
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
+Write-Output $summaryRows
+
+Write-Output ""
+if (($filteredDevices.Count + $skippedDevices.Count) -gt 0) {
+    # Oldest check-in first, untruncated values; skipped devices carry their skip reason as status
+    $deviceRows = @((@($filteredDevices) + @($skippedDevices)) | Sort-Object -Property lastSyncDateTime | Select-Object -Property @(
+            @{ Name = 'DeviceName'; Expression = { "$($_.deviceName)" } }
+            @{ Name = 'LastSync'; Expression = { if ($_.lastSyncDateTime) { Get-Date $_.lastSyncDateTime -Format 'yyyy-MM-dd HH:mm:ss' } else { "N/A" } } }
+            @{ Name = 'OperatingSystem'; Expression = { "$($_.operatingSystem)" } }
+            @{ Name = 'OSVersion'; Expression = { "$($_.osVersion)" } }
+            @{ Name = 'Model'; Expression = { "$($_.model)" } }
+            @{ Name = 'SerialNumber'; Expression = { "$($_.serialNumber)" } }
+            @{ Name = 'PrimaryUser'; Expression = { "$($_.userPrincipalName)" } }
+            @{ Name = 'DeletionStatus'; Expression = { "$($_.deletionStatus)" } }
+            @{ Name = 'DeviceId'; Expression = { "$($_.id)" } }
+        ))
+    Write-Output "## Detailed list of stale devices:"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Stale Devices" })
+    Write-Output $deviceRows
+}
+else {
+    Write-Output "No stale devices match the selected criteria."
+}
+
+#endregion Structured Output (Output Data)
 
 ########################################################
 #region     Cleanup
@@ -954,6 +1130,10 @@ foreach ($reportFilePath in $reportFiles) {
     }
 }
 
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
+
 # Output summary
 Write-Output ""
 Write-Output "## Operation Summary:"
@@ -966,6 +1146,14 @@ if ($DeleteDevices) {
 }
 else {
     Write-Output "Report-only mode: no devices were deleted."
+}
+if ($skippedDevices.Count -gt 0) {
+    Write-Output "Devices skipped (primary user could not be resolved): $($skippedDevices.Count)"
+}
+
+# Fail the job only now, after the email, the Output Data and the cleanup
+if ($uploadError) {
+    throw "Failed to create the download link: $uploadError"
 }
 
 Write-Output ""

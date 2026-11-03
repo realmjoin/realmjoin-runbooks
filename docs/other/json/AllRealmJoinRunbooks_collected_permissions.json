@@ -28,6 +28,7 @@
       "Organization.Read.All",
       "Place.Read.All",
       "Policy.Read.All",
+      "Policy.Read.DeviceConfiguration",
       "ReportSettings.ReadWrite.All",
       "Reports.Read.All",
       "RoleAssignmentSchedule.Read.Directory",

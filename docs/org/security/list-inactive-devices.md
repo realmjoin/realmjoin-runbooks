@@ -3,7 +3,7 @@
 List devices with no recent sign-in or Intune sync
 
 ## Detailed description
-Lists the devices whose last Intune sync, or whose last sign-in recorded in Entra ID, is older than the chosen number of days. The result can be shown in the run output or exported as a CSV file to an Azure Storage account. Nothing is changed.
+Lists the devices whose last Intune sync, or whose last sign-in recorded in Entra ID, is older than the chosen number of days. The result is shown in the Output Data tables of the run and can also be exported as a CSV file to an Azure Storage account. Nothing is changed.
 
 ## Where to find
 Org \ Security \ List Inactive Devices
@@ -11,9 +11,12 @@ Org \ Security \ List Inactive Devices
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
+  - Device.Read.All
   - DeviceManagementManagedDevices.Read.All
   - Directory.Read.All
-  - Device.Read.All
+
+### Permission notes
+Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the CSV export)
 
 
 ## Parameters
@@ -36,7 +39,7 @@ Last Intune sync looks at managed devices and their last check-in; Last sign-in 
 | Type | Boolean |
 
 ### ExportToFile
-List in the run output, or export to a CSV file in the storage account configured in the tenant settings.
+The list is always shown in the Output Data tables of the run. "Also export to a CSV file" also uploads it as a CSV file to the storage account configured in the tenant settings and returns a download link.
 
 | Property | Value |
 |----------|-------|
@@ -45,7 +48,7 @@ List in the run output, or export to a CSV file in the storage account configure
 | Type | Boolean |
 
 ### ContainerName
-Storage container the report files are uploaded to. Taken from the tenant setting InactiveDevices.Container.
+Storage container the report files are uploaded to. Taken from the tenant setting InactiveDevices.Container, otherwise set per runbook.
 
 | Property | Value |
 |----------|-------|
@@ -54,7 +57,7 @@ Storage container the report files are uploaded to. Taken from the tenant settin
 | Type | String |
 
 ### ResourceGroupName
-Resource group of the storage account. Taken from the tenant setting InactiveDevices.ResourceGroup.
+Resource group of the storage account for report uploads. Taken from the tenant setting InactiveDevices.ResourceGroup; when it is not set, the Automation variable SettingsExports is read, then RJReport.StorageAccount.ResourceGroup.
 
 | Property | Value |
 |----------|-------|
@@ -63,7 +66,16 @@ Resource group of the storage account. Taken from the tenant setting InactiveDev
 | Type | String |
 
 ### StorageAccountName
-Storage account for the export. Taken from the tenant setting InactiveDevices.StorageAccount.Name.
+Storage account for report uploads. Taken from the tenant setting InactiveDevices.StorageAccount.Name; when it is not set, the Automation variable SettingsExports is read, then RJReport.StorageAccount.StorageAccountName.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### SubscriptionId
+Subscription ID of the storage account given in ResourceGroupName and StorageAccountName. Not taken from a tenant setting; the subscription the managed identity signs in to is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -72,7 +84,7 @@ Storage account for the export. Taken from the tenant setting InactiveDevices.St
 | Type | String |
 
 ### StorageAccountLocation
-Azure region used when the storage account has to be created. Taken from the tenant setting InactiveDevices.StorageAccount.Location.
+No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run.
 
 | Property | Value |
 |----------|-------|
@@ -81,13 +93,49 @@ Azure region used when the storage account has to be created. Taken from the ten
 | Type | String |
 
 ### StorageAccountSku
-Performance tier used when the storage account has to be created. Taken from the tenant setting InactiveDevices.StorageAccount.Sku.
+No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run.
 
 | Property | Value |
 |----------|-------|
 | Default Value |  |
 | Required | false |
 | Type | String |
+
+### RJReportResourceGroupName
+Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when neither InactiveDevices.ResourceGroup nor the Automation variable SettingsExports sets one.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### RJReportStorageAccountName
+Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when neither InactiveDevices.StorageAccount.Name nor the Automation variable SettingsExports sets one.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### RJReportSubscriptionId
+Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### LinkExpiryDays
+Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 6 |
+| Required | false |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)
