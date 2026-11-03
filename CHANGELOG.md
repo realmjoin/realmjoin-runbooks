@@ -1,5 +1,13 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-11-03
+
+- New **Fix SharePoint User ID Mismatch** Runbook in Org/Collab
+  - Finds stale user information list entries of the selected users whose ID (PUID) differs from the current account, e.g. after an account was deleted and recreated with the same user principal name
+  - Scans all site collections, only SharePoint sites or only OneDrives; without dry run the stale entries are removed (including the site collection administrator role) so SharePoint adds the user again with the correct ID
+  - Former SharePoint group memberships are listed in the report so they can be granted again; the old OneDrive of the user and read-only sites are only reported
+  - Dry run (default); users, mismatches and skipped sites are written to CSV reports that can be sent by email or provided as a download link
+
 ## 2026-10-20
 
 - New **Cleanup Inactive Guests (Scheduled)** Runbook in Org/Security

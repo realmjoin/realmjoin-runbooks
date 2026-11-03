@@ -1,0 +1,44 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "Sites.Read.All",
+                    "Reason": "Reads /sites/root to derive the SharePoint admin center URL"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads /organization to show the tenant display name in the report"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the report email via Send-RjReportEmail when EmailTo is configured"
+                }
+            ]
+        },
+        {
+            "Name": "Office 365 SharePoint Online",
+            "Id": "00000003-0000-0ff1-ce00-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "Sites.FullControl.All",
+                    "Reason": "Enumerates all site collections and OneDrives with Get-PnPTenantSite, reads the user information list of every site with Get-PnPUser and removes stale entries with Remove-PnPUser and Remove-PnPSiteCollectionAdmin"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Reads the SharePoint user profile (property SID) with Get-PnPUserProfileProperty to determine the current PUID of each user"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": [
+        "SharePoint Online: grant the 'Sites.FullControl.All' and 'User.Read.All' application permissions on the Office 365 SharePoint Online API (AppId 00000003-0000-0ff1-ce00-000000000000) to the Automation account's system-assigned managed identity. These SharePoint app-only grants cannot be made through the standard Entra app-role-assignment automation used for Microsoft Graph and must be assigned manually per tenant.",
+        "Azure Storage Account: 'Storage Account Contributor' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required when CreateDownloadLink is used)"
+    ]
+}
