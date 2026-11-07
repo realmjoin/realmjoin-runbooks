@@ -64,7 +64,7 @@ param
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.1"
+$Version = "1.0.2"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 $VerbosePreference = "SilentlyContinue"
@@ -72,9 +72,9 @@ $VerbosePreference = "SilentlyContinue"
 try {
     Connect-RjRbExchangeOnline
 
-    # Handle default teams formatting
-    if ($RealAddress -match "<") {
-        $RealAddress = $RealAddress.Split("<>")[1]
+    # Teams copies the channel address as "Channel name <address>"; keep only the address
+    if ($RealAddress -match '<([^<>]+)>') {
+        $RealAddress = $Matches[1].Trim()
     }
 
     # Does a contact exist for this real address?

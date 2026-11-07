@@ -1,90 +1,87 @@
 <#
-    .SYNOPSIS
-    Add or remove authorized users of a Teams call queue
+	.SYNOPSIS
+	Add or remove authorized users of a Teams call queue
 
-    .DESCRIPTION
-    Adds the selected users to the authorized users of a call queue or removes them. Authorized users can change the queue settings in the Teams app; Microsoft allows 15 of them per call queue. The Teams voice applications policy they need for that can be assigned or removed in the same run. Details on the checks and options are in the runbook documentation (docs.realmjoin.com).
+	.DESCRIPTION
+	Adds the selected users to the authorized users of a call queue or removes them. Authorized users can change the queue settings in the Teams app; Microsoft allows 15 of them per call queue. The Teams voice applications policy they need for that can be assigned or removed in the same run. Details on the checks and options are in the runbook documentation (docs.realmjoin.com).
 
-    .PARAMETER CallQueueName
-    Exact name of the call queue as it is shown in the Teams admin center. Upper and lower case do not matter.
+	.PARAMETER CallQueueName
+	Exact name of the call queue as it is shown in the Teams admin center. Upper and lower case do not matter.
 
-    .PARAMETER UserIds
-    Users that are added to or removed from the list of authorized users. Several users can be picked at once; each one needs to be enabled for Teams Phone.
+	.PARAMETER UserIds
+	Users that are added to or removed from the list of authorized users. Several users can be picked at once; each one needs to be enabled for Teams Phone.
 
-    .PARAMETER Remove
-    Add users as authorized users puts them on the queue's authorized user list. Remove users as authorized users takes them off it again.
+	.PARAMETER Remove
+	Add users as authorized users puts them on the queue's authorized user list. Remove users as authorized users takes them off it again.
 
-    .PARAMETER VoiceApplicationsPolicyAction
-    Leave the policy unchanged touches no policy. Assign a voice applications policy grants the policy entered under "Policy name". Remove the voice applications policy resets a per-user assignment when the users are taken off the list.
+	.PARAMETER VoiceApplicationsPolicyAction
+	Leave the policy unchanged touches no policy. Assign a voice applications policy grants the policy entered under "Policy name". Remove the voice applications policy resets a per-user assignment when the users are taken off the list.
 
-    .PARAMETER VoiceApplicationsPolicyName
-    Voice applications policy to grant, named exactly as in the Teams admin center. Only used with "Assign a voice applications policy".
+	.PARAMETER VoiceApplicationsPolicyName
+	Voice applications policy to grant, named exactly as in the Teams admin center. Only used with "Assign a voice applications policy".
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
+	.PARAMETER CallerName
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
-    .INPUTS
-    RunbookCustomization: {
-        "Parameters": {
-            "CallQueueName": {
-                "DisplayName": "Call queue name"
-            },
-            "UserIds": {
-                "DisplayName": "Users"
-            },
-            "Remove": {
-                "DisplayName": "Action",
-                "SelectSimple": {
-                    "Add users as authorized users": false,
-                    "Remove users as authorized users": true
-                }
-            },
-            "VoiceApplicationsPolicyAction": {
-                "DisplayName": "Voice applications policy",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Leave the policy unchanged",
-                            "ParameterValue": "None",
-                            "Customization": {
-                                "Hide": [
-                                    "VoiceApplicationsPolicyName"
-                                ]
-                            }
-                        },
-                        {
-                            "Display": "Assign a voice applications policy",
-                            "ParameterValue": "Assign",
-                            "Customization": {
-                                "Show": [
-                                    "VoiceApplicationsPolicyName"
-                                ],
-                                "Mandatory": [
-                                    "VoiceApplicationsPolicyName"
-                                ]
-                            }
-                        },
-                        {
-                            "Display": "Remove the voice applications policy",
-                            "ParameterValue": "Remove",
-                            "Customization": {
-                                "Hide": [
-                                    "VoiceApplicationsPolicyName"
-                                ]
-                            }
-                        }
-                    ],
-                    "ShowValue": false
-                }
-            },
-            "VoiceApplicationsPolicyName": {
-                "DisplayName": "Policy name"
-            },
-            "CallerName": {
-                "Hide": true
-            }
-        }
-    }
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"CallQueueName": {
+				"DisplayName": "Call queue name"
+			},
+			"Remove": {
+				"DisplayName": "Action",
+				"SelectSimple": {
+					"Add users as authorized users": false,
+					"Remove users as authorized users": true
+				}
+			},
+			"VoiceApplicationsPolicyAction": {
+				"DisplayName": "Voice applications policy",
+				"Select": {
+					"Options": [
+						{
+							"Display": "Leave the policy unchanged",
+							"ParameterValue": "None",
+							"Customization": {
+								"Hide": [
+									"VoiceApplicationsPolicyName"
+								]
+							}
+						},
+						{
+							"Display": "Assign a voice applications policy",
+							"ParameterValue": "Assign",
+							"Customization": {
+								"Show": [
+									"VoiceApplicationsPolicyName"
+								],
+								"Mandatory": [
+									"VoiceApplicationsPolicyName"
+								]
+							}
+						},
+						{
+							"Display": "Remove the voice applications policy",
+							"ParameterValue": "Remove",
+							"Customization": {
+								"Hide": [
+									"VoiceApplicationsPolicyName"
+								]
+							}
+						}
+					],
+					"ShowValue": false
+				}
+			},
+			"VoiceApplicationsPolicyName": {
+				"DisplayName": "Policy name"
+			},
+			"CallerName": {
+				"Hide": true
+			}
+		}
+	}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
@@ -109,7 +106,6 @@ param(
 
 ########################################################
 #region     RJ Log Part
-##
 ########################################################
 
 # Add Caller and Version in Verbose output
@@ -117,7 +113,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.0.0"
+$Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
@@ -128,11 +124,10 @@ Write-RjRbLog -Message "Remove: $Remove" -Verbose
 Write-RjRbLog -Message "VoiceApplicationsPolicyAction: $VoiceApplicationsPolicyAction" -Verbose
 Write-RjRbLog -Message "VoiceApplicationsPolicyName: $VoiceApplicationsPolicyName" -Verbose
 
-#endregion
+#endregion RJ Log Part
 
 ########################################################
 #region     Parameter Validation
-##
 ########################################################
 
 $queueName = ""
@@ -188,11 +183,10 @@ if ($VoiceApplicationsPolicyAction -ne "Assign" -and -not [string]::IsNullOrWhit
     Write-Output "WARNING: The policy name '$policyName' is ignored because 'Voice applications policy' is not set to 'Assign a voice applications policy'."
 }
 
-#endregion
+#endregion Parameter Validation
 
 ########################################################
 #region     Function Definitions
-##
 ########################################################
 
 function Get-CallQueueByName {
@@ -355,11 +349,21 @@ function Get-UserLabel {
     return "Unknown user ($Identity)"
 }
 
-#endregion
+function Get-UserDisplayName {
+    param(
+        [string]$Identity,
+        $TeamsUser
+    )
+    if ($null -ne $TeamsUser -and -not [string]::IsNullOrWhiteSpace([string]$TeamsUser.DisplayName)) {
+        return [string]$TeamsUser.DisplayName
+    }
+    return "Unknown user ($Identity)"
+}
+
+#endregion Function Definitions
 
 ########################################################
 #region     Connect Part
-##
 ########################################################
 
 Write-Output "Connect to Microsoft Teams..."
@@ -386,11 +390,10 @@ catch {
     }
 }
 
-#endregion
+#endregion Connect Part
 
 ########################################################
 #region     StatusQuo & Preflight-Check Part
-##
 ########################################################
 
 $skipMain = $false
@@ -445,6 +448,8 @@ if ($VoiceApplicationsPolicyAction -eq "Assign") {
     }
 }
 
+Write-Output "Checking $($requestedUserIds.Count) selected user(s) in Microsoft Teams..."
+
 $results = [System.Collections.Generic.List[object]]::new()
 $parsedGuid = [guid]::Empty
 
@@ -465,6 +470,7 @@ foreach ($requestedUserId in $requestedUserIds) {
     }
 
     $label = Get-UserLabel -Identity $requestedUserId -TeamsUser $teamsUser
+    $displayName = Get-UserDisplayName -Identity $requestedUserId -TeamsUser $teamsUser
     $currentPolicy = Get-UserVoiceApplicationsPolicyName -TeamsUser $teamsUser
     $upn = if ($null -ne $teamsUser) { [string]$teamsUser.UserPrincipalName } else { "" }
     $notFoundReason = "not found in Microsoft Teams. This is usually the case if the user is not licensed for Microsoft Teams or the replication of the license has not yet been completed. Check the license and run the runbook again after at least one hour"
@@ -522,6 +528,7 @@ foreach ($requestedUserId in $requestedUserIds) {
     $results.Add([PSCustomObject]@{
             Id                  = $objectId
             Label               = $label
+            DisplayName         = $displayName
             Upn                 = $upn
             CurrentPolicy       = $currentPolicy
             Outcome             = $outcome
@@ -532,6 +539,7 @@ foreach ($requestedUserId in $requestedUserIds) {
             PolicyReference     = ""
             PolicyGroupFallback = ""
             NewPolicy           = ""
+            PolicyResult        = "Not changed"
         })
 }
 
@@ -638,12 +646,14 @@ if ((-not $authorizedChanged) -and (-not $hideChanged) -and $policyRows.Count -e
     Write-Output "Nothing needs to be changed on call queue '$($callQueue.Name)'. No action taken."
 }
 
-#endregion
+#endregion StatusQuo & Preflight-Check Part
 
 ########################################################
 #region     Main Part
-##
 ########################################################
+
+$finalAuthorized = @($currentAuthorized)
+$policyOverrides = @{}
 
 if (-not $skipMain) {
 
@@ -726,15 +736,18 @@ if (-not $skipMain) {
                 if ($result.CurrentPolicy -eq $policyName) {
                     Write-Output "$($result.Label): already uses the voice applications policy '$policyName'"
                     $result.NewPolicy = $policyName
+                    $result.PolicyResult = "Already assigned"
                     continue
                 }
                 try {
                     Grant-CsTeamsVoiceApplicationsPolicy -Identity $result.Upn -PolicyName $policyName -ErrorAction Stop
                     Write-Output "$($result.Label): voice applications policy '$policyName' assigned"
                     $result.NewPolicy = $policyName
+                    $result.PolicyResult = "Assigned"
                 }
                 catch {
                     Write-Error -Message "Teams - Error: The assignment of the voice applications policy '$policyName' for $($result.Upn) could not be completed. Error Message: $($_.Exception.Message)" -ErrorAction Continue
+                    $result.PolicyResult = "Assignment failed"
                     $hadErrors = $true
                 }
                 continue
@@ -744,13 +757,16 @@ if (-not $skipMain) {
                 switch ($result.PolicyOutcome) {
                     "NoAssignment" {
                         Write-Output "$($result.Label): no per-user voice applications policy assigned, nothing to remove"
+                        $result.PolicyResult = "No per-user policy"
                     }
                     "GroupOnly" {
                         $groupNote = if ([string]::IsNullOrWhiteSpace($result.PolicyReference)) { "" } else { " (group $($result.PolicyReference))" }
                         Write-Output "WARNING: $($result.Label): the voice applications policy '$($result.PolicyDetail)' comes from a group policy assignment$groupNote and cannot be removed per user. Remove the user from that group or change the group assignment."
+                        $result.PolicyResult = "Kept, assigned by group"
                     }
                     "SkippedElsewhere" {
                         Write-Output "WARNING: $($result.Label): the voice applications policy '$($result.PolicyDetail)' was kept, the user is still an authorized user of $($result.PolicyReference)."
+                        $result.PolicyResult = "Kept, still authorized elsewhere"
                     }
                     default {
                         try {
@@ -763,9 +779,11 @@ if (-not $skipMain) {
                                 Write-Output "$($result.Label): voice applications policy '$($result.PolicyDetail)' removed, the group policy assignment '$($result.PolicyGroupFallback)' now takes over"
                                 $result.NewPolicy = $result.PolicyGroupFallback
                             }
+                            $result.PolicyResult = "Removed"
                         }
                         catch {
                             Write-Error -Message "Teams - Error: The removal of the voice applications policy for $($result.Upn) could not be completed. Error Message: $($_.Exception.Message)" -ErrorAction Continue
+                            $result.PolicyResult = "Removal failed"
                             $hadErrors = $true
                         }
                     }
@@ -773,11 +791,11 @@ if (-not $skipMain) {
                 continue
             }
 
-            Write-Output "WARNING: $($result.Label) uses the Global voice applications policy. Authorized users cannot change anything until a policy that allows call queue management is assigned (run again with 'Assign a voice applications policy')."
+            Write-Output "WARNING: $($result.Label) uses the Global voice applications policy, which usually allows no changes. Assign a policy that allows call queue changes (run again with 'Assign a voice applications policy')."
+            $result.PolicyResult = "Not changed, Global"
         }
     }
 
-    $policyOverrides = @{}
     foreach ($result in $results) {
         if ($null -ne $result.Id -and -not [string]::IsNullOrWhiteSpace($result.NewPolicy)) {
             $policyOverrides[$result.Id] = $result.NewPolicy
@@ -798,17 +816,85 @@ if (-not $skipMain) {
         $hiddenNote = if ($newHidden -contains $authorizedId) { " - hidden" } else { "" }
         Write-Output " - $authorizedLabel - voice applications policy: $authorizedPolicy$hiddenNote"
     }
+}
 
-    if ($hadErrors) {
-        throw "At least one voice applications policy could not be changed. See the errors above."
+#region Output Data
+# Emitted last so the tables are not interleaved with the console output. A marker is only written when rows
+# follow it, because the portal applies the name to the next table it receives.
+$changeRows = [System.Collections.Generic.List[object]]::new()
+$skippedRows = [System.Collections.Generic.List[object]]::new()
+$unchangedRows = [System.Collections.Generic.List[object]]::new()
+foreach ($result in $results) {
+    $rowPolicy = if (-not [string]::IsNullOrWhiteSpace($result.NewPolicy)) { $result.NewPolicy } else { $result.CurrentPolicy }
+    switch ($result.Outcome) {
+        { $_ -in "Add", "Remove" } {
+            $changeRows.Add([PSCustomObject]@{
+                    DisplayName             = $result.DisplayName
+                    UserPrincipalName       = $result.Upn
+                    Change                  = if ($result.Outcome -eq "Add") { "Added" } else { "Removed" }
+                    VoiceApplicationsPolicy = $rowPolicy
+                    PolicyResult            = $result.PolicyResult
+                })
+        }
+        "Skipped" {
+            $skippedRows.Add([PSCustomObject]@{
+                    User   = $result.Label
+                    Reason = $result.Reason
+                })
+        }
+        default {
+            $unchangedRows.Add([PSCustomObject]@{
+                    DisplayName             = $result.DisplayName
+                    UserPrincipalName       = $result.Upn
+                    Reason                  = $result.Reason
+                    VoiceApplicationsPolicy = $rowPolicy
+                    PolicyResult            = $result.PolicyResult
+                })
+        }
     }
 }
 
-#endregion
+$authorizedRows = [System.Collections.Generic.List[object]]::new()
+foreach ($authorizedId in $finalAuthorized) {
+    $authorizedUserObject = Get-TeamsUserFromCache -Cache $userCache -Identity $authorizedId
+    $authorizedRows.Add([PSCustomObject]@{
+            DisplayName             = Get-UserDisplayName -Identity $authorizedId -TeamsUser $authorizedUserObject
+            UserPrincipalName       = if ($null -ne $authorizedUserObject) { [string]$authorizedUserObject.UserPrincipalName } else { "" }
+            VoiceApplicationsPolicy = if ($policyOverrides.ContainsKey($authorizedId)) { $policyOverrides[$authorizedId] } else { Get-UserVoiceApplicationsPolicyName -TeamsUser $authorizedUserObject }
+            Hidden                  = if ($newHidden -contains $authorizedId) { "Yes" } else { "No" }
+        })
+}
+
+Write-Output ""
+if ($changeRows.Count -gt 0) {
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Authorized user changes" })
+    Write-Output $changeRows.ToArray()
+}
+if ($skippedRows.Count -gt 0) {
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Skipped users" })
+    Write-Output $skippedRows.ToArray()
+}
+if ($unchangedRows.Count -gt 0) {
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "No change needed" })
+    Write-Output $unchangedRows.ToArray()
+}
+if ($authorizedRows.Count -gt 0) {
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Authorized users" })
+    Write-Output $authorizedRows.ToArray()
+}
+else {
+    Write-Output "Call queue '$($callQueue.Name)' has no authorized users."
+}
+#endregion Output Data
+
+if ($hadErrors) {
+    throw "At least one voice applications policy could not be changed. See the errors above."
+}
+
+#endregion Main Part
 
 ########################################################
 #region     Cleanup
-##
 ########################################################
 
 Disconnect-MicrosoftTeams -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
@@ -816,4 +902,4 @@ Disconnect-MicrosoftTeams -Confirm:$false -ErrorAction SilentlyContinue | Out-Nu
 Write-Output ""
 Write-Output "Done!"
 
-#endregion
+#endregion Cleanup

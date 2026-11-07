@@ -1,5 +1,18 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-11-06
+
+- Update **Add Or Remove Teams Mailcontact** Runbook in Org/Mail (v1.0.2)
+  - Accept the channel email address as Teams copies it ("Channel name <address>") and use only the address in the brackets
+- Add **Add Or Remove Auto Attendant Authorized Users** Runbook in Org/Phone (v1.0.0)
+  - Adds several users at once as authorized users of an auto attendant given by its name, or removes them again
+  - Checks every user for Enterprise Voice and enforces the limit of 15 authorized users before anything is written
+  - Optionally assigns or removes the Teams voice applications policy; it is kept while the user is authorized on another auto attendant or call queue
+  - Changes only the authorized users of the auto attendant, reads it back to confirm and lists the results in the Output Data tab
+- Update **Add Or Remove Call Queue Authorized Users** Runbook in Org/Phone (v1.1.0)
+  - Lists the changed, skipped and unchanged users and the authorized users after the run as separate tables in the Output Data tab
+  - Shows per user what happened to the voice applications policy; a user with the Global policy gets a warning that it usually allows no changes
+
 ## 2026-11-02
 
 - Update **Check Intune Enrollment Readiness** Runbook in User/General (v1.0.1)
