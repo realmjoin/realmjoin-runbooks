@@ -177,6 +177,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Set Booking Config](docs/org/mail/set-booking-config.md)
   - [Phone](docs/org/README.md#org-phone)
 
+    - [Add Or Remove Auto Attendant Authorized Users](docs/org/phone/add-or-remove-auto-attendant-authorized-users.md)
     - [Add Or Remove Call Queue Agents](docs/org/phone/add-or-remove-call-queue-agents.md)
     - [Add Or Remove Call Queue Authorized Users](docs/org/phone/add-or-remove-call-queue-authorized-users.md)
     - [Get Teams Phone Number Assignment](docs/org/phone/get-teams-phone-number-assignment.md)

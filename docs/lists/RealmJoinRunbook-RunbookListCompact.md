@@ -124,7 +124,8 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Add Shared Mailbox | Create a shared mailbox with optional delegates |
 |  |  | Hide Mailboxes (Scheduled) | Hide or show all Bookings calendars in the address book |
 |  |  | Set Booking Config | Configure the Microsoft Bookings settings of the tenant |
-|  | Phone | Add Or Remove Call Queue Agents | Add or remove agents of a Teams call queue |
+|  | Phone | Add Or Remove Auto Attendant Authorized Users | Add or remove authorized users of a Teams auto attendant |
+|  |  | Add Or Remove Call Queue Agents | Add or remove agents of a Teams call queue |
 |  |  | Add Or Remove Call Queue Authorized Users | Add or remove authorized users of a Teams call queue |
 |  |  | Get Teams Phone Number Assignment | Check whether a phone number is assigned in Microsoft Teams |
 |  | Security | Add Defender Indicator | Add an allow or block indicator to Defender for Endpoint |

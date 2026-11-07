@@ -36,6 +36,17 @@ A policy that reaches the user through a group policy assignment cannot be remov
 
 Before removing a policy, the runbook scans all other call queues and auto attendants for that user. If the user is still an authorized user somewhere else, the policy is kept and the affected objects are named in a warning. The user is still removed from this call queue.
 
+## Output Data
+
+At the end of every run the results are listed in the Output Data tab, one table per outcome:
+
+- **Authorized user changes**: users that were added or removed, with their voice applications policy and what happened to it.
+- **Skipped users**: users that could not be processed, with the reason.
+- **No change needed**: users that were already authorized when adding, or not authorized when removing.
+- **Authorized users**: the authorized users of the call queue after the run, with their policy and whether they are hidden.
+
+A table only appears when it has rows.
+
 ## Notes and limitations
 
 Authorized users have to be enabled for Enterprise Voice, which in practice means a Teams Phone license. A freshly licensed user can take up to an hour to become visible to Teams PowerShell; until then the runbook reports them as not found.
@@ -44,7 +55,7 @@ Greetings and holiday call flows can be changed by authorized users directly in 
 
 Changes to authorized users and policy assignments are replicated by the service and can take a few minutes to show up in the Teams admin center and in the Teams client.
 
-Whether an authorized user is hidden is only maintained, never changed on purpose. Use the Teams admin center to hide or unhide an authorized user.
+Whether an authorized user is hidden is only maintained, never changed on purpose. Hiding or unhiding an authorized user is only possible with Teams PowerShell (`Set-CsCallQueue -HideAuthorizedUsers`), not in the Teams admin center.
 
 
 ## Permissions
