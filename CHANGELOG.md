@@ -1,5 +1,10 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-11-09
+
+- Update ** Check Updateable Assets** Runbook in Group/Devices
+  - Output the list to Output Data
+
 ## 2026-11-06
 
 - Update **Add Or Remove Teams Mailcontact** Runbook in Org/Mail (v1.0.2)
