@@ -988,7 +988,7 @@ Device \ Security \ Show Laps Password
 
 #### Description
 
-Checks for every device in this group whether it is registered as an updatable asset in Windows Update for Business. The result shows the enrollment state per update category and any error Windows Update returns. Nothing is changed.
+Checks every device in this group for registration as an updatable asset in Windows Update for Business. The result is written to Output Data as a summary line, then one table with a row per device. Each row shows the enrollment state for the feature, quality and driver update categories and any error Windows Update returns. Nothing is changed on the devices or in the group.
 
 #### Where to find
 
