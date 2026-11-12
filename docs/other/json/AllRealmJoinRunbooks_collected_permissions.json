@@ -11,6 +11,7 @@
       "Channel.ReadBasic.All",
       "ChannelMember.ReadWrite.All",
       "CloudPC.ReadWrite.All",
+      "CrossTenantInformation.ReadBasic.All",
       "Device.ReadWrite.All",
       "DeviceLocalCredential.Read.All",
       "DeviceManagementApps.ReadWrite.All",

@@ -72,6 +72,7 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Collab](#organization-collab)
     - [Check Onedrive Status](#organization-collab-check-onedrive-status)
     - [List Sharepoint Sitecollection Permission](#organization-collab-list-sharepoint-sitecollection-permission)
+    - [Report Shared Channel Members (Scheduled)](#organization-collab-report-shared-channel-members-scheduled)
     - [Report Sharepoint Tenant Storage (Scheduled)](#organization-collab-report-sharepoint-tenant-storage-scheduled)
     - [Report Teams Channels (Scheduled)](#organization-collab-report-teams-channels-scheduled)
   - [Devices](#organization-devices)
@@ -940,6 +941,33 @@ List the administrators and members of a SharePoint site
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | SiteUrl | ✓ | String | Full URL of the site, for example https://contoso.sharepoint.com/sites/marketing. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+
+<a name='organization-collab-report-shared-channel-members-scheduled'></a>
+
+### Report Shared Channel Members (Scheduled)
+List shared channels of all teams with direct and indirect members
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| ReportScope |  | String | "All shared channels, one table" lists every member in one table. "All shared channels, one table per channel" gives each channel its own table and worksheet. "Shared channels by name, one table" reports only the named channels. |
+| TeamIds |  | String Array | Only the shared channels hosted by the selected teams are read. Leave empty to include every team of the tenant. |
+| ChannelNames |  | String | Names of the shared channels to report, separated by commas; upper and lower case do not matter. Without "Limit to these teams", matching channels of every team are reported. |
+| EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
+| BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
+| BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
+| BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
+| BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
+| BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
+| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
+| ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
+| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+| ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
+| ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
+| StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-collab-report-sharepoint-tenant-storage-scheduled'></a>

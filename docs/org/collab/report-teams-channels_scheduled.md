@@ -61,7 +61,7 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 
 - The report is read-only. Owners and members of private and shared channels are changed in the Teams admin center or in Teams itself; the runbooks **Sync Channel Or Group Members (Scheduled)** and **Sync Shared Channel Owners (Scheduled)** cover the automated cases for shared channels.
 - Standard channels are not listed; their membership equals the team membership, which the RealmJoin Portal shows.
-- The member list of a shared channel contains its direct members. People who reach a shared channel through another team that the channel is shared with are not listed.
+- The member list of a shared channel contains its direct members. People who reach a shared channel through another team that the channel is shared with are not listed; **Report Shared Channel Members (Scheduled)** lists them with one row per member.
 
 
 ## Permissions

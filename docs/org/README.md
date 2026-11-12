@@ -15,6 +15,7 @@
 ## Collab
   - [Check Onedrive Status](collab/check-onedrive-status.md)
   - [List Sharepoint Sitecollection Permission](collab/list-sharepoint-sitecollection-permission.md)
+  - [Report Shared Channel Members (Scheduled)](collab/report-shared-channel-members_scheduled.md)
   - [Report Sharepoint Tenant Storage (Scheduled)](collab/report-sharepoint-tenant-storage_scheduled.md)
   - [Report Teams Channels (Scheduled)](collab/report-teams-channels_scheduled.md)
 <a name='org-devices'></a>

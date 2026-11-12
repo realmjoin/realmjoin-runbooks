@@ -6321,6 +6321,365 @@
     }
   },
   {
+    "RunbookDisplayName": "Report Shared Channel Members_Scheduled",
+    "RunbookDisplayPath": "Org \\ Collab \\ Report Shared Channel Members_Scheduled",
+    "RelativeRunbookPath": "org/collab/report-shared-channel-members_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/collab",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Collab",
+    "Synopsis": "List shared channels of all teams with direct and indirect members",
+    "Description": "Lists the shared channels hosted by the teams of the tenant with everyone who can open them. This includes owners, guests, people from other tenants and members of teams the channel is shared with. The report covers every team or selected teams, with the members in one table, in one table per channel or for channels given by name. The report can be sent by email or provided as a download link.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingAccentColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterLink",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingHeaderImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingTextColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user who started the runbook. Set by the portal and recorded for auditing."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "19",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Names of the shared channels to report, separated by commas; upper and lower case do not matter. Without \"Limit to these teams\", matching channels of every team are reported."
+          }
+        ],
+        "globbing": "false",
+        "name": "ChannelNames",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "report-shared-channel-members",
+        "description": [
+          {
+            "Text": "Storage container the report files are uploaded to. Set per runbook."
+          }
+        ],
+        "globbing": "false",
+        "name": "ContainerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "14",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Also upload the report and return a download link that expires after a few days."
+          }
+        ],
+        "globbing": "false",
+        "name": "CreateDownloadLink",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "13",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sender address of the report email. Taken from the tenant setting RJReport.EmailSender."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Send the report to these addresses. Separate several with commas; each recipient gets a separate email."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "18",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "CSV & XLSX",
+        "description": [
+          {
+            "Text": "Deliver the report as CSV, as an Excel workbook, or both."
+          }
+        ],
+        "globbing": "false",
+        "name": "ReportFileFormat",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "12",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "All shared channels, one table",
+        "description": [
+          {
+            "Text": "\"All shared channels, one table\" lists every member in one table. \"All shared channels, one table per channel\" gives each channel its own table and worksheet. \"Shared channels by name, one table\" reports only the named channels."
+          }
+        ],
+        "globbing": "false",
+        "name": "ReportScope",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup."
+          }
+        ],
+        "globbing": "false",
+        "name": "ResourceGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "15",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Send the report to the recipient email address."
+          }
+        ],
+        "globbing": "false",
+        "name": "SendEmailReport",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName."
+          }
+        ],
+        "globbing": "false",
+        "name": "StorageAccountName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "16",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "SubscriptionId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "17",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Only the shared channels hosted by the selected teams are read. Leave empty to include every team of the tenant."
+          }
+        ],
+        "globbing": "false",
+        "name": "TeamIds",
+        "parameterValue": "String[]",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String[]"
+        }
+      }
+    ],
+    "DocsContent": "## How it works\n\nThe runbook lists every team of the tenant, or only the selected teams, and reads the shared channels each team hosts. The team list comes from the Teams service itself, so old teams whose group is not marked as a team are included as well. For every shared channel it reads the direct members, the complete member list including people who reach the channel through another team, and the teams the channel is shared with.\n\nEvery member row names the team and the channel, the member with email address, the role in the channel, how the person reaches the channel, the user type and the organization the account belongs to. The *Shared channels* table adds one row per channel with the number of members, owners, guests, external members and members who only come through a team, the teams the channel is shared with, whether it is archived and when it was created.\n\n### Channels and table layout\n\n- **All shared channels, one table** - every member of every shared channel in one table *Shared channel members*, with team and channel as columns.\n- **All shared channels, one table per channel** - one table per shared channel in the Output Data tab and one worksheet per channel in the Excel workbook. The CSV file still holds all members in one file with team and channel as columns.\n- **Shared channels by name, one table** - only the channels entered in *Shared channel names (comma-separated)*, for example `Project X, Partner Hub`. Each name is compared in full, upper and lower case do not matter. The members of all named channels appear in one table with team and channel as columns.\n\nNames without a matching channel are listed in the console output, in the *Channel names not found* row of the summary and in the report email; the run continues with the channels it found. When none of the names matches, the run fails and lists the shared channels it found. A channel whose name contains a comma cannot be selected by name; use one of the other options for it.\n\n### Limit to these teams\n\n*Limit to these teams* is offered with every option and accepts several teams. Leave it empty to read all teams of the tenant. With teams selected, only the shared channels hosted by those teams are read and reported, for example all shared channels of two teams with one table per channel, or channels given by name searched only in those teams. Reading a few teams is also much faster than reading all teams.\n\nA selected group that is not a team or cannot be read is listed in the *Teams not readable* table and skipped; the run fails only when none of the selected groups is a readable team.\n\n### Direct and indirect members\n\nA shared channel can be shared with teams, in the same tenant or in another one, and also with the team that hosts it. All members of such a team can open the channel without being added to it. The *SharedWithTeams* column lists these teams and marks the host team with *(host team)*. The *Membership* column shows the way a person reaches the channel:\n\n- **Direct** - added to the channel itself.\n- **Via team** - only through a team the channel is shared with; *ViaTeams* names that team.\n- **Direct and via team** - both.\n\nChannel owners are always direct members. People who only come through a team are listed with the role *Member* (or *Guest*), whatever role they hold in their own team.\n\n### Guests and external members\n\n- **Internal** - an account of the home tenant.\n- **Guest** - a guest account in the home tenant (B2B collaboration). Teams does not let guests join shared channels, so this value only appears when Graph reports a member with the guest role.\n- **External** - a person from another tenant who joined the channel directly or through a team of their organization (B2B direct connect). The *Organization* column shows the name of that organization; without the optional `CrossTenantInformation.ReadBasic.All` permission it shows the tenant ID.\n\n### Table and worksheet names\n\nWith *All channels, one table each*, the channel name becomes the table and worksheet name. Excel allows at most 31 characters and none of `\\ / ? * [ ] :`, so longer names are shortened and channels with the same name get a counter such as `Project (2)`. The *Table* column of the *Shared channels* table shows which table belongs to which team and channel.\n\n### Gaps in the report\n\nThe runbook never shortens a list silently. Whatever it cannot read is named, and the run continues with the rest:\n\n- **Team not readable** - a team whose channel list cannot be read, or whose list is cut off because a further page fails, is listed in the *Teams not readable* table with the reason. Selected groups that are not teams are listed there as well.\n- **Members not readable** - a channel whose member lists cannot be read at all keeps its row in *Shared channels* with the reason in the *Note* column and is counted in *Channels not readable*.\n- **Incomplete member list** - when the members who come through a team cannot be read, or the complete member list is cut off, the reason is in the *Note* column and the channel is counted in *Incomplete member lists*. Direct members are still listed.\n- **No response** - a request that Graph does not answer is treated like a failed one.\n\nWhen any of these counters is above zero, the job log shows a warning that the report is incomplete.\n\n### Members of teams from other organizations\n\nGraph returns the complete member list of a shared channel page by page, the members of teams from other organizations last. In some tenants it refuses those later pages (HTTP 400), so the people who reach a channel through a partner organization's team would be missing. In that case, and when the complete list cannot be read at all, the runbook reads the members of each affected shared team on its own and adds them as *Via team*. The *Note* column then says that the members were read per team; the channel is not counted as incomplete. Only when a shared team cannot be read this way either, the note names that team and the channel counts in *Incomplete member lists*.\n\n### Runtime\n\nChannels and members are read through Graph batch requests, twenty at a time: one request per team and three per shared channel. A tenant with several thousand teams still takes a while; the job log shows the progress. Use *Limit to these teams* to read only the teams you need.\n\n## Report delivery\n\nThe results always appear as named tables in the Output Data tab of the run in the RealmJoin portal. Report files are only generated when the **Report delivery** option includes an email and/or a download link; *Output Data only* creates no report files. Email delivery and download link generation are independent and can be combined.\n\nFor the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Reader and Data Access** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).\n\n## Setup regarding email sending\n\nSending an email report is optional and only happens when *Also email the report* or *Also email & download link* is selected as report delivery; a recipient is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.\n\n### Email branding\n\nThe report email honors the optional `RJReport.Branding.*` tenant settings:\n\n- **Header and footer image** - public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each\n- **Footer link** - target of the footer image\n- **Accent and text color** - 6-digit hex values, e.g. `#0052cc`\n\nWhen these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email - the corresponding default is used instead.\n\nSetup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).\n\n## Notes and limitations\n\n- The report lists the shared channels hosted in this tenant. Shared channels that another organization hosts and shares with a team of this tenant are not listed, so people of this tenant who reach a channel of another organization do not appear.\n- People who were invited to a shared channel but have not accepted yet are not members and do not appear; Graph does not list pending invitations.\n- Deleted shared channels (restorable for 30 days) are not listed. Archiving a team removes the sharing with other teams, so the members who came through those teams no longer appear.\n- *Limit to these teams* only offers groups that are marked as teams. An old team without this mark is still part of the report when the field is left empty.\n- The report is read-only. Members of shared channels are changed in Teams or in the Teams admin center; the runbooks **Sync Channel Or Group Members (Scheduled)** and **Sync Shared Channel Owners (Scheduled)** cover the automated cases.\n- For an overview of private and shared channels with their owners, use **Report Teams Channels (Scheduled)**.\n",
+    "DocsContentEncoded": "IyMgSG93IGl0IHdvcmtzCgpUaGUgcnVuYm9vayBsaXN0cyBldmVyeSB0ZWFtIG9mIHRoZSB0ZW5hbnQsIG9yIG9ubHkgdGhlIHNlbGVjdGVkIHRlYW1zLCBhbmQgcmVhZHMgdGhlIHNoYXJlZCBjaGFubmVscyBlYWNoIHRlYW0gaG9zdHMuIFRoZSB0ZWFtIGxpc3QgY29tZXMgZnJvbSB0aGUgVGVhbXMgc2VydmljZSBpdHNlbGYsIHNvIG9sZCB0ZWFtcyB3aG9zZSBncm91cCBpcyBub3QgbWFya2VkIGFzIGEgdGVhbSBhcmUgaW5jbHVkZWQgYXMgd2VsbC4gRm9yIGV2ZXJ5IHNoYXJlZCBjaGFubmVsIGl0IHJlYWRzIHRoZSBkaXJlY3QgbWVtYmVycywgdGhlIGNvbXBsZXRlIG1lbWJlciBsaXN0IGluY2x1ZGluZyBwZW9wbGUgd2hvIHJlYWNoIHRoZSBjaGFubmVsIHRocm91Z2ggYW5vdGhlciB0ZWFtLCBhbmQgdGhlIHRlYW1zIHRoZSBjaGFubmVsIGlzIHNoYXJlZCB3aXRoLgoKRXZlcnkgbWVtYmVyIHJvdyBuYW1lcyB0aGUgdGVhbSBhbmQgdGhlIGNoYW5uZWwsIHRoZSBtZW1iZXIgd2l0aCBlbWFpbCBhZGRyZXNzLCB0aGUgcm9sZSBpbiB0aGUgY2hhbm5lbCwgaG93IHRoZSBwZXJzb24gcmVhY2hlcyB0aGUgY2hhbm5lbCwgdGhlIHVzZXIgdHlwZSBhbmQgdGhlIG9yZ2FuaXphdGlvbiB0aGUgYWNjb3VudCBiZWxvbmdzIHRvLiBUaGUgKlNoYXJlZCBjaGFubmVscyogdGFibGUgYWRkcyBvbmUgcm93IHBlciBjaGFubmVsIHdpdGggdGhlIG51bWJlciBvZiBtZW1iZXJzLCBvd25lcnMsIGd1ZXN0cywgZXh0ZXJuYWwgbWVtYmVycyBhbmQgbWVtYmVycyB3aG8gb25seSBjb21lIHRocm91Z2ggYSB0ZWFtLCB0aGUgdGVhbXMgdGhlIGNoYW5uZWwgaXMgc2hhcmVkIHdpdGgsIHdoZXRoZXIgaXQgaXMgYXJjaGl2ZWQgYW5kIHdoZW4gaXQgd2FzIGNyZWF0ZWQuCgojIyMgQ2hhbm5lbHMgYW5kIHRhYmxlIGxheW91dAoKLSAqKkFsbCBzaGFyZWQgY2hhbm5lbHMsIG9uZSB0YWJsZSoqIC0gZXZlcnkgbWVtYmVyIG9mIGV2ZXJ5IHNoYXJlZCBjaGFubmVsIGluIG9uZSB0YWJsZSAqU2hhcmVkIGNoYW5uZWwgbWVtYmVycyosIHdpdGggdGVhbSBhbmQgY2hhbm5lbCBhcyBjb2x1bW5zLgotICoqQWxsIHNoYXJlZCBjaGFubmVscywgb25lIHRhYmxlIHBlciBjaGFubmVsKiogLSBvbmUgdGFibGUgcGVyIHNoYXJlZCBjaGFubmVsIGluIHRoZSBPdXRwdXQgRGF0YSB0YWIgYW5kIG9uZSB3b3Jrc2hlZXQgcGVyIGNoYW5uZWwgaW4gdGhlIEV4Y2VsIHdvcmtib29rLiBUaGUgQ1NWIGZpbGUgc3RpbGwgaG9sZHMgYWxsIG1lbWJlcnMgaW4gb25lIGZpbGUgd2l0aCB0ZWFtIGFuZCBjaGFubmVsIGFzIGNvbHVtbnMuCi0gKipTaGFyZWQgY2hhbm5lbHMgYnkgbmFtZSwgb25lIHRhYmxlKiogLSBvbmx5IHRoZSBjaGFubmVscyBlbnRlcmVkIGluICpTaGFyZWQgY2hhbm5lbCBuYW1lcyAoY29tbWEtc2VwYXJhdGVkKSosIGZvciBleGFtcGxlIGBQcm9qZWN0IFgsIFBhcnRuZXIgSHViYC4gRWFjaCBuYW1lIGlzIGNvbXBhcmVkIGluIGZ1bGwsIHVwcGVyIGFuZCBsb3dlciBjYXNlIGRvIG5vdCBtYXR0ZXIuIFRoZSBtZW1iZXJzIG9mIGFsbCBuYW1lZCBjaGFubmVscyBhcHBlYXIgaW4gb25lIHRhYmxlIHdpdGggdGVhbSBhbmQgY2hhbm5lbCBhcyBjb2x1bW5zLgoKTmFtZXMgd2l0aG91dCBhIG1hdGNoaW5nIGNoYW5uZWwgYXJlIGxpc3RlZCBpbiB0aGUgY29uc29sZSBvdXRwdXQsIGluIHRoZSAqQ2hhbm5lbCBuYW1lcyBub3QgZm91bmQqIHJvdyBvZiB0aGUgc3VtbWFyeSBhbmQgaW4gdGhlIHJlcG9ydCBlbWFpbDsgdGhlIHJ1biBjb250aW51ZXMgd2l0aCB0aGUgY2hhbm5lbHMgaXQgZm91bmQuIFdoZW4gbm9uZSBvZiB0aGUgbmFtZXMgbWF0Y2hlcywgdGhlIHJ1biBmYWlscyBhbmQgbGlzdHMgdGhlIHNoYXJlZCBjaGFubmVscyBpdCBmb3VuZC4gQSBjaGFubmVsIHdob3NlIG5hbWUgY29udGFpbnMgYSBjb21tYSBjYW5ub3QgYmUgc2VsZWN0ZWQgYnkgbmFtZTsgdXNlIG9uZSBvZiB0aGUgb3RoZXIgb3B0aW9ucyBmb3IgaXQuCgojIyMgTGltaXQgdG8gdGhlc2UgdGVhbXMKCipMaW1pdCB0byB0aGVzZSB0ZWFtcyogaXMgb2ZmZXJlZCB3aXRoIGV2ZXJ5IG9wdGlvbiBhbmQgYWNjZXB0cyBzZXZlcmFsIHRlYW1zLiBMZWF2ZSBpdCBlbXB0eSB0byByZWFkIGFsbCB0ZWFtcyBvZiB0aGUgdGVuYW50LiBXaXRoIHRlYW1zIHNlbGVjdGVkLCBvbmx5IHRoZSBzaGFyZWQgY2hhbm5lbHMgaG9zdGVkIGJ5IHRob3NlIHRlYW1zIGFyZSByZWFkIGFuZCByZXBvcnRlZCwgZm9yIGV4YW1wbGUgYWxsIHNoYXJlZCBjaGFubmVscyBvZiB0d28gdGVhbXMgd2l0aCBvbmUgdGFibGUgcGVyIGNoYW5uZWwsIG9yIGNoYW5uZWxzIGdpdmVuIGJ5IG5hbWUgc2VhcmNoZWQgb25seSBpbiB0aG9zZSB0ZWFtcy4gUmVhZGluZyBhIGZldyB0ZWFtcyBpcyBhbHNvIG11Y2ggZmFzdGVyIHRoYW4gcmVhZGluZyBhbGwgdGVhbXMuCgpBIHNlbGVjdGVkIGdyb3VwIHRoYXQgaXMgbm90IGEgdGVhbSBvciBjYW5ub3QgYmUgcmVhZCBpcyBsaXN0ZWQgaW4gdGhlICpUZWFtcyBub3QgcmVhZGFibGUqIHRhYmxlIGFuZCBza2lwcGVkOyB0aGUgcnVuIGZhaWxzIG9ubHkgd2hlbiBub25lIG9mIHRoZSBzZWxlY3RlZCBncm91cHMgaXMgYSByZWFkYWJsZSB0ZWFtLgoKIyMjIERpcmVjdCBhbmQgaW5kaXJlY3QgbWVtYmVycwoKQSBzaGFyZWQgY2hhbm5lbCBjYW4gYmUgc2hhcmVkIHdpdGggdGVhbXMsIGluIHRoZSBzYW1lIHRlbmFudCBvciBpbiBhbm90aGVyIG9uZSwgYW5kIGFsc28gd2l0aCB0aGUgdGVhbSB0aGF0IGhvc3RzIGl0LiBBbGwgbWVtYmVycyBvZiBzdWNoIGEgdGVhbSBjYW4gb3BlbiB0aGUgY2hhbm5lbCB3aXRob3V0IGJlaW5nIGFkZGVkIHRvIGl0LiBUaGUgKlNoYXJlZFdpdGhUZWFtcyogY29sdW1uIGxpc3RzIHRoZXNlIHRlYW1zIGFuZCBtYXJrcyB0aGUgaG9zdCB0ZWFtIHdpdGggKihob3N0IHRlYW0pKi4gVGhlICpNZW1iZXJzaGlwKiBjb2x1bW4gc2hvd3MgdGhlIHdheSBhIHBlcnNvbiByZWFjaGVzIHRoZSBjaGFubmVsOgoKLSAqKkRpcmVjdCoqIC0gYWRkZWQgdG8gdGhlIGNoYW5uZWwgaXRzZWxmLgotICoqVmlhIHRlYW0qKiAtIG9ubHkgdGhyb3VnaCBhIHRlYW0gdGhlIGNoYW5uZWwgaXMgc2hhcmVkIHdpdGg7ICpWaWFUZWFtcyogbmFtZXMgdGhhdCB0ZWFtLgotICoqRGlyZWN0IGFuZCB2aWEgdGVhbSoqIC0gYm90aC4KCkNoYW5uZWwgb3duZXJzIGFyZSBhbHdheXMgZGlyZWN0IG1lbWJlcnMuIFBlb3BsZSB3aG8gb25seSBjb21lIHRocm91Z2ggYSB0ZWFtIGFyZSBsaXN0ZWQgd2l0aCB0aGUgcm9sZSAqTWVtYmVyKiAob3IgKkd1ZXN0KiksIHdoYXRldmVyIHJvbGUgdGhleSBob2xkIGluIHRoZWlyIG93biB0ZWFtLgoKIyMjIEd1ZXN0cyBhbmQgZXh0ZXJuYWwgbWVtYmVycwoKLSAqKkludGVybmFsKiogLSBhbiBhY2NvdW50IG9mIHRoZSBob21lIHRlbmFudC4KLSAqKkd1ZXN0KiogLSBhIGd1ZXN0IGFjY291bnQgaW4gdGhlIGhvbWUgdGVuYW50IChCMkIgY29sbGFib3JhdGlvbikuIFRlYW1zIGRvZXMgbm90IGxldCBndWVzdHMgam9pbiBzaGFyZWQgY2hhbm5lbHMsIHNvIHRoaXMgdmFsdWUgb25seSBhcHBlYXJzIHdoZW4gR3JhcGggcmVwb3J0cyBhIG1lbWJlciB3aXRoIHRoZSBndWVzdCByb2xlLgotICoqRXh0ZXJuYWwqKiAtIGEgcGVyc29uIGZyb20gYW5vdGhlciB0ZW5hbnQgd2hvIGpvaW5lZCB0aGUgY2hhbm5lbCBkaXJlY3RseSBvciB0aHJvdWdoIGEgdGVhbSBvZiB0aGVpciBvcmdhbml6YXRpb24gKEIyQiBkaXJlY3QgY29ubmVjdCkuIFRoZSAqT3JnYW5pemF0aW9uKiBjb2x1bW4gc2hvd3MgdGhlIG5hbWUgb2YgdGhhdCBvcmdhbml6YXRpb247IHdpdGhvdXQgdGhlIG9wdGlvbmFsIGBDcm9zc1RlbmFudEluZm9ybWF0aW9uLlJlYWRCYXNpYy5BbGxgIHBlcm1pc3Npb24gaXQgc2hvd3MgdGhlIHRlbmFudCBJRC4KCiMjIyBUYWJsZSBhbmQgd29ya3NoZWV0IG5hbWVzCgpXaXRoICpBbGwgY2hhbm5lbHMsIG9uZSB0YWJsZSBlYWNoKiwgdGhlIGNoYW5uZWwgbmFtZSBiZWNvbWVzIHRoZSB0YWJsZSBhbmQgd29ya3NoZWV0IG5hbWUuIEV4Y2VsIGFsbG93cyBhdCBtb3N0IDMxIGNoYXJhY3RlcnMgYW5kIG5vbmUgb2YgYFwgLyA/ICogWyBdIDpgLCBzbyBsb25nZXIgbmFtZXMgYXJlIHNob3J0ZW5lZCBhbmQgY2hhbm5lbHMgd2l0aCB0aGUgc2FtZSBuYW1lIGdldCBhIGNvdW50ZXIgc3VjaCBhcyBgUHJvamVjdCAoMilgLiBUaGUgKlRhYmxlKiBjb2x1bW4gb2YgdGhlICpTaGFyZWQgY2hhbm5lbHMqIHRhYmxlIHNob3dzIHdoaWNoIHRhYmxlIGJlbG9uZ3MgdG8gd2hpY2ggdGVhbSBhbmQgY2hhbm5lbC4KCiMjIyBHYXBzIGluIHRoZSByZXBvcnQKClRoZSBydW5ib29rIG5ldmVyIHNob3J0ZW5zIGEgbGlzdCBzaWxlbnRseS4gV2hhdGV2ZXIgaXQgY2Fubm90IHJlYWQgaXMgbmFtZWQsIGFuZCB0aGUgcnVuIGNvbnRpbnVlcyB3aXRoIHRoZSByZXN0OgoKLSAqKlRlYW0gbm90IHJlYWRhYmxlKiogLSBhIHRlYW0gd2hvc2UgY2hhbm5lbCBsaXN0IGNhbm5vdCBiZSByZWFkLCBvciB3aG9zZSBsaXN0IGlzIGN1dCBvZmYgYmVjYXVzZSBhIGZ1cnRoZXIgcGFnZSBmYWlscywgaXMgbGlzdGVkIGluIHRoZSAqVGVhbXMgbm90IHJlYWRhYmxlKiB0YWJsZSB3aXRoIHRoZSByZWFzb24uIFNlbGVjdGVkIGdyb3VwcyB0aGF0IGFyZSBub3QgdGVhbXMgYXJlIGxpc3RlZCB0aGVyZSBhcyB3ZWxsLgotICoqTWVtYmVycyBub3QgcmVhZGFibGUqKiAtIGEgY2hhbm5lbCB3aG9zZSBtZW1iZXIgbGlzdHMgY2Fubm90IGJlIHJlYWQgYXQgYWxsIGtlZXBzIGl0cyByb3cgaW4gKlNoYXJlZCBjaGFubmVscyogd2l0aCB0aGUgcmVhc29uIGluIHRoZSAqTm90ZSogY29sdW1uIGFuZCBpcyBjb3VudGVkIGluICpDaGFubmVscyBub3QgcmVhZGFibGUqLgotICoqSW5jb21wbGV0ZSBtZW1iZXIgbGlzdCoqIC0gd2hlbiB0aGUgbWVtYmVycyB3aG8gY29tZSB0aHJvdWdoIGEgdGVhbSBjYW5ub3QgYmUgcmVhZCwgb3IgdGhlIGNvbXBsZXRlIG1lbWJlciBsaXN0IGlzIGN1dCBvZmYsIHRoZSByZWFzb24gaXMgaW4gdGhlICpOb3RlKiBjb2x1bW4gYW5kIHRoZSBjaGFubmVsIGlzIGNvdW50ZWQgaW4gKkluY29tcGxldGUgbWVtYmVyIGxpc3RzKi4gRGlyZWN0IG1lbWJlcnMgYXJlIHN0aWxsIGxpc3RlZC4KLSAqKk5vIHJlc3BvbnNlKiogLSBhIHJlcXVlc3QgdGhhdCBHcmFwaCBkb2VzIG5vdCBhbnN3ZXIgaXMgdHJlYXRlZCBsaWtlIGEgZmFpbGVkIG9uZS4KCldoZW4gYW55IG9mIHRoZXNlIGNvdW50ZXJzIGlzIGFib3ZlIHplcm8sIHRoZSBqb2IgbG9nIHNob3dzIGEgd2FybmluZyB0aGF0IHRoZSByZXBvcnQgaXMgaW5jb21wbGV0ZS4KCiMjIyBNZW1iZXJzIG9mIHRlYW1zIGZyb20gb3RoZXIgb3JnYW5pemF0aW9ucwoKR3JhcGggcmV0dXJucyB0aGUgY29tcGxldGUgbWVtYmVyIGxpc3Qgb2YgYSBzaGFyZWQgY2hhbm5lbCBwYWdlIGJ5IHBhZ2UsIHRoZSBtZW1iZXJzIG9mIHRlYW1zIGZyb20gb3RoZXIgb3JnYW5pemF0aW9ucyBsYXN0LiBJbiBzb21lIHRlbmFudHMgaXQgcmVmdXNlcyB0aG9zZSBsYXRlciBwYWdlcyAoSFRUUCA0MDApLCBzbyB0aGUgcGVvcGxlIHdobyByZWFjaCBhIGNoYW5uZWwgdGhyb3VnaCBhIHBhcnRuZXIgb3JnYW5pemF0aW9uJ3MgdGVhbSB3b3VsZCBiZSBtaXNzaW5nLiBJbiB0aGF0IGNhc2UsIGFuZCB3aGVuIHRoZSBjb21wbGV0ZSBsaXN0IGNhbm5vdCBiZSByZWFkIGF0IGFsbCwgdGhlIHJ1bmJvb2sgcmVhZHMgdGhlIG1lbWJlcnMgb2YgZWFjaCBhZmZlY3RlZCBzaGFyZWQgdGVhbSBvbiBpdHMgb3duIGFuZCBhZGRzIHRoZW0gYXMgKlZpYSB0ZWFtKi4gVGhlICpOb3RlKiBjb2x1bW4gdGhlbiBzYXlzIHRoYXQgdGhlIG1lbWJlcnMgd2VyZSByZWFkIHBlciB0ZWFtOyB0aGUgY2hhbm5lbCBpcyBub3QgY291bnRlZCBhcyBpbmNvbXBsZXRlLiBPbmx5IHdoZW4gYSBzaGFyZWQgdGVhbSBjYW5ub3QgYmUgcmVhZCB0aGlzIHdheSBlaXRoZXIsIHRoZSBub3RlIG5hbWVzIHRoYXQgdGVhbSBhbmQgdGhlIGNoYW5uZWwgY291bnRzIGluICpJbmNvbXBsZXRlIG1lbWJlciBsaXN0cyouCgojIyMgUnVudGltZQoKQ2hhbm5lbHMgYW5kIG1lbWJlcnMgYXJlIHJlYWQgdGhyb3VnaCBHcmFwaCBiYXRjaCByZXF1ZXN0cywgdHdlbnR5IGF0IGEgdGltZTogb25lIHJlcXVlc3QgcGVyIHRlYW0gYW5kIHRocmVlIHBlciBzaGFyZWQgY2hhbm5lbC4gQSB0ZW5hbnQgd2l0aCBzZXZlcmFsIHRob3VzYW5kIHRlYW1zIHN0aWxsIHRha2VzIGEgd2hpbGU7IHRoZSBqb2IgbG9nIHNob3dzIHRoZSBwcm9ncmVzcy4gVXNlICpMaW1pdCB0byB0aGVzZSB0ZWFtcyogdG8gcmVhZCBvbmx5IHRoZSB0ZWFtcyB5b3UgbmVlZC4KCiMjIFJlcG9ydCBkZWxpdmVyeQoKVGhlIHJlc3VsdHMgYWx3YXlzIGFwcGVhciBhcyBuYW1lZCB0YWJsZXMgaW4gdGhlIE91dHB1dCBEYXRhIHRhYiBvZiB0aGUgcnVuIGluIHRoZSBSZWFsbUpvaW4gcG9ydGFsLiBSZXBvcnQgZmlsZXMgYXJlIG9ubHkgZ2VuZXJhdGVkIHdoZW4gdGhlICoqUmVwb3J0IGRlbGl2ZXJ5Kiogb3B0aW9uIGluY2x1ZGVzIGFuIGVtYWlsIGFuZC9vciBhIGRvd25sb2FkIGxpbms7ICpPdXRwdXQgRGF0YSBvbmx5KiBjcmVhdGVzIG5vIHJlcG9ydCBmaWxlcy4gRW1haWwgZGVsaXZlcnkgYW5kIGRvd25sb2FkIGxpbmsgZ2VuZXJhdGlvbiBhcmUgaW5kZXBlbmRlbnQgYW5kIGNhbiBiZSBjb21iaW5lZC4KCkZvciB0aGUgZG93bmxvYWQgbGluaywgdGhlIHJlcG9ydCBmaWxlcyBhcmUgdXBsb2FkZWQgdG8gdGhlIEF6dXJlIHN0b3JhZ2UgYWNjb3VudCBjb25maWd1cmVkIGluIHRoZSBgUkpSZXBvcnQuU3RvcmFnZUFjY291bnQuKmAgdGVuYW50IHNldHRpbmdzLCBhbmQgdGltZS1saW1pdGVkIFNBUyBkb3dubG9hZCBsaW5rcyBhcmUgcmV0dXJuZWQuIFRoZSBzdG9yYWdlIHVwbG9hZCBhdXRoZW50aWNhdGVzIHdpdGggdGhlIEF1dG9tYXRpb24gYWNjb3VudCdzIG1hbmFnZWQgaWRlbnRpdHk7IHRoYXQgaWRlbnRpdHkgbmVlZHMgdGhlICoqUmVhZGVyIGFuZCBEYXRhIEFjY2VzcyoqIFJCQUMgcm9sZSBvbiB0aGUgdGFyZ2V0IHN0b3JhZ2UgYWNjb3VudCAodGhpcyBpcyBhbiBBenVyZSBSQkFDIGFzc2lnbm1lbnQsIG5vdCBhIEdyYXBoIGFwcGxpY2F0aW9uIHBlcm1pc3Npb24pLgoKIyMgU2V0dXAgcmVnYXJkaW5nIGVtYWlsIHNlbmRpbmcKClNlbmRpbmcgYW4gZW1haWwgcmVwb3J0IGlzIG9wdGlvbmFsIGFuZCBvbmx5IGhhcHBlbnMgd2hlbiAqQWxzbyBlbWFpbCB0aGUgcmVwb3J0KiBvciAqQWxzbyBlbWFpbCAmIGRvd25sb2FkIGxpbmsqIGlzIHNlbGVjdGVkIGFzIHJlcG9ydCBkZWxpdmVyeTsgYSByZWNpcGllbnQgaXMgdGhlbiByZXF1aXJlZC4gVGhlIHNlbmRlciBhZGRyZXNzIGlzIHRha2VuIGZyb20gdGhlIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgdGVuYW50IHNldHRpbmcuCgpUaGlzIHJ1bmJvb2sgc2VuZHMgZW1haWxzIHVzaW5nIHRoZSBNaWNyb3NvZnQgR3JhcGggQVBJLiBUbyBzZW5kIGVtYWlscyB2aWEgR3JhcGggQVBJLCB5b3UgbmVlZCB0byBjb25maWd1cmUgYW4gZXhpc3RpbmcgZW1haWwgYWRkcmVzcyBpbiB0aGUgcnVuYm9vayBjdXN0b21pemF0aW9uLgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscyBvbiBhbGwgYXZhaWxhYmxlIHNldHRpbmdzLgoKIyMjIEVtYWlsIGJyYW5kaW5nCgpUaGUgcmVwb3J0IGVtYWlsIGhvbm9ycyB0aGUgb3B0aW9uYWwgYFJKUmVwb3J0LkJyYW5kaW5nLipgIHRlbmFudCBzZXR0aW5nczoKCi0gKipIZWFkZXIgYW5kIGZvb3RlciBpbWFnZSoqIC0gcHVibGljIEhUVFBTIFVSTHMsIFBORy9KUEVHL0dJRiwgbWF4LiAyMDAgS0IgZWFjaAotICoqRm9vdGVyIGxpbmsqKiAtIHRhcmdldCBvZiB0aGUgZm9vdGVyIGltYWdlCi0gKipBY2NlbnQgYW5kIHRleHQgY29sb3IqKiAtIDYtZGlnaXQgaGV4IHZhbHVlcywgZS5nLiBgIzAwNTJjY2AKCldoZW4gdGhlc2Ugc2V0dGluZ3MgYXJlIG5vdCBjb25maWd1cmVkLCB0aGUgZGVmYXVsdCBSZWFsbUpvaW4gZ3JhcGhpY3MgYW5kIGNvbG9ycyBhcmUgdXNlZC4gQW4gaW1hZ2UgdGhhdCBjYW5ub3QgYmUgZG93bmxvYWRlZCBvciB2YWxpZGF0ZWQsIG9yIGFuIGludmFsaWQgY29sb3IgdmFsdWUsIG5ldmVyIHByZXZlbnRzIHRoZSByZXBvcnQgZW1haWwgLSB0aGUgY29ycmVzcG9uZGluZyBkZWZhdWx0IGlzIHVzZWQgaW5zdGVhZC4KClNldHVwIGluc3RydWN0aW9ucyBhbmQgaW1hZ2UgcmVxdWlyZW1lbnRzOiBbRW1haWwgYnJhbmRpbmddKGh0dHBzOi8vZG9jcy5yZWFsbWpvaW4uY29tL2F1dG9tYXRpb24vcnVuYm9va3MvcnVuYm9vay1yZXBvcnQtc2V0dGluZ3MjZW1haWwtYnJhbmRpbmctb3B0aW9uYWwpLgoKIyMgTm90ZXMgYW5kIGxpbWl0YXRpb25zCgotIFRoZSByZXBvcnQgbGlzdHMgdGhlIHNoYXJlZCBjaGFubmVscyBob3N0ZWQgaW4gdGhpcyB0ZW5hbnQuIFNoYXJlZCBjaGFubmVscyB0aGF0IGFub3RoZXIgb3JnYW5pemF0aW9uIGhvc3RzIGFuZCBzaGFyZXMgd2l0aCBhIHRlYW0gb2YgdGhpcyB0ZW5hbnQgYXJlIG5vdCBsaXN0ZWQsIHNvIHBlb3BsZSBvZiB0aGlzIHRlbmFudCB3aG8gcmVhY2ggYSBjaGFubmVsIG9mIGFub3RoZXIgb3JnYW5pemF0aW9uIGRvIG5vdCBhcHBlYXIuCi0gUGVvcGxlIHdobyB3ZXJlIGludml0ZWQgdG8gYSBzaGFyZWQgY2hhbm5lbCBidXQgaGF2ZSBub3QgYWNjZXB0ZWQgeWV0IGFyZSBub3QgbWVtYmVycyBhbmQgZG8gbm90IGFwcGVhcjsgR3JhcGggZG9lcyBub3QgbGlzdCBwZW5kaW5nIGludml0YXRpb25zLgotIERlbGV0ZWQgc2hhcmVkIGNoYW5uZWxzIChyZXN0b3JhYmxlIGZvciAzMCBkYXlzKSBhcmUgbm90IGxpc3RlZC4gQXJjaGl2aW5nIGEgdGVhbSByZW1vdmVzIHRoZSBzaGFyaW5nIHdpdGggb3RoZXIgdGVhbXMsIHNvIHRoZSBtZW1iZXJzIHdobyBjYW1lIHRocm91Z2ggdGhvc2UgdGVhbXMgbm8gbG9uZ2VyIGFwcGVhci4KLSAqTGltaXQgdG8gdGhlc2UgdGVhbXMqIG9ubHkgb2ZmZXJzIGdyb3VwcyB0aGF0IGFyZSBtYXJrZWQgYXMgdGVhbXMuIEFuIG9sZCB0ZWFtIHdpdGhvdXQgdGhpcyBtYXJrIGlzIHN0aWxsIHBhcnQgb2YgdGhlIHJlcG9ydCB3aGVuIHRoZSBmaWVsZCBpcyBsZWZ0IGVtcHR5LgotIFRoZSByZXBvcnQgaXMgcmVhZC1vbmx5LiBNZW1iZXJzIG9mIHNoYXJlZCBjaGFubmVscyBhcmUgY2hhbmdlZCBpbiBUZWFtcyBvciBpbiB0aGUgVGVhbXMgYWRtaW4gY2VudGVyOyB0aGUgcnVuYm9va3MgKipTeW5jIENoYW5uZWwgT3IgR3JvdXAgTWVtYmVycyAoU2NoZWR1bGVkKSoqIGFuZCAqKlN5bmMgU2hhcmVkIENoYW5uZWwgT3duZXJzIChTY2hlZHVsZWQpKiogY292ZXIgdGhlIGF1dG9tYXRlZCBjYXNlcy4KLSBGb3IgYW4gb3ZlcnZpZXcgb2YgcHJpdmF0ZSBhbmQgc2hhcmVkIGNoYW5uZWxzIHdpdGggdGhlaXIgb3duZXJzLCB1c2UgKipSZXBvcnQgVGVhbXMgQ2hhbm5lbHMgKFNjaGVkdWxlZCkqKi4K",
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"Channel.ReadBasic.All\",\n                    \"Reason\": \"Lists the shared channels of every team via /teams/{id}/channels\"\n                },\n                {\n                    \"Value\": \"ChannelMember.Read.All\",\n                    \"Reason\": \"Reads the direct members, all members and the teams each shared channel is shared with\"\n                },\n                {\n                    \"Value\": \"Team.ReadBasic.All\",\n                    \"Reason\": \"Lists every team of the tenant via /teams and reads the selected teams\"\n                },\n                {\n                    \"Value\": \"CrossTenantInformation.ReadBasic.All\",\n                    \"Optional\": true,\n                    \"Feature\": \"External organization names\",\n                    \"Reason\": \"Resolves the organization name of members and teams from other tenants; without it the tenant ID is shown\"\n                },\n                {\n                    \"Value\": \"Mail.Send\",\n                    \"Optional\": true,\n                    \"Feature\": \"Email report\",\n                    \"Reason\": \"Sends the report email via Send-RjRbReportEmail when email delivery is selected\"\n                },\n                {\n                    \"Value\": \"Organization.Read.All\",\n                    \"Optional\": true,\n                    \"Feature\": \"Email report\",\n                    \"Reason\": \"Reads the tenant display name for the email subject, the email body, the report file names and the Organization column\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": [\n        \"Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link options)\"\n    ]\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "Channel.ReadBasic.All",
+            "ChannelMember.Read.All",
+            "CrossTenantInformation.ReadBasic.All",
+            "Mail.Send",
+            "Organization.Read.All",
+            "Team.ReadBasic.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": [
+        "Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link options)"
+      ]
+    }
+  },
+  {
     "RunbookDisplayName": "Report Sharepoint Tenant Storage_Scheduled",
     "RunbookDisplayPath": "Org \\ Collab \\ Report Sharepoint Tenant Storage_Scheduled",
     "RelativeRunbookPath": "org/collab/report-sharepoint-tenant-storage_scheduled.ps1",
@@ -6916,8 +7275,8 @@
         }
       }
     ],
-    "DocsContent": "## How it works\n\nThe runbook lists every Microsoft 365 group that is provisioned as a team, optionally narrowed by *Team name prefix*. For each team it reads the channels of the selected types and, for each channel, the member list.\n\n- **Private channels** belong to one team; only their members see them, and they do not appear in the group view of the RealmJoin Portal or in the group membership of the team. This report is the way to see them at a glance.\n- **Shared channels** are hosted by one team and can be shared with other teams and with people from other tenants. The report lists the shared channels a team hosts; channels shared into a team from elsewhere are not repeated under that team.\n\nEvery row names the team and its visibility, the channel, its type, whether it is archived, the creation date, the number of owners, members and external members, and the owners by name and email. With *List the members too?* set to yes, the members are listed by name as well; leave it off in large tenants to keep the report short.\n\nChannels without any owner are listed in their own table and worksheet. A private or shared channel keeps working without an owner, but nobody can manage its membership from inside Teams, so such channels are the first candidates for cleanup.\n\n### External members\n\nA member whose tenant differs from the home tenant is marked *(external)* and counted in the *ExternalCount* column. Guest accounts of the home tenant are not marked, as they are members of the tenant directory.\n\n### Teams and channels that cannot be read\n\nA team whose channels cannot be read, for example because it was deleted while the report ran or because the team is archived and inaccessible, is listed in the *Teams not readable* table with the reason and does not stop the run. A channel whose member list cannot be read keeps its row with the reason in the *Note* column and is not counted as a channel without owner.\n\n### Runtime\n\nChannels and members are read through Graph batch requests, twenty at a time. A tenant with several thousand teams still takes a while; the job log shows the progress. Use *Team name prefix* to report on a subset.\n\n## Report delivery\n\nThe results always appear as named tables in the Output Data tab of the run in the RealmJoin portal. Report files are only generated when the **Report delivery** option includes an email and/or a download link; *Output Data only* creates no report files. Email delivery and download link generation are independent and can be combined.\n\nFor the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Reader and Data Access** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).\n\n## Setup regarding email sending\n\nSending an email report is optional and only happens when *Also email the report* or *Also email & download link* is selected as report delivery; a recipient is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.\n\n### Email branding\n\nThe report email honors the optional `RJReport.Branding.*` tenant settings:\n\n- **Header and footer image** - public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each\n- **Footer link** - target of the footer image\n- **Accent and text color** - 6-digit hex values, e.g. `#0052cc`\n\nWhen these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email - the corresponding default is used instead.\n\nSetup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).\n\n## Notes and limitations\n\n- The report is read-only. Owners and members of private and shared channels are changed in the Teams admin center or in Teams itself; the runbooks **Sync Channel Or Group Members (Scheduled)** and **Sync Shared Channel Owners (Scheduled)** cover the automated cases for shared channels.\n- Standard channels are not listed; their membership equals the team membership, which the RealmJoin Portal shows.\n- The member list of a shared channel contains its direct members. People who reach a shared channel through another team that the channel is shared with are not listed.\n",
-    "DocsContentEncoded": "IyMgSG93IGl0IHdvcmtzCgpUaGUgcnVuYm9vayBsaXN0cyBldmVyeSBNaWNyb3NvZnQgMzY1IGdyb3VwIHRoYXQgaXMgcHJvdmlzaW9uZWQgYXMgYSB0ZWFtLCBvcHRpb25hbGx5IG5hcnJvd2VkIGJ5ICpUZWFtIG5hbWUgcHJlZml4Ki4gRm9yIGVhY2ggdGVhbSBpdCByZWFkcyB0aGUgY2hhbm5lbHMgb2YgdGhlIHNlbGVjdGVkIHR5cGVzIGFuZCwgZm9yIGVhY2ggY2hhbm5lbCwgdGhlIG1lbWJlciBsaXN0LgoKLSAqKlByaXZhdGUgY2hhbm5lbHMqKiBiZWxvbmcgdG8gb25lIHRlYW07IG9ubHkgdGhlaXIgbWVtYmVycyBzZWUgdGhlbSwgYW5kIHRoZXkgZG8gbm90IGFwcGVhciBpbiB0aGUgZ3JvdXAgdmlldyBvZiB0aGUgUmVhbG1Kb2luIFBvcnRhbCBvciBpbiB0aGUgZ3JvdXAgbWVtYmVyc2hpcCBvZiB0aGUgdGVhbS4gVGhpcyByZXBvcnQgaXMgdGhlIHdheSB0byBzZWUgdGhlbSBhdCBhIGdsYW5jZS4KLSAqKlNoYXJlZCBjaGFubmVscyoqIGFyZSBob3N0ZWQgYnkgb25lIHRlYW0gYW5kIGNhbiBiZSBzaGFyZWQgd2l0aCBvdGhlciB0ZWFtcyBhbmQgd2l0aCBwZW9wbGUgZnJvbSBvdGhlciB0ZW5hbnRzLiBUaGUgcmVwb3J0IGxpc3RzIHRoZSBzaGFyZWQgY2hhbm5lbHMgYSB0ZWFtIGhvc3RzOyBjaGFubmVscyBzaGFyZWQgaW50byBhIHRlYW0gZnJvbSBlbHNld2hlcmUgYXJlIG5vdCByZXBlYXRlZCB1bmRlciB0aGF0IHRlYW0uCgpFdmVyeSByb3cgbmFtZXMgdGhlIHRlYW0gYW5kIGl0cyB2aXNpYmlsaXR5LCB0aGUgY2hhbm5lbCwgaXRzIHR5cGUsIHdoZXRoZXIgaXQgaXMgYXJjaGl2ZWQsIHRoZSBjcmVhdGlvbiBkYXRlLCB0aGUgbnVtYmVyIG9mIG93bmVycywgbWVtYmVycyBhbmQgZXh0ZXJuYWwgbWVtYmVycywgYW5kIHRoZSBvd25lcnMgYnkgbmFtZSBhbmQgZW1haWwuIFdpdGggKkxpc3QgdGhlIG1lbWJlcnMgdG9vPyogc2V0IHRvIHllcywgdGhlIG1lbWJlcnMgYXJlIGxpc3RlZCBieSBuYW1lIGFzIHdlbGw7IGxlYXZlIGl0IG9mZiBpbiBsYXJnZSB0ZW5hbnRzIHRvIGtlZXAgdGhlIHJlcG9ydCBzaG9ydC4KCkNoYW5uZWxzIHdpdGhvdXQgYW55IG93bmVyIGFyZSBsaXN0ZWQgaW4gdGhlaXIgb3duIHRhYmxlIGFuZCB3b3Jrc2hlZXQuIEEgcHJpdmF0ZSBvciBzaGFyZWQgY2hhbm5lbCBrZWVwcyB3b3JraW5nIHdpdGhvdXQgYW4gb3duZXIsIGJ1dCBub2JvZHkgY2FuIG1hbmFnZSBpdHMgbWVtYmVyc2hpcCBmcm9tIGluc2lkZSBUZWFtcywgc28gc3VjaCBjaGFubmVscyBhcmUgdGhlIGZpcnN0IGNhbmRpZGF0ZXMgZm9yIGNsZWFudXAuCgojIyMgRXh0ZXJuYWwgbWVtYmVycwoKQSBtZW1iZXIgd2hvc2UgdGVuYW50IGRpZmZlcnMgZnJvbSB0aGUgaG9tZSB0ZW5hbnQgaXMgbWFya2VkICooZXh0ZXJuYWwpKiBhbmQgY291bnRlZCBpbiB0aGUgKkV4dGVybmFsQ291bnQqIGNvbHVtbi4gR3Vlc3QgYWNjb3VudHMgb2YgdGhlIGhvbWUgdGVuYW50IGFyZSBub3QgbWFya2VkLCBhcyB0aGV5IGFyZSBtZW1iZXJzIG9mIHRoZSB0ZW5hbnQgZGlyZWN0b3J5LgoKIyMjIFRlYW1zIGFuZCBjaGFubmVscyB0aGF0IGNhbm5vdCBiZSByZWFkCgpBIHRlYW0gd2hvc2UgY2hhbm5lbHMgY2Fubm90IGJlIHJlYWQsIGZvciBleGFtcGxlIGJlY2F1c2UgaXQgd2FzIGRlbGV0ZWQgd2hpbGUgdGhlIHJlcG9ydCByYW4gb3IgYmVjYXVzZSB0aGUgdGVhbSBpcyBhcmNoaXZlZCBhbmQgaW5hY2Nlc3NpYmxlLCBpcyBsaXN0ZWQgaW4gdGhlICpUZWFtcyBub3QgcmVhZGFibGUqIHRhYmxlIHdpdGggdGhlIHJlYXNvbiBhbmQgZG9lcyBub3Qgc3RvcCB0aGUgcnVuLiBBIGNoYW5uZWwgd2hvc2UgbWVtYmVyIGxpc3QgY2Fubm90IGJlIHJlYWQga2VlcHMgaXRzIHJvdyB3aXRoIHRoZSByZWFzb24gaW4gdGhlICpOb3RlKiBjb2x1bW4gYW5kIGlzIG5vdCBjb3VudGVkIGFzIGEgY2hhbm5lbCB3aXRob3V0IG93bmVyLgoKIyMjIFJ1bnRpbWUKCkNoYW5uZWxzIGFuZCBtZW1iZXJzIGFyZSByZWFkIHRocm91Z2ggR3JhcGggYmF0Y2ggcmVxdWVzdHMsIHR3ZW50eSBhdCBhIHRpbWUuIEEgdGVuYW50IHdpdGggc2V2ZXJhbCB0aG91c2FuZCB0ZWFtcyBzdGlsbCB0YWtlcyBhIHdoaWxlOyB0aGUgam9iIGxvZyBzaG93cyB0aGUgcHJvZ3Jlc3MuIFVzZSAqVGVhbSBuYW1lIHByZWZpeCogdG8gcmVwb3J0IG9uIGEgc3Vic2V0LgoKIyMgUmVwb3J0IGRlbGl2ZXJ5CgpUaGUgcmVzdWx0cyBhbHdheXMgYXBwZWFyIGFzIG5hbWVkIHRhYmxlcyBpbiB0aGUgT3V0cHV0IERhdGEgdGFiIG9mIHRoZSBydW4gaW4gdGhlIFJlYWxtSm9pbiBwb3J0YWwuIFJlcG9ydCBmaWxlcyBhcmUgb25seSBnZW5lcmF0ZWQgd2hlbiB0aGUgKipSZXBvcnQgZGVsaXZlcnkqKiBvcHRpb24gaW5jbHVkZXMgYW4gZW1haWwgYW5kL29yIGEgZG93bmxvYWQgbGluazsgKk91dHB1dCBEYXRhIG9ubHkqIGNyZWF0ZXMgbm8gcmVwb3J0IGZpbGVzLiBFbWFpbCBkZWxpdmVyeSBhbmQgZG93bmxvYWQgbGluayBnZW5lcmF0aW9uIGFyZSBpbmRlcGVuZGVudCBhbmQgY2FuIGJlIGNvbWJpbmVkLgoKRm9yIHRoZSBkb3dubG9hZCBsaW5rLCB0aGUgcmVwb3J0IGZpbGVzIGFyZSB1cGxvYWRlZCB0byB0aGUgQXp1cmUgc3RvcmFnZSBhY2NvdW50IGNvbmZpZ3VyZWQgaW4gdGhlIGBSSlJlcG9ydC5TdG9yYWdlQWNjb3VudC4qYCB0ZW5hbnQgc2V0dGluZ3MsIGFuZCB0aW1lLWxpbWl0ZWQgU0FTIGRvd25sb2FkIGxpbmtzIGFyZSByZXR1cm5lZC4gVGhlIHN0b3JhZ2UgdXBsb2FkIGF1dGhlbnRpY2F0ZXMgd2l0aCB0aGUgQXV0b21hdGlvbiBhY2NvdW50J3MgbWFuYWdlZCBpZGVudGl0eTsgdGhhdCBpZGVudGl0eSBuZWVkcyB0aGUgKipSZWFkZXIgYW5kIERhdGEgQWNjZXNzKiogUkJBQyByb2xlIG9uIHRoZSB0YXJnZXQgc3RvcmFnZSBhY2NvdW50ICh0aGlzIGlzIGFuIEF6dXJlIFJCQUMgYXNzaWdubWVudCwgbm90IGEgR3JhcGggYXBwbGljYXRpb24gcGVybWlzc2lvbikuCgojIyBTZXR1cCByZWdhcmRpbmcgZW1haWwgc2VuZGluZwoKU2VuZGluZyBhbiBlbWFpbCByZXBvcnQgaXMgb3B0aW9uYWwgYW5kIG9ubHkgaGFwcGVucyB3aGVuICpBbHNvIGVtYWlsIHRoZSByZXBvcnQqIG9yICpBbHNvIGVtYWlsICYgZG93bmxvYWQgbGluayogaXMgc2VsZWN0ZWQgYXMgcmVwb3J0IGRlbGl2ZXJ5OyBhIHJlY2lwaWVudCBpcyB0aGVuIHJlcXVpcmVkLiBUaGUgc2VuZGVyIGFkZHJlc3MgaXMgdGFrZW4gZnJvbSB0aGUgYFJKUmVwb3J0LkVtYWlsU2VuZGVyYCB0ZW5hbnQgc2V0dGluZy4KClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpTZWUgdGhlIFtSZWFsbUpvaW4gUmVwb3J0IFNldHRpbmdzIGRvY3VtZW50YXRpb25dKGh0dHBzOi8vZG9jcy5yZWFsbWpvaW4uY29tL2F1dG9tYXRpb24vcnVuYm9va3MvcnVuYm9vay1yZXBvcnQtc2V0dGluZ3MpIGZvciBkZXRhaWxzIG9uIGFsbCBhdmFpbGFibGUgc2V0dGluZ3MuCgojIyMgRW1haWwgYnJhbmRpbmcKClRoZSByZXBvcnQgZW1haWwgaG9ub3JzIHRoZSBvcHRpb25hbCBgUkpSZXBvcnQuQnJhbmRpbmcuKmAgdGVuYW50IHNldHRpbmdzOgoKLSAqKkhlYWRlciBhbmQgZm9vdGVyIGltYWdlKiogLSBwdWJsaWMgSFRUUFMgVVJMcywgUE5HL0pQRUcvR0lGLCBtYXguIDIwMCBLQiBlYWNoCi0gKipGb290ZXIgbGluayoqIC0gdGFyZ2V0IG9mIHRoZSBmb290ZXIgaW1hZ2UKLSAqKkFjY2VudCBhbmQgdGV4dCBjb2xvcioqIC0gNi1kaWdpdCBoZXggdmFsdWVzLCBlLmcuIGAjMDA1MmNjYAoKV2hlbiB0aGVzZSBzZXR0aW5ncyBhcmUgbm90IGNvbmZpZ3VyZWQsIHRoZSBkZWZhdWx0IFJlYWxtSm9pbiBncmFwaGljcyBhbmQgY29sb3JzIGFyZSB1c2VkLiBBbiBpbWFnZSB0aGF0IGNhbm5vdCBiZSBkb3dubG9hZGVkIG9yIHZhbGlkYXRlZCwgb3IgYW4gaW52YWxpZCBjb2xvciB2YWx1ZSwgbmV2ZXIgcHJldmVudHMgdGhlIHJlcG9ydCBlbWFpbCAtIHRoZSBjb3JyZXNwb25kaW5nIGRlZmF1bHQgaXMgdXNlZCBpbnN0ZWFkLgoKU2V0dXAgaW5zdHJ1Y3Rpb25zIGFuZCBpbWFnZSByZXF1aXJlbWVudHM6IFtFbWFpbCBicmFuZGluZ10oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vYXV0b21hdGlvbi9ydW5ib29rcy9ydW5ib29rLXJlcG9ydC1zZXR0aW5ncyNlbWFpbC1icmFuZGluZy1vcHRpb25hbCkuCgojIyBOb3RlcyBhbmQgbGltaXRhdGlvbnMKCi0gVGhlIHJlcG9ydCBpcyByZWFkLW9ubHkuIE93bmVycyBhbmQgbWVtYmVycyBvZiBwcml2YXRlIGFuZCBzaGFyZWQgY2hhbm5lbHMgYXJlIGNoYW5nZWQgaW4gdGhlIFRlYW1zIGFkbWluIGNlbnRlciBvciBpbiBUZWFtcyBpdHNlbGY7IHRoZSBydW5ib29rcyAqKlN5bmMgQ2hhbm5lbCBPciBHcm91cCBNZW1iZXJzIChTY2hlZHVsZWQpKiogYW5kICoqU3luYyBTaGFyZWQgQ2hhbm5lbCBPd25lcnMgKFNjaGVkdWxlZCkqKiBjb3ZlciB0aGUgYXV0b21hdGVkIGNhc2VzIGZvciBzaGFyZWQgY2hhbm5lbHMuCi0gU3RhbmRhcmQgY2hhbm5lbHMgYXJlIG5vdCBsaXN0ZWQ7IHRoZWlyIG1lbWJlcnNoaXAgZXF1YWxzIHRoZSB0ZWFtIG1lbWJlcnNoaXAsIHdoaWNoIHRoZSBSZWFsbUpvaW4gUG9ydGFsIHNob3dzLgotIFRoZSBtZW1iZXIgbGlzdCBvZiBhIHNoYXJlZCBjaGFubmVsIGNvbnRhaW5zIGl0cyBkaXJlY3QgbWVtYmVycy4gUGVvcGxlIHdobyByZWFjaCBhIHNoYXJlZCBjaGFubmVsIHRocm91Z2ggYW5vdGhlciB0ZWFtIHRoYXQgdGhlIGNoYW5uZWwgaXMgc2hhcmVkIHdpdGggYXJlIG5vdCBsaXN0ZWQuCg==",
+    "DocsContent": "## How it works\n\nThe runbook lists every Microsoft 365 group that is provisioned as a team, optionally narrowed by *Team name prefix*. For each team it reads the channels of the selected types and, for each channel, the member list.\n\n- **Private channels** belong to one team; only their members see them, and they do not appear in the group view of the RealmJoin Portal or in the group membership of the team. This report is the way to see them at a glance.\n- **Shared channels** are hosted by one team and can be shared with other teams and with people from other tenants. The report lists the shared channels a team hosts; channels shared into a team from elsewhere are not repeated under that team.\n\nEvery row names the team and its visibility, the channel, its type, whether it is archived, the creation date, the number of owners, members and external members, and the owners by name and email. With *List the members too?* set to yes, the members are listed by name as well; leave it off in large tenants to keep the report short.\n\nChannels without any owner are listed in their own table and worksheet. A private or shared channel keeps working without an owner, but nobody can manage its membership from inside Teams, so such channels are the first candidates for cleanup.\n\n### External members\n\nA member whose tenant differs from the home tenant is marked *(external)* and counted in the *ExternalCount* column. Guest accounts of the home tenant are not marked, as they are members of the tenant directory.\n\n### Teams and channels that cannot be read\n\nA team whose channels cannot be read, for example because it was deleted while the report ran or because the team is archived and inaccessible, is listed in the *Teams not readable* table with the reason and does not stop the run. A channel whose member list cannot be read keeps its row with the reason in the *Note* column and is not counted as a channel without owner.\n\n### Runtime\n\nChannels and members are read through Graph batch requests, twenty at a time. A tenant with several thousand teams still takes a while; the job log shows the progress. Use *Team name prefix* to report on a subset.\n\n## Report delivery\n\nThe results always appear as named tables in the Output Data tab of the run in the RealmJoin portal. Report files are only generated when the **Report delivery** option includes an email and/or a download link; *Output Data only* creates no report files. Email delivery and download link generation are independent and can be combined.\n\nFor the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Reader and Data Access** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).\n\n## Setup regarding email sending\n\nSending an email report is optional and only happens when *Also email the report* or *Also email & download link* is selected as report delivery; a recipient is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.\n\n### Email branding\n\nThe report email honors the optional `RJReport.Branding.*` tenant settings:\n\n- **Header and footer image** - public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each\n- **Footer link** - target of the footer image\n- **Accent and text color** - 6-digit hex values, e.g. `#0052cc`\n\nWhen these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email - the corresponding default is used instead.\n\nSetup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).\n\n## Notes and limitations\n\n- The report is read-only. Owners and members of private and shared channels are changed in the Teams admin center or in Teams itself; the runbooks **Sync Channel Or Group Members (Scheduled)** and **Sync Shared Channel Owners (Scheduled)** cover the automated cases for shared channels.\n- Standard channels are not listed; their membership equals the team membership, which the RealmJoin Portal shows.\n- The member list of a shared channel contains its direct members. People who reach a shared channel through another team that the channel is shared with are not listed; **Report Shared Channel Members (Scheduled)** lists them with one row per member.\n",
+    "DocsContentEncoded": "IyMgSG93IGl0IHdvcmtzCgpUaGUgcnVuYm9vayBsaXN0cyBldmVyeSBNaWNyb3NvZnQgMzY1IGdyb3VwIHRoYXQgaXMgcHJvdmlzaW9uZWQgYXMgYSB0ZWFtLCBvcHRpb25hbGx5IG5hcnJvd2VkIGJ5ICpUZWFtIG5hbWUgcHJlZml4Ki4gRm9yIGVhY2ggdGVhbSBpdCByZWFkcyB0aGUgY2hhbm5lbHMgb2YgdGhlIHNlbGVjdGVkIHR5cGVzIGFuZCwgZm9yIGVhY2ggY2hhbm5lbCwgdGhlIG1lbWJlciBsaXN0LgoKLSAqKlByaXZhdGUgY2hhbm5lbHMqKiBiZWxvbmcgdG8gb25lIHRlYW07IG9ubHkgdGhlaXIgbWVtYmVycyBzZWUgdGhlbSwgYW5kIHRoZXkgZG8gbm90IGFwcGVhciBpbiB0aGUgZ3JvdXAgdmlldyBvZiB0aGUgUmVhbG1Kb2luIFBvcnRhbCBvciBpbiB0aGUgZ3JvdXAgbWVtYmVyc2hpcCBvZiB0aGUgdGVhbS4gVGhpcyByZXBvcnQgaXMgdGhlIHdheSB0byBzZWUgdGhlbSBhdCBhIGdsYW5jZS4KLSAqKlNoYXJlZCBjaGFubmVscyoqIGFyZSBob3N0ZWQgYnkgb25lIHRlYW0gYW5kIGNhbiBiZSBzaGFyZWQgd2l0aCBvdGhlciB0ZWFtcyBhbmQgd2l0aCBwZW9wbGUgZnJvbSBvdGhlciB0ZW5hbnRzLiBUaGUgcmVwb3J0IGxpc3RzIHRoZSBzaGFyZWQgY2hhbm5lbHMgYSB0ZWFtIGhvc3RzOyBjaGFubmVscyBzaGFyZWQgaW50byBhIHRlYW0gZnJvbSBlbHNld2hlcmUgYXJlIG5vdCByZXBlYXRlZCB1bmRlciB0aGF0IHRlYW0uCgpFdmVyeSByb3cgbmFtZXMgdGhlIHRlYW0gYW5kIGl0cyB2aXNpYmlsaXR5LCB0aGUgY2hhbm5lbCwgaXRzIHR5cGUsIHdoZXRoZXIgaXQgaXMgYXJjaGl2ZWQsIHRoZSBjcmVhdGlvbiBkYXRlLCB0aGUgbnVtYmVyIG9mIG93bmVycywgbWVtYmVycyBhbmQgZXh0ZXJuYWwgbWVtYmVycywgYW5kIHRoZSBvd25lcnMgYnkgbmFtZSBhbmQgZW1haWwuIFdpdGggKkxpc3QgdGhlIG1lbWJlcnMgdG9vPyogc2V0IHRvIHllcywgdGhlIG1lbWJlcnMgYXJlIGxpc3RlZCBieSBuYW1lIGFzIHdlbGw7IGxlYXZlIGl0IG9mZiBpbiBsYXJnZSB0ZW5hbnRzIHRvIGtlZXAgdGhlIHJlcG9ydCBzaG9ydC4KCkNoYW5uZWxzIHdpdGhvdXQgYW55IG93bmVyIGFyZSBsaXN0ZWQgaW4gdGhlaXIgb3duIHRhYmxlIGFuZCB3b3Jrc2hlZXQuIEEgcHJpdmF0ZSBvciBzaGFyZWQgY2hhbm5lbCBrZWVwcyB3b3JraW5nIHdpdGhvdXQgYW4gb3duZXIsIGJ1dCBub2JvZHkgY2FuIG1hbmFnZSBpdHMgbWVtYmVyc2hpcCBmcm9tIGluc2lkZSBUZWFtcywgc28gc3VjaCBjaGFubmVscyBhcmUgdGhlIGZpcnN0IGNhbmRpZGF0ZXMgZm9yIGNsZWFudXAuCgojIyMgRXh0ZXJuYWwgbWVtYmVycwoKQSBtZW1iZXIgd2hvc2UgdGVuYW50IGRpZmZlcnMgZnJvbSB0aGUgaG9tZSB0ZW5hbnQgaXMgbWFya2VkICooZXh0ZXJuYWwpKiBhbmQgY291bnRlZCBpbiB0aGUgKkV4dGVybmFsQ291bnQqIGNvbHVtbi4gR3Vlc3QgYWNjb3VudHMgb2YgdGhlIGhvbWUgdGVuYW50IGFyZSBub3QgbWFya2VkLCBhcyB0aGV5IGFyZSBtZW1iZXJzIG9mIHRoZSB0ZW5hbnQgZGlyZWN0b3J5LgoKIyMjIFRlYW1zIGFuZCBjaGFubmVscyB0aGF0IGNhbm5vdCBiZSByZWFkCgpBIHRlYW0gd2hvc2UgY2hhbm5lbHMgY2Fubm90IGJlIHJlYWQsIGZvciBleGFtcGxlIGJlY2F1c2UgaXQgd2FzIGRlbGV0ZWQgd2hpbGUgdGhlIHJlcG9ydCByYW4gb3IgYmVjYXVzZSB0aGUgdGVhbSBpcyBhcmNoaXZlZCBhbmQgaW5hY2Nlc3NpYmxlLCBpcyBsaXN0ZWQgaW4gdGhlICpUZWFtcyBub3QgcmVhZGFibGUqIHRhYmxlIHdpdGggdGhlIHJlYXNvbiBhbmQgZG9lcyBub3Qgc3RvcCB0aGUgcnVuLiBBIGNoYW5uZWwgd2hvc2UgbWVtYmVyIGxpc3QgY2Fubm90IGJlIHJlYWQga2VlcHMgaXRzIHJvdyB3aXRoIHRoZSByZWFzb24gaW4gdGhlICpOb3RlKiBjb2x1bW4gYW5kIGlzIG5vdCBjb3VudGVkIGFzIGEgY2hhbm5lbCB3aXRob3V0IG93bmVyLgoKIyMjIFJ1bnRpbWUKCkNoYW5uZWxzIGFuZCBtZW1iZXJzIGFyZSByZWFkIHRocm91Z2ggR3JhcGggYmF0Y2ggcmVxdWVzdHMsIHR3ZW50eSBhdCBhIHRpbWUuIEEgdGVuYW50IHdpdGggc2V2ZXJhbCB0aG91c2FuZCB0ZWFtcyBzdGlsbCB0YWtlcyBhIHdoaWxlOyB0aGUgam9iIGxvZyBzaG93cyB0aGUgcHJvZ3Jlc3MuIFVzZSAqVGVhbSBuYW1lIHByZWZpeCogdG8gcmVwb3J0IG9uIGEgc3Vic2V0LgoKIyMgUmVwb3J0IGRlbGl2ZXJ5CgpUaGUgcmVzdWx0cyBhbHdheXMgYXBwZWFyIGFzIG5hbWVkIHRhYmxlcyBpbiB0aGUgT3V0cHV0IERhdGEgdGFiIG9mIHRoZSBydW4gaW4gdGhlIFJlYWxtSm9pbiBwb3J0YWwuIFJlcG9ydCBmaWxlcyBhcmUgb25seSBnZW5lcmF0ZWQgd2hlbiB0aGUgKipSZXBvcnQgZGVsaXZlcnkqKiBvcHRpb24gaW5jbHVkZXMgYW4gZW1haWwgYW5kL29yIGEgZG93bmxvYWQgbGluazsgKk91dHB1dCBEYXRhIG9ubHkqIGNyZWF0ZXMgbm8gcmVwb3J0IGZpbGVzLiBFbWFpbCBkZWxpdmVyeSBhbmQgZG93bmxvYWQgbGluayBnZW5lcmF0aW9uIGFyZSBpbmRlcGVuZGVudCBhbmQgY2FuIGJlIGNvbWJpbmVkLgoKRm9yIHRoZSBkb3dubG9hZCBsaW5rLCB0aGUgcmVwb3J0IGZpbGVzIGFyZSB1cGxvYWRlZCB0byB0aGUgQXp1cmUgc3RvcmFnZSBhY2NvdW50IGNvbmZpZ3VyZWQgaW4gdGhlIGBSSlJlcG9ydC5TdG9yYWdlQWNjb3VudC4qYCB0ZW5hbnQgc2V0dGluZ3MsIGFuZCB0aW1lLWxpbWl0ZWQgU0FTIGRvd25sb2FkIGxpbmtzIGFyZSByZXR1cm5lZC4gVGhlIHN0b3JhZ2UgdXBsb2FkIGF1dGhlbnRpY2F0ZXMgd2l0aCB0aGUgQXV0b21hdGlvbiBhY2NvdW50J3MgbWFuYWdlZCBpZGVudGl0eTsgdGhhdCBpZGVudGl0eSBuZWVkcyB0aGUgKipSZWFkZXIgYW5kIERhdGEgQWNjZXNzKiogUkJBQyByb2xlIG9uIHRoZSB0YXJnZXQgc3RvcmFnZSBhY2NvdW50ICh0aGlzIGlzIGFuIEF6dXJlIFJCQUMgYXNzaWdubWVudCwgbm90IGEgR3JhcGggYXBwbGljYXRpb24gcGVybWlzc2lvbikuCgojIyBTZXR1cCByZWdhcmRpbmcgZW1haWwgc2VuZGluZwoKU2VuZGluZyBhbiBlbWFpbCByZXBvcnQgaXMgb3B0aW9uYWwgYW5kIG9ubHkgaGFwcGVucyB3aGVuICpBbHNvIGVtYWlsIHRoZSByZXBvcnQqIG9yICpBbHNvIGVtYWlsICYgZG93bmxvYWQgbGluayogaXMgc2VsZWN0ZWQgYXMgcmVwb3J0IGRlbGl2ZXJ5OyBhIHJlY2lwaWVudCBpcyB0aGVuIHJlcXVpcmVkLiBUaGUgc2VuZGVyIGFkZHJlc3MgaXMgdGFrZW4gZnJvbSB0aGUgYFJKUmVwb3J0LkVtYWlsU2VuZGVyYCB0ZW5hbnQgc2V0dGluZy4KClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpTZWUgdGhlIFtSZWFsbUpvaW4gUmVwb3J0IFNldHRpbmdzIGRvY3VtZW50YXRpb25dKGh0dHBzOi8vZG9jcy5yZWFsbWpvaW4uY29tL2F1dG9tYXRpb24vcnVuYm9va3MvcnVuYm9vay1yZXBvcnQtc2V0dGluZ3MpIGZvciBkZXRhaWxzIG9uIGFsbCBhdmFpbGFibGUgc2V0dGluZ3MuCgojIyMgRW1haWwgYnJhbmRpbmcKClRoZSByZXBvcnQgZW1haWwgaG9ub3JzIHRoZSBvcHRpb25hbCBgUkpSZXBvcnQuQnJhbmRpbmcuKmAgdGVuYW50IHNldHRpbmdzOgoKLSAqKkhlYWRlciBhbmQgZm9vdGVyIGltYWdlKiogLSBwdWJsaWMgSFRUUFMgVVJMcywgUE5HL0pQRUcvR0lGLCBtYXguIDIwMCBLQiBlYWNoCi0gKipGb290ZXIgbGluayoqIC0gdGFyZ2V0IG9mIHRoZSBmb290ZXIgaW1hZ2UKLSAqKkFjY2VudCBhbmQgdGV4dCBjb2xvcioqIC0gNi1kaWdpdCBoZXggdmFsdWVzLCBlLmcuIGAjMDA1MmNjYAoKV2hlbiB0aGVzZSBzZXR0aW5ncyBhcmUgbm90IGNvbmZpZ3VyZWQsIHRoZSBkZWZhdWx0IFJlYWxtSm9pbiBncmFwaGljcyBhbmQgY29sb3JzIGFyZSB1c2VkLiBBbiBpbWFnZSB0aGF0IGNhbm5vdCBiZSBkb3dubG9hZGVkIG9yIHZhbGlkYXRlZCwgb3IgYW4gaW52YWxpZCBjb2xvciB2YWx1ZSwgbmV2ZXIgcHJldmVudHMgdGhlIHJlcG9ydCBlbWFpbCAtIHRoZSBjb3JyZXNwb25kaW5nIGRlZmF1bHQgaXMgdXNlZCBpbnN0ZWFkLgoKU2V0dXAgaW5zdHJ1Y3Rpb25zIGFuZCBpbWFnZSByZXF1aXJlbWVudHM6IFtFbWFpbCBicmFuZGluZ10oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vYXV0b21hdGlvbi9ydW5ib29rcy9ydW5ib29rLXJlcG9ydC1zZXR0aW5ncyNlbWFpbC1icmFuZGluZy1vcHRpb25hbCkuCgojIyBOb3RlcyBhbmQgbGltaXRhdGlvbnMKCi0gVGhlIHJlcG9ydCBpcyByZWFkLW9ubHkuIE93bmVycyBhbmQgbWVtYmVycyBvZiBwcml2YXRlIGFuZCBzaGFyZWQgY2hhbm5lbHMgYXJlIGNoYW5nZWQgaW4gdGhlIFRlYW1zIGFkbWluIGNlbnRlciBvciBpbiBUZWFtcyBpdHNlbGY7IHRoZSBydW5ib29rcyAqKlN5bmMgQ2hhbm5lbCBPciBHcm91cCBNZW1iZXJzIChTY2hlZHVsZWQpKiogYW5kICoqU3luYyBTaGFyZWQgQ2hhbm5lbCBPd25lcnMgKFNjaGVkdWxlZCkqKiBjb3ZlciB0aGUgYXV0b21hdGVkIGNhc2VzIGZvciBzaGFyZWQgY2hhbm5lbHMuCi0gU3RhbmRhcmQgY2hhbm5lbHMgYXJlIG5vdCBsaXN0ZWQ7IHRoZWlyIG1lbWJlcnNoaXAgZXF1YWxzIHRoZSB0ZWFtIG1lbWJlcnNoaXAsIHdoaWNoIHRoZSBSZWFsbUpvaW4gUG9ydGFsIHNob3dzLgotIFRoZSBtZW1iZXIgbGlzdCBvZiBhIHNoYXJlZCBjaGFubmVsIGNvbnRhaW5zIGl0cyBkaXJlY3QgbWVtYmVycy4gUGVvcGxlIHdobyByZWFjaCBhIHNoYXJlZCBjaGFubmVsIHRocm91Z2ggYW5vdGhlciB0ZWFtIHRoYXQgdGhlIGNoYW5uZWwgaXMgc2hhcmVkIHdpdGggYXJlIG5vdCBsaXN0ZWQ7ICoqUmVwb3J0IFNoYXJlZCBDaGFubmVsIE1lbWJlcnMgKFNjaGVkdWxlZCkqKiBsaXN0cyB0aGVtIHdpdGggb25lIHJvdyBwZXIgbWVtYmVyLgo=",
     "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"Channel.ReadBasic.All\",\n                    \"Reason\": \"Lists the private and shared channels of every team via /teams/{id}/channels\"\n                },\n                {\n                    \"Value\": \"ChannelMember.Read.All\",\n                    \"Reason\": \"Reads the members of every listed channel to tell owners, members and external members apart\"\n                },\n                {\n                    \"Value\": \"Group.Read.All\",\n                    \"Reason\": \"Lists the Microsoft 365 groups that are provisioned as teams with their name and visibility\"\n                },\n                {\n                    \"Value\": \"Mail.Send\",\n                    \"Optional\": true,\n                    \"Feature\": \"Email report\",\n                    \"Reason\": \"Sends the report email via Send-RjRbReportEmail when email delivery is selected\"\n                },\n                {\n                    \"Value\": \"Organization.Read.All\",\n                    \"Optional\": true,\n                    \"Feature\": \"Email report\",\n                    \"Reason\": \"Reads the tenant display name for the email subject, the email body and the report file names\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": [\n        \"Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link options)\"\n    ]\n}\n",
     "PermissionsJson": {
       "Permissions": [
