@@ -197,6 +197,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [List Vulnerable App Regs](docs/org/security/list-vulnerable-app-regs.md)
     - [Monitor Pending EPM Requests (Scheduled)](docs/org/security/monitor-pending-epm-requests_scheduled.md)
     - [Notify Changed CA Policies](docs/org/security/notify-changed-ca-policies.md)
+    - [Report Access Package Assignments (Scheduled)](docs/org/security/report-access-package-assignments_scheduled.md)
     - [Report EPM Elevation Requests (Scheduled)](docs/org/security/report-epm-elevation-requests_scheduled.md)
     - [Sync MFA Secure Users To Group (Scheduled)](docs/org/security/sync-mfa-secure-users-to-group_scheduled.md)
 - [User](docs/user/README.md)

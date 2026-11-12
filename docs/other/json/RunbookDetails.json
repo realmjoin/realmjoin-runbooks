@@ -24903,6 +24903,362 @@
     }
   },
   {
+    "RunbookDisplayName": "Report Access Package Assignments_Scheduled",
+    "RunbookDisplayPath": "Org \\ Security \\ Report Access Package Assignments_Scheduled",
+    "RelativeRunbookPath": "org/security/report-access-package-assignments_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/security",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Security",
+    "Synopsis": "List access packages with their assignments, requests and policies",
+    "Description": "Lists the access packages of Entra ID entitlement management, all or those matching a name or catalog filter, with everyone assigned to them. Users, guests and service principals are listed, whether they requested access, were added by an admin or by an auto-assignment policy. Further tables show the resource roles each package grants, open requests and assignment policies. The report can be sent by email or provided as a download link.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Only access packages whose name matches are reported. Use * as a wildcard, for example \"Sales -*\" for names starting with \"Sales -\"; text without * matches anywhere in the name. Case does not matter. Leave empty for all packages."
+          }
+        ],
+        "globbing": "false",
+        "name": "AccessPackageName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingAccentColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterLink",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingHeaderImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingTextColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user who started the runbook. Set by the portal and recorded for auditing."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "19",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Only access packages in catalogs whose name matches are reported, with the same rules as \"Access package name filter\". Both filters apply together. Leave empty for all catalogs."
+          }
+        ],
+        "globbing": "false",
+        "name": "CatalogName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "report-access-package-assignments",
+        "description": [
+          {
+            "Text": "Storage container the report files are uploaded to. Set per runbook."
+          }
+        ],
+        "globbing": "false",
+        "name": "ContainerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "14",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Also upload the report and return a download link that expires after a few days."
+          }
+        ],
+        "globbing": "false",
+        "name": "CreateDownloadLink",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "13",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sender address of the report email. Taken from the tenant setting RJReport.EmailSender."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Send the report to these addresses. Separate several with commas; each recipient gets a separate email."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Also list the assignments that have already expired, in a separate table. Expired assignments are always counted; the list can be long in tenants that have used access packages for years."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeExpiredAssignments",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "18",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "CSV & XLSX",
+        "description": [
+          {
+            "Text": "Deliver the report as CSV, as an Excel workbook, or both."
+          }
+        ],
+        "globbing": "false",
+        "name": "ReportFileFormat",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "12",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup."
+          }
+        ],
+        "globbing": "false",
+        "name": "ResourceGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "15",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Send the report to the recipient email address."
+          }
+        ],
+        "globbing": "false",
+        "name": "SendEmailReport",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName."
+          }
+        ],
+        "globbing": "false",
+        "name": "StorageAccountName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "16",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "SubscriptionId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "17",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": "## How it works\n\nThe runbook reads the access packages of Entra ID entitlement management, all of them or only those that match the access package or catalog filter, and for each package its assignments, its assignment requests, its assignment policies and the resource roles it grants. The resources of the catalogs involved are read as well, so groups, applications and SharePoint sites appear with their names.\n\nThe results are split into separate tables:\n\n- **Summary** - counts for the whole report.\n- **Access packages** - one row per package with catalog, description, whether it is hidden, the number of active assignments (members, guests, service principals), assignments expiring within 30 days, delivery problems, expired assignments, open requests, policies and resource roles.\n- **Assignments** - one row per active assignment.\n- **Expired assignments** - only when *Include expired assignments?* is selected.\n- **Open requests** - requests that are not finished yet.\n- **Resource roles** - what each package grants.\n- **Policies** - who can get each package and under which conditions.\n\nEntitlement management requires a Microsoft Entra ID P2 or Microsoft Entra ID Governance license in the tenant.\n\n### Access package and catalog filter\n\n*Access package name filter* selects packages by their name, *Catalog name filter* by the name of the catalog they belong to. Both work the same way and apply together: `Sales -*` as name filter with `HR` as catalog filter reports the packages starting with `Sales -` that sit in a catalog with `HR` in its name. Leave both empty to report every access package of the tenant. Upper and lower case do not matter.\n\n- **Starts with** - `Sales -*` reports all packages whose name starts with `Sales -`.\n- **Ends with** - `*- Pilot` reports all packages whose name ends with `- Pilot`.\n- **Contains** - `*Finance*`, or just `Finance` without a wildcard, reports all packages with `Finance` anywhere in the name.\n- **Pattern** - `Sales*Pilot` reports all packages whose name starts with `Sales` and ends with `Pilot`.\n\nA filter with `*` must match the whole name; a filter without `*` matches anywhere in the name. `*` is the only wildcard. Other characters such as `?`, `[` and `]` are matched as they are, so names containing them need no escaping. When the filters match no package, the run fails and lists the access packages of the tenant with their catalogs. When the catalogs cannot be read, a catalog filter cannot be applied and the run fails as well.\n\n### Assignments\n\nEvery assignment of the package is listed, whatever its origin: users who requested access, users and service principals an admin assigned directly, and users added by an auto-assignment policy. The **AssignedVia** column shows the origin:\n\n- **User request** - the user requested the package in the My Access portal.\n- **Admin assignment** - an admin assigned the package directly.\n- **Auto-assignment** - an auto-assignment policy added the user based on an attribute rule.\n- **Not recorded** - the request that created the assignment is no longer available and the policy allows more than one way. When the policy allows only admin assignments or is an auto-assignment policy, the origin is taken from the policy instead.\n\nThe **SubjectType** column distinguishes **Member**, **Guest**, **External (not in tenant yet)** and **Service principal**. Guests are recognized by the `#EXT#` marker in their user principal name or by a guest lifecycle governed by entitlement management. **External (not in tenant yet)** is a requestor from a connected organization whose guest account has not been created yet.\n\n**State** shows whether the access was delivered (*Delivered*, *Delivering*, *Partially delivered*, *Delivery failed*). **Status** adds the detailed lifecycle status from entitlement management, for example `AutoAssignmentInGracePeriod` or `NearExpiry1DayNotificationTriggered`. **Start** and **End** are given in UTC; **End** is *Never* for assignments without expiration. **DaysLeft** counts the full days until the end; the summary counts assignments that end within 30 days.\n\n### Expired assignments\n\nExpired assignments are always counted in the summary and per package. With *Include expired assignments?* they are also listed in their own table with the date they expired. Tenants that have used access packages for years can have a long history, so the option is off by default.\n\n### Open requests\n\nRequests in the states *Submitted*, *Pending approval*, *Scheduled* and *Delivering* are listed with the request type, the requested start and end and the justification. This includes requests to remove or extend access, not only new requests. Finished, denied and canceled requests are not listed.\n\n### Resource roles\n\nEach row names a resource the package grants, its type (*Group*, *Application*, *SharePoint site*, *Azure resource*, *Custom data*) and the role in it, for example *Member* or *Owner* of a group, an app role of an application or a SharePoint site group. **ResourceId** is the object ID of the group or service principal, or the site URL.\n\n### Policies\n\nEach row describes one assignment policy of a package:\n\n- **PolicyType** - *Request* (users request access), *Admin assignment only* or *Auto-assignment*.\n- **WhoCanBeAssigned** and **AllowedTargets** - the principals the policy is meant for; for auto-assignment policies the attribute rule.\n- **ApprovalRequired** and **Approvers** - approval stages with their primary approvers.\n- **Expiration**, **UsersCanExtend** and **AccessReviews** - how long assignments last, whether users can extend them and how often they are reviewed.\n- **Assignments** - the number of active assignments made through the policy.\n\nApprovers and allowed users or groups are shown with the description stored in the policy. When the policy stores no description, the object ID is shown, because resolving names would need further directory permissions.\n\n### Gaps in the report\n\nThe runbook never shortens a list silently. When the assignments, requests, policies or resource roles of a package cannot be read, or a further page of them fails, the reason is in the **Note** column of *Access packages* and the package is counted in *Packages not fully read*; the job log then shows a warning that the report is incomplete. When the resources of a catalog cannot be read, resources are shown by their origin ID instead of their name.\n\n## Report delivery\n\nThe results always appear as named tables in the Output Data tab of the run in the RealmJoin portal. Report files are only generated when the **Report delivery** option includes an email and/or a download link; *Output Data only* creates no report files. Email delivery and download link generation are independent and can be combined.\n\nThe Excel workbook holds one worksheet per table plus a cover sheet with the summary. With CSV, each table is written to its own CSV file. When the CSV files and the workbook together exceed the email attachment limit, the email carries the workbook only.\n\nFor the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Reader and Data Access** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).\n\n## Setup regarding email sending\n\nSending an email report is optional and only happens when *Also email the report* or *Also email & download link* is selected as report delivery; a recipient is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.\n\n### Email branding\n\nThe report email honors the optional `RJReport.Branding.*` tenant settings:\n\n- **Header and footer image** - public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each\n- **Footer link** - target of the footer image\n- **Accent and text color** - 6-digit hex values, e.g. `#0052cc`\n\nWhen these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email - the corresponding default is used instead.\n\nSetup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).\n\n## Notes and limitations\n\n- The report is read-only. Assignments, requests and policies are changed in the Entra admin center under Identity Governance.\n- Group memberships the package delivers are not expanded: the report lists who is assigned to the package and which resource roles it grants, not every member of those groups.\n- Incompatible access packages and groups, custom extensions and the answers to requestor questions are not part of the report.\n- All dates and times are in UTC.\n",
+    "DocsContentEncoded": "IyMgSG93IGl0IHdvcmtzCgpUaGUgcnVuYm9vayByZWFkcyB0aGUgYWNjZXNzIHBhY2thZ2VzIG9mIEVudHJhIElEIGVudGl0bGVtZW50IG1hbmFnZW1lbnQsIGFsbCBvZiB0aGVtIG9yIG9ubHkgdGhvc2UgdGhhdCBtYXRjaCB0aGUgYWNjZXNzIHBhY2thZ2Ugb3IgY2F0YWxvZyBmaWx0ZXIsIGFuZCBmb3IgZWFjaCBwYWNrYWdlIGl0cyBhc3NpZ25tZW50cywgaXRzIGFzc2lnbm1lbnQgcmVxdWVzdHMsIGl0cyBhc3NpZ25tZW50IHBvbGljaWVzIGFuZCB0aGUgcmVzb3VyY2Ugcm9sZXMgaXQgZ3JhbnRzLiBUaGUgcmVzb3VyY2VzIG9mIHRoZSBjYXRhbG9ncyBpbnZvbHZlZCBhcmUgcmVhZCBhcyB3ZWxsLCBzbyBncm91cHMsIGFwcGxpY2F0aW9ucyBhbmQgU2hhcmVQb2ludCBzaXRlcyBhcHBlYXIgd2l0aCB0aGVpciBuYW1lcy4KClRoZSByZXN1bHRzIGFyZSBzcGxpdCBpbnRvIHNlcGFyYXRlIHRhYmxlczoKCi0gKipTdW1tYXJ5KiogLSBjb3VudHMgZm9yIHRoZSB3aG9sZSByZXBvcnQuCi0gKipBY2Nlc3MgcGFja2FnZXMqKiAtIG9uZSByb3cgcGVyIHBhY2thZ2Ugd2l0aCBjYXRhbG9nLCBkZXNjcmlwdGlvbiwgd2hldGhlciBpdCBpcyBoaWRkZW4sIHRoZSBudW1iZXIgb2YgYWN0aXZlIGFzc2lnbm1lbnRzIChtZW1iZXJzLCBndWVzdHMsIHNlcnZpY2UgcHJpbmNpcGFscyksIGFzc2lnbm1lbnRzIGV4cGlyaW5nIHdpdGhpbiAzMCBkYXlzLCBkZWxpdmVyeSBwcm9ibGVtcywgZXhwaXJlZCBhc3NpZ25tZW50cywgb3BlbiByZXF1ZXN0cywgcG9saWNpZXMgYW5kIHJlc291cmNlIHJvbGVzLgotICoqQXNzaWdubWVudHMqKiAtIG9uZSByb3cgcGVyIGFjdGl2ZSBhc3NpZ25tZW50LgotICoqRXhwaXJlZCBhc3NpZ25tZW50cyoqIC0gb25seSB3aGVuICpJbmNsdWRlIGV4cGlyZWQgYXNzaWdubWVudHM/KiBpcyBzZWxlY3RlZC4KLSAqKk9wZW4gcmVxdWVzdHMqKiAtIHJlcXVlc3RzIHRoYXQgYXJlIG5vdCBmaW5pc2hlZCB5ZXQuCi0gKipSZXNvdXJjZSByb2xlcyoqIC0gd2hhdCBlYWNoIHBhY2thZ2UgZ3JhbnRzLgotICoqUG9saWNpZXMqKiAtIHdobyBjYW4gZ2V0IGVhY2ggcGFja2FnZSBhbmQgdW5kZXIgd2hpY2ggY29uZGl0aW9ucy4KCkVudGl0bGVtZW50IG1hbmFnZW1lbnQgcmVxdWlyZXMgYSBNaWNyb3NvZnQgRW50cmEgSUQgUDIgb3IgTWljcm9zb2Z0IEVudHJhIElEIEdvdmVybmFuY2UgbGljZW5zZSBpbiB0aGUgdGVuYW50LgoKIyMjIEFjY2VzcyBwYWNrYWdlIGFuZCBjYXRhbG9nIGZpbHRlcgoKKkFjY2VzcyBwYWNrYWdlIG5hbWUgZmlsdGVyKiBzZWxlY3RzIHBhY2thZ2VzIGJ5IHRoZWlyIG5hbWUsICpDYXRhbG9nIG5hbWUgZmlsdGVyKiBieSB0aGUgbmFtZSBvZiB0aGUgY2F0YWxvZyB0aGV5IGJlbG9uZyB0by4gQm90aCB3b3JrIHRoZSBzYW1lIHdheSBhbmQgYXBwbHkgdG9nZXRoZXI6IGBTYWxlcyAtKmAgYXMgbmFtZSBmaWx0ZXIgd2l0aCBgSFJgIGFzIGNhdGFsb2cgZmlsdGVyIHJlcG9ydHMgdGhlIHBhY2thZ2VzIHN0YXJ0aW5nIHdpdGggYFNhbGVzIC1gIHRoYXQgc2l0IGluIGEgY2F0YWxvZyB3aXRoIGBIUmAgaW4gaXRzIG5hbWUuIExlYXZlIGJvdGggZW1wdHkgdG8gcmVwb3J0IGV2ZXJ5IGFjY2VzcyBwYWNrYWdlIG9mIHRoZSB0ZW5hbnQuIFVwcGVyIGFuZCBsb3dlciBjYXNlIGRvIG5vdCBtYXR0ZXIuCgotICoqU3RhcnRzIHdpdGgqKiAtIGBTYWxlcyAtKmAgcmVwb3J0cyBhbGwgcGFja2FnZXMgd2hvc2UgbmFtZSBzdGFydHMgd2l0aCBgU2FsZXMgLWAuCi0gKipFbmRzIHdpdGgqKiAtIGAqLSBQaWxvdGAgcmVwb3J0cyBhbGwgcGFja2FnZXMgd2hvc2UgbmFtZSBlbmRzIHdpdGggYC0gUGlsb3RgLgotICoqQ29udGFpbnMqKiAtIGAqRmluYW5jZSpgLCBvciBqdXN0IGBGaW5hbmNlYCB3aXRob3V0IGEgd2lsZGNhcmQsIHJlcG9ydHMgYWxsIHBhY2thZ2VzIHdpdGggYEZpbmFuY2VgIGFueXdoZXJlIGluIHRoZSBuYW1lLgotICoqUGF0dGVybioqIC0gYFNhbGVzKlBpbG90YCByZXBvcnRzIGFsbCBwYWNrYWdlcyB3aG9zZSBuYW1lIHN0YXJ0cyB3aXRoIGBTYWxlc2AgYW5kIGVuZHMgd2l0aCBgUGlsb3RgLgoKQSBmaWx0ZXIgd2l0aCBgKmAgbXVzdCBtYXRjaCB0aGUgd2hvbGUgbmFtZTsgYSBmaWx0ZXIgd2l0aG91dCBgKmAgbWF0Y2hlcyBhbnl3aGVyZSBpbiB0aGUgbmFtZS4gYCpgIGlzIHRoZSBvbmx5IHdpbGRjYXJkLiBPdGhlciBjaGFyYWN0ZXJzIHN1Y2ggYXMgYD9gLCBgW2AgYW5kIGBdYCBhcmUgbWF0Y2hlZCBhcyB0aGV5IGFyZSwgc28gbmFtZXMgY29udGFpbmluZyB0aGVtIG5lZWQgbm8gZXNjYXBpbmcuIFdoZW4gdGhlIGZpbHRlcnMgbWF0Y2ggbm8gcGFja2FnZSwgdGhlIHJ1biBmYWlscyBhbmQgbGlzdHMgdGhlIGFjY2VzcyBwYWNrYWdlcyBvZiB0aGUgdGVuYW50IHdpdGggdGhlaXIgY2F0YWxvZ3MuIFdoZW4gdGhlIGNhdGFsb2dzIGNhbm5vdCBiZSByZWFkLCBhIGNhdGFsb2cgZmlsdGVyIGNhbm5vdCBiZSBhcHBsaWVkIGFuZCB0aGUgcnVuIGZhaWxzIGFzIHdlbGwuCgojIyMgQXNzaWdubWVudHMKCkV2ZXJ5IGFzc2lnbm1lbnQgb2YgdGhlIHBhY2thZ2UgaXMgbGlzdGVkLCB3aGF0ZXZlciBpdHMgb3JpZ2luOiB1c2VycyB3aG8gcmVxdWVzdGVkIGFjY2VzcywgdXNlcnMgYW5kIHNlcnZpY2UgcHJpbmNpcGFscyBhbiBhZG1pbiBhc3NpZ25lZCBkaXJlY3RseSwgYW5kIHVzZXJzIGFkZGVkIGJ5IGFuIGF1dG8tYXNzaWdubWVudCBwb2xpY3kuIFRoZSAqKkFzc2lnbmVkVmlhKiogY29sdW1uIHNob3dzIHRoZSBvcmlnaW46CgotICoqVXNlciByZXF1ZXN0KiogLSB0aGUgdXNlciByZXF1ZXN0ZWQgdGhlIHBhY2thZ2UgaW4gdGhlIE15IEFjY2VzcyBwb3J0YWwuCi0gKipBZG1pbiBhc3NpZ25tZW50KiogLSBhbiBhZG1pbiBhc3NpZ25lZCB0aGUgcGFja2FnZSBkaXJlY3RseS4KLSAqKkF1dG8tYXNzaWdubWVudCoqIC0gYW4gYXV0by1hc3NpZ25tZW50IHBvbGljeSBhZGRlZCB0aGUgdXNlciBiYXNlZCBvbiBhbiBhdHRyaWJ1dGUgcnVsZS4KLSAqKk5vdCByZWNvcmRlZCoqIC0gdGhlIHJlcXVlc3QgdGhhdCBjcmVhdGVkIHRoZSBhc3NpZ25tZW50IGlzIG5vIGxvbmdlciBhdmFpbGFibGUgYW5kIHRoZSBwb2xpY3kgYWxsb3dzIG1vcmUgdGhhbiBvbmUgd2F5LiBXaGVuIHRoZSBwb2xpY3kgYWxsb3dzIG9ubHkgYWRtaW4gYXNzaWdubWVudHMgb3IgaXMgYW4gYXV0by1hc3NpZ25tZW50IHBvbGljeSwgdGhlIG9yaWdpbiBpcyB0YWtlbiBmcm9tIHRoZSBwb2xpY3kgaW5zdGVhZC4KClRoZSAqKlN1YmplY3RUeXBlKiogY29sdW1uIGRpc3Rpbmd1aXNoZXMgKipNZW1iZXIqKiwgKipHdWVzdCoqLCAqKkV4dGVybmFsIChub3QgaW4gdGVuYW50IHlldCkqKiBhbmQgKipTZXJ2aWNlIHByaW5jaXBhbCoqLiBHdWVzdHMgYXJlIHJlY29nbml6ZWQgYnkgdGhlIGAjRVhUI2AgbWFya2VyIGluIHRoZWlyIHVzZXIgcHJpbmNpcGFsIG5hbWUgb3IgYnkgYSBndWVzdCBsaWZlY3ljbGUgZ292ZXJuZWQgYnkgZW50aXRsZW1lbnQgbWFuYWdlbWVudC4gKipFeHRlcm5hbCAobm90IGluIHRlbmFudCB5ZXQpKiogaXMgYSByZXF1ZXN0b3IgZnJvbSBhIGNvbm5lY3RlZCBvcmdhbml6YXRpb24gd2hvc2UgZ3Vlc3QgYWNjb3VudCBoYXMgbm90IGJlZW4gY3JlYXRlZCB5ZXQuCgoqKlN0YXRlKiogc2hvd3Mgd2hldGhlciB0aGUgYWNjZXNzIHdhcyBkZWxpdmVyZWQgKCpEZWxpdmVyZWQqLCAqRGVsaXZlcmluZyosICpQYXJ0aWFsbHkgZGVsaXZlcmVkKiwgKkRlbGl2ZXJ5IGZhaWxlZCopLiAqKlN0YXR1cyoqIGFkZHMgdGhlIGRldGFpbGVkIGxpZmVjeWNsZSBzdGF0dXMgZnJvbSBlbnRpdGxlbWVudCBtYW5hZ2VtZW50LCBmb3IgZXhhbXBsZSBgQXV0b0Fzc2lnbm1lbnRJbkdyYWNlUGVyaW9kYCBvciBgTmVhckV4cGlyeTFEYXlOb3RpZmljYXRpb25UcmlnZ2VyZWRgLiAqKlN0YXJ0KiogYW5kICoqRW5kKiogYXJlIGdpdmVuIGluIFVUQzsgKipFbmQqKiBpcyAqTmV2ZXIqIGZvciBhc3NpZ25tZW50cyB3aXRob3V0IGV4cGlyYXRpb24uICoqRGF5c0xlZnQqKiBjb3VudHMgdGhlIGZ1bGwgZGF5cyB1bnRpbCB0aGUgZW5kOyB0aGUgc3VtbWFyeSBjb3VudHMgYXNzaWdubWVudHMgdGhhdCBlbmQgd2l0aGluIDMwIGRheXMuCgojIyMgRXhwaXJlZCBhc3NpZ25tZW50cwoKRXhwaXJlZCBhc3NpZ25tZW50cyBhcmUgYWx3YXlzIGNvdW50ZWQgaW4gdGhlIHN1bW1hcnkgYW5kIHBlciBwYWNrYWdlLiBXaXRoICpJbmNsdWRlIGV4cGlyZWQgYXNzaWdubWVudHM/KiB0aGV5IGFyZSBhbHNvIGxpc3RlZCBpbiB0aGVpciBvd24gdGFibGUgd2l0aCB0aGUgZGF0ZSB0aGV5IGV4cGlyZWQuIFRlbmFudHMgdGhhdCBoYXZlIHVzZWQgYWNjZXNzIHBhY2thZ2VzIGZvciB5ZWFycyBjYW4gaGF2ZSBhIGxvbmcgaGlzdG9yeSwgc28gdGhlIG9wdGlvbiBpcyBvZmYgYnkgZGVmYXVsdC4KCiMjIyBPcGVuIHJlcXVlc3RzCgpSZXF1ZXN0cyBpbiB0aGUgc3RhdGVzICpTdWJtaXR0ZWQqLCAqUGVuZGluZyBhcHByb3ZhbCosICpTY2hlZHVsZWQqIGFuZCAqRGVsaXZlcmluZyogYXJlIGxpc3RlZCB3aXRoIHRoZSByZXF1ZXN0IHR5cGUsIHRoZSByZXF1ZXN0ZWQgc3RhcnQgYW5kIGVuZCBhbmQgdGhlIGp1c3RpZmljYXRpb24uIFRoaXMgaW5jbHVkZXMgcmVxdWVzdHMgdG8gcmVtb3ZlIG9yIGV4dGVuZCBhY2Nlc3MsIG5vdCBvbmx5IG5ldyByZXF1ZXN0cy4gRmluaXNoZWQsIGRlbmllZCBhbmQgY2FuY2VsZWQgcmVxdWVzdHMgYXJlIG5vdCBsaXN0ZWQuCgojIyMgUmVzb3VyY2Ugcm9sZXMKCkVhY2ggcm93IG5hbWVzIGEgcmVzb3VyY2UgdGhlIHBhY2thZ2UgZ3JhbnRzLCBpdHMgdHlwZSAoKkdyb3VwKiwgKkFwcGxpY2F0aW9uKiwgKlNoYXJlUG9pbnQgc2l0ZSosICpBenVyZSByZXNvdXJjZSosICpDdXN0b20gZGF0YSopIGFuZCB0aGUgcm9sZSBpbiBpdCwgZm9yIGV4YW1wbGUgKk1lbWJlciogb3IgKk93bmVyKiBvZiBhIGdyb3VwLCBhbiBhcHAgcm9sZSBvZiBhbiBhcHBsaWNhdGlvbiBvciBhIFNoYXJlUG9pbnQgc2l0ZSBncm91cC4gKipSZXNvdXJjZUlkKiogaXMgdGhlIG9iamVjdCBJRCBvZiB0aGUgZ3JvdXAgb3Igc2VydmljZSBwcmluY2lwYWwsIG9yIHRoZSBzaXRlIFVSTC4KCiMjIyBQb2xpY2llcwoKRWFjaCByb3cgZGVzY3JpYmVzIG9uZSBhc3NpZ25tZW50IHBvbGljeSBvZiBhIHBhY2thZ2U6CgotICoqUG9saWN5VHlwZSoqIC0gKlJlcXVlc3QqICh1c2VycyByZXF1ZXN0IGFjY2VzcyksICpBZG1pbiBhc3NpZ25tZW50IG9ubHkqIG9yICpBdXRvLWFzc2lnbm1lbnQqLgotICoqV2hvQ2FuQmVBc3NpZ25lZCoqIGFuZCAqKkFsbG93ZWRUYXJnZXRzKiogLSB0aGUgcHJpbmNpcGFscyB0aGUgcG9saWN5IGlzIG1lYW50IGZvcjsgZm9yIGF1dG8tYXNzaWdubWVudCBwb2xpY2llcyB0aGUgYXR0cmlidXRlIHJ1bGUuCi0gKipBcHByb3ZhbFJlcXVpcmVkKiogYW5kICoqQXBwcm92ZXJzKiogLSBhcHByb3ZhbCBzdGFnZXMgd2l0aCB0aGVpciBwcmltYXJ5IGFwcHJvdmVycy4KLSAqKkV4cGlyYXRpb24qKiwgKipVc2Vyc0NhbkV4dGVuZCoqIGFuZCAqKkFjY2Vzc1Jldmlld3MqKiAtIGhvdyBsb25nIGFzc2lnbm1lbnRzIGxhc3QsIHdoZXRoZXIgdXNlcnMgY2FuIGV4dGVuZCB0aGVtIGFuZCBob3cgb2Z0ZW4gdGhleSBhcmUgcmV2aWV3ZWQuCi0gKipBc3NpZ25tZW50cyoqIC0gdGhlIG51bWJlciBvZiBhY3RpdmUgYXNzaWdubWVudHMgbWFkZSB0aHJvdWdoIHRoZSBwb2xpY3kuCgpBcHByb3ZlcnMgYW5kIGFsbG93ZWQgdXNlcnMgb3IgZ3JvdXBzIGFyZSBzaG93biB3aXRoIHRoZSBkZXNjcmlwdGlvbiBzdG9yZWQgaW4gdGhlIHBvbGljeS4gV2hlbiB0aGUgcG9saWN5IHN0b3JlcyBubyBkZXNjcmlwdGlvbiwgdGhlIG9iamVjdCBJRCBpcyBzaG93biwgYmVjYXVzZSByZXNvbHZpbmcgbmFtZXMgd291bGQgbmVlZCBmdXJ0aGVyIGRpcmVjdG9yeSBwZXJtaXNzaW9ucy4KCiMjIyBHYXBzIGluIHRoZSByZXBvcnQKClRoZSBydW5ib29rIG5ldmVyIHNob3J0ZW5zIGEgbGlzdCBzaWxlbnRseS4gV2hlbiB0aGUgYXNzaWdubWVudHMsIHJlcXVlc3RzLCBwb2xpY2llcyBvciByZXNvdXJjZSByb2xlcyBvZiBhIHBhY2thZ2UgY2Fubm90IGJlIHJlYWQsIG9yIGEgZnVydGhlciBwYWdlIG9mIHRoZW0gZmFpbHMsIHRoZSByZWFzb24gaXMgaW4gdGhlICoqTm90ZSoqIGNvbHVtbiBvZiAqQWNjZXNzIHBhY2thZ2VzKiBhbmQgdGhlIHBhY2thZ2UgaXMgY291bnRlZCBpbiAqUGFja2FnZXMgbm90IGZ1bGx5IHJlYWQqOyB0aGUgam9iIGxvZyB0aGVuIHNob3dzIGEgd2FybmluZyB0aGF0IHRoZSByZXBvcnQgaXMgaW5jb21wbGV0ZS4gV2hlbiB0aGUgcmVzb3VyY2VzIG9mIGEgY2F0YWxvZyBjYW5ub3QgYmUgcmVhZCwgcmVzb3VyY2VzIGFyZSBzaG93biBieSB0aGVpciBvcmlnaW4gSUQgaW5zdGVhZCBvZiB0aGVpciBuYW1lLgoKIyMgUmVwb3J0IGRlbGl2ZXJ5CgpUaGUgcmVzdWx0cyBhbHdheXMgYXBwZWFyIGFzIG5hbWVkIHRhYmxlcyBpbiB0aGUgT3V0cHV0IERhdGEgdGFiIG9mIHRoZSBydW4gaW4gdGhlIFJlYWxtSm9pbiBwb3J0YWwuIFJlcG9ydCBmaWxlcyBhcmUgb25seSBnZW5lcmF0ZWQgd2hlbiB0aGUgKipSZXBvcnQgZGVsaXZlcnkqKiBvcHRpb24gaW5jbHVkZXMgYW4gZW1haWwgYW5kL29yIGEgZG93bmxvYWQgbGluazsgKk91dHB1dCBEYXRhIG9ubHkqIGNyZWF0ZXMgbm8gcmVwb3J0IGZpbGVzLiBFbWFpbCBkZWxpdmVyeSBhbmQgZG93bmxvYWQgbGluayBnZW5lcmF0aW9uIGFyZSBpbmRlcGVuZGVudCBhbmQgY2FuIGJlIGNvbWJpbmVkLgoKVGhlIEV4Y2VsIHdvcmtib29rIGhvbGRzIG9uZSB3b3Jrc2hlZXQgcGVyIHRhYmxlIHBsdXMgYSBjb3ZlciBzaGVldCB3aXRoIHRoZSBzdW1tYXJ5LiBXaXRoIENTViwgZWFjaCB0YWJsZSBpcyB3cml0dGVuIHRvIGl0cyBvd24gQ1NWIGZpbGUuIFdoZW4gdGhlIENTViBmaWxlcyBhbmQgdGhlIHdvcmtib29rIHRvZ2V0aGVyIGV4Y2VlZCB0aGUgZW1haWwgYXR0YWNobWVudCBsaW1pdCwgdGhlIGVtYWlsIGNhcnJpZXMgdGhlIHdvcmtib29rIG9ubHkuCgpGb3IgdGhlIGRvd25sb2FkIGxpbmssIHRoZSByZXBvcnQgZmlsZXMgYXJlIHVwbG9hZGVkIHRvIHRoZSBBenVyZSBzdG9yYWdlIGFjY291bnQgY29uZmlndXJlZCBpbiB0aGUgYFJKUmVwb3J0LlN0b3JhZ2VBY2NvdW50LipgIHRlbmFudCBzZXR0aW5ncywgYW5kIHRpbWUtbGltaXRlZCBTQVMgZG93bmxvYWQgbGlua3MgYXJlIHJldHVybmVkLiBUaGUgc3RvcmFnZSB1cGxvYWQgYXV0aGVudGljYXRlcyB3aXRoIHRoZSBBdXRvbWF0aW9uIGFjY291bnQncyBtYW5hZ2VkIGlkZW50aXR5OyB0aGF0IGlkZW50aXR5IG5lZWRzIHRoZSAqKlJlYWRlciBhbmQgRGF0YSBBY2Nlc3MqKiBSQkFDIHJvbGUgb24gdGhlIHRhcmdldCBzdG9yYWdlIGFjY291bnQgKHRoaXMgaXMgYW4gQXp1cmUgUkJBQyBhc3NpZ25tZW50LCBub3QgYSBHcmFwaCBhcHBsaWNhdGlvbiBwZXJtaXNzaW9uKS4KCiMjIFNldHVwIHJlZ2FyZGluZyBlbWFpbCBzZW5kaW5nCgpTZW5kaW5nIGFuIGVtYWlsIHJlcG9ydCBpcyBvcHRpb25hbCBhbmQgb25seSBoYXBwZW5zIHdoZW4gKkFsc28gZW1haWwgdGhlIHJlcG9ydCogb3IgKkFsc28gZW1haWwgJiBkb3dubG9hZCBsaW5rKiBpcyBzZWxlY3RlZCBhcyByZXBvcnQgZGVsaXZlcnk7IGEgcmVjaXBpZW50IGlzIHRoZW4gcmVxdWlyZWQuIFRoZSBzZW5kZXIgYWRkcmVzcyBpcyB0YWtlbiBmcm9tIHRoZSBgUkpSZXBvcnQuRW1haWxTZW5kZXJgIHRlbmFudCBzZXR0aW5nLgoKVGhpcyBydW5ib29rIHNlbmRzIGVtYWlscyB1c2luZyB0aGUgTWljcm9zb2Z0IEdyYXBoIEFQSS4gVG8gc2VuZCBlbWFpbHMgdmlhIEdyYXBoIEFQSSwgeW91IG5lZWQgdG8gY29uZmlndXJlIGFuIGV4aXN0aW5nIGVtYWlsIGFkZHJlc3MgaW4gdGhlIHJ1bmJvb2sgY3VzdG9taXphdGlvbi4KClNlZSB0aGUgW1JlYWxtSm9pbiBSZXBvcnQgU2V0dGluZ3MgZG9jdW1lbnRhdGlvbl0oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vYXV0b21hdGlvbi9ydW5ib29rcy9ydW5ib29rLXJlcG9ydC1zZXR0aW5ncykgZm9yIGRldGFpbHMgb24gYWxsIGF2YWlsYWJsZSBzZXR0aW5ncy4KCiMjIyBFbWFpbCBicmFuZGluZwoKVGhlIHJlcG9ydCBlbWFpbCBob25vcnMgdGhlIG9wdGlvbmFsIGBSSlJlcG9ydC5CcmFuZGluZy4qYCB0ZW5hbnQgc2V0dGluZ3M6CgotICoqSGVhZGVyIGFuZCBmb290ZXIgaW1hZ2UqKiAtIHB1YmxpYyBIVFRQUyBVUkxzLCBQTkcvSlBFRy9HSUYsIG1heC4gMjAwIEtCIGVhY2gKLSAqKkZvb3RlciBsaW5rKiogLSB0YXJnZXQgb2YgdGhlIGZvb3RlciBpbWFnZQotICoqQWNjZW50IGFuZCB0ZXh0IGNvbG9yKiogLSA2LWRpZ2l0IGhleCB2YWx1ZXMsIGUuZy4gYCMwMDUyY2NgCgpXaGVuIHRoZXNlIHNldHRpbmdzIGFyZSBub3QgY29uZmlndXJlZCwgdGhlIGRlZmF1bHQgUmVhbG1Kb2luIGdyYXBoaWNzIGFuZCBjb2xvcnMgYXJlIHVzZWQuIEFuIGltYWdlIHRoYXQgY2Fubm90IGJlIGRvd25sb2FkZWQgb3IgdmFsaWRhdGVkLCBvciBhbiBpbnZhbGlkIGNvbG9yIHZhbHVlLCBuZXZlciBwcmV2ZW50cyB0aGUgcmVwb3J0IGVtYWlsIC0gdGhlIGNvcnJlc3BvbmRpbmcgZGVmYXVsdCBpcyB1c2VkIGluc3RlYWQuCgpTZXR1cCBpbnN0cnVjdGlvbnMgYW5kIGltYWdlIHJlcXVpcmVtZW50czogW0VtYWlsIGJyYW5kaW5nXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzI2VtYWlsLWJyYW5kaW5nLW9wdGlvbmFsKS4KCiMjIE5vdGVzIGFuZCBsaW1pdGF0aW9ucwoKLSBUaGUgcmVwb3J0IGlzIHJlYWQtb25seS4gQXNzaWdubWVudHMsIHJlcXVlc3RzIGFuZCBwb2xpY2llcyBhcmUgY2hhbmdlZCBpbiB0aGUgRW50cmEgYWRtaW4gY2VudGVyIHVuZGVyIElkZW50aXR5IEdvdmVybmFuY2UuCi0gR3JvdXAgbWVtYmVyc2hpcHMgdGhlIHBhY2thZ2UgZGVsaXZlcnMgYXJlIG5vdCBleHBhbmRlZDogdGhlIHJlcG9ydCBsaXN0cyB3aG8gaXMgYXNzaWduZWQgdG8gdGhlIHBhY2thZ2UgYW5kIHdoaWNoIHJlc291cmNlIHJvbGVzIGl0IGdyYW50cywgbm90IGV2ZXJ5IG1lbWJlciBvZiB0aG9zZSBncm91cHMuCi0gSW5jb21wYXRpYmxlIGFjY2VzcyBwYWNrYWdlcyBhbmQgZ3JvdXBzLCBjdXN0b20gZXh0ZW5zaW9ucyBhbmQgdGhlIGFuc3dlcnMgdG8gcmVxdWVzdG9yIHF1ZXN0aW9ucyBhcmUgbm90IHBhcnQgb2YgdGhlIHJlcG9ydC4KLSBBbGwgZGF0ZXMgYW5kIHRpbWVzIGFyZSBpbiBVVEMuCg==",
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"EntitlementManagement.Read.All\",\n                    \"Reason\": \"Reads the access packages with their catalogs and catalog resources, resource roles, assignments, assignment requests and assignment policies\"\n                },\n                {\n                    \"Value\": \"Mail.Send\",\n                    \"Optional\": true,\n                    \"Feature\": \"Email report\",\n                    \"Reason\": \"Sends the report email via Send-RjRbReportEmail when email delivery is selected\"\n                },\n                {\n                    \"Value\": \"Organization.Read.All\",\n                    \"Optional\": true,\n                    \"Feature\": \"Email report\",\n                    \"Reason\": \"Reads the tenant display name for the email subject, the email body and the report file names\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": [\n        \"Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link options)\"\n    ]\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "EntitlementManagement.Read.All",
+            "Mail.Send",
+            "Organization.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": [
+        "Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link options)"
+      ]
+    }
+  },
+  {
     "RunbookDisplayName": "Report EPM Elevation Requests_Scheduled",
     "RunbookDisplayPath": "Org \\ Security \\ Report EPM Elevation Requests_Scheduled",
     "RelativeRunbookPath": "org/security/report-EPM-elevation-requests_scheduled.ps1",

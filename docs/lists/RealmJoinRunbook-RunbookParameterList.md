@@ -167,6 +167,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [List Vulnerable App Regs](#organization-security-list-vulnerable-app-regs)
     - [Monitor Pending EPM Requests (Scheduled)](#organization-security-monitor-pending-epm-requests-scheduled)
     - [Notify Changed CA Policies](#organization-security-notify-changed-ca-policies)
+    - [Report Access Package Assignments (Scheduled)](#organization-security-report-access-package-assignments-scheduled)
     - [Report EPM Elevation Requests (Scheduled)](#organization-security-report-epm-elevation-requests-scheduled)
     - [Sync MFA Secure Users To Group (Scheduled)](#organization-security-sync-mfa-secure-users-to-group-scheduled)
 - [User](#user)
@@ -2609,6 +2610,33 @@ Alert by email about Conditional Access policy changes
 |-----------|----------|------|-------------|
 | From | ✓ | String | User in the tenant the alert is sent as; needs a mailbox. |
 | To | ✓ | String | Gets the email with the list of changed policies. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+
+<a name='organization-security-report-access-package-assignments-scheduled'></a>
+
+### Report Access Package Assignments (Scheduled)
+List access packages with their assignments, requests and policies
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| AccessPackageName |  | String | Only access packages whose name matches are reported. Use * as a wildcard, for example "Sales -*" for names starting with "Sales -"; text without * matches anywhere in the name. Case does not matter. Leave empty for all packages. |
+| CatalogName |  | String | Only access packages in catalogs whose name matches are reported, with the same rules as "Access package name filter". Both filters apply together. Leave empty for all catalogs. |
+| IncludeExpiredAssignments |  | Boolean | Also list the assignments that have already expired, in a separate table. Expired assignments are always counted; the list can be long in tenants that have used access packages for years. |
+| EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
+| BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
+| BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
+| BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
+| BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
+| BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
+| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
+| ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
+| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+| ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
+| ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
+| StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-security-report-epm-elevation-requests-scheduled'></a>

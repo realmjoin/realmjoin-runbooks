@@ -115,6 +115,7 @@
   - [List Vulnerable App Regs](security/list-vulnerable-app-regs.md)
   - [Monitor Pending EPM Requests (Scheduled)](security/monitor-pending-epm-requests_scheduled.md)
   - [Notify Changed CA Policies](security/notify-changed-ca-policies.md)
+  - [Report Access Package Assignments (Scheduled)](security/report-access-package-assignments_scheduled.md)
   - [Report EPM Elevation Requests (Scheduled)](security/report-epm-elevation-requests_scheduled.md)
   - [Sync MFA Secure Users To Group (Scheduled)](security/sync-mfa-secure-users-to-group_scheduled.md)
 

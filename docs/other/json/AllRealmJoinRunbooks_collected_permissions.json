@@ -20,6 +20,7 @@
       "DeviceManagementManagedDevices.ReadWrite.All",
       "DeviceManagementServiceConfig.ReadWrite.All",
       "Directory.ReadWrite.All",
+      "EntitlementManagement.Read.All",
       "Group.Create",
       "Group.ReadWrite.All",
       "GroupMember.ReadWrite.All",

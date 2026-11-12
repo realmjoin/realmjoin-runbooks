@@ -167,6 +167,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - List Vulnerable App Regs
     - Monitor Pending EPM Requests (Scheduled)
     - Notify Changed CA Policies
+    - Report Access Package Assignments (Scheduled)
     - Report EPM Elevation Requests (Scheduled)
     - Sync MFA Secure Users To Group (Scheduled)
 - [User](#user)
@@ -462,6 +463,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | List Vulnerable App Regs | List app registrations possibly affected by CVE-2021-42306 |
 | Monitor Pending EPM Requests (Scheduled) | Alert by email about pending EPM elevation requests |
 | Notify Changed CA Policies | Alert by email about Conditional Access policy changes |
+| Report Access Package Assignments (Scheduled) | List access packages with their assignments, requests and policies |
 | Report EPM Elevation Requests (Scheduled) | Report EPM elevation requests by status and age |
 | Sync MFA Secure Users To Group (Scheduled) | Keep a group filled with users who registered a secure MFA method |
 
