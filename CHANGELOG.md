@@ -2,8 +2,16 @@
 
 ## 2026-11-09
 
-- Update ** Check Updateable Assets** Runbook in Group/Devices
+- Update **Check Updateable Assets** Runbook in Group/Devices
   - Output the list to Output Data
+- Add **Report Shared Channel Members (Scheduled)** Runbook in Org/Collab (v1.0.0)
+  - Lists the shared channels hosted by the teams of the tenant with one row per member, including owners, guests and people from other tenants
+  - Shows whether a person was added directly or reaches the channel through a team it is shared with, and names that team
+  - Offers one table for all shared channels, one table and worksheet per channel, or shared channels given by comma-separated names
+  - Reports all teams of the tenant or only the shared channels of several selected teams, with every table layout
+  - Reads the members of partner teams one team at a time when the complete member list breaks off
+  - Names every gap: teams that cannot be read and channels whose members cannot be read completely are listed and counted, never skipped
+  - Shows the organization name of external members and the teams each channel is shared with; the report can be sent by email or as a download link
 
 ## 2026-11-06
 
