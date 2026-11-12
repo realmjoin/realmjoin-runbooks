@@ -1,5 +1,15 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-11-12
+
+- Add **Report Access Package Assignments (Scheduled)** Runbook in Org/Security (v1.0.0)
+  - Lists all access packages of Entra ID entitlement management, or those matching a package or catalog name filter with * as wildcard, such as a name prefix
+  - Lists every assignment of users, guests and service principals and shows whether it came from a user request, an admin or an auto-assignment policy
+  - Shows state, start, end and days left per assignment and counts assignments that expire within 30 days or failed to deliver
+  - Adds tables for open requests, the groups, applications and SharePoint sites each package grants, and the assignment policies with approval and reviews
+  - Counts expired assignments and optionally lists them in a separate table; the report can be sent by email or as a download link
+  - Names every gap: lists that cannot be read completely are noted per access package and counted, never skipped
+
 ## 2026-11-09
 
 - Update **Check Updateable Assets** Runbook in Group/Devices
