@@ -1,0 +1,40 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "Sites.Read.All",
+                    "Reason": "Reads /sites/root to derive the SharePoint admin center URL"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads /organization to show the tenant display name in the report"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the report email via Send-RjRbReportEmail when EmailTo is configured"
+                }
+            ]
+        },
+        {
+            "Name": "Office 365 SharePoint Online",
+            "Id": "00000003-0000-0ff1-ce00-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "Sites.FullControl.All",
+                    "Reason": "Enumerates all site collections and OneDrives with Get-PnPTenantSite on the SharePoint admin center and reads the storage metrics of the hidden Preservation Hold library of every site with Get-PnPFolderStorageMetric; the tenant-admin endpoint requires full control"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": [
+        "SharePoint Online: grant 'Sites.FullControl.All' application permission on the Office 365 SharePoint Online API (AppId 00000003-0000-0ff1-ce00-000000000000) to the Automation account's system-assigned managed identity. This SharePoint app-only grant cannot be made through the standard Entra app-role-assignment automation used for Microsoft Graph and must be assigned manually per tenant.",
+        "Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required when CreateDownloadLink is used)"
+    ]
+}

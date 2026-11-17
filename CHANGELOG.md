@@ -1,5 +1,15 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-11-17
+
+- Add **Report SharePoint Retention Storage (Scheduled)** Runbook in Org/Collab (v1.0.0)
+  - Measures the hidden Preservation Hold library that retention policies, retention labels and holds create in SharePoint sites and OneDrives
+  - Compares the retention storage of every site with the total storage the site uses
+  - Analyzes one site collection ad hoc, or all sites, SharePoint sites only or OneDrives only for a scheduled analysis
+  - Lists the retention storage of the whole tenant, a breakdown by site type and the top 10 sites by retention storage
+  - Offers the complete data set as CSV download link (enabled by default) and optionally sends it by email
+  - Names every gap: sites that are skipped or cannot be read are listed and counted, never silently left out
+
 ## 2026-11-12
 
 - Add **Report Access Package Assignments (Scheduled)** Runbook in Org/Security (v1.0.0)
