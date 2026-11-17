@@ -12,7 +12,7 @@ Deleting a guest without the SharePoint cleanup leads to a *site user ID mismatc
 
 The two runbooks do not exchange any state; the order follows only from the configured days. Keep `RemoveAfterDays` of Remove Inactive Guests From SharePoint well below `DeleteAfterDays`, so the SharePoint cleanup has run at least once before the account is deleted.
 
-Recommended schedule: this runbook daily, Remove Inactive Guests From SharePoint weekly. Use the same `IgnoreGroupIds` in both runbooks.
+Recommended schedule: this runbook daily, Remove Inactive Guests From SharePoint weekly. Use the same `IgnoreGroupIds` in both runbooks. In large tenants where a full scan of all sites exceeds the runtime limit, schedule Remove Inactive Guests From SharePoint twice, once with `Scope` = `SharePoint` and once with `Scope` = `OneDrive`.
 
 ## How the last sign-in is determined
 

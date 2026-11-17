@@ -1,5 +1,11 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-11-04
+
+- Update **Remove Inactive Guests From SharePoint (Scheduled)** Runbook in Org/Collab
+  - New `Scope` parameter: scan all site collections and OneDrives (default), only SharePoint sites or only OneDrives
+  - Large tenants whose full scan exceeds the runtime limit can schedule one run per scope
+
 ## 2026-11-03
 
 - New **Fix SharePoint User ID Mismatch** Runbook in Org/Collab

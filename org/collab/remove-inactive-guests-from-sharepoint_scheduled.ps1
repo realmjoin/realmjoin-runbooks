@@ -3,13 +3,16 @@
     Remove disabled inactive guests from all SharePoint sites and OneDrives
 
     .DESCRIPTION
-    Finds disabled guest accounts without a sign-in for the configured number of days and removes them from the user information list of every SharePoint site collection and OneDrive (equivalent to Remove-SPOUser). This prevents the site user ID mismatch that occurs when a deleted guest is invited again later. All guests are determined first; the expensive pass over all site collections only starts when at least one guest needs to be removed, and every site is visited only once for all guests together. Locked, archived and redirect sites are skipped. Members of the ignore groups are never touched. Nothing is written to the guest account itself. A dry run lists all removals without changing anything.
+    Finds disabled guest accounts without a sign-in for the configured number of days and removes them from the user information list of every SharePoint site collection and OneDrive (equivalent to Remove-SPOUser). This prevents the site user ID mismatch that occurs when a deleted guest is invited again later. All guests are determined first; the expensive pass over all site collections only starts when at least one guest needs to be removed, and every site is visited only once for all guests together. Locked, archived and redirect sites are skipped. The scan can be limited to SharePoint sites or OneDrives, so large tenants can split the work into two scheduled runs. Members of the ignore groups are never touched. Nothing is written to the guest account itself. A dry run lists all removals without changing anything.
 
     .PARAMETER RemoveAfterDays
     Disabled guests with no sign-in for at least this many days are removed from SharePoint.
 
     .PARAMETER IgnoreGroupIds
     Guests that are members of one of these groups, directly or through nested groups, are never processed. Use the same groups as in Cleanup Inactive Guests.
+
+    .PARAMETER Scope
+    Which sites are scanned: all site collections and OneDrives, only SharePoint site collections or only OneDrives. In large tenants where a full scan exceeds the runtime limit, schedule one run for SharePoint sites and one for OneDrives.
 
     .PARAMETER WhatIfMode
     Only reports from which sites the guests would be removed without changing anything.
@@ -61,6 +64,14 @@
             },
             "IgnoreGroupIds": {
                 "DisplayName": "Ignore groups"
+            },
+            "Scope": {
+                "DisplayName": "Sites to scan",
+                "SelectSimple": {
+                    "SharePoint sites and OneDrives": "All",
+                    "SharePoint sites only": "SharePoint",
+                    "OneDrives only": "OneDrive"
+                }
             },
             "WhatIfMode": {
                 "DisplayName": "Dry run?"
@@ -123,6 +134,9 @@ param(
 
     [ValidateScript({ Use-RjRbInterface -Type Graph -Entity Group -DisplayName "Ignore groups" })]
     [string[]]$IgnoreGroupIds = @(),
+
+    [ValidateSet("All", "SharePoint", "OneDrive")]
+    [string]$Scope = "All",
 
     [bool]$WhatIfMode = $true,
 
@@ -255,11 +269,12 @@ function Get-SiteSkipReason {
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "RemoveAfterDays: $RemoveAfterDays" -Verbose
 Write-RjRbLog -Message "IgnoreGroupIds: $($IgnoreGroupIds -join ', ')" -Verbose
+Write-RjRbLog -Message "Scope: $Scope" -Verbose
 Write-RjRbLog -Message "WhatIfMode: $WhatIfMode" -Verbose
 Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
 Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
@@ -309,6 +324,7 @@ if ($WhatIfMode) {
 else {
     Write-Output "Mode: live - guests are removed from SharePoint sites"
 }
+Write-Output "Scope: $Scope"
 Write-Output "Remove after: $RemoveAfterDays day(s) without sign-in (only disabled guests)"
 Write-Output "Ignore groups: $(if ($IgnoreGroupIds.Count -gt 0) { $IgnoreGroupIds.Count } else { 'none' })"
 
@@ -480,15 +496,19 @@ else {
         throw
     }
 
-    Write-Output "Retrieving all site collections including OneDrives (this can take several minutes in large tenants)..."
+    Write-Output "Retrieving site collections in scope (this can take several minutes in large tenants)..."
     try {
-        $allSites = @(Get-PnPTenantSite -IncludeOneDriveSites -ErrorAction Stop)
+        switch ($Scope) {
+            "SharePoint" { $allSites = @(Get-PnPTenantSite -ErrorAction Stop) }
+            "OneDrive" { $allSites = @(Get-PnPTenantSite -IncludeOneDriveSites -Filter "Url -like '-my.sharepoint.com/personal/'" -ErrorAction Stop) }
+            default { $allSites = @(Get-PnPTenantSite -IncludeOneDriveSites -ErrorAction Stop) }
+        }
     }
     catch {
         Write-Error "Failed to enumerate the site collections via Get-PnPTenantSite. If this is an access-denied error, the managed identity lacks 'Sites.FullControl.All' on the Office 365 SharePoint Online API. Error: $($_.Exception.Message)" -ErrorAction Continue
         throw "Unable to retrieve SharePoint site collections"
     }
-    Write-Output "Found $($allSites.Count) site collection(s) and OneDrive(s)."
+    Write-Output "Found $($allSites.Count) site(s) in scope '$Scope'."
 
     Write-Output ""
     Write-Output "Scan Site Collections"
@@ -586,7 +606,7 @@ Write-Output "Summary"
 Write-Output "---------------------"
 Write-Output "Guests to remove from SharePoint: $($candidates.Count)"
 if ($candidates.Count -gt 0) {
-    Write-Output "Site collections and OneDrives total: $($allSites.Count)"
+    Write-Output "Sites in scope ($Scope): $($allSites.Count)"
     Write-Output "Sites scanned: $processedSiteCount"
     Write-Output "Sites skipped (locked, archived, redirect): $skippedSiteCount"
     Write-Output "Sites that could not be read: $failedSiteCount"
@@ -628,7 +648,7 @@ $reportFiles = @()
 if (($sendEmail -or $CreateDownloadLink) -and $candidates.Count -gt 0) {
     $tempDir = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath "GuestSPOCleanup_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
     New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
-    $fileNameBase = "GuestSPOCleanup-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+    $fileNameBase = "GuestSPOCleanup-$Scope-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
     $exports = @(
         @{ Rows = $guestRows; Name = "$fileNameBase-Guests.csv" }
         @{ Rows = $removalReportRows; Name = "$fileNameBase-SiteRemovals.csv" }
@@ -673,12 +693,13 @@ if ($sendEmail -and $reportFiles.Count -gt 0) {
 
 **Tenant:** $tenantDisplayName
 **Run mode:** $runMode
+**Scope:** $Scope
 **Date:** $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
 
 ## Summary
 
 - Disabled guests without sign-in for **$RemoveAfterDays** days: **$($candidates.Count)**
-- Site collections and OneDrives total: **$($allSites.Count)**
+- Sites in scope ($Scope): **$($allSites.Count)**
 - Sites scanned: **$processedSiteCount**
 - Sites skipped (locked, archived, redirect): **$skippedSiteCount**
 - Sites that could not be read: **$failedSiteCount**
@@ -692,7 +713,7 @@ The attached CSV files list the guests, every site membership and all skipped si
 "@
     $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
     try {
-        Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject "Guest SharePoint Cleanup - $tenantDisplayName - $(Get-Date -Format 'yyyy-MM-dd')" -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version -Attachments $reportFiles @brandingMailParams
+        Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $EmailTo -Subject "Guest SharePoint Cleanup ($Scope) - $tenantDisplayName -$(Get-Date -Format 'yyyy-MM-dd')" -MarkdownContent $markdownContent -TenantDisplayName $tenantDisplayName -ReportVersion $Version -Attachments $reportFiles @brandingMailParams
         Write-RjRbLog -Message "Report email sent to '$EmailTo'." -Verbose
     }
     catch {
@@ -708,7 +729,7 @@ Write-Output ""
 $summaryValues = [ordered]@{
     "Guests to remove from SharePoint"           = $candidates.Count
     "Ignored (member of an ignore group)"        = $ignoredCount
-    "Site collections and OneDrives total"       = $allSites.Count
+    "Sites in scope"                             = $allSites.Count
     "Sites scanned"                              = $processedSiteCount
     "Sites skipped (locked, archived, redirect)" = $skippedSiteCount
     "Sites that could not be read"               = $failedSiteCount
