@@ -34,12 +34,12 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
 
 param(
     [Parameter(Mandatory = $true)]
     [String] $UserName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Textarea -DisplayName "Action" } )]
+    [ValidateScript( { Use-RJInterface -Type Textarea -DisplayName "Action" } )]
     [boolean] $Dismiss = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

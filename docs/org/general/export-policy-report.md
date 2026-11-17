@@ -16,7 +16,7 @@ Org \ General \ Export Policy Report
   - Directory.Read.All *(optional: Name resolution)*
 
 ### Permission notes
-Azure Storage Account: Contributor role on the Storage Account used for exporting reports
+Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys
 
 
 ## Parameters
@@ -48,16 +48,16 @@ Adds LaTeX page breaks to the Markdown, so each policy starts on a new page when
 | Type | Boolean |
 
 ### ContainerName
-Storage container the report files are uploaded to. Taken from the tenant setting TenantPolicyReport.Container.
+Storage container the report files are uploaded to. Taken from the tenant setting TenantPolicyReport.Container, otherwise set per runbook.
 
 | Property | Value |
 |----------|-------|
-| Default Value | rjrb-licensing-report-v2 |
+| Default Value | export-policy-report |
 | Required | false |
 | Type | String |
 
 ### ResourceGroupName
-Resource group of the storage account. Taken from the tenant setting TenantPolicyReport.ResourceGroup.
+Resource group of the storage account for report uploads. Taken from the tenant setting TenantPolicyReport.ResourceGroup; when it is not set, RJReport.StorageAccount.ResourceGroup is used.
 
 | Property | Value |
 |----------|-------|
@@ -66,7 +66,16 @@ Resource group of the storage account. Taken from the tenant setting TenantPolic
 | Type | String |
 
 ### StorageAccountName
-Storage account for the export. Taken from the tenant setting TenantPolicyReport.StorageAccount.Name.
+Storage account for report uploads. Taken from the tenant setting TenantPolicyReport.StorageAccount.Name; when it is not set, RJReport.StorageAccount.StorageAccountName is used.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### SubscriptionId
+Subscription ID of the storage account given in ResourceGroupName and StorageAccountName. Not taken from a tenant setting; the subscription the managed identity signs in to is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -75,7 +84,7 @@ Storage account for the export. Taken from the tenant setting TenantPolicyReport
 | Type | String |
 
 ### StorageAccountLocation
-Azure region used when the storage account has to be created. Taken from the tenant setting TenantPolicyReport.StorageAccount.Location.
+No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run.
 
 | Property | Value |
 |----------|-------|
@@ -84,13 +93,49 @@ Azure region used when the storage account has to be created. Taken from the ten
 | Type | String |
 
 ### StorageAccountSku
-Performance tier used when the storage account has to be created. Taken from the tenant setting TenantPolicyReport.StorageAccount.Sku.
+No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run.
 
 | Property | Value |
 |----------|-------|
 | Default Value |  |
 | Required | false |
 | Type | String |
+
+### RJReportResourceGroupName
+Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when TenantPolicyReport.ResourceGroup is not set.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### RJReportStorageAccountName
+Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when TenantPolicyReport.StorageAccount.Name is not set.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### RJReportSubscriptionId
+Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### LinkExpiryDays
+Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 6 |
+| Required | false |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)

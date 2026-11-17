@@ -35,6 +35,7 @@
                     "Options": [
                         {
                             "Display": "Hide the mailbox in the address book",
+                            "ParameterValue": "Hide the mailbox in the address book",
                             "Customization": {
                                 "Default": {
                                     "HideMailbox": true
@@ -43,6 +44,7 @@
                         },
                         {
                             "Display": "Show the mailbox in the address book",
+                            "ParameterValue": "Show the mailbox in the address book",
                             "Customization": {
                                 "Default": {
                                     "HideMailbox": false
@@ -62,7 +64,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
 #Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.2" }
 
 param

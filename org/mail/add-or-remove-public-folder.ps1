@@ -27,6 +27,7 @@
                     "Options": [
                         {
                             "Display": "Create a public folder",
+                            "ParameterValue": "Create a public folder",
                             "Customization": {
                                 "Default": {
                                     "AddPublicFolder": true
@@ -35,6 +36,7 @@
                         },
                         {
                             "Display": "Remove a public folder",
+                            "ParameterValue": "Remove a public folder",
                             "Customization": {
                                 "Default": {
                                     "AddPublicFolder": false
@@ -70,7 +72,7 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
 #Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.2" }
 
 param

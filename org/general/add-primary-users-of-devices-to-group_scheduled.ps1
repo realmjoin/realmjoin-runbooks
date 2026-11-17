@@ -142,6 +142,7 @@
                     "Options": [
                         {
                             "Display": "Yes, filter by group membership",
+                            "ParameterValue": true,
                             "Customization": {
                                 "Hide": [],
                                 "Show": ["IncludeGroupId", "ExcludeGroupId"]
@@ -161,8 +162,8 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 
 param(
     # Suppress false positive from PSScriptAnalyzer - $idx is assigned in ForEach-Object -Begin and used in -Process block
@@ -188,17 +189,17 @@ param(
 
     [bool]$ReportOnly = $false,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
     [string]$EmailFrom,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" } )]
     [string]$BrandingHeaderImageUrl,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" } )]
     [string]$BrandingFooterImageUrl,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" } )]
     [string]$BrandingFooterLink,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" } )]
     [string]$BrandingAccentColor,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" } )]
     [string]$BrandingTextColor,
     [string]$EmailTo,
     [ValidateSet('CSV & XLSX', 'CSV only', 'XLSX only')]
@@ -657,7 +658,7 @@ $removeLinesMail
             if ($reportFiles.Count -gt 0) {
                 $emailParams.Attachments = $reportFiles
             }
-            Send-RjReportEmail @emailParams @brandingMailParams
+            Send-RjRbReportEmail @emailParams @brandingMailParams
             Write-Output ""
             Write-Output "Preview report sent to '$EmailTo'$(if ($reportFiles.Count -gt 0) { " with $($reportFiles.Count) attachment(s)" })."
         }

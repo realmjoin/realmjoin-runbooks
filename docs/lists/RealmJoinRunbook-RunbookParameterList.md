@@ -25,12 +25,14 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Remove Primary User](#device-general-remove-primary-user)
     - [Rename Device](#device-general-rename-device)
     - [Set Primary User](#device-general-set-primary-user)
+    - [Sync Device](#device-general-sync-device)
     - [Unenroll Updatable Assets](#device-general-unenroll-updatable-assets)
     - [Wipe Device](#device-general-wipe-device)
     - [Wipe Managed App Data](#device-general-wipe-managed-app-data)
   - [Security](#device-security)
     - [Check Defender Status](#device-security-check-defender-status)
     - [Enable Or Disable Device](#device-security-enable-or-disable-device)
+    - [Enable Or Disable Lost Mode](#device-security-enable-or-disable-lost-mode)
     - [Isolate Or Release Device](#device-security-isolate-or-release-device)
     - [Reset Mobile Device Pin](#device-security-reset-mobile-device-pin)
     - [Restrict Or Release Code Execution](#device-security-restrict-or-release-code-execution)
@@ -70,6 +72,7 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Collab](#organization-collab)
     - [Check Onedrive Status](#organization-collab-check-onedrive-status)
     - [List Sharepoint Sitecollection Permission](#organization-collab-list-sharepoint-sitecollection-permission)
+    - [Report Shared Channel Members (Scheduled)](#organization-collab-report-shared-channel-members-scheduled)
     - [Report Sharepoint Tenant Storage (Scheduled)](#organization-collab-report-sharepoint-tenant-storage-scheduled)
     - [Report Teams Channels (Scheduled)](#organization-collab-report-teams-channels-scheduled)
   - [Devices](#organization-devices)
@@ -89,6 +92,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Report Devices Low Diskspace (Scheduled)](#organization-devices-report-devices-low-diskspace-scheduled)
     - [Report Devices Without Primary User (Scheduled)](#organization-devices-report-devices-without-primary-user-scheduled)
     - [Report Primary User Mismatch (Scheduled)](#organization-devices-report-primary-user-mismatch-scheduled)
+    - [Report Realmjoin Agent Contact (Scheduled)](#organization-devices-report-realmjoin-agent-contact-scheduled)
     - [Report Stale Devices (Scheduled)](#organization-devices-report-stale-devices-scheduled)
     - [Report Users With More Than 5-Devices (Scheduled)](#organization-devices-report-users-with-more-than-5-devices-scheduled)
     - [Report Windows Devices Without Autopilot (Scheduled)](#organization-devices-report-windows-devices-without-autopilot-scheduled)
@@ -145,6 +149,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Hide Mailboxes (Scheduled)](#organization-mail-hide-mailboxes-scheduled)
     - [Set Booking Config](#organization-mail-set-booking-config)
   - [Phone](#organization-phone)
+    - [Add Or Remove Auto Attendant Authorized Users](#organization-phone-add-or-remove-auto-attendant-authorized-users)
     - [Add Or Remove Call Queue Agents](#organization-phone-add-or-remove-call-queue-agents)
     - [Add Or Remove Call Queue Authorized Users](#organization-phone-add-or-remove-call-queue-authorized-users)
     - [Get Teams Phone Number Assignment](#organization-phone-get-teams-phone-number-assignment)
@@ -162,11 +167,14 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [List Vulnerable App Regs](#organization-security-list-vulnerable-app-regs)
     - [Monitor Pending EPM Requests (Scheduled)](#organization-security-monitor-pending-epm-requests-scheduled)
     - [Notify Changed CA Policies](#organization-security-notify-changed-ca-policies)
+    - [Report Access Package Assignments (Scheduled)](#organization-security-report-access-package-assignments-scheduled)
     - [Report EPM Elevation Requests (Scheduled)](#organization-security-report-epm-elevation-requests-scheduled)
     - [Sync MFA Secure Users To Group (Scheduled)](#organization-security-sync-mfa-secure-users-to-group-scheduled)
 - [User](#user)
   - [AVD](#user-avd)
     - [User Signout](#user-avd-user-signout)
+  - [Collab](#user-collab)
+    - [Pre Provision Onedrive](#user-collab-pre-provision-onedrive)
   - [General](#user-general)
     - [Assign Groups By Template](#user-general-assign-groups-by-template)
     - [Assign Or Unassign License](#user-general-assign-or-unassign-license)
@@ -362,6 +370,16 @@ Set a new primary user on this device
 | NewPrimaryUserId | ✓ | String | User to assign. The current primary user is replaced; both are shown in the output. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
+<a name='device-general-sync-device'></a>
+
+### Sync Device
+Trigger an Intune sync on this device
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+
 <a name='device-general-unenroll-updatable-assets'></a>
 
 ### Unenroll Updatable Assets
@@ -429,6 +447,21 @@ Enable or disable this device in Entra ID
 |-----------|----------|------|-------------|
 | DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
 | Enable |  | Boolean | Disable blocks sign-ins from the device. Enable again lifts an earlier block. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+
+<a name='device-security-enable-or-disable-lost-mode'></a>
+
+### Enable Or Disable Lost Mode
+Enable or disable Lost Mode on this supervised iOS or iPadOS device
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| DeviceId | ✓ | String | Entra ID device ID of the device the runbook acts on. Set by the portal from the selected device. |
+| LostModeAction |  | String | Enable Lost Mode locks the device and shows the lock screen texts. Disable Lost Mode lifts the lock again so the device can be used as usual. |
+| Message |  | String | Text shown on the lock screen while the device is locked, for example who the device belongs to. Anyone who finds the device can read it. At least one of "Lock screen message" and "Callback phone number" is needed. |
+| PhoneNumber |  | String | Phone number shown on the lock screen. The finder can call it from the locked device without unlocking it. Leave empty to show the message only. |
+| Footer |  | String | Additional line at the bottom of the lock screen, for example an asset tag or a reward note. Leave empty for no footer. |
+| LocateDevice |  | Boolean | Also asks the locked device for its current position and shows the coordinates when they arrive within a minute. A device that is offline answers later; its position is then shown in the Intune admin center. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='device-security-isolate-or-release-device'></a>
@@ -764,9 +797,14 @@ Export the owners and users of all enterprise applications
 | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
 | CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
 | ContainerName |  | String | Storage container the report files are uploaded to. Taken from the tenant setting EntAppsReport.Container. |
-| ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting EntAppsReport.ResourceGroup. |
-| StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting EntAppsReport.StorageAccount.Name. |
-| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting EntAppsReport.LinkExpiryDays. |
+| ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting EntAppsReport.ResourceGroup; when it is not set, RJReport.StorageAccount.ResourceGroup is used. |
+| StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting EntAppsReport.StorageAccount.Name; when it is not set, RJReport.StorageAccount.StorageAccountName is used. |
+| SubscriptionId |  | String | Subscription ID of the storage account given in ResourceGroupName and StorageAccountName. Not taken from a tenant setting; the subscription the managed identity signs in to is used when empty. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting EntAppsReport.LinkExpiryDays; when it is not set, RJReport.StorageAccount.LinkExpiryDays is used. |
+| RJReportResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when EntAppsReport.ResourceGroup is not set. |
+| RJReportStorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when EntAppsReport.StorageAccount.Name is not set. |
+| RJReportSubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount. |
+| RJReportLinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays and used when EntAppsReport.LinkExpiryDays is not set. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
 | BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
@@ -789,14 +827,16 @@ List enterprise applications with no recent sign-ins
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
+| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
 | BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
 | BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
 | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
-| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-applications-report-application-registration'></a>
@@ -806,6 +846,8 @@ Report all application registrations, including deleted ones
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
+| IncludeDeletedApps |  | Boolean | Also lists application registrations that were deleted within the last 30 days. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -813,12 +855,12 @@ Report all application registrations, including deleted ones
 | BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
 | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
-| IncludeDeletedApps |  | Boolean | Also lists application registrations that were deleted within the last 30 days. |
 | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
 | CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -829,8 +871,8 @@ Report expiring client secrets and certificates of app registrations
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| listOnlyExpiring |  | Boolean | Only credentials that expire within the given number of days, or all credentials. |
-| Days |  | Int32 | Credentials that expire within this many days count as about to expire. |
+| listOnlyExpiring |  | Boolean | Only credentials that expire within "Days before expiry", or all credentials including expired ones. |
+| Days |  | Int32 | Credentials that expire within this many days count as about to expire. Not used when all credentials are listed. |
 | CredentialType |  | String | Client secrets, certificates, or both. |
 | ApplicationIds |  | String | Limits the report to these application (client) IDs, separated by commas. Leave empty for all applications. |
 | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
@@ -838,7 +880,9 @@ Report expiring client secrets and certificates of app registrations
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -900,6 +944,33 @@ List the administrators and members of a SharePoint site
 | SiteUrl | ✓ | String | Full URL of the site, for example https://contoso.sharepoint.com/sites/marketing. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
+<a name='organization-collab-report-shared-channel-members-scheduled'></a>
+
+### Report Shared Channel Members (Scheduled)
+List shared channels of all teams with direct and indirect members
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| ReportScope |  | String | "All shared channels, one table" lists every member in one table. "All shared channels, one table per channel" gives each channel its own table and worksheet. "Shared channels by name, one table" reports only the named channels. |
+| TeamIds |  | String Array | Only the shared channels hosted by the selected teams are read. Leave empty to include every team of the tenant. |
+| ChannelNames |  | String | Names of the shared channels to report, separated by commas; upper and lower case do not matter. Without "Limit to these teams", matching channels of every team are reported. |
+| EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
+| BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
+| BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
+| BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
+| BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
+| BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
+| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
+| ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
+| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+| ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
+| ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
+| StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+
 <a name='organization-collab-report-sharepoint-tenant-storage-scheduled'></a>
 
 ### Report Sharepoint Tenant Storage (Scheduled)
@@ -944,6 +1015,7 @@ List private and shared channels of all teams with their owners
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -999,6 +1071,7 @@ Approve pending driver updates in Intune driver update policies
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -1037,6 +1110,7 @@ Remove orphaned and never-enrolled Autopilot registrations
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -1070,7 +1144,7 @@ Delete Intune devices that have been inactive for too long
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| Days |  | Int32 | Devices with no check-in for at least this many days count as stale. |
+| Days |  | Int32 | Devices with no check-in for at least this many days count as stale. Allowed are 1 to 3650 days. |
 | Windows |  | Boolean | Includes Windows devices. |
 | MacOS |  | Boolean | Includes macOS devices. |
 | iOS |  | Boolean | Includes iOS and iPadOS devices. |
@@ -1087,10 +1161,11 @@ Delete Intune devices that have been inactive for too long
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
-| UseUserScope |  | Boolean | Whether devices are filtered by the group membership of their primary user. Set by the "Filter by primary user group?" choice. |
-| IncludeUserGroup |  | String | Only devices whose primary user is in this group. |
-| ExcludeUserGroup |  | String | Skips devices whose primary user is in this group. |
+| UseUserScope |  | Boolean | Set by the "Filter by primary user group?" choice; with "Yes", at least one group is required. A group in "Include users from group" or "Exclude users from group" applies whenever it is set, also without this choice. |
+| IncludeUserGroup |  | String | Only devices whose primary user is a member of this group, directly or through nested groups. Devices without a primary user are left out. |
+| ExcludeUserGroup |  | String | Skips devices whose primary user is a member of this group and devices that are members themselves, directly or through nested groups. Skipped devices are never deleted. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -1128,8 +1203,10 @@ List managed mobile devices with inventory and network details
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
-| EmailTo |  | String | Send the report to these addresses, separated by commas. Leave empty to only show the result in the run output. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
+| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-devices-notify-users-about-low-diskspace-scheduled'></a>
@@ -1270,7 +1347,9 @@ Report devices that are running out of disk space
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -1291,6 +1370,7 @@ Report Intune devices without a primary user
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -1298,25 +1378,28 @@ Report Intune devices without a primary user
 | BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
 | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-devices-report-primary-user-mismatch-scheduled'></a>
 
 ### Report Primary User Mismatch (Scheduled)
-Compare primary users between Intune and RealmJoin
+Compare primary users and logons between Intune and RealmJoin
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| SyncThresholdDays |  | Int32 | Only devices that synced with Intune within this many days are compared. |
+| SyncThresholdDays |  | Int32 | Only devices that synced with Intune within this many days are compared. Devices that stopped syncing altogether belong in the stale device report instead. |
 | DeviceNamePrefix |  | String | Only devices whose name starts with this text. Leave empty for all. |
+| PrimaryUserLogonDays |  | Int32 | The primary user counts as not logging on when someone else logged on to the device and the primary user did not within this many days. |
 | IncludeMismatches |  | Boolean | Lists devices whose primary user differs between Intune and RealmJoin. |
-| IncludeMissingInRealmJoin |  | Boolean | Lists devices that exist in Intune but not in RealmJoin. |
-| IncludeMissingInIntune |  | Boolean | Lists devices that exist in RealmJoin but not in Intune. |
+| IncludeMissingInRealmJoin |  | Boolean | Lists devices that exist in Intune but not in RealmJoin, or that RealmJoin knows without a primary user. |
+| IncludeMissingInIntune |  | Boolean | Lists devices that exist in RealmJoin but did not sync with Intune within the sync window. |
 | IncludePrimaryUserDeleted |  | Boolean | Lists devices whose Intune primary user was deleted from Entra ID. Without this they would look like mismatches, because Intune rewrites the name of a deleted user. |
-| UseDeviceScope |  | Boolean | Whether devices are filtered by group membership. Set by the "Filter by device group?" choice. |
-| IncludeDeviceGroup |  | String | Only devices in this Entra ID group. |
-| ExcludeDeviceGroup |  | String | Skips devices in this Entra ID group. |
+| IncludePrimaryUserNotLoggingOn |  | Boolean | Lists devices where other users log on but the primary user has not within "Primary user must have logged on within (days)". Uses the logons Intune and the RealmJoin agent recorded. |
+| IncludeDeviceGroup |  | String | Only devices in this Entra ID group. Leave empty for all devices. |
+| ExcludeDeviceGroup |  | String | Skips devices in this Entra ID group, for example shared devices where several people log on by design. Leave empty to skip none. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -1329,6 +1412,40 @@ Compare primary users between Intune and RealmJoin
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+
+<a name='organization-devices-report-realmjoin-agent-contact-scheduled'></a>
+
+### Report Realmjoin Agent Contact (Scheduled)
+Report devices whose RealmJoin agent stopped reporting
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| SyncThresholdDays |  | Int32 | Only devices that synced with Intune within this many days are compared. Devices that stopped syncing altogether belong in the stale device report instead. |
+| AgentContactThresholdDays |  | Int32 | A device counts as agent stale when Intune saw it at least this many days after RealmJoin last did. Short gaps are normal, as the agent only reports while a user is signed in. |
+| DeviceNamePrefix |  | String | Only devices whose name starts with this text. Leave empty for all. |
+| IncludeAgentStale |  | Boolean | Lists devices that Intune saw well after RealmJoin last did, the sign of an agent that no longer reports. |
+| IncludeNeverSeen |  | Boolean | Lists devices RealmJoin knows but has never seen a signed-in user on, for example devices that were enrolled but not used yet. |
+| IncludeMissingInRealmJoin |  | Boolean | Lists devices that exist in Intune but not in RealmJoin. |
+| IncludeMissingInIntune |  | Boolean | Lists devices that exist in RealmJoin but did not sync with Intune within the sync window. Not available together with a device name prefix. |
+| IncludeDeviceGroup |  | String | Only devices in this Entra ID group. Leave empty for all devices. |
+| ExcludeDeviceGroup |  | String | Skips devices in this Entra ID group, for example kiosk or shared devices that rarely have a signed-in user. Leave empty to skip none. |
+| EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
+| BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
+| BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
+| BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
+| BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
+| BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
+| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
+| ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
+| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+| ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
+| ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
+| StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -1340,11 +1457,16 @@ Report devices that have been inactive for too long
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | Days |  | Int32 | Devices with no check-in for at least this many days count as stale. |
-| MaxDays |  | Int32 | Only devices inactive for at most this many days are included. Leave empty for no upper limit. |
+| MaxDays |  | Int32 | Only devices inactive for at most this many days are included. Leave empty for no upper limit. A value not above "Days without activity" is ignored. |
 | Windows |  | Boolean | Includes Windows devices. |
 | MacOS |  | Boolean | Includes macOS devices. |
 | iOS |  | Boolean | Includes iOS and iPadOS devices. |
 | Android |  | Boolean | Includes Android devices. |
+| UseUserScope |  | Boolean | Not used any more. The primary user group filter applies as soon as a group is selected in "Include users from group" or "Exclude users from group". Kept so existing schedules keep working. |
+| IncludeUserGroup |  | String | Only devices whose primary user is a member of this group, directly or through nested groups. Leave empty for all devices. |
+| ExcludeUserGroup |  | String | Skips devices whose primary user is a member of this group and devices that are members themselves, directly or through nested groups. Leave empty to skip none. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
+| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
 | BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
@@ -1356,11 +1478,8 @@ Report devices that have been inactive for too long
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
-| UseUserScope |  | Boolean | Whether devices are filtered by the group membership of their primary user. Set by the "Filter by primary user group?" choice. |
-| IncludeUserGroup |  | String | Only devices whose primary user is in this group. |
-| ExcludeUserGroup |  | String | Skips devices whose primary user is in this group. |
-| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-devices-report-users-with-more-than-5-devices-scheduled'></a>
@@ -1376,6 +1495,7 @@ Report users with more than five registered devices
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -1383,6 +1503,7 @@ Report users with more than five registered devices
 | BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
 | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -1406,6 +1527,7 @@ Report Windows devices in Entra ID without an Autopilot record
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -1710,7 +1832,7 @@ Keep unenrolled Autopilot devices in a compliance exclusion group
 <a name='organization-general-enrolled-devices-report-scheduled'></a>
 
 ### Enrolled Devices Report (Scheduled)
-Report first-time device enrollments of the last weeks
+Report recent first-time enrollments of Windows Autopilot devices
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
@@ -1719,11 +1841,16 @@ Report first-time device enrollments of the last weeks
 | groupingSource |  | Int32 | Where the grouping attribute comes from: no grouping, Entra ID user or device properties, Intune device properties, or Autopilot device properties. |
 | groupingAttribute |  | String | Name of the attribute the devices are grouped by, for example country or department. |
 | exportCsv |  | Boolean | Uploads the report as CSV to the storage account and returns a download link. Needs a configured storage account. |
-| ContainerName |  | String | Storage container the report is uploaded to. Taken from the tenant setting EnrolledDevicesReport.Container. |
-| ResourceGroupName |  | String | Resource group of the storage account. Taken from the tenant setting EnrolledDevicesReport.ResourceGroup. |
-| StorageAccountName |  | String | Storage account for the export. Taken from the tenant setting EnrolledDevicesReport.StorageAccount.Name. |
-| StorageAccountLocation |  | String | Azure region used when the storage account has to be created. Taken from the tenant setting EnrolledDevicesReport.StorageAccount.Location. |
-| StorageAccountSku |  | String | Performance tier used when the storage account has to be created. Taken from the tenant setting EnrolledDevicesReport.StorageAccount.Sku. |
+| ContainerName |  | String | Storage container the report is uploaded to. Taken from the tenant setting EnrolledDevicesReport.Container, otherwise set per runbook. |
+| ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting EnrolledDevicesReport.ResourceGroup; when it is not set, RJReport.StorageAccount.ResourceGroup is used. |
+| StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting EnrolledDevicesReport.StorageAccount.Name; when it is not set, RJReport.StorageAccount.StorageAccountName is used. |
+| SubscriptionId |  | String | Subscription ID of the storage account given in ResourceGroupName and StorageAccountName. Not taken from a tenant setting; the subscription the managed identity signs in to is used when empty. |
+| StorageAccountLocation |  | String | No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run. |
+| StorageAccountSku |  | String | No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run. |
+| RJReportResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when EnrolledDevicesReport.ResourceGroup is not set. |
+| RJReportStorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when EnrolledDevicesReport.StorageAccount.Name is not set. |
+| RJReportSubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-general-export-all-autopilot-devices'></a>
@@ -1733,12 +1860,17 @@ List or export all Windows Autopilot devices
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| ExportToFile |  | Boolean | List in the run output, or export to a CSV file with a download link. |
+| ExportToFile |  | Boolean | The list is always shown in the Output Data tables of the run. "Also export to a CSV file" also uploads it as a CSV file and returns a download link. |
 | ContainerName |  | String | Storage container the CSV file is uploaded to. Taken from the tenant setting IntuneDevicesReport.Container. |
-| ResourceGroupName |  | String | Resource group of the storage account. Taken from the tenant setting IntuneDevicesReport.ResourceGroup. |
-| StorageAccountName |  | String | Storage account for the export. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Name. |
-| StorageAccountLocation |  | String | Azure region used when the storage account has to be created. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Location. |
-| StorageAccountSku |  | String | Performance tier used when the storage account has to be created. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Sku. |
+| ResourceGroupName |  | String | Resource group of the storage account. Taken from the tenant setting IntuneDevicesReport.ResourceGroup; when it is not set, RJReport.StorageAccount.ResourceGroup is used. |
+| StorageAccountName |  | String | Storage account for the export. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Name; when it is not set, RJReport.StorageAccount.StorageAccountName is used. |
+| SubscriptionId |  | String | Subscription ID of the storage account given in ResourceGroupName and StorageAccountName. Not taken from a tenant setting; the subscription the managed identity signs in to is used when empty. |
+| StorageAccountLocation |  | String | No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run. |
+| StorageAccountSku |  | String | No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run. |
+| RJReportResourceGroupName |  | String | Resource group of the storage account. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when IntuneDevicesReport.ResourceGroup is not set. |
+| RJReportStorageAccountName |  | String | Storage account for the export. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when IntuneDevicesReport.StorageAccount.Name is not set. |
+| RJReportSubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-general-export-all-intune-devices'></a>
@@ -1749,11 +1881,15 @@ Export all Intune devices with their primary users' usage location
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | ContainerName |  | String | Storage container the CSV file is uploaded to. Taken from the tenant setting IntuneDevicesReport.Container. |
-| ResourceGroupName |  | String | Resource group of the storage account. Taken from the tenant setting IntuneDevicesReport.ResourceGroup. |
-| StorageAccountName |  | String | Storage account for the export. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Name. |
-| StorageAccountLocation |  | String | Azure region used when the storage account has to be created. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Location. |
-| StorageAccountSku |  | String | Performance tier used when the storage account has to be created. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Sku. |
-| SubscriptionId |  | String | Azure subscription that holds the storage account. Taken from the tenant setting IntuneDevicesReport.SubscriptionId. |
+| ResourceGroupName |  | String | Resource group of the storage account. Taken from the tenant setting IntuneDevicesReport.ResourceGroup; when it is not set, RJReport.StorageAccount.ResourceGroup is used. |
+| StorageAccountName |  | String | Storage account for the export. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Name; when it is not set, RJReport.StorageAccount.StorageAccountName is used. |
+| StorageAccountLocation |  | String | No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run. |
+| StorageAccountSku |  | String | No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting IntuneDevicesReport.SubscriptionId and only used with IntuneDevicesReport.*; empty means the subscription the managed identity signs in to. |
+| RJReportResourceGroupName |  | String | Resource group of the storage account. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when IntuneDevicesReport.ResourceGroup is not set. |
+| RJReportStorageAccountName |  | String | Storage account for the export. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when IntuneDevicesReport.StorageAccount.Name is not set. |
+| RJReportSubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | FilterGroupID |  | String | Only devices whose primary user is in this group. Leave empty for all devices. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -1779,11 +1915,15 @@ Export non-compliant Intune devices with their failing settings
 |-----------|----------|------|-------------|
 | produceLinks |  | Boolean | Uploads the CSV files to the storage account configured in the tenant settings and returns download links. |
 | ContainerName |  | String | Storage container the report files are uploaded to. Taken from the tenant setting IntuneDevicesReport.Container. |
-| ResourceGroupName |  | String | Resource group of the storage account. Taken from the tenant setting IntuneDevicesReport.ResourceGroup. |
-| StorageAccountName |  | String | Storage account for the export. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Name. |
-| StorageAccountLocation |  | String | Azure region used when the storage account has to be created. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Location. |
-| StorageAccountSku |  | String | Performance tier used when the storage account has to be created. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Sku. |
-| SubscriptionId |  | String | Azure subscription that holds the storage account. Taken from the tenant setting IntuneDevicesReport.SubscriptionId. |
+| ResourceGroupName |  | String | Resource group of the storage account. Taken from the tenant setting IntuneDevicesReport.ResourceGroup; when it is not set, RJReport.StorageAccount.ResourceGroup is used. |
+| StorageAccountName |  | String | Storage account for the export. Taken from the tenant setting IntuneDevicesReport.StorageAccount.Name; when it is not set, RJReport.StorageAccount.StorageAccountName is used. |
+| StorageAccountLocation |  | String | No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run. |
+| StorageAccountSku |  | String | No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting IntuneDevicesReport.SubscriptionId and only used with IntuneDevicesReport.*; empty means the subscription the managed identity signs in to. |
+| RJReportResourceGroupName |  | String | Resource group of the storage account. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when IntuneDevicesReport.ResourceGroup is not set. |
+| RJReportStorageAccountName |  | String | Storage account for the export. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when IntuneDevicesReport.StorageAccount.Name is not set. |
+| RJReportSubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-general-export-policy-report'></a>
@@ -1796,11 +1936,16 @@ Export Intune and Entra ID policies as a Markdown report
 | produceLinks |  | Boolean | Uploads the report files to the storage account configured in the tenant settings and returns download links. |
 | exportJson |  | Boolean | Also exports the raw policy definitions as JSON files. |
 | renderLatexPagebreaks |  | Boolean | Adds LaTeX page breaks to the Markdown, so each policy starts on a new page when the Markdown is converted to PDF. |
-| ContainerName |  | String | Storage container the report files are uploaded to. Taken from the tenant setting TenantPolicyReport.Container. |
-| ResourceGroupName |  | String | Resource group of the storage account. Taken from the tenant setting TenantPolicyReport.ResourceGroup. |
-| StorageAccountName |  | String | Storage account for the export. Taken from the tenant setting TenantPolicyReport.StorageAccount.Name. |
-| StorageAccountLocation |  | String | Azure region used when the storage account has to be created. Taken from the tenant setting TenantPolicyReport.StorageAccount.Location. |
-| StorageAccountSku |  | String | Performance tier used when the storage account has to be created. Taken from the tenant setting TenantPolicyReport.StorageAccount.Sku. |
+| ContainerName |  | String | Storage container the report files are uploaded to. Taken from the tenant setting TenantPolicyReport.Container, otherwise set per runbook. |
+| ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting TenantPolicyReport.ResourceGroup; when it is not set, RJReport.StorageAccount.ResourceGroup is used. |
+| StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting TenantPolicyReport.StorageAccount.Name; when it is not set, RJReport.StorageAccount.StorageAccountName is used. |
+| SubscriptionId |  | String | Subscription ID of the storage account given in ResourceGroupName and StorageAccountName. Not taken from a tenant setting; the subscription the managed identity signs in to is used when empty. |
+| StorageAccountLocation |  | String | No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run. |
+| StorageAccountSku |  | String | No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run. |
+| RJReportResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when TenantPolicyReport.ResourceGroup is not set. |
+| RJReportStorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when TenantPolicyReport.StorageAccount.Name is not set. |
+| RJReportSubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-general-invite-external-guest-users'></a>
@@ -1818,10 +1963,11 @@ Invite an external person as a guest user
 | CompanyName |  | String | Company the guest works for. |
 | ManagerName |  | String | User who becomes the guest's manager. |
 | SponsorName |  | String | User recorded as the guest's sponsor. |
+| SendInvitationMessage |  | Boolean | Emails the invitation to the guest. Without the email, the job output shows the link the guest uses to accept the invitation, to pass on by other means. |
 | CustomizeInvitation |  | Boolean | Shows fields for an own invitation message and redirect URL. |
-| InvitationMessage |  | String | Text included in the invitation email. |
+| InvitationMessage |  | String | Text included in the invitation email. Not used when no invitation email is sent. |
 | InviteRedirectUrl |  | String | Page the guest lands on after accepting, for example a SharePoint site. |
-| UsageLocation |  | String | Two-letter country code, for example US or DE, needed before licenses can be assigned. |
+| UsageLocation |  | String | Two-letter ISO country code, for example US, DE or GB for the United Kingdom, needed before licenses can be assigned. An unknown code such as UK stops the run before the invitation is sent. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-general-list-all-administrative-template-policies'></a>
@@ -1876,9 +2022,13 @@ Report Microsoft 365 license usage and availability
 | exportAsZip |  | Boolean | Uploads one ZIP file instead of the single report files. |
 | produceLinks |  | Boolean | Returns time-limited download links for the uploaded files. |
 | ContainerName |  | String | Storage container the report files are uploaded to. Taken from the tenant setting OfficeLicensingReport.Container. |
-| ResourceGroupName |  | String | Resource group of the storage account. Taken from the tenant setting OfficeLicensingReport.ResourceGroup. |
-| StorageAccountName |  | String | Storage account for the export. Taken from the tenant setting OfficeLicensingReport.StorageAccount.Name. |
-| SubscriptionId |  | String | Azure subscription that holds the storage account. Taken from the tenant setting OfficeLicensingReport.SubscriptionId. |
+| ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting OfficeLicensingReport.ResourceGroup; when it is not set, RJReport.StorageAccount.ResourceGroup is used. |
+| StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting OfficeLicensingReport.StorageAccount.Name; when it is not set, RJReport.StorageAccount.StorageAccountName is used. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting OfficeLicensingReport.SubscriptionId and only used with OfficeLicensingReport.*; empty means the subscription the managed identity signs in to. |
+| RJReportResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when OfficeLicensingReport.ResourceGroup is not set. |
+| RJReportStorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when OfficeLicensingReport.StorageAccount.Name is not set. |
+| RJReportSubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-general-report-apple-mdm-cert-expiry-scheduled'></a>
@@ -1909,7 +2059,7 @@ Report which users can enroll devices in Intune
 | GroupName |  | String | Group whose members are checked, nested groups included. Can be combined with individual users. |
 | EnrollmentPlatform |  | String | Platform of the device the users want to enroll. Conditional Access policies scoped to other platforms are ignored; All platforms checks every platform and reports each one. |
 | CheckPilotGroupMembership |  | Boolean | Adds a column with the pilot group membership; non-members are reported as Not ready. |
-| PilotGroupDisplayName |  | String | Members of this group count as pilot users. The group is looked up by its display name. |
+| PilotGroupDisplayName |  | String | Members of this group count as pilot users. The group is looked up by its display name. Used only when the pilot group membership is checked. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
 | BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
@@ -1919,6 +2069,12 @@ Report which users can enroll devices in Intune
 | SendEmailReport |  | Boolean | Send the report to the recipient email address. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
+| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+| ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
+| ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
+| StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-general-report-license-assignment-scheduled'></a>
@@ -1934,7 +2090,9 @@ Alert when license availability crosses thresholds
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -1990,7 +2148,7 @@ Mirror members between a Teams shared channel and a group
 | IncludeGuests |  | Boolean | Also adds and removes guest users. Otherwise guests are left untouched on both sides. |
 | RemoveFromTeam |  | Boolean | When a member is removed from the shared channel, also removes them from the host team. Only applies when a group is copied into a shared channel. |
 | WhatIfMode |  | Boolean | Only logs what would change without writing anything. |
-| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. Set by the "Report delivery" choice in the portal. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -1999,10 +2157,11 @@ Mirror members between a Teams shared channel and a group
 | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
 | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
-| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. Set by the "Report delivery" choice in the portal. |
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -2016,7 +2175,7 @@ Make a group's members owners of mapped teams and shared channels
 | TeamOwnerGroupMapping |  | Object | List of team names with the security group whose members become owners. Taken from the tenant setting SharedChannelOwners.Mapping. |
 | IncludeTeamOwners |  | Boolean | Also makes the group members owners and members of the team itself, which is required for owning its channels. |
 | WhatIfMode |  | Boolean | Only logs what would change without writing anything. |
-| SendEmailReport |  | Boolean | Send the report by email after the run. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -2029,6 +2188,7 @@ Make a group's members owners of mapped teams and shared channels
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -2055,15 +2215,13 @@ Create a classic Exchange Online distribution group
 <a name='organization-mail-add-equipment-mailbox'></a>
 
 ### Add Equipment Mailbox
-Create an equipment mailbox with optional delegate
+Create an equipment mailbox with optional booking delegates
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | MailboxName | ✓ | String | Alias of the mailbox, which becomes the part of the email address in front of the @ sign. |
 | DisplayName |  | String | Name shown in the address book. Leave empty to use the alias. |
-| DelegateTo |  | String | User who gets full access to the mailbox and handles its booking requests. Leave empty for none. |
-| AutoAccept |  | Boolean | Meeting requests are accepted automatically when the equipment is free. |
-| AutoMapping |  | Boolean | The mailbox opens automatically in the delegate's Outlook. |
+| DelegateTo |  | String Array | Users who approve or decline every booking request for the equipment. Leave empty to accept requests automatically when the equipment is free. |
 | DisableUser |  | Boolean | Blocks sign-in for the user account behind the mailbox. Booking keeps working. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -2125,23 +2283,21 @@ Add or remove a Tenant Allow/Block List entry
 <a name='organization-mail-add-room-mailbox'></a>
 
 ### Add Room Mailbox
-Create a room mailbox with optional delegate
+Create a room mailbox with optional booking delegates
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | MailboxName | ✓ | String | Alias of the mailbox, which becomes the part of the email address in front of the @ sign. |
 | DisplayName |  | String | Name shown in the address book and the room finder. Leave empty to use the alias. |
-| DelegateTo |  | String | User who gets full access to the mailbox and handles its booking requests. Leave empty for none. |
-| Capacity |  | Int32 | How many people fit in the room. Shown in the room finder. |
-| AutoAccept |  | Boolean | Meeting requests are accepted automatically when the room is free. |
-| AutoMapping |  | Boolean | The mailbox opens automatically in the delegate's Outlook. |
+| DelegateTo |  | String Array | Users who approve or decline every booking request for the room. Leave empty to accept requests automatically when the room is free. |
+| Capacity |  | Int32 | How many people fit in the room. Shown in the room finder. Leave at 0 to set no capacity. |
 | DisableUser |  | Boolean | Blocks sign-in for the user account behind the mailbox. Booking keeps working. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-mail-add-shared-mailbox'></a>
 
 ### Add Shared Mailbox
-Create a shared mailbox with optional delegate
+Create a shared mailbox with optional delegates
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
@@ -2149,12 +2305,12 @@ Create a shared mailbox with optional delegate
 | DisplayName |  | String | Name shown in the address book. Leave empty to use the alias. |
 | DomainName |  | String | Domain of the email address. Leave empty to use the default domain of the tenant. |
 | Language |  | String | Language of the mailbox, which sets the names of the default folders such as Inbox. |
-| TimeZone |  | String | Time zone used for the calendar and timestamps of the mailbox. |
-| DelegateTo |  | String | User who gets full access to the mailbox. Leave empty for none. |
-| AutoMapping |  | Boolean | The mailbox opens automatically in the delegate's Outlook. |
+| TimeZone |  | String | Time zone used for the calendar and timestamps of the mailbox. The list shows the standard time offset; daylight saving time is applied automatically where the region uses it. |
+| DelegateTo |  | String Array | People who get full access to the mailbox and can send on its behalf. You can pick several at once; leave empty for none. Nothing is created if one of them is not found in Exchange Online. |
+| AutoMapping |  | Boolean | The mailbox opens automatically in the delegates' Outlook. |
 | MessageCopyForSentAsEnabled |  | Boolean | Mails sent as the shared mailbox are also stored in its Sent Items folder. |
 | MessageCopyForSendOnBehalfEnabled |  | Boolean | Mails sent on behalf of the shared mailbox are also stored in its Sent Items folder. |
-| DisableUser |  | Boolean | Blocks sign-in for the user account behind the mailbox. Delegates keep their access. |
+| DisableUser |  | Boolean | Blocks sign-in for the user account behind the mailbox. Delegates keep their access. If the account does not appear within a few minutes, the run fails and sign-in has to be blocked in Entra ID. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-mail-hide-mailboxes-scheduled'></a>
@@ -2199,6 +2355,20 @@ Configure the Microsoft Bookings settings of the tenant
 
 <a name='organization-phone'></a>
 ## Phone
+
+<a name='organization-phone-add-or-remove-auto-attendant-authorized-users'></a>
+
+### Add Or Remove Auto Attendant Authorized Users
+Add or remove authorized users of a Teams auto attendant
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| AutoAttendantName | ✓ | String | Exact name of the auto attendant as it is shown in the Teams admin center. Upper and lower case do not matter. |
+| UserIds | ✓ | String Array | Users that are added to or removed from the list of authorized users. Several users can be picked at once; each one needs to be enabled for Teams Phone. |
+| Remove |  | Boolean | Add users as authorized users puts them on the authorized user list of the auto attendant. Remove users as authorized users takes them off it again. |
+| VoiceApplicationsPolicyAction |  | String | Leave the policy unchanged touches no policy. Assign a voice applications policy grants the policy entered under "Policy name". Remove the voice applications policy resets a per-user assignment when the users are taken off the list. |
+| VoiceApplicationsPolicyName |  | String | Voice applications policy to grant, named exactly as in the Teams admin center. Only used with "Assign a voice applications policy". |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-phone-add-or-remove-call-queue-agents'></a>
 
@@ -2265,10 +2435,15 @@ Back up all Conditional Access policies to Azure Storage
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | ContainerName |  | String | Storage container the archive is uploaded to. Taken from the tenant setting CaPoliciesExport.Container; empty means a container named after the current date. |
-| ResourceGroupName |  | String | Resource group of the storage account. Taken from the tenant setting CaPoliciesExport.ResourceGroup. |
-| StorageAccountName |  | String | Storage account for the backup. Taken from the tenant setting CaPoliciesExport.StorageAccount.Name. |
-| StorageAccountLocation |  | String | Azure region used when the storage account has to be created. Taken from the tenant setting CaPoliciesExport.StorageAccount.Location. |
-| StorageAccountSku |  | String | Performance tier used when the storage account has to be created. Taken from the tenant setting CaPoliciesExport.StorageAccount.Sku. |
+| ResourceGroupName |  | String | Resource group of the storage account for the backup. Taken from the tenant setting CaPoliciesExport.ResourceGroup; when it is not set, the Automation variable SettingsExports is read, then RJReport.StorageAccount.ResourceGroup. |
+| StorageAccountName |  | String | Storage account for the backup. Taken from the tenant setting CaPoliciesExport.StorageAccount.Name; when it is not set, the Automation variable SettingsExports is read, then RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account given in ResourceGroupName and StorageAccountName. Not taken from a tenant setting; the subscription the managed identity signs in to is used when empty. |
+| StorageAccountLocation |  | String | No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run. |
+| StorageAccountSku |  | String | No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run. |
+| RJReportResourceGroupName |  | String | Resource group of the storage account for the backup. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when neither CaPoliciesExport.ResourceGroup nor the Automation variable SettingsExports sets one. |
+| RJReportStorageAccountName |  | String | Storage account for the backup. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when neither CaPoliciesExport.StorageAccount.Name nor the Automation variable SettingsExports sets one. |
+| RJReportSubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-security-find-sms-auth-phone-number'></a>
@@ -2290,16 +2465,21 @@ List all Entra ID admins and check their MFA methods
 |-----------|----------|------|-------------|
 | ExportToFile |  | Boolean | Uploads the report as CSV to the storage account configured in the tenant settings. |
 | PimEligibleUntilInCSV |  | Boolean | Adds the end dates of PIM eligible and active assignments to the CSV report. |
-| ContainerName |  | String | Storage container the report files are uploaded to. Taken from the tenant setting ListAdminsReport.Container. |
-| ResourceGroupName |  | String | Resource group of the storage account. Taken from the tenant setting ListAdminsReport.ResourceGroup. |
-| StorageAccountName |  | String | Storage account for the export. Taken from the tenant setting ListAdminsReport.StorageAccount.Name. |
-| StorageAccountLocation |  | String | Azure region used when the storage account has to be created. Taken from the tenant setting ListAdminsReport.StorageAccount.Location. |
-| StorageAccountSku |  | String | Performance tier used when the storage account has to be created. Taken from the tenant setting ListAdminsReport.StorageAccount.Sku. |
-| QueryMfaState |  | Boolean | With the check, each admin gets a column showing whether a method that counts as MFA is registered; without it, the report lists only the role assignments. |
+| ContainerName |  | String | Storage container the report files are uploaded to. Taken from the tenant setting ListAdminsReport.Container, otherwise set per runbook. |
+| ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting ListAdminsReport.ResourceGroup; when it is not set, RJReport.StorageAccount.ResourceGroup is used. |
+| StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting ListAdminsReport.StorageAccount.Name; when it is not set, RJReport.StorageAccount.StorageAccountName is used. |
+| SubscriptionId |  | String | Subscription ID of the storage account given in ResourceGroupName and StorageAccountName. Not taken from a tenant setting; the subscription the managed identity signs in to is used when empty. |
+| StorageAccountLocation |  | String | No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run. |
+| StorageAccountSku |  | String | No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run. |
+| QueryMfaState |  | Boolean | With the check, each admin gets a column showing whether a method that counts as MFA is registered; without it, the report lists only the role assignments. Admins whose methods cannot be read are listed as not checkable. |
 | TrustEmailMfa |  | Boolean | Counts email as a valid MFA method. |
 | TrustPhoneMfa |  | Boolean | Counts phone calls and SMS as a valid MFA method. |
-| TrustSoftwareOathMfa |  | Boolean | Counts software OATH tokens as a valid MFA method. |
-| TrustWinHelloMFA |  | Boolean | Counts Windows Hello for Business as a valid MFA method. |
+| TrustSoftwareOathMfa |  | Boolean | Counts software OATH tokens as a valid MFA method. Hardware OATH tokens always count. |
+| TrustWinHelloMFA |  | Boolean | Counts Windows Hello for Business as a valid MFA method. The platform credential of macOS Platform SSO always counts. |
+| RJReportResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when ListAdminsReport.ResourceGroup is not set. |
+| RJReportStorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when ListAdminsReport.StorageAccount.Name is not set. |
+| RJReportSubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-security-list-expiring-role-assignments'></a>
@@ -2321,12 +2501,17 @@ List devices with no recent sign-in or Intune sync
 |-----------|----------|------|-------------|
 | Days |  | Int32 | Devices with no sync or sign-in for at least this many days are listed. |
 | Sync |  | Boolean | Last Intune sync looks at managed devices and their last check-in; Last sign-in looks at Entra ID device objects and their approximate last sign-in date. |
-| ExportToFile |  | Boolean | List in the run output, or export to a CSV file in the storage account configured in the tenant settings. |
-| ContainerName |  | String | Storage container the report files are uploaded to. Taken from the tenant setting InactiveDevices.Container. |
-| ResourceGroupName |  | String | Resource group of the storage account. Taken from the tenant setting InactiveDevices.ResourceGroup. |
-| StorageAccountName |  | String | Storage account for the export. Taken from the tenant setting InactiveDevices.StorageAccount.Name. |
-| StorageAccountLocation |  | String | Azure region used when the storage account has to be created. Taken from the tenant setting InactiveDevices.StorageAccount.Location. |
-| StorageAccountSku |  | String | Performance tier used when the storage account has to be created. Taken from the tenant setting InactiveDevices.StorageAccount.Sku. |
+| ExportToFile |  | Boolean | The list is always shown in the Output Data tables of the run. "Also export to a CSV file" also uploads it as a CSV file to the storage account configured in the tenant settings and returns a download link. |
+| ContainerName |  | String | Storage container the report files are uploaded to. Taken from the tenant setting InactiveDevices.Container, otherwise set per runbook. |
+| ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting InactiveDevices.ResourceGroup; when it is not set, the Automation variable SettingsExports is read, then RJReport.StorageAccount.ResourceGroup. |
+| StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting InactiveDevices.StorageAccount.Name; when it is not set, the Automation variable SettingsExports is read, then RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account given in ResourceGroupName and StorageAccountName. Not taken from a tenant setting; the subscription the managed identity signs in to is used when empty. |
+| StorageAccountLocation |  | String | No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run. |
+| StorageAccountSku |  | String | No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run. |
+| RJReportResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when neither InactiveDevices.ResourceGroup nor the Automation variable SettingsExports sets one. |
+| RJReportStorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when neither InactiveDevices.StorageAccount.Name nor the Automation variable SettingsExports sets one. |
+| RJReportSubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-security-list-inactive-users'></a>
@@ -2380,11 +2565,16 @@ List app registrations possibly affected by CVE-2021-42306
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | ExportToFile |  | Boolean | List in the run output, or export to a CSV file in the storage account configured in the tenant settings. |
-| ContainerName |  | String | Storage container the report files are uploaded to. Taken from the tenant setting VulnAppRegExport.Container. |
-| ResourceGroupName |  | String | Resource group of the storage account. Taken from the tenant setting VulnAppRegExport.ResourceGroup. |
-| StorageAccountName |  | String | Storage account for the export. Taken from the tenant setting VulnAppRegExport.StorageAccount.Name. |
-| StorageAccountLocation |  | String | Azure region used when the storage account has to be created. Taken from the tenant setting VulnAppRegExport.StorageAccount.Location. |
-| StorageAccountSku |  | String | Performance tier used when the storage account has to be created. Taken from the tenant setting VulnAppRegExport.StorageAccount.Sku. |
+| ContainerName |  | String | Storage container the report files are uploaded to. Taken from the tenant setting VulnAppRegExport.Container, otherwise set per runbook. |
+| ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting VulnAppRegExport.ResourceGroup; when it is not set, RJReport.StorageAccount.ResourceGroup is used. |
+| StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting VulnAppRegExport.StorageAccount.Name; when it is not set, RJReport.StorageAccount.StorageAccountName is used. |
+| SubscriptionId |  | String | Subscription ID of the storage account given in ResourceGroupName and StorageAccountName. Not taken from a tenant setting; the subscription the managed identity signs in to is used when empty. |
+| StorageAccountLocation |  | String | No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run. |
+| StorageAccountSku |  | String | No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run. |
+| RJReportResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when VulnAppRegExport.ResourceGroup is not set. |
+| RJReportStorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when VulnAppRegExport.StorageAccount.Name is not set. |
+| RJReportSubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-security-monitor-pending-epm-requests-scheduled'></a>
@@ -2407,6 +2597,7 @@ Alert by email about pending EPM elevation requests
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -2419,6 +2610,33 @@ Alert by email about Conditional Access policy changes
 |-----------|----------|------|-------------|
 | From | ✓ | String | User in the tenant the alert is sent as; needs a mailbox. |
 | To | ✓ | String | Gets the email with the list of changed policies. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+
+<a name='organization-security-report-access-package-assignments-scheduled'></a>
+
+### Report Access Package Assignments (Scheduled)
+List access packages with their assignments, requests and policies
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| AccessPackageName |  | String | Only access packages whose name matches are reported. Use * as a wildcard, for example "Sales -*" for names starting with "Sales -"; text without * matches anywhere in the name. Case does not matter. Leave empty for all packages. |
+| CatalogName |  | String | Only access packages in catalogs whose name matches are reported, with the same rules as "Access package name filter". Both filters apply together. Leave empty for all catalogs. |
+| IncludeExpiredAssignments |  | Boolean | Also list the assignments that have already expired, in a separate table. Expired assignments are always counted; the list can be long in tenants that have used access packages for years. |
+| EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
+| BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
+| BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
+| BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
+| BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
+| BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
+| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
+| ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
+| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+| ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
+| ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
+| StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-security-report-epm-elevation-requests-scheduled'></a>
@@ -2434,7 +2652,8 @@ Report EPM elevation requests by status and age
 | IncludeRevoked |  | Boolean | Includes requests whose approval was withdrawn later. |
 | IncludePending |  | Boolean | Includes requests that are still waiting for a decision. |
 | IncludeCompleted |  | Boolean | Includes requests that were approved and used. |
-| MaxAgeInDays |  | Int32 | Only requests created within this many days are reported. Intune keeps request details for 30 days. |
+| MaxAgeInDays |  | Int32 | Only requests created within this many days are reported. Intune keeps request details for 30 days, so a larger value is reduced to 30. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -2447,6 +2666,7 @@ Report EPM elevation requests by status and age
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -2471,7 +2691,7 @@ Keep a group filled with users who registered a secure MFA method
 | ExcludeGroupId |  | String | Members of this group, for example break glass or service accounts, never qualify and are removed from the target group. Leave empty for none. |
 | ExcludeUserIds |  | String Array | Users who never qualify and are removed from the target group. Several can be picked. |
 | WhatIfMode |  | Boolean | Only logs which users would be added or removed without changing the group. |
-| SendEmail |  | Boolean | Send the report by email after the run. |
+| SendEmail |  | Boolean | Send the report to the recipient email address. Set by the "Report delivery" option in the portal. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -2480,10 +2700,11 @@ Keep a group filled with users who registered a secure MFA method
 | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
 | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
-| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. Set by the "Report delivery" option in the portal. |
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -2503,6 +2724,22 @@ Sign this user out of their AVD sessions
 |-----------|----------|------|-------------|
 | UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
 | SubscriptionIds | ✓ | String Array | Azure subscriptions that hold the AVD host pools. Taken from the tenant setting AVD.SubscriptionIds. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+
+[Back to the RealmJoin runbook parameter overview](#table-of-contents)
+
+<a name='user-collab'></a>
+## Collab
+
+<a name='user-collab-pre-provision-onedrive'></a>
+
+### Pre Provision Onedrive
+Request the OneDrive of this user before the first sign-in
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
+| CheckSharePointLicense |  | Boolean | When enabled, the runbook stops if this user has no enabled SharePoint service plan from any license, assigned directly or by group. When disabled, the request is sent anyway, but SharePoint creates the OneDrive only once a license is assigned. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
@@ -2567,7 +2804,7 @@ Check whether this user can enroll devices in Intune
 | UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
 | EnrollmentPlatform |  | String | Platform of the device the user wants to enroll. Conditional Access policies scoped to other platforms are ignored; All platforms checks every platform and reports each one. |
 | CheckPilotGroupMembership |  | Boolean | Also requires the user to be in the pilot group. Non-members are reported as Not ready. |
-| PilotGroupDisplayName |  | String | Members of this group count as pilot users. The group is looked up by its display name. |
+| PilotGroupDisplayName |  | String | Members of this group count as pilot users. The group is looked up by its display name. Used only when the pilot group membership is checked. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='user-general-list-group-memberships'></a>
@@ -2584,19 +2821,20 @@ List the group memberships of this user
 | TeamsEnabled |  | String | Yes limits the list to groups that back a Microsoft Teams team. |
 | Source |  | String | Cloud-only groups, groups synchronized from on-premises Active Directory, or all. |
 | WritebackEnabled |  | String | Groups with writeback to on-premises Active Directory, groups without, or all. |
-| SendMail |  | Boolean | Send the report to the recipient email address. |
-| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
+| SendMail |  | Boolean | Send the report to the recipient email address. Set from the "Report delivery" choice in the portal. |
+| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. Required when "Report delivery" includes an email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
 | BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
 | BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
 | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
-| ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
-| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+| ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. Shown when "Report delivery" includes an email or a download link. |
+| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. Set from the "Report delivery" choice in the portal. |
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -2608,7 +2846,7 @@ List the groups this user owns
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
-| SendMail |  | Boolean | Send the report to the recipient email address. |
+| SendMail |  | Boolean | Send the report to the recipient email address. Set by the "Report delivery" selection; schedules and API calls can pass it directly. |
 | EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
 | BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
@@ -2617,10 +2855,11 @@ List the groups this user owns
 | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
 | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
-| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. Set by the "Report delivery" selection; schedules and API calls can pass it directly. |
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -2650,6 +2889,7 @@ Permanently offboard this user
 | ContainerName |  | String | Storage container the export is uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | ChangeLicensesSelector |  | Int32 | Remove all takes away every directly assigned license; licenses inherited from groups stay. |
 | ChangeGroupsSelector |  | Int32 | Remove groups with the prefix removes the groups named by the prefix, Remove all groups removes every group. Both add or keep the group under "Group to add or keep". Dynamic, role-assignable and on-premises groups are skipped and listed. |
@@ -2677,6 +2917,7 @@ Temporarily offboard this user
 | ContainerName |  | String | Storage container the export is uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | ChangeLicensesSelector |  | Int32 | Remove all takes away every directly assigned license; licenses inherited from groups stay. |
 | ChangeGroupsSelector |  | Int32 | Remove groups with the prefix removes the groups named by the prefix, Remove all groups removes every group. Both add or keep the group under "Group to add or keep". Dynamic, role-assignable and on-premises groups are skipped and listed. |
@@ -2781,9 +3022,9 @@ Convert this user's mailbox to a shared mailbox or back
 | delegateTo |  | String | User who gets full access to the shared mailbox. Leave empty to grant no access. |
 | Remove |  | Boolean | Whether the shared mailbox is turned back into a regular mailbox. Set by the "Action" choice. |
 | AutoMapping |  | Boolean | Makes the shared mailbox appear automatically in the delegate's Outlook. |
-| RemoveGroups |  | Boolean | Takes the user out of all groups, including license groups, when converting to shared. |
-| ArchivalLicenseGroup |  | String | Group that assigns an Exchange Online Plan 2 license, needed when the shared mailbox has an archive, is larger than 50 GB or is on litigation hold. Leave empty if not needed. |
-| RegularLicenseGroup |  | String | Group that assigns the mailbox license when converting back to a regular mailbox. Leave empty to assign none. |
+| RemoveGroups |  | Boolean | Takes the user out of all groups, including license groups, when converting to shared. This happens only once Exchange Online reports the mailbox as shared. |
+| ArchivalLicenseGroup |  | String | Group that assigns an Exchange Online Plan 2 license, needed when the shared mailbox has an archive, is larger than 50 GB or is on litigation hold. Leave empty if not needed. A name shared by several groups stops the run. |
+| RegularLicenseGroup |  | String | Group that assigns the mailbox license when converting back to a regular mailbox. Leave empty to assign none. A name shared by several groups stops the run. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='user-mail-delegate-full-access'></a>
@@ -2896,19 +3137,22 @@ Set or remove automatic replies for this user
 <a name='user-mail-set-room-mailbox-configuration'></a>
 
 ### Set Room Mailbox Configuration
-Configure the booking rules of this room mailbox
+Configure the booking rules and booking delegates of this room mailbox
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | UserName | ✓ | String | User principal name of the room mailbox the runbook acts on. Set by the portal from the selected user. |
-| AllBookInPolicy |  | Boolean | Everyone lets all users book the room. Only members of a group restricts booking to the "Booking group". |
-| BookInPolicyGroup |  | String | Mail-enabled security group whose members may book the room. |
+| AllBookInPolicy |  | Boolean | Everyone lets all users book the room directly. Restricted lets only the "Booking group" book directly; everyone else is declined or, with "Let everyone else request the room?", needs a booking delegate's approval. |
+| BookInPolicyGroup |  | String | Mail-enabled security group whose members book the room directly. Leave empty to keep the current group, for example when only the booking delegates decide. |
+| AllRequestInPolicy |  | Boolean | Requests from users outside the "Booking group" go to the booking delegates, who approve or decline them. Turn off to decline these requests. |
 | AllowRecurringMeetings |  | Boolean | Turn off to decline recurring meeting requests; single meetings are still accepted. |
-| AutomateProcessing |  | String | Auto accept books the room automatically. Auto update only marks requests as tentative for a delegate to decide. None leaves requests untouched. |
+| AutomateProcessing |  | String | Auto accept books the room automatically or sends the request to the booking delegates. Auto update only marks requests as tentative, and booking delegates get no requests. None leaves requests untouched. |
 | BookingWindowInDays |  | Int32 | Requests further ahead than this many days are declined. |
 | MaximumDurationInMinutes |  | Int32 | Longest meeting the room accepts, in minutes. |
 | AllowConflicts |  | Boolean | Lets overlapping bookings through instead of declining them. |
 | Capacity |  | Int32 | Number of seats. Leave at 0 to keep the current value. |
+| ResourceDelegates |  | String Array | Users who approve or decline the booking requests that need approval. They get no access to the mailbox itself. Leave empty to keep the current booking delegates. |
+| DelegateAction |  | String | Add puts the selected users next to the current booking delegates, Replace makes them the only booking delegates, Remove takes them off the list. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 [Back to the RealmJoin runbook parameter overview](#table-of-contents)
@@ -3083,6 +3327,7 @@ Show the recent sign-ins of this user and their failures
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
 | ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
 | StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
 | LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
@@ -3117,7 +3362,7 @@ Set a new password for this user
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
 | UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
-| EnableUserIfNeeded |  | Boolean | Enables a disabled account before the password is set. |
+| EnableUserIfNeeded |  | Boolean | Enables a disabled account after the new password is set. If the password cannot be set, the account stays disabled. |
 | ForceChangePasswordNextSignIn |  | Boolean | Makes the user choose their own password at the next sign-in. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 

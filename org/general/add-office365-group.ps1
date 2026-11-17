@@ -68,22 +68,22 @@
 	}
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
 
 param(
     [Parameter(Mandatory = $true)]
     [string] $MailNickname,
     [string] $DisplayName,
     [bool] $CreateTeam = $false,
-    #[ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Group is private" } )]
+    #[ValidateScript( { Use-RJInterface -DisplayName "Group is private" } )]
     [bool] $Private = $false,
-    #[ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Group is mail-enabled" } )]
+    #[ValidateScript( { Use-RJInterface -DisplayName "Group is mail-enabled" } )]
     [bool] $MailEnabled = $false,
-    #[ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Group is security-enabled" } )]
+    #[ValidateScript( { Use-RJInterface -DisplayName "Group is security-enabled" } )]
     [bool] $SecurityEnabled = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Owner" -Filter "userType eq 'Member'" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Owner" -Filter "userType eq 'Member'" } )]
     [string] $Owner,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Second owner" -Filter "userType eq 'Member'" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Second owner" -Filter "userType eq 'Member'" } )]
     [string] $Owner2,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

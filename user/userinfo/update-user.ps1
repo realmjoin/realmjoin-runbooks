@@ -126,7 +126,7 @@
 	}
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
 #Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.2" }
 
 # Suppress false positive from PSScriptAnalyzer - parameters are used indirectly via Get-Variable in the addToUserArgs helper function
@@ -153,13 +153,13 @@ param (
     [string]$Department,
     # think "physicalDeliveryOfficeName" if you are coming from on-prem
     [string]$OfficeLocation,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Number } )]
+    [ValidateScript( { Use-RJInterface -Type Number } )]
     [string]$PostalCode,
     [string]$PreferredLanguage,
     [string]$State,
     [string]$StreetAddress,
     [string]$UsageLocation,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Manager" -Filter "userType eq 'Member'" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Manager" -Filter "userType eq 'Member'" } )]
     [string]$ManagerId = "",
     [string]$DefaultLicense = "",
     [string]$DefaultGroups = "",

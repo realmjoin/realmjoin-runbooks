@@ -1,191 +1,201 @@
 <#
-    .SYNOPSIS
-    Show the recent sign-ins of this user and their failures
+	.SYNOPSIS
+	Show the recent sign-ins of this user and their failures
 
-    .DESCRIPTION
-    Lists the Entra ID sign-ins of this user for the chosen number of days with application, time, result, client app, device and location. Failures are summed up per application so support can see where sign-ins go wrong, and failed sign-ins also show the IP address. The report can be sent by email or provided as a download link.
+	.DESCRIPTION
+	Lists the Entra ID sign-ins of this user for the chosen number of days with application, time, result, client app, device and location. Failures are summed up per application so support can see where sign-ins go wrong, and failed sign-ins also show the IP address. The report can be sent by email or provided as a download link.
 
-    .PARAMETER UserName
-    User principal name of the user the runbook acts on. Set by the portal from the selected user.
+	.PARAMETER UserName
+	User principal name of the user the runbook acts on. Set by the portal from the selected user.
 
-    .PARAMETER Days
-    How many days of sign-in logs to include, 1 to 30.
+	.PARAMETER Days
+	How many days of sign-in logs to include, 1 to 30.
 
-    .PARAMETER SignInType
-    Interactive sign-ins by the user, non-interactive ones by apps and tokens, or both.
+	.PARAMETER SignInType
+	Interactive sign-ins by the user, non-interactive ones by apps and tokens, or both.
 
-    .PARAMETER FailedSignInsOnly
-    Hides successful sign-ins so the failures and their reasons stand out.
+	.PARAMETER FailedSignInsOnly
+	Hides successful sign-ins so the failures and their reasons stand out.
 
-    .PARAMETER ApplicationName
-    Shows only sign-ins to applications whose name contains this text. Leave empty for all applications.
+	.PARAMETER ApplicationName
+	Shows only sign-ins to applications whose name contains this text. Leave empty for all applications.
 
-    .PARAMETER EmailFrom
-    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
+	.PARAMETER EmailFrom
+	Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
-    .PARAMETER BrandingHeaderImageUrl
-    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
+	.PARAMETER BrandingHeaderImageUrl
+	Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
-    .PARAMETER BrandingFooterImageUrl
-    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
+	.PARAMETER BrandingFooterImageUrl
+	Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
-    .PARAMETER BrandingFooterLink
-    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
+	.PARAMETER BrandingFooterLink
+	Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
-    .PARAMETER BrandingAccentColor
-    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
+	.PARAMETER BrandingAccentColor
+	Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
-    .PARAMETER BrandingTextColor
-    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
+	.PARAMETER BrandingTextColor
+	Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
-    .PARAMETER SendEmailReport
-    Whether the report is sent by email. Preset in the runbook customization.
+	.PARAMETER SendEmailReport
+	Whether the report is sent by email. Preset in the runbook customization.
 
-    .PARAMETER EmailTo
-    Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
+	.PARAMETER EmailTo
+	Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
-    .PARAMETER ReportFileFormat
-    Deliver the report as CSV, as an Excel workbook, or both.
+	.PARAMETER ReportFileFormat
+	Deliver the report as CSV, as an Excel workbook, or both.
 
-    .PARAMETER CreateDownloadLink
-    Also upload the report and return a download link that expires after a few days.
+	.PARAMETER CreateDownloadLink
+	Also upload the report and return a download link that expires after a few days.
 
-    .PARAMETER ContainerName
-    Storage container the report files are uploaded to. Set per runbook.
+	.PARAMETER ContainerName
+	Storage container the report files are uploaded to. Set per runbook.
 
-    .PARAMETER ResourceGroupName
-    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
+	.PARAMETER ResourceGroupName
+	Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
-    .PARAMETER StorageAccountName
-    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
+	.PARAMETER StorageAccountName
+	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
-    .PARAMETER LinkExpiryDays
-    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
+	.PARAMETER SubscriptionId
+	Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
+	.PARAMETER LinkExpiryDays
+	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
-    .INPUTS
-    RunbookCustomization: {
-        "Parameters": {
-            "UserName": {
-                "Hide": true
-            },
-            "Days": {
-                "DisplayName": "Days to look back"
-            },
-            "SignInType": {
-                "DisplayName": "Sign-in type"
-            },
-            "FailedSignInsOnly": {
-                "DisplayName": "Failed sign-ins only?"
-            },
-            "ApplicationName": {
-                "DisplayName": "Application filter"
-            },
-            "EmailFrom": {
-                "Hide": true
-            },
-            "BrandingHeaderImageUrl": {
-                "Hide": true
-            },
-            "BrandingFooterImageUrl": {
-                "Hide": true
-            },
-            "BrandingFooterLink": {
-                "Hide": true
-            },
-            "BrandingAccentColor": {
-                "Hide": true
-            },
-            "BrandingTextColor": {
-                "Hide": true
-            },
-            "SendEmailReport": {
-                "Hide": true
-            },
-            "CreateDownloadLink": {
-                "Hide": true
-            },
-            "EmailTo": {
-                "DisplayName": "Recipient email address(es)",
-                "Hide": true
-            },
-            "ReportFileFormat": {
-                "DisplayName": "Report file format",
-                "Hide": true,
-                "Select": {
-                    "Options": [
-                        { "Display": "CSV & XLSX", "ParameterValue": "CSV & XLSX" },
-                        { "Display": "CSV only", "ParameterValue": "CSV only" },
-                        { "Display": "XLSX only", "ParameterValue": "XLSX only" }
-                    ],
-                    "ShowValue": false
-                }
-            },
-            "ContainerName": {
-                "Hide": true
-            },
-            "ResourceGroupName": {
-                "Hide": true
-            },
-            "StorageAccountName": {
-                "Hide": true
-            },
-            "LinkExpiryDays": {
-                "Hide": true
-            },
-            "CallerName": {
-                "Hide": true
-            }
-        },
-        "ParameterList": [
-            {
-                "DisplayName": "Report delivery",
-                "DisplayAfter": "ApplicationName",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "No report",
-                            "Customization": {
-                                "Default": { "SendEmailReport": false, "CreateDownloadLink": false },
-                                "Hide": [ "EmailTo", "ReportFileFormat" ]
-                            }
-                        },
-                        {
-                            "Display": "Email report",
-                            "Customization": {
-                                "Default": { "SendEmailReport": true, "CreateDownloadLink": false },
-                                "Show": [ "EmailTo", "ReportFileFormat" ],
-                                "Mandatory": [ "EmailTo" ]
-                            }
-                        },
-                        {
-                            "Display": "Report download link",
-                            "Customization": {
-                                "Default": { "SendEmailReport": false, "CreateDownloadLink": true },
-                                "Show": [ "ReportFileFormat" ],
-                                "Hide": [ "EmailTo" ]
-                            }
-                        },
-                        {
-                            "Display": "Email report & download link",
-                            "Customization": {
-                                "Default": { "SendEmailReport": true, "CreateDownloadLink": true },
-                                "Show": [ "EmailTo", "ReportFileFormat" ],
-                                "Mandatory": [ "EmailTo" ]
-                            }
-                        }
-                    ]
-                },
-                "Default": "No report"
-            }
-        ]
-    }
+	.PARAMETER CallerName
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
+
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"UserName": {
+				"Hide": true
+			},
+			"Days": {
+				"DisplayName": "Days to look back"
+			},
+			"SignInType": {
+				"DisplayName": "Sign-in type"
+			},
+			"FailedSignInsOnly": {
+				"DisplayName": "Failed sign-ins only?"
+			},
+			"ApplicationName": {
+				"DisplayName": "Application filter"
+			},
+			"EmailFrom": {
+				"Hide": true
+			},
+			"BrandingHeaderImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterLink": {
+				"Hide": true
+			},
+			"BrandingAccentColor": {
+				"Hide": true
+			},
+			"BrandingTextColor": {
+				"Hide": true
+			},
+			"SendEmailReport": {
+				"Hide": true
+			},
+			"CreateDownloadLink": {
+				"Hide": true
+			},
+			"EmailTo": {
+				"DisplayName": "Recipient email address(es)",
+				"Hide": true
+			},
+			"ReportFileFormat": {
+				"DisplayName": "Report file format",
+				"Hide": true,
+				"Select": {
+					"Options": [
+						{ "Display": "CSV & XLSX", "ParameterValue": "CSV & XLSX" },
+						{ "Display": "CSV only", "ParameterValue": "CSV only" },
+						{ "Display": "XLSX only", "ParameterValue": "XLSX only" }
+					],
+					"ShowValue": false
+				}
+			},
+			"ContainerName": {
+				"Hide": true
+			},
+			"ResourceGroupName": {
+				"Hide": true
+			},
+			"StorageAccountName": {
+				"Hide": true
+			},
+			"SubscriptionId": {
+				"Hide": true
+			},
+			"LinkExpiryDays": {
+				"Hide": true
+			},
+			"CallerName": {
+				"Hide": true
+			}
+		},
+		"ParameterList": [
+			{
+				"DisplayName": "Report delivery",
+				"DisplayAfter": "ApplicationName",
+				"Select": {
+					"Options": [
+						{
+							"Display": "Output Data only",
+							"ParameterValue": "Output Data only",
+							"Customization": {
+								"Default": { "SendEmailReport": false, "CreateDownloadLink": false },
+								"Hide": [ "EmailTo", "ReportFileFormat" ]
+							}
+						},
+						{
+							"Display": "Also email the report",
+							"ParameterValue": "Also email the report",
+							"Customization": {
+								"Default": { "SendEmailReport": true, "CreateDownloadLink": false },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also create a download link",
+							"ParameterValue": "Also create a download link",
+							"Customization": {
+								"Default": { "SendEmailReport": false, "CreateDownloadLink": true },
+								"Show": [ "ReportFileFormat" ],
+								"Hide": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also email & download link",
+							"ParameterValue": "Also email & download link",
+							"Customization": {
+								"Default": { "SendEmailReport": true, "CreateDownloadLink": true },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						}
+					]
+				},
+				"Default": "Output Data only"
+			}
+		]
+	}
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param (
@@ -202,22 +212,22 @@ param (
 
     [string]$ApplicationName = "",
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
     [string]$EmailFrom,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" } )]
     [string]$BrandingHeaderImageUrl,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" } )]
     [string]$BrandingFooterImageUrl,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" } )]
     [string]$BrandingFooterLink,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" } )]
     [string]$BrandingAccentColor,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" } )]
     [string]$BrandingTextColor,
 
     [bool]$SendEmailReport = $false,
@@ -231,13 +241,15 @@ param (
 
     [string]$ContainerName = "user-signin-events",
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" } )]
     [string]$ResourceGroupName,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" } )]
     [string]$StorageAccountName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.SubscriptionId" } )]
+    [string]$SubscriptionId,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" } )]
     [ValidateRange(1, 3650)]
     [int]$LinkExpiryDays = 6,
 
@@ -255,7 +267,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.0.0"
+$Version = "1.2.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 # Add Parameter in Verbose output
@@ -279,6 +291,7 @@ if ($CreateDownloadLink) {
     Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
     Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
     Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+    Write-RjRbLog -Message "SubscriptionId: $SubscriptionId" -Verbose
     Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
 }
 
@@ -336,10 +349,10 @@ function Get-GraphPagedResult {
 
         .PARAMETER Uri
         The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
-        e.g., "https://graph.microsoft.com/beta/auditLogs/signIns".
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
 
         .EXAMPLE
-        PS C:\> $allSignIns = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/auditLogs/signIns?`$top=1000"
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
     #>
     param(
         [string]$Uri
@@ -395,15 +408,7 @@ catch {
 $tenantDisplayName = "Unknown Tenant"
 
 if ($SendEmailReport) {
-    # Connect RJ RunbookHelper for email reporting
-    try {
-        Connect-RjRbGraph
-    }
-    catch {
-        Write-Error "Failed to establish the RealmJoin Graph connection required to send the email report. Error: $_" -ErrorAction Continue
-        throw
-    }
-
+    # The report email goes out through this Connect-MgGraph session (Send-RjRbReportEmail -UseNativeGraphRequest)
     try {
         $organizationResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization?`$select=displayName" -Method GET -ErrorAction Stop
         if ($organizationResponse.value -and $organizationResponse.value.Count -gt 0) {
@@ -674,52 +679,12 @@ if ($filteredSignIns.Count -gt 0) {
     if (-not [string]::IsNullOrWhiteSpace($ApplicationName)) {
         Write-Output "Application Filter: $ApplicationName"
     }
-    Write-Output "Total Events:       $($processedSignIns.Count)"
-
-    if ($appSummary.Count -gt 0) {
-        Write-Output ""
-        Write-Output "Sign-In Summary per Application"
-        Write-Output "---------------------"
-        $appSummary | Format-Table -AutoSize | Out-String -Width 512 | Write-Output
-    }
-
     $failedSignIns = @($processedSignIns | Where-Object { $_.Status -eq "Failure" })
-    if ($failedSignIns.Count -gt 0) {
-        Write-Output ""
-        Write-Output "Failed Sign-In Details"
-        Write-Output "---------------------"
 
-        $failedDisplayCount = [Math]::Min($failedSignIns.Count, 50)
-        if ($failedDisplayCount -lt $failedSignIns.Count) {
-            Write-Output "Showing the $failedDisplayCount most recent of $($failedSignIns.Count) failed sign-ins (output truncated for readability)."
-            Write-Output "The complete result set is included in the exported report files - select a report delivery option (email or download link) to receive them."
-            Write-Output ""
-        }
-
-        $failedSignIns | Sort-Object -Property "_TimestampSort" -Descending | Select-Object -First $failedDisplayCount | Select-Object -Property "Timestamp (UTC)", Application, ErrorCode, FailureReason, ClientApp, IPAddress | Format-Table -AutoSize | Out-String -Width 512 | Write-Output
-    }
-    else {
-        Write-Output ""
-        Write-Output "No failed sign-in events found."
-    }
-
-    if (-not $FailedSignInsOnly) {
-        Write-Output ""
-        Write-Output "Sign-In Details"
-        Write-Output "---------------------"
-
-        $displayCount = [Math]::Min($processedSignIns.Count, 50)
-        $displayEvents = @($processedSignIns | Sort-Object -Property "_TimestampSort" -Descending | Select-Object -First $displayCount)
-
-        if ($displayEvents.Count -lt $processedSignIns.Count) {
-            Write-Output "Showing the $displayCount most recent of $($processedSignIns.Count) events (output truncated for readability)."
-            Write-Output "The complete result set is included in the exported report files - select a report delivery option (email or download link) to receive them."
-            Write-Output "To narrow the result set, set an application name filter, reduce the lookback period, or enable 'Show Failed Sign-Ins Only'."
-            Write-Output ""
-        }
-
-        $displayEvents | Select-Object -Property "Timestamp (UTC)", Application, Resource, Status, ErrorCode, ClientApp, SignInType, Device, Location | Format-Table -AutoSize | Out-String -Width 512 | Write-Output
-    }
+    Write-Output "Total Events:       $($processedSignIns.Count)"
+    Write-Output "Failed Events:      $($failedSignIns.Count)"
+    Write-Output "Applications:       $($appSummary.Count)"
+    Write-Output "The per-application summary and the sign-in lists follow in the Output Data tab."
 }
 else {
     if (-not [string]::IsNullOrWhiteSpace($ApplicationName) -and $signIns.Count -gt 0) {
@@ -863,7 +828,7 @@ if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
     try {
         # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
         # transparently connects the managed identity if no Az context is active.
-        $uploadResults = Publish-RjRbFilesToStorageContainer -FilePaths $reportFiles -ContainerName $ContainerName -ResourceGroupName $ResourceGroupName -StorageAccountName $StorageAccountName -LinkExpiryDays $LinkExpiryDays -AddBlobNamePrefix $true
+        $uploadResults = Publish-RjRbFilesToStorageContainer -FilePaths $reportFiles -ContainerName $ContainerName -ResourceGroupName $ResourceGroupName -StorageAccountName $StorageAccountName -SubscriptionId $SubscriptionId -LinkExpiryDays $LinkExpiryDays -AddBlobNamePrefix $true
 
         foreach ($uploadResult in $uploadResults) {
             Write-Output "Download link (expires $($uploadResult.EndTime)):"
@@ -871,20 +836,20 @@ if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
         }
     }
     catch {
-        # The sign-in analysis already succeeded and is visible in the output above - only the
+        # The sign-in analysis already succeeded and its tables follow in Output Data - only the
         # optional download link failed. Report and continue so the email is still attempted.
         $uploadError = "$_"
         if ($uploadError -like "*AuthorizationPermissionMismatch*" -or $uploadError -like "*403*" -or $uploadError -like "*Forbidden*") {
-            Write-Error "Could not create the download link: the managed identity is not authorized to write to storage account '$StorageAccountName'. Grant it the 'Storage Account Contributor' Azure RBAC role on the storage account and run the report again. The sign-in analysis itself completed successfully and is shown above." -ErrorAction Continue
+            Write-Error "Could not create the download link: the managed identity is not authorized to write to storage account '$StorageAccountName'. Grant it the 'Reader and Data Access' Azure RBAC role on the storage account and run the report again. The sign-in analysis itself completed successfully; its results are in the Output Data tab." -ErrorAction Continue
         }
         elseif ($uploadError -like "*ResourceNotFound*" -or $uploadError -like "*404*" -or $uploadError -like "*could not be found*") {
-            Write-Error "Could not create the download link: storage account '$StorageAccountName' or resource group '$ResourceGroupName' was not found. Verify the RJReport.StorageAccount.ResourceGroup and RJReport.StorageAccount.StorageAccountName settings. The sign-in analysis itself completed successfully and is shown above." -ErrorAction Continue
+            Write-Error "Could not create the download link: storage account '$StorageAccountName' or resource group '$ResourceGroupName' was not found. Verify the RJReport.StorageAccount.ResourceGroup and RJReport.StorageAccount.StorageAccountName settings. The sign-in analysis itself completed successfully; its results are in the Output Data tab." -ErrorAction Continue
         }
         elseif ($uploadError -like "*timeout*" -or $uploadError -like "*network*" -or $uploadError -like "*DNS*") {
-            Write-Error "Could not create the download link: the storage account could not be reached, usually because of a network or firewall restriction. Verify the storage account's network rules allow access from Azure Automation. The sign-in analysis itself completed successfully and is shown above." -ErrorAction Continue
+            Write-Error "Could not create the download link: the storage account could not be reached, usually because of a network or firewall restriction. Verify the storage account's network rules allow access from Azure Automation. The sign-in analysis itself completed successfully; its results are in the Output Data tab." -ErrorAction Continue
         }
         else {
-            Write-Error "Could not create the download link for the report files: $uploadError. The sign-in analysis itself completed successfully and is shown above." -ErrorAction Continue
+            Write-Error "Could not create the download link for the report files: $uploadError. The sign-in analysis itself completed successfully; its results are in the Output Data tab." -ErrorAction Continue
         }
     }
 }
@@ -987,52 +952,53 @@ $reportBody
 
     try {
         $emailParams = @{
-            EmailFrom         = $EmailFrom
-            EmailTo           = $EmailTo
-            Subject           = $emailSubject
-            MarkdownContent   = $markdownContent
-            TenantDisplayName = $tenantDisplayName
-            ReportVersion     = $Version
+            EmailFrom             = $EmailFrom
+            EmailTo               = $EmailTo
+            Subject               = $emailSubject
+            MarkdownContent       = $markdownContent
+            TenantDisplayName     = $tenantDisplayName
+            ReportVersion         = $Version
+            UseNativeGraphRequest = $true   # sends through the Connect-MgGraph session
         }
 
-        # Send-RjReportEmail guards the attachment size itself: when the regular set exceeds the
+        # Send-RjRbReportEmail guards the attachment size itself: when the regular set exceeds the
         # email size budget (or its send attempt fails), the fallback set is sent instead.
         if ($reportFiles.Count -eq 0) {
-            Send-RjReportEmail @emailParams @brandingMailParams
+            Send-RjRbReportEmail @emailParams @brandingMailParams
         }
         elseif ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFile -and (Test-Path -Path $xlsxFile)) {
-            Send-RjReportEmail @emailParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFile) -FallbackMarkdownContent $markdownFallbackXlsxOnly
+            Send-RjRbReportEmail @emailParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFile) -FallbackMarkdownContent $markdownFallbackXlsxOnly
         }
         elseif ($ReportFileFormat -eq 'CSV only' -and $fileNameSummary -and (Test-Path -Path $fileNameSummary)) {
-            Send-RjReportEmail @emailParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($fileNameSummary) -FallbackMarkdownContent $markdownFallbackSummaryOnly
+            Send-RjRbReportEmail @emailParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($fileNameSummary) -FallbackMarkdownContent $markdownFallbackSummaryOnly
         }
         else {
             # XLSX only (no smaller artifact exists to fall back to), or CSV only with no
             # per-application summary generated: send the full set with no fallback. If it is
             # oversize, the send throws and the catch below reports it without terminating the run.
-            Send-RjReportEmail @emailParams @brandingMailParams -Attachments $reportFiles
+            Send-RjRbReportEmail @emailParams @brandingMailParams -Attachments $reportFiles
         }
 
         Write-Output "Report email sent to $EmailTo."
     }
     catch {
-        # The sign-in analysis already succeeded and is visible in the output above - the report
+        # The sign-in analysis already succeeded and its tables follow in Output Data - the report
         # email could NOT be delivered. Report and continue so Cleanup still runs.
         $mailError = "$_"
         if ($mailError -like "*403*" -or $mailError -like "*Forbidden*" -or $mailError -like "*Mail.Send*") {
-            Write-Error "The report email could not be delivered: the 'Mail.Send' application permission is missing or has not been admin-consented for the managed identity. The sign-in analysis itself completed successfully and is shown above." -ErrorAction Continue
+            Write-Error "The report email could not be delivered: the 'Mail.Send' application permission is missing or has not been admin-consented for the managed identity. The sign-in analysis itself completed successfully; its results are in the Output Data tab." -ErrorAction Continue
         }
         elseif ($mailError -like "*SendAsDenied*" -or $mailError -like "*MailboxNotEnabledForRESTAPI*" -or $mailError -like "*mailbox*") {
-            Write-Error "The report email could not be delivered: the sender mailbox '$EmailFrom' does not exist, is not licensed, or the managed identity may not send as this address. Verify the RJReport.EmailSender setting. The sign-in analysis itself completed successfully and is shown above." -ErrorAction Continue
+            Write-Error "The report email could not be delivered: the sender mailbox '$EmailFrom' does not exist, is not licensed, or the managed identity may not send as this address. Verify the RJReport.EmailSender setting. The sign-in analysis itself completed successfully; its results are in the Output Data tab." -ErrorAction Continue
         }
         elseif ($mailError -like "*recipient*" -or $mailError -like "*InvalidRecipient*") {
-            Write-Error "The report email could not be delivered: the recipient address '$EmailTo' was rejected as invalid. The sign-in analysis itself completed successfully and is shown above." -ErrorAction Continue
+            Write-Error "The report email could not be delivered: the recipient address '$EmailTo' was rejected as invalid. The sign-in analysis itself completed successfully; its results are in the Output Data tab." -ErrorAction Continue
         }
         elseif ($mailError -like "*attachment*" -or $mailError -like "*too large*" -or $mailError -like "*413*") {
-            Write-Error "The report email could not be delivered: the report attachments exceed the size limit for email delivery. Use the download link option instead, or narrow the report scope with a shorter lookback period or an application filter. The sign-in analysis itself completed successfully and is shown above." -ErrorAction Continue
+            Write-Error "The report email could not be delivered: the report attachments exceed the size limit for email delivery. Use the download link option instead, or narrow the report scope with a shorter lookback period or an application filter. The sign-in analysis itself completed successfully; its results are in the Output Data tab." -ErrorAction Continue
         }
         else {
-            Write-Error "The report email could not be delivered: $mailError. The sign-in analysis itself completed successfully and is shown above." -ErrorAction Continue
+            Write-Error "The report email could not be delivered: $mailError. The sign-in analysis itself completed successfully; its results are in the Output Data tab." -ErrorAction Continue
         }
     }
 }
@@ -1044,6 +1010,73 @@ else {
 }
 
 #endregion Send Email Report
+
+########################################################
+#region     Structured Output (Output Data)
+########################################################
+
+# Emitted last so the tables are not interleaved with the progress output. Every table has its own
+# RjTableTitle marker and its own column set; a marker is only written when rows follow it. A table
+# that holds the rows of an XLSX worksheet carries the worksheet's name.
+$maxTableRows = 250
+Write-Output ""
+
+$summaryValues = [ordered]@{
+    "Sign-in events"      = $processedSignIns.Count
+    "Successful sign-ins" = $processedSignIns.Count - $failedSignIns.Count
+    "Failed sign-ins"     = $failedSignIns.Count
+    "Applications"        = $appSummary.Count
+}
+$summaryRows = @(foreach ($metric in $summaryValues.Keys) {
+        [PSCustomObject]@{ Metric = $metric; Value = [int]$summaryValues[$metric] }
+    })
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
+Write-Output $summaryRows
+
+# Shown when a table is capped: where the complete list can be found
+$fullListHint = if ($SendEmailReport -or $CreateDownloadLink) {
+    "The report files hold every sign-in."
+}
+else {
+    "Choose 'Also email the report' or 'Also create a download link' under 'Report delivery' to receive every sign-in as a report file."
+}
+
+if ($processedSignIns.Count -eq 0) {
+    Write-Output "No sign-in events match the criteria."
+}
+else {
+    Write-Output "$($appSummary.Count) application(s):"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Application Summary" })
+    Write-Output @($appSummary | Select-Object -First $maxTableRows -Property Application, TotalSignIns, Successful, Failed, FailureRate, ErrorCodes)
+
+    if ($failedSignIns.Count -gt 0) {
+        if ($failedSignIns.Count -gt $maxTableRows) {
+            Write-Output "$($failedSignIns.Count) failed sign-ins, showing the $maxTableRows most recent. $fullListHint"
+        }
+        else {
+            Write-Output "$($failedSignIns.Count) failed sign-in(s):"
+        }
+        Write-Output ([PSCustomObject]@{ RjTableTitle = "Failed Sign-Ins" })
+        Write-Output @($failedSignIns | Sort-Object -Property "_TimestampSort" -Descending | Select-Object -First $maxTableRows -Property "Timestamp (UTC)", Application, Resource, ErrorCode, FailureReason, ClientApp, SignInType, IPAddress, Location, Device, CorrelationId)
+    }
+    else {
+        Write-Output "No failed sign-ins."
+    }
+
+    # With "Failed sign-ins only?" every listed sign-in is a failure and already in the table above
+    if (-not $FailedSignInsOnly) {
+        if ($processedSignIns.Count -gt $maxTableRows) {
+            Write-Output "$($processedSignIns.Count) sign-ins, showing the $maxTableRows most recent. $fullListHint To narrow the list, set an 'Application filter', lower 'Days to look back' or choose 'Failed sign-ins only?'."
+        }
+        else {
+            Write-Output "$($processedSignIns.Count) sign-in(s):"
+        }
+        Write-Output ([PSCustomObject]@{ RjTableTitle = "All Sign-Ins" })
+        Write-Output @($processedSignIns | Sort-Object -Property "_TimestampSort" -Descending | Select-Object -First $maxTableRows -Property "Timestamp (UTC)", Application, Resource, Status, ErrorCode, ClientApp, SignInType, Device, Location)
+    }
+}
+
+#endregion Structured Output (Output Data)
 
 ########################################################
 #region     Cleanup
@@ -1070,6 +1103,10 @@ foreach ($reportFilePath in $reportFiles) {
 
 if ($tempDir -and (Test-Path -Path $tempDir)) {
     Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
 }
 
 Write-Output ""

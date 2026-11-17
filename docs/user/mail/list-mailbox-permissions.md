@@ -3,7 +3,7 @@
 List who has access to this user's mailbox
 
 ## Detailed description
-Shows who has permissions on the mailbox of this user: full access, Send As and Send on Behalf, each as a table. Works for shared mailboxes as well. Nothing is changed.
+Shows who has permissions on the mailbox of this user: full access, Send As and Send on Behalf, each as a table in the Output Data tab. Works for shared mailboxes as well. Nothing is changed.
 
 ## Where to find
 User \ Mail \ List Mailbox Permissions

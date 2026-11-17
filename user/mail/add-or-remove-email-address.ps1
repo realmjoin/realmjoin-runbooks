@@ -30,6 +30,7 @@
                     "Options": [
                         {
                             "Display": "Add or update the address",
+                            "ParameterValue": "Add or update the address",
                             "Customization": {
                                 "Default": {
                                     "Remove": false
@@ -38,6 +39,7 @@
                         },
                         {
                             "Display": "Remove the address",
+                            "ParameterValue": "Remove the address",
                             "Customization": {
                                 "Default": {
                                     "Remove": true
@@ -74,7 +76,7 @@
     }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
 #Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.2" }
 
 param

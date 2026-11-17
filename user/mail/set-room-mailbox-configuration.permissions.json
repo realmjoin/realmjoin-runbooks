@@ -7,7 +7,7 @@
             "AppRoleAssignments": [
                 {
                     "Value": "Exchange.ManageAsApp",
-                    "Reason": "Runs Get-EXOMailbox, Set-CalendarProcessing and Set-Place in the app-only Exchange Online session"
+                    "Reason": "Reads the room mailbox, its calendar processing and booking delegates (Get-EXOMailbox, Get-CalendarProcessing, Get-Recipient) and changes them with Set-CalendarProcessing and Set-Place in the app-only Exchange Online session"
                 }
             ]
         },

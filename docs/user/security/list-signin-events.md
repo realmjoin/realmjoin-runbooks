@@ -17,7 +17,8 @@ User \ Security \ List Signin Events
 ## Behaviour
 
 - Sign-in log data is retrieved from the Microsoft Graph beta endpoint, because sign-in event type filtering and the retrieval of non-interactive sign-ins require beta-only properties (`signInEventTypes`, `authenticationRequirement`).
-- Non-interactive sign-ins vastly outnumber interactive ones; the console detail tables are capped at the 50 most recent entries, but the exported report files always contain the full result set.
+- The results are written to the **Output Data** tab of the job on every run: a summary, the per-application summary, the failed sign-ins and, unless only failed sign-ins are requested, all sign-ins. The console shows the counts.
+- Non-interactive sign-ins vastly outnumber interactive ones; the sign-in tables in the Output Data tab are capped at the 250 most recent entries, but the exported report files always contain the full result set.
 
 ## Required license and permissions
 
@@ -27,13 +28,13 @@ If the sign-in log query returns a 403 although `AuditLog.Read.All` is granted a
 
 ## Report delivery
 
-Report files are only generated when a delivery method is selected via the **Report delivery** option (email and/or download link). With *No report* selected, the sign-in analysis is read directly in the RealmJoin portal output. Email delivery and download link generation are independent and can be combined.
+Report files are only generated when a delivery method is selected via the **Report delivery** option (email and/or download link). With *Output Data only* selected, no report files are created and the sign-in analysis is read in the Output Data tab of the job in the RealmJoin portal. Email delivery and download link generation are independent and can be combined.
 
-For the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
+For the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Reader and Data Access** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
 
 ## Setup regarding email sending
 
-Sending an email report is optional and only happens when the *Email report* delivery option is selected; a recipient (`EmailTo`) is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+Sending an email report is optional and only happens when *Also email the report* or *Also email & download link* is selected as report delivery; a recipient is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
@@ -65,6 +66,9 @@ Sign-in log data typically lags ~15 minutes but can take up to 2 hours for some 
   - User.Read.All
   - Mail.Send *(optional: Email report)*
   - Organization.Read.All *(optional: Email report)*
+
+### Permission notes
+Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link options)
 
 
 ## Parameters
@@ -223,6 +227,15 @@ Resource group of the storage account for report uploads. Taken from the tenant 
 
 ### StorageAccountName
 Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### SubscriptionId
+Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty.
 
 | Property | Value |
 |----------|-------|

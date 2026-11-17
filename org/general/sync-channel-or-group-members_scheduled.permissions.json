@@ -6,6 +6,14 @@
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
                 {
+                    "Value": "Channel.ReadBasic.All",
+                    "Reason": "Lists /teams/{id}/channels to resolve the shared channel and verify it is a shared channel"
+                },
+                {
+                    "Value": "ChannelMember.ReadWrite.All",
+                    "Reason": "Reads, adds and removes shared channel members via /teams/{id}/channels/{id}/members"
+                },
+                {
                     "Value": "Group.ReadWrite.All",
                     "Reason": "Resolves source/target groups and the host team and writes direct membership via /groups/{id}/members/$ref"
                 },
@@ -14,12 +22,8 @@
                     "Reason": "Adds and removes direct target-group members during the sync"
                 },
                 {
-                    "Value": "Channel.ReadBasic.All",
-                    "Reason": "Lists /teams/{id}/channels to resolve the shared channel and verify it is a shared channel"
-                },
-                {
-                    "Value": "ChannelMember.ReadWrite.All",
-                    "Reason": "Reads, adds and removes shared channel members via /teams/{id}/channels/{id}/members"
+                    "Value": "Organization.Read.All",
+                    "Reason": "Reads /organization to include the tenant name in the report email"
                 },
                 {
                     "Value": "TeamMember.ReadWrite.All",
@@ -30,14 +34,10 @@
                     "Reason": "Reads member user objects (id, UPN, userType) to detect guests and compute the membership delta"
                 },
                 {
-                    "Value": "Organization.Read.All",
-                    "Reason": "Reads /organization to include the tenant name in the report email"
-                },
-                {
                     "Value": "Mail.Send",
                     "Optional": true,
                     "Feature": "Email report",
-                    "Reason": "Sends the sync report via Send-RjReportEmail when email reporting is enabled"
+                    "Reason": "Sends the sync report via Send-RjRbReportEmail when email reporting is enabled"
                 }
             ]
         }

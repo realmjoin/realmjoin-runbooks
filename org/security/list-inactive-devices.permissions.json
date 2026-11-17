@@ -6,20 +6,22 @@
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
                 {
+                    "Value": "Device.Read.All",
+                    "Reason": "Lists Entra devices by last sign-in date and reads their registered owners"
+                },
+                {
                     "Value": "DeviceManagementManagedDevices.Read.All",
                     "Reason": "Lists devices without recent Intune sync when checking by sync date"
                 },
                 {
                     "Value": "Directory.Read.All",
                     "Reason": "Reads owner user details to enrich each stale device"
-                },
-                {
-                    "Value": "Device.Read.All",
-                    "Reason": "Lists Entra devices by last sign-in date and reads their registered owners"
                 }
             ]
         }
     ],
     "Roles": [],
-    "ManualPermissions": []
+    "ManualPermissions": [
+        "Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the CSV export)"
+    ]
 }

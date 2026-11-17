@@ -12,13 +12,17 @@ Org \ General \ Monitor Service Health_Scheduled
 
 - Schedule the runbook to run at or slightly more often than `LookbackHours` to catch every new Service Health issue exactly once.
 - Set `Services` to a comma-separated list of service names or short ids (matched case-insensitively) to monitor only specific services, such as Exchange Online or Teams; leave it empty to monitor all services.
-- Leave `IncludeAdvisories` and `IncludeResolvedIssues` at their default of `false` for the lowest-noise setup, which alerts only on unresolved incidents; set either to `true` to also surface advisories or issues Microsoft has already marked as resolved.
+- By default the runbook alerts on unresolved incidents and advisories (`IncludeAdvisories` is `true`, `IncludeResolvedIssues` is `false`). Set `IncludeAdvisories` to `false` for the lowest-noise setup, which alerts only on unresolved incidents; set `IncludeResolvedIssues` to `true` to also surface issues Microsoft has already marked as resolved.
 
 ## Parameter interactions
 
 - An issue counts as newly announced when its first Service Health post falls inside the `LookbackHours` window (falling back to `startDateTime` if the issue has no posts), not by `lastModifiedDateTime` alone. This avoids missing back-dated issues while preventing re-alerts on every status update of an ongoing incident.
 - The runbook keeps no state between runs, so a failed or skipped run means those alerts are never sent unless `LookbackHours` is temporarily widened for a catch-up run.
 - One email is sent per new issue, so a busy Service Health day can produce several emails per run.
+
+## Run output
+
+Every run writes a summary of the filter stages and the list of new issues, including whether the alert email for each issue was sent, to the **Output Data** tab of the job. No report files are created.
 
 ## Setup regarding email sending
 
@@ -44,9 +48,9 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - Mail.Send *(optional: Email report)*
   - Organization.Read.All
   - ServiceHealth.Read.All
+  - Mail.Send *(optional: Email report)*
 
 
 ## Parameters
@@ -73,7 +77,7 @@ Also alerts on advisories, not only on incidents.
 
 | Property | Value |
 |----------|-------|
-| Default Value | False |
+| Default Value | True |
 | Required | false |
 | Type | Boolean |
 

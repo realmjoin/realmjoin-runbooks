@@ -11,6 +11,7 @@
       "Channel.ReadBasic.All",
       "ChannelMember.ReadWrite.All",
       "CloudPC.ReadWrite.All",
+      "CrossTenantInformation.ReadBasic.All",
       "Device.ReadWrite.All",
       "DeviceLocalCredential.Read.All",
       "DeviceManagementApps.ReadWrite.All",
@@ -19,6 +20,7 @@
       "DeviceManagementManagedDevices.ReadWrite.All",
       "DeviceManagementServiceConfig.ReadWrite.All",
       "Directory.ReadWrite.All",
+      "EntitlementManagement.Read.All",
       "Group.Create",
       "Group.ReadWrite.All",
       "GroupMember.ReadWrite.All",
@@ -28,12 +30,14 @@
       "Organization.Read.All",
       "Place.Read.All",
       "Policy.Read.All",
+      "Policy.Read.DeviceConfiguration",
       "ReportSettings.ReadWrite.All",
       "Reports.Read.All",
       "RoleAssignmentSchedule.Read.Directory",
       "RoleManagement.Read.All",
       "RoleManagement.Read.Directory",
       "ServiceHealth.Read.All",
+      "Sites.Read.All",
       "Team.Create",
       "Team.ReadBasic.All",
       "TeamMember.ReadWrite.All",
@@ -54,7 +58,8 @@
     "Name": "Office 365 SharePoint Online",
     "Id": "00000003-0000-0ff1-ce00-000000000000",
     "AppRoleAssignments": [
-      "Sites.FullControl.All"
+      "Sites.FullControl.All",
+      "User.ReadWrite.All"
     ]
   },
   {

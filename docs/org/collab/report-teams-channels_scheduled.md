@@ -33,13 +33,13 @@ Channels and members are read through Graph batch requests, twenty at a time. A 
 
 ## Report delivery
 
-Report files are only generated when a delivery method is selected via the **Report delivery** option (email and/or download link). With *No report* selected, the results are read directly in the RealmJoin portal output. Email delivery and download link generation are independent and can be combined.
+The results always appear as named tables in the Output Data tab of the run in the RealmJoin portal. Report files are only generated when the **Report delivery** option includes an email and/or a download link; *Output Data only* creates no report files. Email delivery and download link generation are independent and can be combined.
 
-For the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Storage Account Contributor** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
+For the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Reader and Data Access** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
 
 ## Setup regarding email sending
 
-Sending an email report is optional and only happens when the *Email report* delivery option is selected; a recipient (`EmailTo`) is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+Sending an email report is optional and only happens when *Also email the report* or *Also email & download link* is selected as report delivery; a recipient is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
 
 This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
 
@@ -61,7 +61,7 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 
 - The report is read-only. Owners and members of private and shared channels are changed in the Teams admin center or in Teams itself; the runbooks **Sync Channel Or Group Members (Scheduled)** and **Sync Shared Channel Owners (Scheduled)** cover the automated cases for shared channels.
 - Standard channels are not listed; their membership equals the team membership, which the RealmJoin Portal shows.
-- The member list of a shared channel contains its direct members. People who reach a shared channel through another team that the channel is shared with are not listed.
+- The member list of a shared channel contains its direct members. People who reach a shared channel through another team that the channel is shared with are not listed; **Report Shared Channel Members (Scheduled)** lists them with one row per member.
 
 
 ## Permissions
@@ -72,6 +72,9 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
   - Group.Read.All
   - Mail.Send *(optional: Email report)*
   - Organization.Read.All *(optional: Email report)*
+
+### Permission notes
+Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link options)
 
 
 ## Parameters
@@ -221,6 +224,15 @@ Resource group of the storage account for report uploads. Taken from the tenant 
 
 ### StorageAccountName
 Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### SubscriptionId
+Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty.
 
 | Property | Value |
 |----------|-------|

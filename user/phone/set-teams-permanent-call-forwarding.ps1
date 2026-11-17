@@ -47,6 +47,7 @@
 			"Select": {
 				"Options": [{
 						"Display": "Teams user",
+						"ParameterValue": "Teams user",
 						"Customization": {
 							"Hide": [
 								"ForwardTargetPhoneNumber"
@@ -64,6 +65,7 @@
 					},
 					{
 						"Display": "Phone number",
+						"ParameterValue": "Phone number",
 						"Customization": {
 							"Hide": [
 								"ForwardTargetTeamsUser"
@@ -81,6 +83,7 @@
 					},
 					{
 						"Display": "Voicemail",
+						"ParameterValue": "Voicemail",
 						"Customization": {
 							"Hide": [
 								"ForwardTargetTeamsUser",
@@ -97,6 +100,7 @@
 					},
 					{
 						"Display": "The user's delegates",
+						"ParameterValue": "The user's delegates",
 						"Customization": {
 							"Hide": [
 								"ForwardTargetTeamsUser",
@@ -113,6 +117,7 @@
 					},
 					{
 						"Display": "Nowhere (turn immediate forwarding off)",
+						"ParameterValue": "Nowhere (turn immediate forwarding off)",
 						"Customization": {
 							"Hide": [
 								"ForwardTargetTeamsUser",
@@ -151,7 +156,7 @@
 }
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
 #Requires -Modules @{ModuleName = "MicrosoftTeams"; ModuleVersion = "7.9.0" }
 
 # Suppress false positive from PSScriptAnalyzer - $tmp is used to suppress unwanted output from Connect-MicrosoftTeams

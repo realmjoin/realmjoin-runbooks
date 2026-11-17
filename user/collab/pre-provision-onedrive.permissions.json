@@ -6,12 +6,12 @@
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
                 {
-                    "Value": "User.Read.All",
-                    "Reason": "Reads the selected user (accountEnabled, userPrincipalName, assignedPlans) to verify that the account is enabled and, optionally, that an enabled SharePoint service plan is assigned before the provisioning request is sent."
-                },
-                {
                     "Value": "Sites.Read.All",
                     "Reason": "Reads the tenant root site (/sites/root) to derive the SharePoint admin center URL used by Connect-PnPOnline."
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Reads the selected user (accountEnabled, userPrincipalName, assignedPlans) to verify that the account is enabled and, optionally, that an enabled SharePoint service plan is assigned before the provisioning request is sent."
                 }
             ]
         },

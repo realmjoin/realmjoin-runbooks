@@ -43,6 +43,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Remove Primary User](docs/device/general/remove-primary-user.md)
     - [Rename Device](docs/device/general/rename-device.md)
     - [Set Primary User](docs/device/general/set-primary-user.md)
+    - [Sync Device](docs/device/general/sync-device.md)
     - [Unenroll Updatable Assets](docs/device/general/unenroll-updatable-assets.md)
     - [Wipe Device](docs/device/general/wipe-device.md)
     - [Wipe Managed App Data](docs/device/general/wipe-managed-app-data.md)
@@ -50,6 +51,7 @@ Apart from the following runbook descriptions, further content such as runbook o
 
     - [Check Defender Status](docs/device/security/check-defender-status.md)
     - [Enable Or Disable Device](docs/device/security/enable-or-disable-device.md)
+    - [Enable Or Disable Lost Mode](docs/device/security/enable-or-disable-lost-mode.md)
     - [Isolate Or Release Device](docs/device/security/isolate-or-release-device.md)
     - [Reset Mobile Device Pin](docs/device/security/reset-mobile-device-pin.md)
     - [Restrict Or Release Code Execution](docs/device/security/restrict-or-release-code-execution.md)
@@ -95,6 +97,7 @@ Apart from the following runbook descriptions, further content such as runbook o
 
     - [Check Onedrive Status](docs/org/collab/check-onedrive-status.md)
     - [List Sharepoint Sitecollection Permission](docs/org/collab/list-sharepoint-sitecollection-permission.md)
+    - [Report Shared Channel Members (Scheduled)](docs/org/collab/report-shared-channel-members_scheduled.md)
     - [Report Sharepoint Tenant Storage (Scheduled)](docs/org/collab/report-sharepoint-tenant-storage_scheduled.md)
     - [Report Teams Channels (Scheduled)](docs/org/collab/report-teams-channels_scheduled.md)
   - [Devices](docs/org/README.md#org-devices)
@@ -115,6 +118,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Report Devices Low Diskspace (Scheduled)](docs/org/devices/report-devices-low-diskspace_scheduled.md)
     - [Report Devices Without Primary User (Scheduled)](docs/org/devices/report-devices-without-primary-user_scheduled.md)
     - [Report Primary User Mismatch (Scheduled)](docs/org/devices/report-primary-user-mismatch_scheduled.md)
+    - [Report Realmjoin Agent Contact (Scheduled)](docs/org/devices/report-realmjoin-agent-contact_scheduled.md)
     - [Report Stale Devices (Scheduled)](docs/org/devices/report-stale-devices_scheduled.md)
     - [Report Users With More Than 5-Devices (Scheduled)](docs/org/devices/report-users-with-more-than-5-devices_scheduled.md)
     - [Report Windows Devices Without Autopilot (Scheduled)](docs/org/devices/report-windows-devices-without-autopilot_scheduled.md)
@@ -174,6 +178,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Set Booking Config](docs/org/mail/set-booking-config.md)
   - [Phone](docs/org/README.md#org-phone)
 
+    - [Add Or Remove Auto Attendant Authorized Users](docs/org/phone/add-or-remove-auto-attendant-authorized-users.md)
     - [Add Or Remove Call Queue Agents](docs/org/phone/add-or-remove-call-queue-agents.md)
     - [Add Or Remove Call Queue Authorized Users](docs/org/phone/add-or-remove-call-queue-authorized-users.md)
     - [Get Teams Phone Number Assignment](docs/org/phone/get-teams-phone-number-assignment.md)
@@ -192,12 +197,16 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [List Vulnerable App Regs](docs/org/security/list-vulnerable-app-regs.md)
     - [Monitor Pending EPM Requests (Scheduled)](docs/org/security/monitor-pending-epm-requests_scheduled.md)
     - [Notify Changed CA Policies](docs/org/security/notify-changed-ca-policies.md)
+    - [Report Access Package Assignments (Scheduled)](docs/org/security/report-access-package-assignments_scheduled.md)
     - [Report EPM Elevation Requests (Scheduled)](docs/org/security/report-epm-elevation-requests_scheduled.md)
     - [Sync MFA Secure Users To Group (Scheduled)](docs/org/security/sync-mfa-secure-users-to-group_scheduled.md)
 - [User](docs/user/README.md)
   - [AVD](docs/user/README.md#user-avd)
 
     - [User Signout](docs/user/avd/user-signout.md)
+  - [Collab](docs/user/README.md#user-collab)
+
+    - [Pre Provision Onedrive](docs/user/collab/pre-provision-onedrive.md)
   - [General](docs/user/README.md#user-general)
 
     - [Assign Groups By Template](docs/user/general/assign-groups-by-template.md)

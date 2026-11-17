@@ -11,8 +11,8 @@ Group \ General \ List User Devices
 ## Permissions
 ### Application permissions
 - **Type**: Microsoft Graph
-  - Group.Read.All
   - Device.Read.All
+  - Group.Read.All
   - GroupMember.ReadWrite.All *(optional: Move devices to group)*
 
 

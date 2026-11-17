@@ -103,28 +103,28 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
 
 param(
     [Parameter(Mandatory = $true)]
     [String]$UserName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Number -DisplayName "Lifetime (minutes)" } )]
+    [ValidateScript( { Use-RJInterface -Type Number -DisplayName "Lifetime (minutes)" } )]
     [ValidateRange(60, 480)]
     [int] $LifetimeInMinutes = 240,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "One-time use?" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "One-time use?" } )]
     [bool] $OneTimeUseOnly = $true,
     [bool] $NotifyUser = $false,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
     [string] $EmailFrom,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" } )]
     [string] $BrandingHeaderImageUrl,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" } )]
     [string] $BrandingFooterImageUrl,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" } )]
     [string] $BrandingFooterLink,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" } )]
     [string] $BrandingAccentColor,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" } )]
     [string] $BrandingTextColor,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.ServiceDesk_DisplayName" } )]
     [string] $ServiceDeskDisplayName,
@@ -341,7 +341,7 @@ If you are not aware of this or were not involved, please contact your IT suppor
         $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
 
         try {
-            Send-RjReportEmail -EmailFrom $EmailFrom -EmailTo $userEmail -Subject $emailSubject -MarkdownContent $markdownContent -ReportVersion $Version @brandingMailParams
+            Send-RjRbReportEmail -EmailFrom $EmailFrom -EmailTo $userEmail -Subject $emailSubject -MarkdownContent $markdownContent -ReportVersion $Version @brandingMailParams
             ""
             "## Notification email sent to '$userEmail'."
         }

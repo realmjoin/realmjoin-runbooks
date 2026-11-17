@@ -7,7 +7,7 @@
             "AppRoleAssignments": [
                 {
                     "Value": "Exchange.ManageAsApp",
-                    "Reason": "Creates the room mailbox and configures delegation and calendar processing in the app-only Exchange Online session"
+                    "Reason": "Creates the room mailbox and sets its calendar processing and booking delegates in the app-only Exchange Online session"
                 }
             ]
         },
@@ -19,7 +19,7 @@
                     "Value": "User.ReadWrite.All",
                     "Optional": true,
                     "Feature": "Disable user account",
-                    "Reason": "Disables the mailbox's user account via PATCH /users/{id} when DisableUser is enabled (default on)"
+                    "Reason": "Reads the mailbox's user account and blocks its sign-in via PATCH /users/{id} when DisableUser is on (default)"
                 }
             ]
         }

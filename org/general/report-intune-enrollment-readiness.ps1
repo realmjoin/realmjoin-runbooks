@@ -3,7 +3,7 @@
 	Report which users can enroll devices in Intune
 
 	.DESCRIPTION
-	Checks for a set of users, given directly or through a group, whether they can enroll a device in Intune. Each user is reported as Ready, Ready with warnings or Not ready, together with the blockers found. The check covers account status, Intune license, enrollment limit, authentication methods and Conditional Access policies that target device registration or enrollment. Nothing is changed. The report can be sent by email.
+	Checks for a set of users, given directly or through a group, whether they can enroll a device in Intune. Each user is reported as Ready, Ready with warnings or Not ready, with the blockers found. The check covers account status, Intune license, enrollment limit, authentication methods and Conditional Access policies that target device registration or enrollment. Nothing is changed. The report can be sent by email or provided as a download link.
 
 	.PARAMETER UserName
 	Each picked user is checked on its own. Leave empty to check only the members of the group.
@@ -18,7 +18,7 @@
 	Adds a column with the pilot group membership; non-members are reported as Not ready.
 
 	.PARAMETER PilotGroupDisplayName
-	Members of this group count as pilot users. The group is looked up by its display name.
+	Members of this group count as pilot users. The group is looked up by its display name. Used only when the pilot group membership is checked.
 
 	.PARAMETER EmailFrom
 	Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
@@ -47,6 +47,24 @@
 	.PARAMETER ReportFileFormat
 	Deliver the report as CSV, as an Excel workbook, or both.
 
+	.PARAMETER CreateDownloadLink
+	Also upload the report and return a download link that expires after a few days.
+
+	.PARAMETER ContainerName
+	Storage container the report files are uploaded to. Set per runbook.
+
+	.PARAMETER ResourceGroupName
+	Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
+
+	.PARAMETER StorageAccountName
+	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
+
+	.PARAMETER SubscriptionId
+	Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty.
+
+	.PARAMETER LinkExpiryDays
+	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
+
 	.PARAMETER CallerName
 	Name of the user who started the runbook. Set by the portal and recorded for auditing.
 
@@ -70,7 +88,25 @@
 				}
 			},
 			"CheckPilotGroupMembership": {
-				"DisplayName": "Check pilot group membership?"
+				"DisplayName": "Check pilot group membership?",
+				"Select": {
+					"Options": [
+						{
+							"Display": "No",
+							"ParameterValue": false,
+							"Customization": {
+								"Hide": [ "PilotGroupDisplayName" ]
+							}
+						},
+						{
+							"Display": "Yes",
+							"ParameterValue": true,
+							"Customization": {
+								"Show": [ "PilotGroupDisplayName" ]
+							}
+						}
+					]
+				}
 			},
 			"PilotGroupDisplayName": {
 				"DisplayName": "Pilot group name"
@@ -96,8 +132,13 @@
 			"BrandingTextColor": {
 				"Hide": true
 			},
+			"EmailTo": {
+				"DisplayName": "Recipient email address(es)",
+				"Hide": true
+			},
 			"ReportFileFormat": {
 				"DisplayName": "Report file format",
+				"Hide": true,
 				"Select": {
 					"Options": [
 						{ "Display": "CSV & XLSX", "ParameterValue": "CSV & XLSX" },
@@ -107,6 +148,24 @@
 					"ShowValue": false
 				}
 			},
+			"CreateDownloadLink": {
+				"Hide": true
+			},
+			"ContainerName": {
+				"Hide": true
+			},
+			"ResourceGroupName": {
+				"Hide": true
+			},
+			"StorageAccountName": {
+				"Hide": true
+			},
+			"SubscriptionId": {
+				"Hide": true
+			},
+			"LinkExpiryDays": {
+				"Hide": true
+			},
 			"CallerName": {
 				"Hide": true
 			}
@@ -114,34 +173,56 @@
 		"ParameterList": [
 			{
 				"DisplayName": "Report delivery",
-				"DisplayAfter": "BrandingTextColor",
+				"DisplayAfter": "PilotGroupDisplayName",
 				"Select": {
 					"Options": [
 						{
-							"Display": "No email report",
+							"Display": "Output Data only",
+							"ParameterValue": "Output Data only",
 							"Customization": {
-								"Default": { "SendEmailReport": false },
+								"Default": { "SendEmailReport": false, "CreateDownloadLink": false },
 								"Hide": [ "EmailTo", "ReportFileFormat" ]
 							}
 						},
 						{
-							"Display": "Email report",
+							"Display": "Also email the report",
+							"ParameterValue": "Also email the report",
 							"Customization": {
-								"Default": { "SendEmailReport": true },
+								"Default": { "SendEmailReport": true, "CreateDownloadLink": false },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also create a download link",
+							"ParameterValue": "Also create a download link",
+							"Customization": {
+								"Default": { "SendEmailReport": false, "CreateDownloadLink": true },
+								"Show": [ "ReportFileFormat" ],
+								"Hide": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also email & download link",
+							"ParameterValue": "Also email & download link",
+							"Customization": {
+								"Default": { "SendEmailReport": true, "CreateDownloadLink": true },
 								"Show": [ "EmailTo", "ReportFileFormat" ],
 								"Mandatory": [ "EmailTo" ]
 							}
 						}
 					]
-				}
+				},
+				"Default": "Output Data only"
 			}
 		]
 	}
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
     [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Users to check" } )]
@@ -157,22 +238,22 @@ param(
 
     [string]$PilotGroupDisplayName = "col - All Users - Pilot (users)",
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
     [string]$EmailFrom,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" } )]
     [string]$BrandingHeaderImageUrl,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" } )]
     [string]$BrandingFooterImageUrl,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" } )]
     [string]$BrandingFooterLink,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" } )]
     [string]$BrandingAccentColor,
 
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" } )]
     [string]$BrandingTextColor,
 
     [bool]$SendEmailReport = $false,
@@ -181,6 +262,22 @@ param(
 
     [ValidateSet('CSV only', 'CSV & XLSX', 'XLSX only')]
     [string]$ReportFileFormat = 'CSV & XLSX',
+
+    [bool]$CreateDownloadLink = $false,
+
+    [string]$ContainerName = "report-intune-enrollment-readiness",
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" })]
+    [string]$ResourceGroupName,
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" })]
+    [string]$StorageAccountName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.SubscriptionId" } )]
+    [string]$SubscriptionId,
+
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" })]
+    [ValidateRange(1, 3650)]
+    [int]$LinkExpiryDays = 6,
 
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
@@ -192,7 +289,7 @@ param(
 ########################################################
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.2.3"
 Write-RjRbLog -Message "RealmJoin Runbook: Report Intune Enrollment Readiness. Version: $Version" -Verbose
 
 Write-RjRbLog -Message "UserName: $(($UserName | Measure-Object).Count) user(s) selected" -Verbose
@@ -204,6 +301,14 @@ Write-RjRbLog -Message "PilotGroupDisplayName: $PilotGroupDisplayName" -Verbose
 Write-RjRbLog -Message "SendEmailReport: $SendEmailReport" -Verbose
 Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
 Write-RjRbLog -Message "ReportFileFormat: $ReportFileFormat" -Verbose
+Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
+if ($CreateDownloadLink) {
+    Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
+    Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
+    Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+    Write-RjRbLog -Message "SubscriptionId: $SubscriptionId" -Verbose
+    Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
+}
 Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
 Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
 Write-RjRbLog -Message "BrandingFooterImageUrl: $BrandingFooterImageUrl" -Verbose
@@ -232,17 +337,26 @@ if ($CheckPilotGroupMembership -and [string]::IsNullOrWhiteSpace($PilotGroupDisp
     throw "PilotGroupDisplayName is required when CheckPilotGroupMembership is enabled"
 }
 
-# A sender address is required before any mail can be sent
-if (($SendEmailReport -or $EmailTo) -and -not $EmailFrom) {
-    Write-Warning -Message "The sender email address is required. Configure it in the runbook customization. Documentation: https://github.com/realmjoin/realmjoin-runbooks/tree/master/docs/general/setup-email-reporting.md"
-    Write-Error -Message "Missing email sender configuration (RJReport.EmailSender)." -ErrorAction Continue
-    throw "Missing email sender configuration (RJReport.EmailSender)."
+# SendEmailReport already existed before the "Report delivery" choice offered the download link, so
+# every schedule passes it explicitly and no fallback on the recipient is needed.
+$sendEmail = $SendEmailReport
+
+# Email delivery needs a recipient
+if ($sendEmail -and -not $EmailTo) {
+    Write-Error "Email delivery is selected but no recipient email address was provided." -ErrorAction Continue
+    throw "Missing recipient email address (EmailTo)"
 }
 
-# A recipient is required if the email report was switched on
-if ($SendEmailReport -and (-not $EmailTo)) {
-    Write-Error -Message "SendEmailReport is enabled but no EmailTo address was provided." -ErrorAction Continue
-    throw "Missing email recipient (EmailTo) while SendEmailReport is enabled."
+# A configured sender address is required before any mail can be sent
+if ($sendEmail -and -not $EmailFrom) {
+    Write-Error "The sender email address is missing. Configure the tenant setting RJReport.EmailSender in the runbook customization (https://docs.realmjoin.com/automation/runbooks/runbook-report-settings)." -ErrorAction Continue
+    throw "Missing email sender configuration (RJReport.EmailSender)"
+}
+
+# A target storage account is required to create a download link
+if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccountName))) {
+    Write-Error "A target storage account is required to create a download link. Configure the RJReport.StorageAccount.* tenant settings in the runbook customization (https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) or pass ResourceGroupName and StorageAccountName when starting the runbook." -ErrorAction Continue
+    throw "Missing storage account configuration (RJReport.StorageAccount.ResourceGroup / RJReport.StorageAccount.StorageAccountName)"
 }
 #endregion Parameter Validation
 
@@ -830,7 +944,7 @@ function Get-CaEnrollmentAssessment {
 ########################################################
 #region     Connect Part
 ########################################################
-Write-Output "Connecting to Microsoft Graph..."
+Write-RjRbLog -Message "Connecting to Microsoft Graph..." -Verbose
 try {
     Connect-MgGraph -Identity -NoWelcome -ErrorAction Stop
 }
@@ -840,7 +954,7 @@ catch {
     throw
 }
 
-Write-Output "## Retrieving tenant information..."
+Write-RjRbLog -Message "Retrieving tenant information..." -Verbose
 $tenantDisplayName = "Unknown Tenant"
 try {
     $organizationResponse = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization?`$select=displayName" -Method GET -ErrorAction Stop
@@ -850,35 +964,19 @@ try {
     elseif ($organizationResponse.displayName) {
         $tenantDisplayName = $organizationResponse.displayName
     }
-    Write-Output "## Tenant: $($tenantDisplayName)"
+    Write-Output "Tenant: $($tenantDisplayName)"
 }
 catch {
     # Non-fatal: the report still runs, just with a generic tenant label. 403 here almost always
     # means Organization.Read.All is missing on the managed identity.
     Write-RjRbLog -Message "WARNING: Failed to retrieve tenant information (continuing with 'Unknown Tenant'): $($_.Exception.Message). If this is a 403/Forbidden, grant the Organization.Read.All application permission to the Automation Account's managed identity." -Verbose
 }
-
-# "Email report" feature - Connect-RjRbGraph authenticates the sender identity used by Send-RjReportEmail
-if ($SendEmailReport) {
-    Write-Output "Graph connection for RJ RunbookHelper..."
-    try {
-        Connect-RjRbGraph
-    }
-    catch {
-        # Fatal only because SendEmailReport was requested; the report files themselves are unaffected
-        # by this failure since it happens before any data collection or export.
-        Write-Error "Failed to establish the RJ RunbookHelper Graph connection required for Send-RjReportEmail: $($_.Exception.Message). Verify the managed identity has the Mail.Send application permission granted (required for the optional report email)." -ErrorAction Continue
-        throw
-    }
-}
 #endregion Connect Part
 
 ########################################################
 #region     Data Collection
 ########################################################
-Write-Output ""
-Write-Output "## Resolving target users"
-Write-Output "---------------------"
+Write-RjRbLog -Message "Resolving target users" -Verbose
 
 # Initialize target user list
 [System.Collections.Generic.List[object]]$targetUsers = @()
@@ -952,14 +1050,12 @@ if ($targetUsers.Count -eq 0) {
     throw "No target users specified or resolved"
 }
 
-Write-Output "Resolved $($targetUsers.Count) user(s) for evaluation"
+Write-RjRbLog -Message "Resolved $($targetUsers.Count) user(s) for evaluation" -Verbose
 if ($targetUsers.Count -gt 100) {
     Write-RjRbLog -Message "Note: Evaluating a large number of users may take several minutes." -Verbose
 }
 
-Write-Output ""
-Write-Output "## Tenant enrollment context"
-Write-Output "---------------------"
+Write-RjRbLog -Message "Collecting tenant enrollment context" -Verbose
 
 # Collect tenant-level Intune context
 try {
@@ -980,7 +1076,7 @@ try {
         }
     }
 
-    Write-Output "Found Intune-capable licenses: $($intuneSkuPartNumbers -join ', ')"
+    Write-RjRbLog -Message "Found Intune-capable licenses: $($intuneSkuPartNumbers -join ', ')" -Verbose
 }
 catch {
     # Non-fatal: license readiness will show as unknown for all users, but the rest of the report still runs.
@@ -1006,8 +1102,8 @@ try {
     $enrollmentLimitConfigs = @($allEnrollmentConfigs | Where-Object { $_.'@odata.type' -like "*deviceEnrollmentLimitConfiguration" } | Sort-Object -Property priority)
     $platformRestrictionConfigs = @($allEnrollmentConfigs | Where-Object { $_.'@odata.type' -like "*deviceEnrollmentPlatformRestriction*" } | Sort-Object -Property priority)
 
-    Write-Output "Found $($enrollmentLimitConfigs.Count) enrollment limit configuration(s)"
-    Write-Output "Found $($platformRestrictionConfigs.Count) platform restriction configuration(s)"
+    Write-RjRbLog -Message "Found $($enrollmentLimitConfigs.Count) enrollment limit configuration(s)" -Verbose
+    Write-RjRbLog -Message "Found $($platformRestrictionConfigs.Count) platform restriction configuration(s)" -Verbose
 }
 catch {
     # Non-fatal: enrollment limit/platform-restriction readiness will show as unknown for all users.
@@ -1031,7 +1127,7 @@ try {
     $allCaPolicies = Get-GraphPagedResult -Uri $caUri
 
     $caPolicies = @($allCaPolicies | Where-Object { $_.state -eq 'enabled' })
-    Write-Output "Found $($caPolicies.Count) enabled Conditional Access policy(ies)"
+    Write-RjRbLog -Message "Found $($caPolicies.Count) enabled Conditional Access policy(ies)" -Verbose
 }
 catch {
     # Non-fatal: Conditional Access readiness will show as unknown for all users.
@@ -1090,7 +1186,7 @@ try {
         default { $mdmAuthority = if ($mdmAuthorityValue) { $mdmAuthorityValue } else { "Not set" } }
     }
 
-    Write-Output "MDM Authority: $mdmAuthority"
+    Write-RjRbLog -Message "MDM Authority: $mdmAuthority" -Verbose
 }
 catch {
     # Non-fatal: MDM authority is reported as "Unknown" and the rest of the report still runs.
@@ -1109,6 +1205,7 @@ catch {
 
 # Resolve pilot group if requested
 $pilotGroupId = $null
+$pilotGroupResolvedName = $null
 [System.Collections.Generic.HashSet[string]]$pilotMemberIds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 $pilotMembersResolved = $false
 
@@ -1122,13 +1219,16 @@ if ($CheckPilotGroupMembership -and $PilotGroupDisplayName) {
         if ($groupResult.value.Count -eq 0) {
             Write-RjRbLog -Message "WARNING: Pilot group '$PilotGroupDisplayName' not found" -Verbose
         }
-        elseif ($groupResult.value.Count -gt 1) {
-            Write-RjRbLog -Message "WARNING: Multiple groups match display name '$PilotGroupDisplayName'; using first match" -Verbose
-            $pilotGroupId = $groupResult.value[0].id
-        }
         else {
+            # Display names are not unique: like the user runbook, the first match is used and the ambiguity reported
+            if ($groupResult.value.Count -gt 1) {
+                $pilotAmbiguityWarning = "Multiple groups match display name '$PilotGroupDisplayName'; using first match ($($groupResult.value[0].id)). Pilot group membership may be inaccurate - give the pilot group a unique name."
+                Write-RjRbLog -Message "WARNING: $pilotAmbiguityWarning" -Verbose
+                Write-Warning $pilotAmbiguityWarning
+            }
             $pilotGroupId = $groupResult.value[0].id
-            Write-Output "Resolved pilot group: $($groupResult.value[0].displayName)"
+            $pilotGroupResolvedName = $groupResult.value[0].displayName
+            Write-RjRbLog -Message "Resolved pilot group: $pilotGroupResolvedName" -Verbose
 
             # Retrieve pilot group member IDs
             $pilotMembersUri = "https://graph.microsoft.com/v1.0/groups/$pilotGroupId/transitiveMembers/microsoft.graph.user?`$select=id"
@@ -1140,7 +1240,7 @@ if ($CheckPilotGroupMembership -and $PilotGroupDisplayName) {
 
             # Mark pilot membership as successfully resolved only after member enumeration completes
             $pilotMembersResolved = $true
-            Write-Output "Pilot group has $($pilotMemberIds.Count) member(s)"
+            Write-RjRbLog -Message "Pilot group has $($pilotMemberIds.Count) member(s)" -Verbose
         }
     }
     catch {
@@ -1159,13 +1259,14 @@ if ($CheckPilotGroupMembership -and $PilotGroupDisplayName) {
     }
 }
 
-Write-Output ""
-Write-Output "## Collecting per-user data"
-Write-Output "---------------------"
+Write-RjRbLog -Message "Collecting per-user data" -Verbose
 
 # Initialize hashtables for per-user data
 $userAuthMethods = @{}
 $userDeviceCounts = @{}
+$userEntraDeviceCounts = @{}
+$userManagedDeviceCounts = @{}
+$ownedDevicesTrustTypeWarned = $false
 
 $userCounter = 0
 foreach ($user in $targetUsers) {
@@ -1210,14 +1311,26 @@ foreach ($user in $targetUsers) {
 
     # Collect device count
     try {
-        $deviceCountUri = "https://graph.microsoft.com/v1.0/users/$($user.id)/ownedDevices?`$select=id"
-        $ownedDevicesResult = Invoke-MgGraphRequest -Uri $deviceCountUri -Method GET -ErrorAction Stop
-
-        if ($ownedDevicesResult.value) {
-            $userDeviceCounts[$user.id] = @($ownedDevicesResult.value).Count
+        $deviceCountUri = "https://graph.microsoft.com/v1.0/users/$($user.id)/ownedDevices?`$select=id,trustType&`$top=999"
+        $ownedDevicesAll = @()
+        while ($deviceCountUri) {
+            $ownedDevicesResult = Invoke-MgGraphRequest -Uri $deviceCountUri -Method GET -ErrorAction Stop
+            $ownedDevicesAll += @($ownedDevicesResult.value)
+            $deviceCountUri = $ownedDevicesResult.'@odata.nextLink'
         }
-        else {
-            $userDeviceCounts[$user.id] = 0
+
+        $userDeviceCounts[$user.id] = $ownedDevicesAll.Count
+        # Entra registered or joined devices count against the Entra device quota; hybrid joined do not
+        $userEntraDeviceCounts[$user.id] = @($ownedDevicesAll | Where-Object { $_.trustType -in @("Workplace", "AzureAd") }).Count
+        # Without Device.Read.All Graph returns the device objects with their id only, which would count as 0
+        if ($ownedDevicesAll.Count -gt 0 -and @($ownedDevicesAll | Where-Object { $_.trustType }).Count -eq 0) {
+            $userEntraDeviceCounts[$user.id] = $null
+            if (-not $ownedDevicesTrustTypeWarned) {
+                $ownedDevicesTrustTypeWarned = $true
+                $trustTypeWarning = "The devices of the users were returned without their trust type, so the Entra device limit is reported as Unknown. Grant the Device.Read.All application permission to the Automation Account's managed identity."
+                Write-RjRbLog -Message "WARNING: $trustTypeWarning" -Verbose
+                Write-Warning $trustTypeWarning
+            }
         }
     }
     catch {
@@ -1233,13 +1346,31 @@ foreach ($user in $targetUsers) {
             Write-RjRbLog -Message "WARNING: User '$($user.userPrincipalName)' was not found when retrieving owned devices; the account may have been deleted since the report started. Recorded as unknown." -Verbose
         }
         else {
-            Write-RjRbLog -Message "WARNING: Failed to retrieve owned device count for user '$($user.userPrincipalName)': $($authError.Exception.Message)" -Verbose
+            Write-RjRbLog -Message "WARNING: Failed to retrieve owned device count for user '$($user.userPrincipalName)': $($deviceError.Exception.Message)" -Verbose
         }
         $userDeviceCounts[$user.id] = $null
+        $userEntraDeviceCounts[$user.id] = $null
+    }
+
+    # Collect Intune-enrolled device count (the Intune enrollment limit counts these, not every Entra device)
+    try {
+        $managedDeviceCount = 0
+        $managedDevicesUri = "https://graph.microsoft.com/v1.0/users/$($user.id)/managedDevices?`$select=id&`$top=999"
+        while ($managedDevicesUri) {
+            $managedDevicesResult = Invoke-MgGraphRequest -Uri $managedDevicesUri -Method GET -ErrorAction Stop
+            $managedDeviceCount += @($managedDevicesResult.value).Count
+            $managedDevicesUri = $managedDevicesResult.'@odata.nextLink'
+        }
+        $userManagedDeviceCounts[$user.id] = $managedDeviceCount
+    }
+    catch {
+        # Non-fatal: this single user's Intune device count is recorded as unknown; the report continues.
+        Write-RjRbLog -Message "WARNING: Failed to retrieve Intune-enrolled devices for user '$($user.userPrincipalName)'. Check that the managed identity has the DeviceManagementManagedDevices.Read.All application permission. Recorded as unknown. Detail: $($_.Exception.Message)" -Verbose
+        $userManagedDeviceCounts[$user.id] = $null
     }
 }
 
-Write-Output "Collected authentication and device data for $($targetUsers.Count) user(s)"
+Write-RjRbLog -Message "Collected authentication and device data for $($targetUsers.Count) user(s)" -Verbose
 #endregion Data Collection
 
 ########################################################
@@ -1262,6 +1393,15 @@ $intuneServicePlanIds = @($intuneServicePlanIds | Sort-Object -Unique)
 # Both feed the Conditional Access assignment-scope evaluation.
 $userGroupCache = @{}
 $userRoleCache = @{}
+# Entra 'Maximum number of devices per user', read once on first use; a failed read leaves it $null (Unknown)
+$entraDeviceQuota = $null
+$entraDeviceQuotaLoaded = $false
+# Custom limit configurations assigned to or excluding a group: only these depend on a user's group memberships
+$groupScopedLimitConfigs = @($enrollmentLimitConfigs | Where-Object {
+        $_.priority -gt 0 -and @($_.assignments | Where-Object {
+                $_.target.'@odata.type' -like "*.groupAssignmentTarget" -or $_.target.'@odata.type' -like "*.exclusionGroupAssignmentTarget"
+            }).Count -gt 0
+    })
 
 # Track blocking reasons for summary statistics. Categories come from the Conditional Access assessment
 # at runtime, so the counter is initialised on first use rather than from a fixed list.
@@ -1269,7 +1409,7 @@ $blockingReasonCounts = @{}
 
 # Platform enumeration for Conditional Access evaluation
 $platformMap = [ordered]@{ 'Windows' = 'windows'; 'iOS' = 'iOS'; 'Android' = 'android'; 'macOS' = 'macOS' }
-$platformsToCheck = if ($EnrollmentPlatform -eq 'All') { @($platformMap.Keys | ForEach-Object { [string]$_ }) } else { @($EnrollmentPlatform) }
+$platformsToCheck = @(if ($EnrollmentPlatform -eq 'All') { $platformMap.Keys | ForEach-Object { [string]$_ } } else { $EnrollmentPlatform })
 
 # Build per-user readiness assessment
 $reportRows = @()
@@ -1351,17 +1491,45 @@ foreach ($user in $targetUsers) {
     # 4. Check device enrollment limit
     $deviceCount = $userDeviceCounts[$user.id]
     $enrollmentLimitValue = $null
+    $applicableConfig = $null
+    $managedDeviceCount = $userManagedDeviceCounts[$user.id]
 
-    if ($enrollmentLimitConfigs -and $enrollmentLimitConfigs.Count -gt 0) {
-        # Select by priority: highest > 0, else priority 0 default
-        $priorityOrderedConfigs = @($enrollmentLimitConfigs | Sort-Object -Property priority -Descending)
+    # Group memberships decide which assigned limit configurations apply; resolved once per user and cached
+    # (the Conditional Access evaluation below reuses the same cache). $null marks a failed lookup.
+    if (-not $userGroupCache.ContainsKey($user.id)) {
+        try {
+            $memberOfResult = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/users/$($user.id)/transitiveMemberOf/microsoft.graph.group?`$select=id&`$top=999")
+            $userGroupCache[$user.id] = @($memberOfResult | ForEach-Object { [string]$_.id })
+        }
+        catch {
+            $userGroupCache[$user.id] = $null
+            $groupLookupWarning = "Could not resolve group memberships for user '$($user.userPrincipalName)'; group-assigned enrollment limits and Conditional Access policies scoped to groups could not be evaluated for this user: $($_.Exception.Message)"
+            Write-RjRbLog -Message "WARNING: $groupLookupWarning" -Verbose
+            Write-Warning $groupLookupWarning
+        }
+    }
+    $limitUserGroupIds = if ($null -eq $userGroupCache[$user.id]) { @() } else { @($userGroupCache[$user.id]) }
+    # Without the memberships a configuration assigned to or excluding a group can be neither ruled in nor out,
+    # so the limit stays unknown instead of falling back to the default
+    $enrollmentLimitUnknown = $null -eq $userGroupCache[$user.id] -and $groupScopedLimitConfigs.Count -gt 0
 
-        # First try any assigned config with priority > 0
-        $applicableConfig = $priorityOrderedConfigs | Where-Object { $_.priority -gt 0 } | Select-Object -First 1
+    if ($enrollmentLimitConfigs -and $enrollmentLimitConfigs.Count -gt 0 -and -not $enrollmentLimitUnknown) {
+        # Select by priority: the assigned custom config (priority > 0) with the lowest priority number.
+        # A config applies when assigned to All users or to a group of the user, unless an excluded group matches.
+        $applicableConfig = $enrollmentLimitConfigs | Where-Object {
+            if ($_.priority -le 0) { return $false }
+            $limitTargets = @($_.assignments | ForEach-Object { $_.target })
+            $limitExcluded = @($limitTargets | Where-Object { $_.'@odata.type' -like "*.exclusionGroupAssignmentTarget" -and $limitUserGroupIds -contains [string]$_.groupId }).Count -gt 0
+            $limitIncluded = @($limitTargets | Where-Object {
+                    $_.'@odata.type' -like "*.allLicensedUsersAssignmentTarget" -or
+                    ($_.'@odata.type' -like "*.groupAssignmentTarget" -and $limitUserGroupIds -contains [string]$_.groupId)
+                }).Count -gt 0
+            $limitIncluded -and -not $limitExcluded
+        } | Sort-Object -Property priority | Select-Object -First 1
 
         # Fall back to priority 0 default
         if (-not $applicableConfig) {
-            $applicableConfig = $priorityOrderedConfigs | Where-Object { $_.priority -eq 0 } | Select-Object -First 1
+            $applicableConfig = $enrollmentLimitConfigs | Where-Object { $_.priority -eq 0 } | Select-Object -First 1
         }
 
         # Only use non-null limits; zero is a valid "block all" value
@@ -1370,14 +1538,50 @@ foreach ($user in $targetUsers) {
         }
     }
 
-    if ($null -ne $deviceCount) {
-        if ($null -ne $enrollmentLimitValue -and $deviceCount -ge $enrollmentLimitValue) {
-            $neutralBlockingReasons += "Device enrollment limit reached ($deviceCount/$enrollmentLimitValue)"
+    if ($null -ne $managedDeviceCount) {
+        if ($null -ne $enrollmentLimitValue -and $managedDeviceCount -ge $enrollmentLimitValue) {
+            $neutralBlockingReasons += "Device enrollment limit reached ($managedDeviceCount of $enrollmentLimitValue Intune devices, limit policy '$($applicableConfig.displayName)')"
             $blockingReasonCounts["Device enrollment limit reached"] += 1
         }
     }
     else {
         $neutralWarnings += "Device count unknown"
+    }
+    if ($enrollmentLimitUnknown) {
+        $neutralWarnings += "Device enrollment limit unknown - group memberships could not be read"
+    }
+
+    # Entra 'Maximum number of devices per user' (registered and joined devices); read once. A failed read leaves
+    # EntraDeviceLimit 'Unknown' for every user and is reported once in the summary, like the MDM authority.
+    if (-not $entraDeviceQuotaLoaded) {
+        $entraDeviceQuotaLoaded = $true
+        try {
+            $deviceRegistrationPolicy = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/policies/deviceRegistrationPolicy?`$select=userDeviceQuota" -Method GET -ErrorAction Stop
+            # A missing value must not become 0 ('no devices allowed'), which would block every user
+            if ($null -eq $deviceRegistrationPolicy.userDeviceQuota) {
+                throw "The device registration policy returned no userDeviceQuota value."
+            }
+            $entraDeviceQuota = [int]$deviceRegistrationPolicy.userDeviceQuota
+        }
+        catch {
+            $entraQuotaError = $_
+            $entraQuotaWarning = if ($entraQuotaError.Exception.Message -like "*403*" -or $entraQuotaError.Exception.Message -like "*Forbidden*") {
+                "Access denied reading the Entra device registration policy. Grant the Policy.Read.DeviceConfiguration application permission to the Automation Account's managed identity. The Entra device limit is not checked and reported as Unknown. Detail: $($entraQuotaError.Exception.Message)"
+            }
+            else {
+                "Could not read the Entra device registration policy; the Entra device limit is not checked and reported as Unknown: $($entraQuotaError.Exception.Message)"
+            }
+            Write-RjRbLog -Message "WARNING: $entraQuotaWarning" -Verbose
+            Write-Warning $entraQuotaWarning
+        }
+    }
+    $entraDeviceCount = $userEntraDeviceCounts[$user.id]
+    if ($null -ne $entraDeviceQuota -and $null -ne $entraDeviceCount -and $entraDeviceCount -ge $entraDeviceQuota) {
+        $neutralBlockingReasons += "Entra device limit reached ($entraDeviceCount of $entraDeviceQuota Entra registered or joined devices)"
+        $blockingReasonCounts["Entra device limit reached"] += 1
+    }
+    elseif ($null -ne $entraDeviceQuota -and $null -eq $entraDeviceCount) {
+        $neutralWarnings += "Entra device count unknown - Entra device limit not checked"
     }
 
     # 5. Check platform restrictions
@@ -1459,29 +1663,33 @@ foreach ($user in $targetUsers) {
 
     # Group memberships and directory roles are needed to resolve CA assignment scope. Resolve each
     # once per user and cache it: a tenant with many policies would otherwise re-query per policy.
-    if (-not $userGroupCache.ContainsKey($user.id)) {
-        try {
-            $memberOfResult = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($user.id)/transitiveMemberOf/microsoft.graph.group?`$select=id&`$top=999" -Method GET -ErrorAction Stop
-            $userGroupCache[$user.id] = @($memberOfResult.value | ForEach-Object { [string]$_.id })
-        }
-        catch {
-            $userGroupCache[$user.id] = @()
-            Write-RjRbLog -Message "WARNING: Could not resolve group memberships for user '$($user.userPrincipalName)' when evaluating Conditional Access; policy scoping for this user may be incomplete: $($_.Exception.Message)" -Verbose
-        }
+    # The group memberships are already in the cache from the enrollment limit check above; $null marks a
+    # failed lookup, so the result row says that the CA evaluation is incomplete.
+    if ($null -eq $userGroupCache[$user.id]) {
+        $userGroupIds = @()
+        $neutralWarnings += "Group memberships could not be read - Conditional Access policies scoped to groups were not fully evaluated"
     }
-    $userGroupIds = @($userGroupCache[$user.id])
+    else {
+        $userGroupIds = @($userGroupCache[$user.id])
+    }
 
     if (-not $userRoleCache.ContainsKey($user.id)) {
         try {
-            $roleResult = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/users/$($user.id)/transitiveMemberOf/microsoft.graph.directoryRole?`$select=roleTemplateId&`$top=999" -Method GET -ErrorAction Stop
-            $userRoleCache[$user.id] = @($roleResult.value | ForEach-Object { [string]$_.roleTemplateId } | Where-Object { $_ })
+            $roleResult = @(Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/users/$($user.id)/transitiveMemberOf/microsoft.graph.directoryRole?`$select=roleTemplateId&`$top=999")
+            $userRoleCache[$user.id] = @($roleResult | ForEach-Object { [string]$_.roleTemplateId } | Where-Object { $_ })
         }
         catch {
-            $userRoleCache[$user.id] = @()
+            $userRoleCache[$user.id] = $null
             Write-RjRbLog -Message "WARNING: Could not resolve directory roles for user '$($user.userPrincipalName)'; Conditional Access policies scoped to roles may be missed: $($_.Exception.Message)" -Verbose
         }
     }
-    $userRoleTemplateIds = @($userRoleCache[$user.id])
+    if ($null -eq $userRoleCache[$user.id]) {
+        $userRoleTemplateIds = @()
+        $neutralWarnings += "Directory roles could not be read - Conditional Access policies scoped to roles were not fully evaluated"
+    }
+    else {
+        $userRoleTemplateIds = @($userRoleCache[$user.id])
+    }
 
     # Build display value for auth methods
     $authMethodDisplay = if ($mfaCapableAuthMethods.Count -gt 0) {
@@ -1554,7 +1762,11 @@ foreach ($user in $targetUsers) {
             MdmAuthority               = $mdmAuthority
             PermittedPlatforms         = if ([string]::IsNullOrEmpty($permittedPlatforms)) { "Not determined" } else { $permittedPlatforms }
             RegisteredDeviceCount      = if ($null -ne $deviceCount) { $deviceCount.ToString() } else { "Unknown" }
-            DeviceEnrollmentLimit      = if ($enrollmentLimitValue) { $enrollmentLimitValue.ToString() } else { "Not configured" }
+            DeviceEnrollmentLimit      = if ($null -ne $enrollmentLimitValue) { $enrollmentLimitValue.ToString() } elseif ($enrollmentLimitUnknown) { "Unknown" } else { "Not configured" }
+            EnrollmentLimitPolicy      = if ($applicableConfig) { $applicableConfig.displayName } else { "Not determined" }
+            IntuneDeviceCount          = if ($null -ne $managedDeviceCount) { $managedDeviceCount.ToString() } else { "Unknown" }
+            EntraDeviceCount           = if ($null -ne $entraDeviceCount) { $entraDeviceCount.ToString() } else { "Unknown" }
+            EntraDeviceLimit           = if ($null -ne $entraDeviceQuota) { $entraDeviceQuota.ToString() } else { "Unknown" }
             MfaCapable                 = $userHasMfa
             RegisteredAuthMethods      = $authMethodDisplay
             BlockingPolicies           = if ($caBlockingPolicies.Count -gt 0) { $caBlockingPolicies -join "; " } else { "None" }
@@ -1642,7 +1854,8 @@ if ($platformsToCheck.Count -gt 1) {
 }
 
 $summaryStats = @{
-    TotalUsersChecked    = $reportRows.Count
+    # Distinct users: with All platforms each user has one row per platform
+    TotalUsersChecked    = $targetUsers.Count
     ReadyCount           = $readyCount
     ReadyWithWarningsCount = $readyWithWarningsCount
     NotReadyCount        = $notReadyCount
@@ -1681,6 +1894,14 @@ else {
     Write-Output ""
     Write-Output ("{0,-22}: {1}" -f "Tenant MDM authority", $mdmAuthority)
 }
+if ($pilotGroupResolvedName) {
+    Write-Output ("{0,-22}: {1} ({2} member(s))" -f "Pilot group", $pilotGroupResolvedName, $pilotMemberIds.Count)
+}
+# The Entra device limit is a tenant setting too: an unreadable value is reported once here, not on every row
+if ($entraDeviceQuotaLoaded -and $null -eq $entraDeviceQuota) {
+    Write-Output ""
+    Write-Output "WARNING: The Entra setting 'Maximum number of devices per user' could not be read, so the Entra device limit was not checked for any user (EntraDeviceLimit shows Unknown). See the job log for the cause."
+}
 
 if ($topBlockingReasons.Count -gt 0) {
     Write-Output ""
@@ -1691,55 +1912,33 @@ if ($topBlockingReasons.Count -gt 0) {
     }
 }
 
-# Output users not ready
 $notReadyUsers = @($reportRows | Where-Object { $_.ReadinessStatus -eq "Not ready" })
-if ($notReadyUsers.Count -gt 0) {
-    Write-Output ""
-    Write-Output ("## Not ready ({0})" -f $notReadyUsers.Count)
-    Write-Output "---------------------"
-
-    $displayCount = [Math]::Min($notReadyUsers.Count, 50)
-    for ($i = 0; $i -lt $displayCount; $i++) {
-        $user = $notReadyUsers[$i]
-        $platformLabel = if ($platformsToCheck.Count -gt 1) { " [$($user.EnrollmentPlatform)]" } else { "" }
-        Write-Output ("  [X] {0} ({1}){2}" -f $user.DisplayName, $user.UserPrincipalName, $platformLabel)
-
-        # Split blocking reasons and indent each one
-        $reasons = @($user.BlockingReasons -split "; " | Where-Object { $_ -and $_.Trim() })
-        foreach ($reason in $reasons) {
-            Write-Output ("        {0}" -f $reason)
-        }
-    }
-
-    if ($notReadyUsers.Count -gt 50) {
-        $remainingCount = $notReadyUsers.Count - 50
-        Write-Output "  ... and $remainingCount more (see report file for full list)"
-    }
-}
-
-# Output users ready with warnings
 $warningUsers = @($reportRows | Where-Object { $_.ReadinessStatus -eq "Ready with warnings" })
-if ($warningUsers.Count -gt 0) {
+$readyUsers = @($reportRows | Where-Object { $_.ReadinessStatus -eq "Ready" })
+
+# Per-user details in the job output, in the same style as the check runbook: blockers [X], warnings [!].
+# Capped so a large group does not flood the output; the Output Data tables and report files list everyone.
+$consoleUserLimit = 50
+foreach ($section in @(
+        @{ Title = "Not ready"; Rows = $notReadyUsers },
+        @{ Title = "Ready with warnings"; Rows = $warningUsers }
+    )) {
+    if ($section.Rows.Count -eq 0) { continue }
     Write-Output ""
-    Write-Output ("## Ready with warnings ({0})" -f $warningUsers.Count)
+    Write-Output "## $($section.Title) ($($section.Rows.Count))"
     Write-Output "---------------------"
-
-    $displayCount = [Math]::Min($warningUsers.Count, 50)
-    for ($i = 0; $i -lt $displayCount; $i++) {
-        $user = $warningUsers[$i]
-        $platformLabel = if ($platformsToCheck.Count -gt 1) { " [$($user.EnrollmentPlatform)]" } else { "" }
-        Write-Output ("  [!] {0} ({1}){2}" -f $user.DisplayName, $user.UserPrincipalName, $platformLabel)
-
-        # Split warnings and indent each one
-        $warnings = @($user.Warnings -split "; " | Where-Object { $_ -and $_.Trim() })
-        foreach ($warning in $warnings) {
-            Write-Output ("        {0}" -f $warning)
+    foreach ($row in @($section.Rows | Select-Object -First $consoleUserLimit)) {
+        $platformSuffix = if ($platformsToCheck.Count -gt 1) { " - $($row.EnrollmentPlatform)" } else { "" }
+        Write-Output "  $($row.DisplayName) ($($row.UserPrincipalName))$($platformSuffix)"
+        if ($row.BlockingReasons -ne "None") {
+            foreach ($reasonText in ($row.BlockingReasons -split '; ')) { Write-Output "    [X] $reasonText" }
+        }
+        if ($row.Warnings -ne "None") {
+            foreach ($warningText in ($row.Warnings -split '; ')) { Write-Output "    [!] $warningText" }
         }
     }
-
-    if ($warningUsers.Count -gt 50) {
-        $remainingCount = $warningUsers.Count - 50
-        Write-Output "  ... and $remainingCount more (see report file for full list)"
+    if ($section.Rows.Count -gt $consoleUserLimit) {
+        Write-Output "  ... and $($section.Rows.Count - $consoleUserLimit) more - see the Output Data table '$($section.Title)'."
     }
 }
 
@@ -1760,37 +1959,31 @@ Write-RjRbLog -Message "Processed $($reportRows.Count) user/platform combination
 #region     Report File Export
 ########################################################
 $reportFiles = @()
-$tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "IntuneEnrollmentReadiness_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
-New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
-Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
+$xlsxFile = $null
+$tempDir = $null
 
-# Sanitise tenant display name for use in file paths (remove illegal characters)
-$sanitizedTenantName = $tenantDisplayName -replace '[\\/:*?"<>|]', '' | ForEach-Object { $_ -replace '\s+', '_' }
-if ([string]::IsNullOrWhiteSpace($sanitizedTenantName)) {
-    $sanitizedTenantName = "Tenant"
-}
+# Report files are only needed when they are attached to an email and/or uploaded for a download link
+if (($sendEmail -or $CreateDownloadLink) -and $reportRows.Count -gt 0) {
+    $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "IntuneEnrollmentReadiness_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+    Write-RjRbLog -Message "Created temp directory: $tempDir" -Verbose
 
-if ($ReportFileFormat -ne 'XLSX only') {
-    if ($reportRows.Count -gt 0) {
-        $fileName = Join-Path $tempDir "intune-enrollment-readiness_$($sanitizedTenantName)_$(Get-Date -Format 'yyyyMMdd').csv"
+    # Sanitise tenant display name for use in file names (remove illegal characters, spaces become underscores)
+    $sanitizedTenantName = $tenantDisplayName -replace '[\\/:*?"<>|]', '' | ForEach-Object { $_ -replace '\s+', '_' }
+    if ([string]::IsNullOrWhiteSpace($sanitizedTenantName)) {
+        $sanitizedTenantName = "Tenant"
+    }
+    $fileNameBase = "intune-enrollment-readiness_$($sanitizedTenantName)_$(Get-Date -Format 'yyyyMMdd')"
+
+    if ($ReportFileFormat -ne 'XLSX only') {
+        $fileName = Join-Path $tempDir "$fileNameBase.csv"
         $reportRows | Export-Csv -Path $fileName -NoTypeInformation -Encoding UTF8
         $reportFiles += $fileName
         Write-RjRbLog -Message "Exported $($reportRows.Count) items to: $fileName" -Verbose
     }
-    else {
-        Write-Output "No data found - skipping CSV export"
-    }
-}
 
-Write-Output "Report file export completed: $($reportFiles.Count) file(s) created"
-
-if ($ReportFileFormat -ne 'CSV only') {
-    if ($reportRows.Count -gt 0) {
-        # $tenantDisplayName may contain characters that are illegal in file names (e.g. '/', '\', ':') - sanitise before use
-        $sanitizedTenantName = $tenantDisplayName -replace '[\\/:*?"<>|]', '_'
-        $xlsxFile = Join-Path $tempDir "intune-enrollment-readiness_$($sanitizedTenantName)_$(Get-Date -Format 'yyyyMMdd').xlsx"
-
-        $notReadyRows = @($reportRows | Where-Object { $_.ReadinessStatus -eq 'Not ready' })
+    if ($ReportFileFormat -ne 'CSV only') {
+        $xlsxFile = Join-Path $tempDir "$fileNameBase.xlsx"
 
         $topBlockingReasonsText = if ($summaryStats.TopBlockingReasons -and $summaryStats.TopBlockingReasons.Count -gt 0) {
             ($summaryStats.TopBlockingReasons | ForEach-Object { "$($_.Reason) ($($_.Count))" }) -join '; '
@@ -1815,11 +2008,12 @@ if ($ReportFileFormat -ne 'CSV only') {
             $workbookCoverSheet['Per Platform'] = $summaryStats.PlatformBreakdown
         }
 
+        # The 'Not ready' worksheet holds the same rows as the Output Data table of that name
         $xlsxWorksheets = [ordered]@{
             'All Users' = $reportRows
         }
-        if ($notReadyRows.Count -gt 0) {
-            $xlsxWorksheets['Not Ready'] = $notReadyRows
+        if ($notReadyUsers.Count -gt 0) {
+            $xlsxWorksheets['Not ready'] = $notReadyUsers
         }
 
         Export-RjRbXlsx -Worksheets $xlsxWorksheets `
@@ -1834,16 +2028,66 @@ if ($ReportFileFormat -ne 'CSV only') {
         $reportFiles += $xlsxFile
         Write-RjRbLog -Message "Exported $($reportRows.Count) items to: $xlsxFile" -Verbose
     }
-    else {
-        Write-Output "No data found - skipping XLSX export"
-    }
+
+    Write-RjRbLog -Message "Report file export completed: $($reportFiles.Count) file(s) created." -Verbose
+}
+elseif ($reportRows.Count -eq 0) {
+    Write-RjRbLog -Message "No users in the report - skipping the report file export" -Verbose
 }
 #endregion Report File Export
 
 ########################################################
+#region     Upload / Download Link
+########################################################
+if ($CreateDownloadLink) {
+    Write-Output ""
+    if ($reportFiles.Count -gt 0) {
+        Write-Output "## Download link"
+        Write-Output "---------------------"
+
+        # Publish-RjRbFilesToStorageContainer authenticates against Azure (Az.Accounts) and
+        # transparently connects the managed identity if no Az context is active.
+        try {
+            $uploadResults = Publish-RjRbFilesToStorageContainer `
+                -FilePaths $reportFiles `
+                -ContainerName $ContainerName `
+                -ResourceGroupName $ResourceGroupName `
+                -StorageAccountName $StorageAccountName `
+                -SubscriptionId $SubscriptionId `
+                -LinkExpiryDays $LinkExpiryDays `
+                -AddBlobNamePrefix $true
+        }
+        catch {
+            Write-Error "Failed to upload the report file(s) to storage account '$StorageAccountName': $($_.Exception.Message). The managed identity needs the 'Reader and Data Access' role on the storage account." -ErrorAction Continue
+            throw
+        }
+
+        foreach ($uploadResult in $uploadResults) {
+            Write-Output ""
+            Write-Output "Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
+            $uploadResult.SASLink | Out-String | Write-Output
+        }
+    }
+    else {
+        Write-Output "No users in the report - skipping the upload."
+    }
+}
+#endregion Upload / Download Link
+
+########################################################
 #region     Send Email Report
 ########################################################
-if ($SendEmailReport) {
+$brandingMailParams = @{}
+
+if (-not $sendEmail) {
+    Write-RjRbLog -Message "Email delivery not selected - email report skipped" -Verbose
+}
+else {
+    Write-Output ""
+    Write-Output "## Email report"
+    Write-Output "---------------------"
+    Write-RjRbLog -Message "Sending the email report to '$EmailTo'..." -Verbose
+
     # Resolve optional tenant email branding once per run (never fails the send)
     $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
 
@@ -1868,6 +2112,9 @@ if ($SendEmailReport) {
         $summaryLines += "- Per platform: $($summaryStats.PlatformBreakdown)"
     }
     $summaryLines += "- Enrollment platform evaluated: $EnrollmentPlatform"
+    if ($entraDeviceQuotaLoaded -and $null -eq $entraDeviceQuota) {
+        $summaryLines += "- Entra device limit: not checked, the Entra setting 'Maximum number of devices per user' could not be read"
+    }
     $summaryMarkdown = $summaryLines -join "`n"
 
     $markdownContent = @"
@@ -1914,24 +2161,27 @@ The full report was too large to attach in all requested formats; the Excel work
 
     try {
         $emailParams = @{
-            EmailFrom         = $EmailFrom
-            EmailTo           = $EmailTo
-            Subject           = $emailSubject
-            MarkdownContent   = $markdownContent
-            TenantDisplayName = $tenantDisplayName
-            ReportVersion     = $Version
+            EmailFrom             = $EmailFrom
+            EmailTo               = $EmailTo
+            Subject               = $emailSubject
+            MarkdownContent       = $markdownContent
+            TenantDisplayName     = $tenantDisplayName
+            ReportVersion         = $Version
+            UseNativeGraphRequest = $true
         }
 
         if ($reportFiles.Count -eq 0) {
-            Send-RjReportEmail @emailParams @brandingMailParams
+            Send-RjRbReportEmail @emailParams @brandingMailParams
         }
         elseif ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxFile -and (Test-Path -Path $xlsxFile)) {
             # Both formats attached; fall back to the workbook alone if the pair is too large.
-            Send-RjReportEmail @emailParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFile) -FallbackMarkdownContent $markdownFallbackXlsxOnly
+            Send-RjRbReportEmail @emailParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxFile) -FallbackMarkdownContent $markdownFallbackXlsxOnly
         }
         else {
-            Send-RjReportEmail @emailParams @brandingMailParams -Attachments $reportFiles
+            Send-RjRbReportEmail @emailParams @brandingMailParams -Attachments $reportFiles
         }
+        Write-RjRbLog -Message "Email report sent to: $EmailTo" -Verbose
+        Write-Output "Email report sent to '$EmailTo'."
     }
     catch {
         # The report files were already generated successfully at this point - only delivery by email
@@ -1948,6 +2198,83 @@ The full report was too large to attach in all requested formats; the Excel work
     }
 }
 #endregion Send Email Report
+
+########################################################
+#region     Structured Output (Output Data)
+########################################################
+# Emitted last so the tables are not interleaved with the progress output. Every table has its own
+# RjTableTitle marker and its own column set; a marker is only written when rows follow it.
+$rowNoun = if ($platformsToCheck.Count -gt 1) { "user/platform combination(s)" } else { "user(s)" }
+Write-Output ""
+
+$summaryValues = [ordered]@{}
+if ($platformsToCheck.Count -gt 1) {
+    $summaryValues["User/platform combinations evaluated"] = $reportRows.Count
+}
+else {
+    $summaryValues["Users evaluated"] = $reportRows.Count
+}
+$summaryValues["Ready"] = $readyCount
+$summaryValues["Ready with warnings"] = $readyWithWarningsCount
+$summaryValues["Not ready"] = $notReadyCount
+if ($platformsToCheck.Count -gt 1) {
+    foreach ($platform in $platformsToCheck) {
+        $counts = $platformCounts[$platform]
+        $summaryValues["$platform - ready"] = $counts.Ready
+        $summaryValues["$platform - ready with warnings"] = $counts.ReadyWithWarnings
+        $summaryValues["$platform - not ready"] = $counts.NotReady
+    }
+}
+$summaryRows = @(foreach ($metric in $summaryValues.Keys) {
+        [PSCustomObject]@{ Metric = $metric; Value = [int]$summaryValues[$metric] }
+    })
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
+Write-Output $summaryRows
+
+if ($topBlockingReasons.Count -gt 0) {
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Top blocking reasons" })
+    Write-Output @($topBlockingReasons | Select-Object -Property Reason, Count)
+}
+else {
+    Write-Output "No blocking reasons recorded."
+}
+
+# One table per readiness status, each with the columns that explain it. The pilot group column is only
+# added when the pilot group check is enabled.
+$pilotColumn = @()
+if ($CheckPilotGroupMembership) { $pilotColumn = @("InPilotGroup") }
+$deviceLimitColumns = @("IntuneDeviceCount", "DeviceEnrollmentLimit", "EnrollmentLimitPolicy", "EntraDeviceCount", "EntraDeviceLimit")
+$notReadyColumns = @("DisplayName", "UserPrincipalName", "EnrollmentPlatform", "BlockingReasons", "Warnings", "IntuneLicensed", "RegisteredAuthMethods") + $deviceLimitColumns + $pilotColumn
+$warningColumns = @("DisplayName", "UserPrincipalName", "EnrollmentPlatform", "Warnings", "IntuneLicenses", "RegisteredAuthMethods") + $deviceLimitColumns + $pilotColumn
+$readyColumns = @("DisplayName", "UserPrincipalName", "EnrollmentPlatform", "IntuneLicenses", "RegisteredAuthMethods") + $deviceLimitColumns + $pilotColumn
+
+if ($notReadyUsers.Count -gt 0) {
+    Write-Output "$($notReadyUsers.Count) $($rowNoun) not ready"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Not ready" })
+    Write-Output @($notReadyUsers | Select-Object -Property $notReadyColumns)
+}
+else {
+    Write-Output "No $($rowNoun) not ready."
+}
+
+if ($warningUsers.Count -gt 0) {
+    Write-Output "$($warningUsers.Count) $($rowNoun) ready with warnings"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Ready with warnings" })
+    Write-Output @($warningUsers | Select-Object -Property $warningColumns)
+}
+else {
+    Write-Output "No $($rowNoun) ready with warnings."
+}
+
+if ($readyUsers.Count -gt 0) {
+    Write-Output "$($readyUsers.Count) $($rowNoun) ready"
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Ready" })
+    Write-Output @($readyUsers | Select-Object -Property $readyColumns)
+}
+else {
+    Write-Output "No $($rowNoun) ready."
+}
+#endregion Structured Output (Output Data)
 
 ########################################################
 #region     Cleanup

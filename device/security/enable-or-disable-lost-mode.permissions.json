@@ -1,0 +1,27 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "DeviceManagementManagedDevices.PrivilegedOperations.All",
+                    "Reason": "Runs the enableLostMode and disableLostMode device actions"
+                },
+                {
+                    "Value": "DeviceManagementManagedDevices.Read.All",
+                    "Reason": "Looks up the Intune device by its Entra device ID and reads its operating system, supervision and Lost Mode state; also reads the location result after a locate request"
+                },
+                {
+                    "Value": "DeviceManagementManagedDevices.ReadWrite.All",
+                    "Optional": true,
+                    "Feature": "Locate device",
+                    "Reason": "Runs the locateDevice action when the position is requested after locking"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": []
+}

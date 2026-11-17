@@ -37,6 +37,7 @@
                     "Options": [
                         {
                             "Display": "Grant Send on Behalf",
+                            "ParameterValue": "Grant Send on Behalf",
                             "Customization": {
                                 "Default": {
                                     "Remove": false
@@ -45,6 +46,7 @@
                         },
                         {
                             "Display": "Remove Send on Behalf",
+                            "ParameterValue": "Remove Send on Behalf",
                             "Customization": {
                                 "Default": {
                                     "Remove": true
@@ -64,16 +66,16 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
 #Requires -Modules @{ModuleName = "ExchangeOnlineManagement"; ModuleVersion = "3.9.2" }
 
 param
 (
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User  -DisplayName "User/Mailbox" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User  -DisplayName "User/Mailbox" } )]
     [Parameter(Mandatory = $true)] [string] $UserName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Delegate access to" -Filter "userType eq 'Member'" } )]
     [Parameter(Mandatory = $true)] [string] $delegateTo,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Remove this delegation" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Remove this delegation" } )]
     [bool] $Remove = $false,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

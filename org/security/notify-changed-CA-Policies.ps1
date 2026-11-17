@@ -31,14 +31,14 @@
 
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
 
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Alert sender" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Alert sender" } )]
     [string] $From,
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Alert recipient" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Alert recipient" } )]
     [string] $To,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]

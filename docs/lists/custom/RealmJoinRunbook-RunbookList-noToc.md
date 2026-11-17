@@ -32,6 +32,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Remove Primary User | Remove the primary user from this device |
 | Rename Device | Rename this device in Intune and Autopilot |
 | Set Primary User | Set a new primary user on this device |
+| Sync Device | Trigger an Intune sync on this device |
 | Unenroll Updatable Assets | Unenroll this device from Windows Update for Business |
 | Wipe Device | Wipe this Windows or macOS device and clean up its records |
 | Wipe Managed App Data | Remove company app data from this MAM-managed device |
@@ -42,6 +43,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 |--------------|----------|
 | Check Defender Status | Check this device in Entra ID and Defender for Endpoint |
 | Enable Or Disable Device | Enable or disable this device in Entra ID |
+| Enable Or Disable Lost Mode | Enable or disable Lost Mode on this supervised iOS or iPadOS device |
 | Isolate Or Release Device | Isolate this device from the network or release it |
 | Reset Mobile Device Pin | Reset the passcode of this mobile device |
 | Restrict Or Release Code Execution | Restrict this device to Microsoft-signed code or lift the restriction |
@@ -107,6 +109,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 |--------------|----------|
 | Check Onedrive Status | Check whether a user's OneDrive is active, locked or deleted |
 | List Sharepoint Sitecollection Permission | List the administrators and members of a SharePoint site |
+| Report Shared Channel Members (Scheduled) | List shared channels of all teams with direct and indirect members |
 | Report Sharepoint Tenant Storage (Scheduled) | Monitor SharePoint storage and alert when limits are exceeded |
 | Report Teams Channels (Scheduled) | List private and shared channels of all teams with their owners |
 
@@ -129,7 +132,8 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Rename Devices By Group Tag (Scheduled) | Name Autopilot devices after their group tag and serial number |
 | Report Devices Low Diskspace (Scheduled) | Report devices that are running out of disk space |
 | Report Devices Without Primary User (Scheduled) | Report Intune devices without a primary user |
-| Report Primary User Mismatch (Scheduled) | Compare primary users between Intune and RealmJoin |
+| Report Primary User Mismatch (Scheduled) | Compare primary users and logons between Intune and RealmJoin |
+| Report Realmjoin Agent Contact (Scheduled) | Report devices whose RealmJoin agent stopped reporting |
 | Report Stale Devices (Scheduled) | Report devices that have been inactive for too long |
 | Report Users With More Than 5-Devices (Scheduled) | Report users with more than five registered devices |
 | Report Windows Devices Without Autopilot (Scheduled) | Report Windows devices in Entra ID without an Autopilot record |
@@ -159,7 +163,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Check Assignments Of Users | Show which Intune policies and apps target given users |
 | Check Autopilot Serialnumbers | Check which serial numbers are registered in Autopilot |
 | Check Device Onboarding Exclusion (Scheduled) | Keep unenrolled Autopilot devices in a compliance exclusion group |
-| Enrolled Devices Report (Scheduled) | Report first-time device enrollments of the last weeks |
+| Enrolled Devices Report (Scheduled) | Report recent first-time enrollments of Windows Autopilot devices |
 | Export All Autopilot Devices | List or export all Windows Autopilot devices |
 | Export All Intune Devices | Export all Intune devices with their primary users' usage location |
 | Export Cloudpc Usage (Scheduled) | Write daily Windows 365 usage data to an Azure table |
@@ -184,13 +188,13 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Runbook Name | Synopsis |
 |--------------|----------|
 | Add Distribution List | Create a classic Exchange Online distribution group |
-| Add Equipment Mailbox | Create an equipment mailbox with optional delegate |
+| Add Equipment Mailbox | Create an equipment mailbox with optional booking delegates |
 | Add Mail Contact | Create a mail contact for an external address |
 | Add Or Remove Public Folder | Create or remove an Exchange Online public folder |
 | Add Or Remove Teams Mailcontact | Give a Teams channel a friendly email address or remove it |
 | Add Or Remove Tenant Allow Block List | Add or remove a Tenant Allow/Block List entry |
-| Add Room Mailbox | Create a room mailbox with optional delegate |
-| Add Shared Mailbox | Create a shared mailbox with optional delegate |
+| Add Room Mailbox | Create a room mailbox with optional booking delegates |
+| Add Shared Mailbox | Create a shared mailbox with optional delegates |
 | Hide Mailboxes (Scheduled) | Hide or show all Bookings calendars in the address book |
 | Set Booking Config | Configure the Microsoft Bookings settings of the tenant |
 
@@ -198,6 +202,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 ### Phone
 | Runbook Name | Synopsis |
 |--------------|----------|
+| Add Or Remove Auto Attendant Authorized Users | Add or remove authorized users of a Teams auto attendant |
 | Add Or Remove Call Queue Agents | Add or remove agents of a Teams call queue |
 | Add Or Remove Call Queue Authorized Users | Add or remove authorized users of a Teams call queue |
 | Get Teams Phone Number Assignment | Check whether a phone number is assigned in Microsoft Teams |
@@ -219,6 +224,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | List Vulnerable App Regs | List app registrations possibly affected by CVE-2021-42306 |
 | Monitor Pending EPM Requests (Scheduled) | Alert by email about pending EPM elevation requests |
 | Notify Changed CA Policies | Alert by email about Conditional Access policy changes |
+| Report Access Package Assignments (Scheduled) | List access packages with their assignments, requests and policies |
 | Report EPM Elevation Requests (Scheduled) | Report EPM elevation requests by status and age |
 | Sync MFA Secure Users To Group (Scheduled) | Keep a group filled with users who registered a secure MFA method |
 
@@ -229,6 +235,12 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Runbook Name | Synopsis |
 |--------------|----------|
 | User Signout | Sign this user out of their AVD sessions |
+
+<a name='user-collab'></a>
+### Collab
+| Runbook Name | Synopsis |
+|--------------|----------|
+| Pre Provision Onedrive | Request the OneDrive of this user before the first sign-in |
 
 <a name='user-general'></a>
 ### General
@@ -263,7 +275,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Manage Archive Mailbox | Enable, disable or check the archive mailbox of this user |
 | Remove Mailbox | Permanently delete this shared mailbox, room or Bookings calendar |
 | Set Out Of Office | Set or remove automatic replies for this user |
-| Set Room Mailbox Configuration | Configure the booking rules of this room mailbox |
+| Set Room Mailbox Configuration | Configure the booking rules and booking delegates of this room mailbox |
 
 <a name='user-phone'></a>
 ### Phone

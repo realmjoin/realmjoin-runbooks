@@ -56,6 +56,9 @@
 	.PARAMETER StorageAccountName
 	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
+	.PARAMETER SubscriptionId
+	Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty.
+
 	.PARAMETER LinkExpiryDays
 	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
@@ -138,6 +141,9 @@
 			"StorageAccountName": {
 				"Hide": true
 			},
+			"SubscriptionId": {
+				"Hide": true
+			},
 			"LinkExpiryDays": {
 				"Hide": true
 			},
@@ -152,14 +158,16 @@
 				"Select": {
 					"Options": [
 						{
-							"Display": "No report",
+							"Display": "Output Data only",
+							"ParameterValue": "Output Data only",
 							"Customization": {
 								"Default": { "SendEmailReport": false, "CreateDownloadLink": false },
 								"Hide": [ "EmailTo", "ReportFileFormat" ]
 							}
 						},
 						{
-							"Display": "Email report",
+							"Display": "Also email the report",
+							"ParameterValue": "Also email the report",
 							"Customization": {
 								"Default": { "SendEmailReport": true, "CreateDownloadLink": false },
 								"Show": [ "EmailTo", "ReportFileFormat" ],
@@ -167,7 +175,8 @@
 							}
 						},
 						{
-							"Display": "Report download link",
+							"Display": "Also create a download link",
+							"ParameterValue": "Also create a download link",
 							"Customization": {
 								"Default": { "SendEmailReport": false, "CreateDownloadLink": true },
 								"Show": [ "ReportFileFormat" ],
@@ -175,7 +184,8 @@
 							}
 						},
 						{
-							"Display": "Email report & download link",
+							"Display": "Also email & download link",
+							"ParameterValue": "Also email & download link",
 							"Customization": {
 								"Default": { "SendEmailReport": true, "CreateDownloadLink": true },
 								"Show": [ "EmailTo", "ReportFileFormat" ],
@@ -184,14 +194,14 @@
 						}
 					]
 				},
-				"Default": "No report"
+				"Default": "Output Data only"
 			}
 		]
 	}
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
@@ -200,17 +210,17 @@ param(
     [bool]$IncludeMembers = $false,
     [string]$TeamNamePrefix = "",
     # Standard report-delivery parameter set (report-files mode)
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" } )]
     [string]$EmailFrom,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" } )]
     [string]$BrandingHeaderImageUrl,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" } )]
     [string]$BrandingFooterImageUrl,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" } )]
     [string]$BrandingFooterLink,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" } )]
     [string]$BrandingAccentColor,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" } )]
     [string]$BrandingTextColor,
     [bool]$SendEmailReport = $false,
     [string]$EmailTo,
@@ -218,11 +228,13 @@ param(
     [string]$ReportFileFormat = 'CSV & XLSX',
     [bool]$CreateDownloadLink = $false,
     [string]$ContainerName = "report-teams-channels",
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" } )]
     [string]$ResourceGroupName,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" } )]
     [string]$StorageAccountName,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.SubscriptionId" } )]
+    [string]$SubscriptionId,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" } )]
     [ValidateRange(1, 3650)]
     [int]$LinkExpiryDays = 6,
     # CallerName is tracked purely for auditing purposes
@@ -236,7 +248,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.0"
+$Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
@@ -257,6 +269,7 @@ Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
 Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
 Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
 Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+Write-RjRbLog -Message "SubscriptionId: $SubscriptionId" -Verbose
 Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
 
 #endregion RJ Log Part
@@ -718,7 +731,7 @@ if (($SendEmailReport -or $CreateDownloadLink) -and $results.Count -gt 0) {
     if ($ReportFileFormat -ne 'CSV only') {
         $xlsxFile = Join-Path $tempDir "$fileNameBase.xlsx"
         $worksheets = [ordered]@{ 'Channels' = $results }
-        if ($noOwnerRows.Count -gt 0) { $worksheets['Without owner'] = $noOwnerRows }
+        if ($noOwnerRows.Count -gt 0) { $worksheets['Channels without owner'] = $noOwnerRows }
         if ($unreadableRows.Count -gt 0) { $worksheets['Teams not readable'] = $unreadableRows }
         $workbookCoverSheet = [ordered]@{
             Title                            = 'Teams Channels'
@@ -763,11 +776,12 @@ if ($CreateDownloadLink) {
                 -ContainerName $ContainerName `
                 -ResourceGroupName $ResourceGroupName `
                 -StorageAccountName $StorageAccountName `
+                -SubscriptionId $SubscriptionId `
                 -LinkExpiryDays $LinkExpiryDays `
                 -AddBlobNamePrefix $true
         }
         catch {
-            Write-Error "Failed to upload the report file(s) to storage account '$StorageAccountName': $($_.Exception.Message). The managed identity needs the 'Storage Account Contributor' role on the storage account." -ErrorAction Continue
+            Write-Error "Failed to upload the report file(s) to storage account '$StorageAccountName': $($_.Exception.Message). The managed identity needs the 'Reader and Data Access' role on the storage account." -ErrorAction Continue
             throw
         }
 
@@ -909,7 +923,6 @@ else {
 
 # Emitted last so the tables are not interleaved with the progress output. Every table has its own
 # RjTableTitle marker and its own column set; a marker is only written when rows follow it.
-$maxTableRows = 250
 Write-Output ""
 
 $summaryValues = [ordered]@{
@@ -932,9 +945,9 @@ $tableColumns += "Note"
 
 if ($IncludePrivateChannels) {
     if ($privateRows.Count -gt 0) {
-        Write-Output "$($privateRows.Count) private channel(s)$(if ($privateRows.Count -gt $maxTableRows) { ", showing the first $maxTableRows" }):"
+        Write-Output "$($privateRows.Count) private channel(s):"
         Write-Output ([PSCustomObject]@{ RjTableTitle = "Private channels" })
-        Write-Output @($privateRows | Select-Object -First $maxTableRows -Property $tableColumns)
+        Write-Output @($privateRows | Select-Object -Property $tableColumns)
     }
     else {
         Write-Output "No private channels."
@@ -943,9 +956,9 @@ if ($IncludePrivateChannels) {
 
 if ($IncludeSharedChannels) {
     if ($sharedRows.Count -gt 0) {
-        Write-Output "$($sharedRows.Count) shared channel(s)$(if ($sharedRows.Count -gt $maxTableRows) { ", showing the first $maxTableRows" }):"
+        Write-Output "$($sharedRows.Count) shared channel(s):"
         Write-Output ([PSCustomObject]@{ RjTableTitle = "Shared channels" })
-        Write-Output @($sharedRows | Select-Object -First $maxTableRows -Property $tableColumns)
+        Write-Output @($sharedRows | Select-Object -Property $tableColumns)
     }
     else {
         Write-Output "No shared channels."
@@ -955,7 +968,7 @@ if ($IncludeSharedChannels) {
 if ($noOwnerRows.Count -gt 0) {
     Write-Output "$($noOwnerRows.Count) channel(s) without owner:"
     Write-Output ([PSCustomObject]@{ RjTableTitle = "Channels without owner" })
-    Write-Output @($noOwnerRows | Select-Object -First $maxTableRows -Property Team, Channel, ChannelType, Archived, MemberCount, ExternalCount)
+    Write-Output @($noOwnerRows | Select-Object -Property Team, Channel, ChannelType, Archived, MemberCount, ExternalCount)
 }
 else {
     Write-Output "No channels without owner."

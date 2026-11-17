@@ -14,7 +14,7 @@ Org \ Security \ Backup Conditional Access Policies
   - Policy.Read.All
 
 ### Permission notes
-Azure IaaS: Access to the given Azure Storage Account / Resource Group
+Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys
 
 
 ## Parameters
@@ -28,7 +28,7 @@ Storage container the archive is uploaded to. Taken from the tenant setting CaPo
 | Type | String |
 
 ### ResourceGroupName
-Resource group of the storage account. Taken from the tenant setting CaPoliciesExport.ResourceGroup.
+Resource group of the storage account for the backup. Taken from the tenant setting CaPoliciesExport.ResourceGroup; when it is not set, the Automation variable SettingsExports is read, then RJReport.StorageAccount.ResourceGroup.
 
 | Property | Value |
 |----------|-------|
@@ -37,7 +37,16 @@ Resource group of the storage account. Taken from the tenant setting CaPoliciesE
 | Type | String |
 
 ### StorageAccountName
-Storage account for the backup. Taken from the tenant setting CaPoliciesExport.StorageAccount.Name.
+Storage account for the backup. Taken from the tenant setting CaPoliciesExport.StorageAccount.Name; when it is not set, the Automation variable SettingsExports is read, then RJReport.StorageAccount.StorageAccountName.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### SubscriptionId
+Subscription ID of the storage account given in ResourceGroupName and StorageAccountName. Not taken from a tenant setting; the subscription the managed identity signs in to is used when empty.
 
 | Property | Value |
 |----------|-------|
@@ -46,7 +55,7 @@ Storage account for the backup. Taken from the tenant setting CaPoliciesExport.S
 | Type | String |
 
 ### StorageAccountLocation
-Azure region used when the storage account has to be created. Taken from the tenant setting CaPoliciesExport.StorageAccount.Location.
+No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run.
 
 | Property | Value |
 |----------|-------|
@@ -55,13 +64,49 @@ Azure region used when the storage account has to be created. Taken from the ten
 | Type | String |
 
 ### StorageAccountSku
-Performance tier used when the storage account has to be created. Taken from the tenant setting CaPoliciesExport.StorageAccount.Sku.
+No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run.
 
 | Property | Value |
 |----------|-------|
 | Default Value |  |
 | Required | false |
 | Type | String |
+
+### RJReportResourceGroupName
+Resource group of the storage account for the backup. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when neither CaPoliciesExport.ResourceGroup nor the Automation variable SettingsExports sets one.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### RJReportStorageAccountName
+Storage account for the backup. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when neither CaPoliciesExport.StorageAccount.Name nor the Automation variable SettingsExports sets one.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### RJReportSubscriptionId
+Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### LinkExpiryDays
+Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
+
+| Property | Value |
+|----------|-------|
+| Default Value | 6 |
+| Required | false |
+| Type | Int32 |
 
 
 [Back to Table of Content](../../../README.md)

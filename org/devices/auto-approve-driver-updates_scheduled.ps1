@@ -44,6 +44,9 @@
 	.PARAMETER StorageAccountName
 	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
+	.PARAMETER SubscriptionId
+	Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty.
+
 	.PARAMETER LinkExpiryDays
 	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
@@ -137,6 +140,9 @@
 			"StorageAccountName": {
 				"Hide": true
 			},
+			"SubscriptionId": {
+				"Hide": true
+			},
 			"LinkExpiryDays": {
 				"Hide": true
 			},
@@ -165,8 +171,8 @@
 	}
 #>
 
-#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.9" }
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.39.0" }
+#Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 #Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
 
 param(
@@ -192,24 +198,26 @@ param(
     [bool]$CreateDownloadLink = $false,
     [Parameter(Mandatory = $false)]
     [string]$ContainerName = "auto-approve-driver-updates",
-    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" -Value $_ })]
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" })]
     [string]$ResourceGroupName,
-    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" -Value $_ })]
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" })]
     [string]$StorageAccountName,
-    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" -Value $_ })]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.SubscriptionId" } )]
+    [string]$SubscriptionId,
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" })]
     [ValidateRange(1, 3650)]
     [int]$LinkExpiryDays = 6,
-    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" -Value $_ })]
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.EmailSender" })]
     [string]$EmailFrom,
-    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" -Value $_ })]
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.Branding.HeaderImageUrl" })]
     [string]$BrandingHeaderImageUrl,
-    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" -Value $_ })]
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterImageUrl" })]
     [string]$BrandingFooterImageUrl,
-    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" -Value $_ })]
+    [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.Branding.FooterLink" })]
     [string]$BrandingFooterLink,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.AccentColor" } )]
     [string]$BrandingAccentColor,
-    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" -Value $_ } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.Branding.TextColor" } )]
     [string]$BrandingTextColor,
     [Parameter(Mandatory = $false)]
     [string]$EmailTo,
@@ -227,7 +235,7 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.3.0"
+$Version = "1.4.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "PolicyNames: $PolicyNames" -Verbose
@@ -245,6 +253,7 @@ if ($CreateDownloadLink) {
     Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
     Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
     Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+    Write-RjRbLog -Message "SubscriptionId: $SubscriptionId" -Verbose
     Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
 }
 Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
@@ -311,7 +320,7 @@ catch {
     throw
 }
 
-# Connect to RealmJoin RunbookHelper (required for Send-RjReportEmail if EmailTo is provided)
+# Connect to RealmJoin RunbookHelper (required for Send-RjRbReportEmail if EmailTo is provided)
 if ($EmailTo) {
     Write-RjRbLog -Message "Email notification requested - connecting to RJ RunbookHelper Graph..." -Verbose
     try {
@@ -666,6 +675,7 @@ if ($CreateDownloadLink) {
             -ContainerName $ContainerName `
             -ResourceGroupName $ResourceGroupName `
             -StorageAccountName $StorageAccountName `
+            -SubscriptionId $SubscriptionId `
             -LinkExpiryDays $LinkExpiryDays `
             -AddBlobNamePrefix $true
 
@@ -820,14 +830,14 @@ $(if ($approvalSummary.FailedApprovals -gt 0) { "- **Failed Approvals:** $($appr
                 ReportVersion     = $Version
             }
             if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxPath) {
-                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
+                Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
             }
             else {
-                Send-RjReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
+                Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
             }
         }
         else {
-            Send-RjReportEmail `
+            Send-RjRbReportEmail `
                 -EmailFrom $EmailFrom `
                 -EmailTo $EmailTo `
                 -Subject $emailSubject `
