@@ -1060,6 +1060,7 @@ Approve pending driver updates in Intune driver update policies
 |-----------|----------|------|-------------|
 | PolicyNames |  | String | Only these driver update policies, separated by commas. Leave empty for all policies. |
 | PolicyIds |  | String | Only these policy IDs, separated by commas. Leave empty for all policies. |
+| DriverCategory |  | String | Which driver list of the policy to approve from. "Recommended drivers" are the updates Windows Update offers by default, "Other drivers" are firmware, optional and superseded updates, "All drivers" takes every driver. |
 | DriverDisplayNamePattern |  | String | Only drivers whose name matches this pattern; wildcards such as * are allowed. |
 | DriverClass |  | String | Only these driver classes, separated by commas, for example Bluetooth,Networking,Firmware. |
 | DriverManufacturer |  | String | Only drivers from this manufacturer. |

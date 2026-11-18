@@ -7552,7 +7552,7 @@
     "PrimaryFolder": "Org",
     "SubFolder": "Devices",
     "Synopsis": "Approve pending driver updates in Intune driver update policies",
-    "Description": "Approves driver updates that are waiting for review in Intune driver update policies, so drivers roll out without manual approval. The scope can be narrowed to certain policies, driver names, classes, manufacturers or a maximum driver age, and a dry run shows what would be approved. The report of all approvals can be sent by email or provided as a download link.",
+    "Description": "Approves driver updates that are waiting for review in Intune driver update policies, so drivers roll out without manual approval. The scope can be narrowed to recommended or other drivers, certain policies, driver names, classes, manufacturers or a maximum driver age, and a dry run shows what would be approved. The report of all approvals can be sent by email or provided as a download link.",
     "Notes": null,
     "Parameters": [
       {
@@ -7566,7 +7566,7 @@
         "name": "BrandingAccentColor",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "19",
+        "position": "20",
         "required": "false",
         "type": {
           "name": "String"
@@ -7583,7 +7583,7 @@
         "name": "BrandingFooterImageUrl",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "17",
+        "position": "18",
         "required": "false",
         "type": {
           "name": "String"
@@ -7600,7 +7600,7 @@
         "name": "BrandingFooterLink",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "18",
+        "position": "19",
         "required": "false",
         "type": {
           "name": "String"
@@ -7617,7 +7617,7 @@
         "name": "BrandingHeaderImageUrl",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "16",
+        "position": "17",
         "required": "false",
         "type": {
           "name": "String"
@@ -7634,7 +7634,7 @@
         "name": "BrandingTextColor",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "20",
+        "position": "21",
         "required": "false",
         "type": {
           "name": "String"
@@ -7651,7 +7651,7 @@
         "name": "CallerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "22",
+        "position": "23",
         "required": "true",
         "type": {
           "name": "String"
@@ -7668,7 +7668,7 @@
         "name": "ContainerName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "10",
+        "position": "11",
         "required": "false",
         "type": {
           "name": "String"
@@ -7685,10 +7685,27 @@
         "name": "CreateDownloadLink",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "9",
+        "position": "10",
         "required": "false",
         "type": {
           "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "Recommended",
+        "description": [
+          {
+            "Text": "Which driver list of the policy to approve from. \"Recommended drivers\" are the updates Windows Update offers by default, \"Other drivers\" are firmware, optional and superseded updates, \"All drivers\" takes every driver."
+          }
+        ],
+        "globbing": "false",
+        "name": "DriverCategory",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
         }
       },
       {
@@ -7702,7 +7719,7 @@
         "name": "DriverClass",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "4",
+        "position": "5",
         "required": "false",
         "type": {
           "name": "String"
@@ -7719,7 +7736,7 @@
         "name": "DriverDisplayNamePattern",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "3",
+        "position": "4",
         "required": "false",
         "type": {
           "name": "String"
@@ -7736,7 +7753,7 @@
         "name": "DriverManufacturer",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "5",
+        "position": "6",
         "required": "false",
         "type": {
           "name": "String"
@@ -7753,7 +7770,7 @@
         "name": "EmailFrom",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "15",
+        "position": "16",
         "required": "false",
         "type": {
           "name": "String"
@@ -7770,7 +7787,7 @@
         "name": "EmailTo",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "21",
+        "position": "22",
         "required": "false",
         "type": {
           "name": "String"
@@ -7787,7 +7804,7 @@
         "name": "LinkExpiryDays",
         "parameterValue": "Int32",
         "pipelineInput": "false",
-        "position": "14",
+        "position": "15",
         "required": "false",
         "type": {
           "name": "Int32"
@@ -7804,7 +7821,7 @@
         "name": "MaximumDriverAge",
         "parameterValue": "Int32",
         "pipelineInput": "false",
-        "position": "6",
+        "position": "7",
         "required": "false",
         "type": {
           "name": "Int32"
@@ -7821,7 +7838,7 @@
         "name": "OnlyNeedsReview",
         "parameterValue": "Boolean",
         "pipelineInput": "false",
-        "position": "7",
+        "position": "8",
         "required": "false",
         "type": {
           "name": "Boolean"
@@ -7872,7 +7889,7 @@
         "name": "ReportFileFormat",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "8",
+        "position": "9",
         "required": "false",
         "type": {
           "name": "String"
@@ -7889,7 +7906,7 @@
         "name": "ResourceGroupName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "11",
+        "position": "12",
         "required": "false",
         "type": {
           "name": "String"
@@ -7906,7 +7923,7 @@
         "name": "StorageAccountName",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "12",
+        "position": "13",
         "required": "false",
         "type": {
           "name": "String"
@@ -7923,7 +7940,7 @@
         "name": "SubscriptionId",
         "parameterValue": "String",
         "pipelineInput": "false",
-        "position": "13",
+        "position": "14",
         "required": "false",
         "type": {
           "name": "String"
