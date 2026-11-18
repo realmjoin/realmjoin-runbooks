@@ -1,5 +1,10 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-11-18
+
+- Update **Disable Auto Approve Driver Updates** Runbook in Org/Devices
+  - Add Parameter Category to differentiate between Recommended or Other Drivers
+
 ## 2026-11-12
 
 - Add **Report Access Package Assignments (Scheduled)** Runbook in Org/Security (v1.0.0)
