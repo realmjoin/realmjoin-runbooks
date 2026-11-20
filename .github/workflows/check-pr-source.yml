@@ -1,0 +1,66 @@
+name: PR source check
+
+# Required status check for the branch rulesets on master and production:
+# - production only accepts pull requests from master
+# - master never accepts pull requests from feature-tpi, nor any pull request that touches
+#   Teams Phone Inventory (TPI) runbooks, which are maintained on feature-tpi only
+
+# pull_request_target runs this file from the target branch, so a pull request cannot weaken the
+# check by editing it. Safe here because no code from the pull request is checked out or executed;
+# only the list of changed files is read through the API.
+on:
+  pull_request_target:
+    branches: [ master, production ]
+    types: [ opened, synchronize, reopened, edited ]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  check-pr-source:
+    name: Check PR source
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔍 Check source branch and TPI files
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          echo "Pull request #${PR_NUMBER}: ${HEAD_REPO}:${HEAD_REF} -> ${BASE_REF}"
+
+          if [ "$BASE_REF" = "production" ]; then
+            if [ "$HEAD_REPO" != "$GITHUB_REPOSITORY" ] || [ "$HEAD_REF" != "master" ]; then
+              echo "::error::Pull requests into production must come from master of ${GITHUB_REPOSITORY}."
+              exit 1
+            fi
+            echo "✅ Source branch master is allowed for production."
+            exit 0
+          fi
+
+          if [ "$HEAD_REPO" = "$GITHUB_REPOSITORY" ] && [ "$HEAD_REF" = "feature-tpi" ]; then
+            echo "::error::feature-tpi must not be merged into master. TPI runbooks are maintained on feature-tpi only."
+            exit 1
+          fi
+
+          # TPI runbooks that exist on feature-tpi only; matched by exact base name, because
+          # org/phone/ and user/phone/ also hold regular runbooks with similar names
+          tpi_pattern='^(org/TeamsPhoneInventory/|org/phone/get-next-free-number\.|user/phone/(disable-teams-phone-user|get-teams-user|set-teams-phone-mobile-user|set-teams-phone-user|set-teams-phone-user-custom)\.)'
+
+          changed_files=$(gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" --jq '.[].filename')
+          tpi_files=$(printf '%s\n' "$changed_files" | grep -E "$tpi_pattern" || true)
+
+          if [ -n "$tpi_files" ]; then
+            echo "::error::This pull request touches TPI runbooks, which must not be merged into master:"
+            printf '%s\n' "$tpi_files"
+            exit 1
+          fi
+
+          echo "✅ No TPI runbooks touched; source branch is allowed for master."

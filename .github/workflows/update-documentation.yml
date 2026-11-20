@@ -13,7 +13,12 @@ on:
       - '.permissions/**'
 
 permissions:
-  contents: write
+  contents: read  # checkout only; the push uses the GitHub App token, not GITHUB_TOKEN
+
+# Never run two updates at once; queue instead of cancelling so an in-flight push is not interrupted
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   ROOT_PATH: ${{ github.workspace }}
@@ -28,7 +33,9 @@ jobs:
   update-docs:
     name: 🔄 Update runbook documentation
     runs-on: ubuntu-latest
-    
+    # Dedicated environment scoping the GitHub App credentials to master
+    environment: runbook-docs
+
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -119,12 +126,33 @@ jobs:
               -outputFolder $env:OUTPUT_PATH_JSON `
               -OutputFileNamePrefix "AllRealmJoinRunbooks_collected_"
 
+      - name: 🔑 Create GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.APP_RJ_RUNBOOK_DOCS_ID }}
+          private-key: ${{ secrets.APP_RJ_RUNBOOK_DOCS_KEY }}
+          repositories: realmjoin-runbooks
+          permission-contents: write
+
       - name: 💾 Commit and push changes
         env:
-          PUSH_TOKEN: ${{ github.token }}
+          PUSH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action Bot"
+          # Commit as the GitHub App bot, which is allowed to bypass the branch rules on master
+          bot_id=$(gh api "/users/${APP_SLUG}[bot]" --jq .id)
+          git config --local user.email "${bot_id}+${APP_SLUG}[bot]@users.noreply.github.com"
+          git config --local user.name "${APP_SLUG}[bot]"
           git add docs/
           git add README.md
-          git diff --staged --quiet || (git commit -m "Update documentation" && git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${GITHUB_REF}")
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Update documentation"
+          remote="https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          # realmjoin/realmjoin-docs may have pushed docs/exports/ in the meantime
+          git pull --rebase "$remote" "${GITHUB_REF_NAME}"
+          git push "$remote" "HEAD:${GITHUB_REF}"
