@@ -17,7 +17,7 @@ Workflow file: `.github/workflows/update-documentation.yml`
 ## What it does (high level)
 
 1. **Cleans generated docs output**
-   - Removes everything under `docs/` **except** `docs/general/` and `docs/README.md`.
+   - Removes everything under `docs/` **except** `docs/general/`, `docs/exports/` and `docs/README.md`.
 2. **Generates detailed runbook docs** (separate folder per runbook)
    - Uses `.github/scripts/Get-RunbookDescriptions.ps1` (includes permissions, parameters, notes, links, etc.).
 3. **Generates a single-file overview**
@@ -58,3 +58,4 @@ Note: The workflow runs on **Ubuntu** (`ubuntu-latest`). If you run locally on m
 
 - The workflow has `contents: write` permission because it commits documentation changes.
 - `docs/general/` is treated as “handwritten” documentation and is kept during the cleanup step.
+- `docs/exports/` is written by the runbook docs workflow in `realmjoin/realmjoin-docs` (e.g. `runbook-overview-plain.md` for external sync workflows) and is kept during the cleanup step.

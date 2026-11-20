@@ -38,11 +38,11 @@ jobs:
       - name: 📁 Create output directories
         shell: pwsh
         run: |
-          Write-Host "🔍 Cleaning docs directory (except /docs/general/ and README.md)..."
+          Write-Host "🔍 Cleaning docs directory (except /docs/general/, /docs/exports/ and README.md)..."
           if (Test-Path $env:OUTPUT_PATH_DOCS) {
-            # Remove all items except 'general' folder and README.md
+            # Remove all items except 'general' folder, 'exports' folder (written by realmjoin/realmjoin-docs) and README.md
             Get-ChildItem -Path $env:OUTPUT_PATH_DOCS | Where-Object {
-              $_.Name -ne 'general' -and $_.Name -ne 'README.md'
+              $_.Name -ne 'general' -and $_.Name -ne 'exports' -and $_.Name -ne 'README.md'
             } | Remove-Item -Recurse -Force
           }
           
