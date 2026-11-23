@@ -514,7 +514,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Assign OWA Mailbox Policy | Assign an Outlook on the web policy to this user's mailbox |
 | Convert To Shared Mailbox | Convert this user's mailbox to a shared mailbox or back |
 | Delegate Full Access | Grant or remove full access to this user's mailbox |
-| Delegate Send As | Grant or remove Send As permission on this user's mailbox |
+| Delegate Send As | Grant or revoke Exchange SendAs permission on a mailbox for one or more delegates |
 | Delegate Send On Behalf | Grant or remove Send on Behalf permission on this user's mailbox |
 | Hide Or Unhide In Addressbook | Hide this user's mailbox in the address book or show it |
 | List Mailbox Permissions | List who has access to this user's mailbox |

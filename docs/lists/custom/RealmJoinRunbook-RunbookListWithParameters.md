@@ -1445,10 +1445,10 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | Remove |  | Boolean | Grant gives the selected people full access, Remove takes it away. |
 |  |  |  |  |  |  | AutoMapping |  | Boolean | Makes the mailbox appear automatically in the delegates' Outlook. Has no effect when access is removed. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-|  |  | Delegate Send As | Grant or remove Send As permission on this user's mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange Administrator<br> | UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
-|  |  |  |  |  |  | delegateTo | ✓ | String | Person who gets or loses the Send As permission. |
-|  |  |  |  |  |  | Remove |  | Boolean | Whether the permission is removed instead of granted. Set by the "Action" choice. |
-|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+|  |  | Delegate Send As | Grant or revoke Exchange SendAs permission on a mailbox for one or more delegates | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange Administrator<br> | UserName | ✓ | String | User principal name of the mailbox owner. |
+|  |  |  |  |  |  | delegateTo | ✓ | String Array | One or more users to whom you want to grant or revoke SendAs permission. You can select multiple delegates to apply the same action to all of them simultaneously. |
+|  |  |  |  |  |  | Remove |  | Boolean | If set to true, the script will revoke SendAs permission from the selected delegates. If false, it will grant SendAs permission. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user or system that started the runbook. Tracked for auditing purposes. |
 |  |  | Delegate Send On Behalf | Grant or remove Send on Behalf permission on this user's mailbox | - **Type**: Office 365 Exchange Online<br>&emsp;- Exchange.ManageAsApp<br> | - Exchange Administrator<br> | UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
 |  |  |  |  |  |  | delegateTo | ✓ | String | Person who gets or loses the Send on Behalf permission. |
 |  |  |  |  |  |  | Remove |  | Boolean | Whether the permission is removed instead of granted. Set by the "Action" choice. |
