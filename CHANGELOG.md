@@ -1,9 +1,10 @@
 # RealmJoin Runbooks Changelog
 
 ## 2026-11-23
-- Update **
- - 
-
+- Update **Delegate Send As Runbook** in User/Mail
+  - Add support for granting or removing Exchange Online Send As for multiple delegates in a single run via a multi user picker. The picker returns user principal names, so selected delegates are readable in the runbook log from the first line on.
+  - Skip delegates without a mailbox instead of aborting the run, and treat already-granted or already-absent delegations as no-ops.
+  - Print a per-delegate summary of changed, unchanged, failed, and skipped delegations; the run reports a failure if any delegate could not be processed, so a partial success is visible instead of being reported as a clean run.
 
 ## 2026-11-18
 
