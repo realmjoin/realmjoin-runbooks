@@ -7,7 +7,7 @@
             "AppRoleAssignments": [
                 {
                     "Value": "Exchange.ManageAsApp",
-                    "Reason": "Grants, revokes and lists SendAs permissions in the app-only Exchange Online session"
+                    "Reason": "Allows the Automation Account's managed identity to authenticate to Exchange Online as an app so the runbook can read and modify SendAs recipient permissions on the target mailbox."
                 }
             ]
         }
@@ -16,7 +16,7 @@
         {
             "Name": "Exchange Administrator",
             "TemplateId": "29232cdf-9323-42fd-ade2-1d097af3e4de",
-            "Reason": "Required for the app-only Exchange Online session managing SendAs permissions"
+            "Reason": "Required to run Get-/Add-/Remove-RecipientPermission and resolve mailboxes via Get-EXOMailbox when granting or revoking SendAs delegation."
         }
     ],
     "ManualPermissions": []
