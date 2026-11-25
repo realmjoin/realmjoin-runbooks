@@ -9,7 +9,7 @@ name: PR source check
 # check by editing it. Safe here because no code from the pull request is checked out or executed;
 # only the list of changed files is read through the API.
 on:
-  pull_request_target:
+  pull_request_target:  # zizmor: ignore[dangerous-triggers] - no PR code is checked out or executed; only the changed file list is read via the API
     branches: [ master, production ]
     types: [ opened, synchronize, reopened, edited ]
 
