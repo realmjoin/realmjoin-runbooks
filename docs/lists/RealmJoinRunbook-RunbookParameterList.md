@@ -80,6 +80,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Add Device Via Corporate Identifier](#organization-devices-add-device-via-corporate-identifier)
     - [Auto Approve Driver Updates (Scheduled)](#organization-devices-auto-approve-driver-updates-scheduled)
     - [Cleanup Autopilot Devices (Scheduled)](#organization-devices-cleanup-autopilot-devices-scheduled)
+    - [Cleanup Duplicate Intune Devices (Scheduled)](#organization-devices-cleanup-duplicate-intune-devices-scheduled)
     - [Create Endpoint Analytics Baseline](#organization-devices-create-endpoint-analytics-baseline)
     - [Dedup Device Names (Scheduled)](#organization-devices-dedup-device-names-scheduled)
     - [Delete Stale Devices (Scheduled)](#organization-devices-delete-stale-devices-scheduled)
@@ -1106,6 +1107,40 @@ Remove orphaned and never-enrolled Autopilot registrations
 | BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
 | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
+| ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
+| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+| ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
+| ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
+| StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+
+<a name='organization-devices-cleanup-duplicate-intune-devices-scheduled'></a>
+
+### Cleanup Duplicate Intune Devices (Scheduled)
+Remove duplicate Intune devices, keeping the most recently synced
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| WhatIfMode |  | Boolean | List duplicate devices without deleting them. Disable to actually delete the older duplicate records. |
+| IncludeWindows |  | Boolean | Include Windows devices in the duplicate detection. |
+| IncludeMacOS |  | Boolean | Include macOS devices in the duplicate detection. |
+| IncludeIOS |  | Boolean | Include iOS and iPadOS devices in the duplicate detection. |
+| IncludeAndroid |  | Boolean | Include Android devices in the duplicate detection. |
+| DeviceNamePrefix |  | String | Check only devices whose name starts with this prefix. Leave empty to check all device names. |
+| IncludeSerialNumbers |  | String | Check only devices with one of these serial numbers (comma-separated). Leave empty to check all serial numbers. |
+| ExcludeSerialNumbers |  | String | Skip devices with any of these serial numbers (comma-separated). Leave empty to exclude none. |
+| MinimumDaysSinceLastSync |  | Int32 | An older duplicate record is deleted only when its last sync is at least this many days ago. For a record that never synced, its enrollment date counts instead. The kept record is not subject to this limit. |
+| MaxDevicesToRemove |  | Int32 | Whole-run deletion cap. When more than this many devices would be deleted in a single run, nothing is removed and the affected records are listed as "Would not be deleted (limit exceeded)". |
+| EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
+| BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
+| BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
+| BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
+| BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
+| BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address when duplicates are or would be removed. |
+| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
 | CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |

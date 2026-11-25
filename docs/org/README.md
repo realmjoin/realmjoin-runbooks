@@ -24,6 +24,7 @@
   - [Add Device Via Corporate Identifier](devices/add-device-via-corporate-identifier.md)
   - [Auto Approve Driver Updates (Scheduled)](devices/auto-approve-driver-updates_scheduled.md)
   - [Cleanup Autopilot Devices (Scheduled)](devices/cleanup-autopilot-devices_scheduled.md)
+  - [Cleanup Duplicate Intune Devices (Scheduled)](devices/cleanup-duplicate-intune-devices_scheduled.md)
   - [Create Endpoint Analytics Baseline](devices/create-endpoint-analytics-baseline.md)
   - [Dedup Device Names (Scheduled)](devices/dedup-device-names_scheduled.md)
   - [Delete Stale Devices (Scheduled)](devices/delete-stale-devices_scheduled.md)

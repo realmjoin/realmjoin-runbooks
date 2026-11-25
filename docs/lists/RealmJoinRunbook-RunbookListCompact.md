@@ -59,6 +59,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Add Device Via Corporate Identifier | Register a device in Intune by its corporate identifier |
 |  |  | Auto Approve Driver Updates (Scheduled) | Approve pending driver updates in Intune driver update policies |
 |  |  | Cleanup Autopilot Devices (Scheduled) | Remove orphaned and never-enrolled Autopilot registrations |
+|  |  | Cleanup Duplicate Intune Devices (Scheduled) | Remove duplicate Intune devices, keeping the most recently synced |
 |  |  | Create Endpoint Analytics Baseline | Create an Endpoint Analytics baseline with a naming schema |
 |  |  | Dedup Device Names (Scheduled) | Rename Intune devices that share a display name |
 |  |  | Delete Stale Devices (Scheduled) | Delete Intune devices that have been inactive for too long |

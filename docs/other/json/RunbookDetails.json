@@ -8425,6 +8425,481 @@
     }
   },
   {
+    "RunbookDisplayName": "Cleanup Duplicate Intune Devices_Scheduled",
+    "RunbookDisplayPath": "Org \\ Devices \\ Cleanup Duplicate Intune Devices_Scheduled",
+    "RelativeRunbookPath": "org/devices/cleanup-duplicate-intune-devices_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/devices",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Devices",
+    "Synopsis": "Remove duplicate Intune devices, keeping the most recently synced",
+    "Description": "Finds Intune devices that share a serial number and deletes the older records, keeping the one that synced most recently. Only the Intune record is deleted; the Entra ID device and the Autopilot registration stay. A deleted record cannot be restored. A preview mode lists the records without deleting anything. The report can be sent by email or provided as a download link.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingAccentColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "15",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "13",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterLink",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "14",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingHeaderImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "12",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingTextColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "16",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user who started the runbook. Set by the portal and recorded for auditing."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "26",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "cleanup-duplicate-intune-devices",
+        "description": [
+          {
+            "Text": "Storage container the report files are uploaded to. Set per runbook."
+          }
+        ],
+        "globbing": "false",
+        "name": "ContainerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "21",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Also upload the report and return a download link that expires after a few days."
+          }
+        ],
+        "globbing": "false",
+        "name": "CreateDownloadLink",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "20",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Check only devices whose name starts with this prefix. Leave empty to check all device names."
+          }
+        ],
+        "globbing": "false",
+        "name": "DeviceNamePrefix",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sender address of the report email. Taken from the tenant setting RJReport.EmailSender."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "11",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Send the report to these addresses. Separate several with commas; each recipient gets a separate email."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "18",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Skip devices with any of these serial numbers (comma-separated). Leave empty to exclude none."
+          }
+        ],
+        "globbing": "false",
+        "name": "ExcludeSerialNumbers",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include Android devices in the duplicate detection."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeAndroid",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include iOS and iPadOS devices in the duplicate detection."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeIOS",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include macOS devices in the duplicate detection."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeMacOS",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Check only devices with one of these serial numbers (comma-separated). Leave empty to check all serial numbers."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeSerialNumbers",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include Windows devices in the duplicate detection."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeWindows",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays."
+          }
+        ],
+        "globbing": "false",
+        "name": "LinkExpiryDays",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "25",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "50",
+        "description": [
+          {
+            "Text": "Whole-run deletion cap. When more than this many devices would be deleted in a single run, nothing is removed and the affected records are listed as \"Would not be deleted (limit exceeded)\"."
+          }
+        ],
+        "globbing": "false",
+        "name": "MaxDevicesToRemove",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "7",
+        "description": [
+          {
+            "Text": "An older duplicate record is deleted only when its last sync is at least this many days ago. For a record that never synced, its enrollment date counts instead. The kept record is not subject to this limit."
+          }
+        ],
+        "globbing": "false",
+        "name": "MinimumDaysSinceLastSync",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "CSV & XLSX",
+        "description": [
+          {
+            "Text": "Deliver the report as CSV, as an Excel workbook, or both."
+          }
+        ],
+        "globbing": "false",
+        "name": "ReportFileFormat",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "19",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup."
+          }
+        ],
+        "globbing": "false",
+        "name": "ResourceGroupName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "22",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Send the report to the recipient email address when duplicates are or would be removed."
+          }
+        ],
+        "globbing": "false",
+        "name": "SendEmailReport",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "17",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName."
+          }
+        ],
+        "globbing": "false",
+        "name": "StorageAccountName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "23",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty."
+          }
+        ],
+        "globbing": "false",
+        "name": "SubscriptionId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "24",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "List duplicate devices without deleting them. Disable to actually delete the older duplicate records."
+          }
+        ],
+        "globbing": "false",
+        "name": "WhatIfMode",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": "## How it works\n\nThe runbook lists the Intune managed devices of the tenant and looks for records that share the same serial number. Such duplicates typically appear when a device is re-enrolled or reinstalled and the old record stays behind. For each serial number it keeps the most recent record and removes the older ones.\n\n### Scope and filters\n\n- Platform toggles (`IncludeWindows`, `IncludeMacOS`, `IncludeIOS`, `IncludeAndroid`) limit the check to the selected operating systems.\n- `DeviceNamePrefix` restricts the check to devices whose name starts with the given prefix.\n- `IncludeSerialNumbers` and `ExcludeSerialNumbers` accept comma-separated serial numbers to restrict the check to, or to leave out, specific devices.\n- Serial numbers are normalized before they are compared: upper and lower case and whitespace are ignored. Empty serial numbers and placeholder values such as `0`, `Default string`, `System Serial Number` or `To Be Filled By O.E.M.` (with or without spaces) are ignored, because they do not identify a device.\n\n### Which record is kept\n\n- Within a group of records with the same serial number, the record with the newest last sync time (`lastSyncDateTime`) is kept. A record that never synced is ranked by its enrollment time (`enrolledDateTime`) instead. The enrollment time also breaks ties.\n- An older record is removed only when its own last sync is at least `MinimumDaysSinceLastSync` days ago, counted in whole days. For a record that never synced, the enrollment time is used. The kept record is not checked against this value.\n- A device name that is empty is shown as `Unknown` in the output.\n\n### When nothing is removed\n\nThe runbook removes a record only when the data clearly shows that it is the older one. All other duplicates are left alone and listed in the **Skipped duplicates** table together with the reason.\n\nNo record of a serial number is removed when:\n\n- the two newest records have identical timestamps,\n- the newest record has not synced yet, for example a fresh enrollment that has not checked in. The older records are removed by a later run, once the new record has synced,\n- the records report different manufacturers, models or platforms. Different machines that share a serial number are not duplicates of one device. iOS and iPadOS count as one platform.\n\nA single older record is skipped when:\n\n- its last sync, or its enrollment if it never synced, is more recent than `MinimumDaysSinceLastSync` days,\n- it was enrolled after the kept record, because last sync and enrollment time then disagree about which record is the newer one,\n- it has neither a last sync nor an enrollment time.\n\n### Safety measures\n\n- **WhatIf mode is on by default.** In this mode (`WhatIfMode`) the runbook only lists what it would delete.\n- `MaxDevicesToRemove` caps the number of deletions per run. The cap is checked before WhatIf: when more records qualify than the cap allows, nothing is deleted, and a WhatIf preview shows exactly the same outcome. The affected rows are marked `Would not be deleted (limit exceeded)` in WhatIf mode and `Not deleted (limit exceeded)` in a live run. Review the list and raise the cap deliberately if the number is correct.\n- Only the Intune managed device record is deleted. The Entra ID device object and the Autopilot registration are not touched.\n- A failed deletion does not stop the run. The record is marked `Failed`, the reason is shown in the `Details` column, and the runbook continues with the next one.\n\nRecommended rollout:\n\n1. Run the runbook with `WhatIfMode` enabled and review the output tables and the report.\n2. Adjust filters, `MinimumDaysSinceLastSync` and `MaxDevicesToRemove` until the list matches your expectations.\n3. Schedule the runbook with `WhatIfMode` disabled.\n\n## Setup regarding download link\n\nThe optional download link uploads the report files to an Azure storage account and returns a time-limited link. It requires the storage account settings of the tenant (`RJReport.StorageAccount.*`) to be configured. The link expires after the number of days set in `RJReport.StorageAccount.LinkExpiryDays`. If the upload fails, the email report is still sent and the run ends as failed afterwards.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.\n\n## Setup regarding email sending\n\nSending an email report is optional and only happens when the `SendEmailReport` option is enabled; a recipient (`EmailTo`) is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting. An email is sent whenever at least one record qualified for removal. This includes WhatIf runs, runs in which deletions failed and runs in which the `MaxDevicesToRemove` limit stopped the deletion; the result column and a note in the email show what actually happened. No email is sent when no record qualified.\n\nThis runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.\n\nThe email contains a summary and the first 10 devices. The full list is attached as CSV and/or Excel file, depending on the selected report file format.\n\nSee the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.\n\n### Email branding\n\nThe report email honors the optional `RJReport.Branding.*` tenant settings:\n\n- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each\n- **Footer link** – target of the footer image\n- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`\n\nWhen these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.\n\nSetup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).\n\n## Interpreting the results\n\n- The Output Data table **Duplicate devices** lists every record that qualified for removal together with the device that is kept. The result column shows `Deleted`, `Would be deleted`, `Failed` (with the reason in the `Details` column), or the limit-exceeded values described above. The removed and the kept record usually carry the same device name; their enrollment times, last sync times and Intune device IDs tell them apart.\n- The Output Data table **Skipped duplicates** lists duplicates that were not removed and the reason, for example ambiguous timestamps or a last sync that is too recent.\n\n## Scheduling\n\nRun the runbook regularly, for example weekly, with `WhatIfMode` disabled once the results have been reviewed. Keep `MinimumDaysSinceLastSync` high enough that devices which are only temporarily offline are not affected.\n",
+    "DocsContentEncoded": "IyMgSG93IGl0IHdvcmtzCgpUaGUgcnVuYm9vayBsaXN0cyB0aGUgSW50dW5lIG1hbmFnZWQgZGV2aWNlcyBvZiB0aGUgdGVuYW50IGFuZCBsb29rcyBmb3IgcmVjb3JkcyB0aGF0IHNoYXJlIHRoZSBzYW1lIHNlcmlhbCBudW1iZXIuIFN1Y2ggZHVwbGljYXRlcyB0eXBpY2FsbHkgYXBwZWFyIHdoZW4gYSBkZXZpY2UgaXMgcmUtZW5yb2xsZWQgb3IgcmVpbnN0YWxsZWQgYW5kIHRoZSBvbGQgcmVjb3JkIHN0YXlzIGJlaGluZC4gRm9yIGVhY2ggc2VyaWFsIG51bWJlciBpdCBrZWVwcyB0aGUgbW9zdCByZWNlbnQgcmVjb3JkIGFuZCByZW1vdmVzIHRoZSBvbGRlciBvbmVzLgoKIyMjIFNjb3BlIGFuZCBmaWx0ZXJzCgotIFBsYXRmb3JtIHRvZ2dsZXMgKGBJbmNsdWRlV2luZG93c2AsIGBJbmNsdWRlTWFjT1NgLCBgSW5jbHVkZUlPU2AsIGBJbmNsdWRlQW5kcm9pZGApIGxpbWl0IHRoZSBjaGVjayB0byB0aGUgc2VsZWN0ZWQgb3BlcmF0aW5nIHN5c3RlbXMuCi0gYERldmljZU5hbWVQcmVmaXhgIHJlc3RyaWN0cyB0aGUgY2hlY2sgdG8gZGV2aWNlcyB3aG9zZSBuYW1lIHN0YXJ0cyB3aXRoIHRoZSBnaXZlbiBwcmVmaXguCi0gYEluY2x1ZGVTZXJpYWxOdW1iZXJzYCBhbmQgYEV4Y2x1ZGVTZXJpYWxOdW1iZXJzYCBhY2NlcHQgY29tbWEtc2VwYXJhdGVkIHNlcmlhbCBudW1iZXJzIHRvIHJlc3RyaWN0IHRoZSBjaGVjayB0bywgb3IgdG8gbGVhdmUgb3V0LCBzcGVjaWZpYyBkZXZpY2VzLgotIFNlcmlhbCBudW1iZXJzIGFyZSBub3JtYWxpemVkIGJlZm9yZSB0aGV5IGFyZSBjb21wYXJlZDogdXBwZXIgYW5kIGxvd2VyIGNhc2UgYW5kIHdoaXRlc3BhY2UgYXJlIGlnbm9yZWQuIEVtcHR5IHNlcmlhbCBudW1iZXJzIGFuZCBwbGFjZWhvbGRlciB2YWx1ZXMgc3VjaCBhcyBgMGAsIGBEZWZhdWx0IHN0cmluZ2AsIGBTeXN0ZW0gU2VyaWFsIE51bWJlcmAgb3IgYFRvIEJlIEZpbGxlZCBCeSBPLkUuTS5gICh3aXRoIG9yIHdpdGhvdXQgc3BhY2VzKSBhcmUgaWdub3JlZCwgYmVjYXVzZSB0aGV5IGRvIG5vdCBpZGVudGlmeSBhIGRldmljZS4KCiMjIyBXaGljaCByZWNvcmQgaXMga2VwdAoKLSBXaXRoaW4gYSBncm91cCBvZiByZWNvcmRzIHdpdGggdGhlIHNhbWUgc2VyaWFsIG51bWJlciwgdGhlIHJlY29yZCB3aXRoIHRoZSBuZXdlc3QgbGFzdCBzeW5jIHRpbWUgKGBsYXN0U3luY0RhdGVUaW1lYCkgaXMga2VwdC4gQSByZWNvcmQgdGhhdCBuZXZlciBzeW5jZWQgaXMgcmFua2VkIGJ5IGl0cyBlbnJvbGxtZW50IHRpbWUgKGBlbnJvbGxlZERhdGVUaW1lYCkgaW5zdGVhZC4gVGhlIGVucm9sbG1lbnQgdGltZSBhbHNvIGJyZWFrcyB0aWVzLgotIEFuIG9sZGVyIHJlY29yZCBpcyByZW1vdmVkIG9ubHkgd2hlbiBpdHMgb3duIGxhc3Qgc3luYyBpcyBhdCBsZWFzdCBgTWluaW11bURheXNTaW5jZUxhc3RTeW5jYCBkYXlzIGFnbywgY291bnRlZCBpbiB3aG9sZSBkYXlzLiBGb3IgYSByZWNvcmQgdGhhdCBuZXZlciBzeW5jZWQsIHRoZSBlbnJvbGxtZW50IHRpbWUgaXMgdXNlZC4gVGhlIGtlcHQgcmVjb3JkIGlzIG5vdCBjaGVja2VkIGFnYWluc3QgdGhpcyB2YWx1ZS4KLSBBIGRldmljZSBuYW1lIHRoYXQgaXMgZW1wdHkgaXMgc2hvd24gYXMgYFVua25vd25gIGluIHRoZSBvdXRwdXQuCgojIyMgV2hlbiBub3RoaW5nIGlzIHJlbW92ZWQKClRoZSBydW5ib29rIHJlbW92ZXMgYSByZWNvcmQgb25seSB3aGVuIHRoZSBkYXRhIGNsZWFybHkgc2hvd3MgdGhhdCBpdCBpcyB0aGUgb2xkZXIgb25lLiBBbGwgb3RoZXIgZHVwbGljYXRlcyBhcmUgbGVmdCBhbG9uZSBhbmQgbGlzdGVkIGluIHRoZSAqKlNraXBwZWQgZHVwbGljYXRlcyoqIHRhYmxlIHRvZ2V0aGVyIHdpdGggdGhlIHJlYXNvbi4KCk5vIHJlY29yZCBvZiBhIHNlcmlhbCBudW1iZXIgaXMgcmVtb3ZlZCB3aGVuOgoKLSB0aGUgdHdvIG5ld2VzdCByZWNvcmRzIGhhdmUgaWRlbnRpY2FsIHRpbWVzdGFtcHMsCi0gdGhlIG5ld2VzdCByZWNvcmQgaGFzIG5vdCBzeW5jZWQgeWV0LCBmb3IgZXhhbXBsZSBhIGZyZXNoIGVucm9sbG1lbnQgdGhhdCBoYXMgbm90IGNoZWNrZWQgaW4uIFRoZSBvbGRlciByZWNvcmRzIGFyZSByZW1vdmVkIGJ5IGEgbGF0ZXIgcnVuLCBvbmNlIHRoZSBuZXcgcmVjb3JkIGhhcyBzeW5jZWQsCi0gdGhlIHJlY29yZHMgcmVwb3J0IGRpZmZlcmVudCBtYW51ZmFjdHVyZXJzLCBtb2RlbHMgb3IgcGxhdGZvcm1zLiBEaWZmZXJlbnQgbWFjaGluZXMgdGhhdCBzaGFyZSBhIHNlcmlhbCBudW1iZXIgYXJlIG5vdCBkdXBsaWNhdGVzIG9mIG9uZSBkZXZpY2UuIGlPUyBhbmQgaVBhZE9TIGNvdW50IGFzIG9uZSBwbGF0Zm9ybS4KCkEgc2luZ2xlIG9sZGVyIHJlY29yZCBpcyBza2lwcGVkIHdoZW46CgotIGl0cyBsYXN0IHN5bmMsIG9yIGl0cyBlbnJvbGxtZW50IGlmIGl0IG5ldmVyIHN5bmNlZCwgaXMgbW9yZSByZWNlbnQgdGhhbiBgTWluaW11bURheXNTaW5jZUxhc3RTeW5jYCBkYXlzLAotIGl0IHdhcyBlbnJvbGxlZCBhZnRlciB0aGUga2VwdCByZWNvcmQsIGJlY2F1c2UgbGFzdCBzeW5jIGFuZCBlbnJvbGxtZW50IHRpbWUgdGhlbiBkaXNhZ3JlZSBhYm91dCB3aGljaCByZWNvcmQgaXMgdGhlIG5ld2VyIG9uZSwKLSBpdCBoYXMgbmVpdGhlciBhIGxhc3Qgc3luYyBub3IgYW4gZW5yb2xsbWVudCB0aW1lLgoKIyMjIFNhZmV0eSBtZWFzdXJlcwoKLSAqKldoYXRJZiBtb2RlIGlzIG9uIGJ5IGRlZmF1bHQuKiogSW4gdGhpcyBtb2RlIChgV2hhdElmTW9kZWApIHRoZSBydW5ib29rIG9ubHkgbGlzdHMgd2hhdCBpdCB3b3VsZCBkZWxldGUuCi0gYE1heERldmljZXNUb1JlbW92ZWAgY2FwcyB0aGUgbnVtYmVyIG9mIGRlbGV0aW9ucyBwZXIgcnVuLiBUaGUgY2FwIGlzIGNoZWNrZWQgYmVmb3JlIFdoYXRJZjogd2hlbiBtb3JlIHJlY29yZHMgcXVhbGlmeSB0aGFuIHRoZSBjYXAgYWxsb3dzLCBub3RoaW5nIGlzIGRlbGV0ZWQsIGFuZCBhIFdoYXRJZiBwcmV2aWV3IHNob3dzIGV4YWN0bHkgdGhlIHNhbWUgb3V0Y29tZS4gVGhlIGFmZmVjdGVkIHJvd3MgYXJlIG1hcmtlZCBgV291bGQgbm90IGJlIGRlbGV0ZWQgKGxpbWl0IGV4Y2VlZGVkKWAgaW4gV2hhdElmIG1vZGUgYW5kIGBOb3QgZGVsZXRlZCAobGltaXQgZXhjZWVkZWQpYCBpbiBhIGxpdmUgcnVuLiBSZXZpZXcgdGhlIGxpc3QgYW5kIHJhaXNlIHRoZSBjYXAgZGVsaWJlcmF0ZWx5IGlmIHRoZSBudW1iZXIgaXMgY29ycmVjdC4KLSBPbmx5IHRoZSBJbnR1bmUgbWFuYWdlZCBkZXZpY2UgcmVjb3JkIGlzIGRlbGV0ZWQuIFRoZSBFbnRyYSBJRCBkZXZpY2Ugb2JqZWN0IGFuZCB0aGUgQXV0b3BpbG90IHJlZ2lzdHJhdGlvbiBhcmUgbm90IHRvdWNoZWQuCi0gQSBmYWlsZWQgZGVsZXRpb24gZG9lcyBub3Qgc3RvcCB0aGUgcnVuLiBUaGUgcmVjb3JkIGlzIG1hcmtlZCBgRmFpbGVkYCwgdGhlIHJlYXNvbiBpcyBzaG93biBpbiB0aGUgYERldGFpbHNgIGNvbHVtbiwgYW5kIHRoZSBydW5ib29rIGNvbnRpbnVlcyB3aXRoIHRoZSBuZXh0IG9uZS4KClJlY29tbWVuZGVkIHJvbGxvdXQ6CgoxLiBSdW4gdGhlIHJ1bmJvb2sgd2l0aCBgV2hhdElmTW9kZWAgZW5hYmxlZCBhbmQgcmV2aWV3IHRoZSBvdXRwdXQgdGFibGVzIGFuZCB0aGUgcmVwb3J0LgoyLiBBZGp1c3QgZmlsdGVycywgYE1pbmltdW1EYXlzU2luY2VMYXN0U3luY2AgYW5kIGBNYXhEZXZpY2VzVG9SZW1vdmVgIHVudGlsIHRoZSBsaXN0IG1hdGNoZXMgeW91ciBleHBlY3RhdGlvbnMuCjMuIFNjaGVkdWxlIHRoZSBydW5ib29rIHdpdGggYFdoYXRJZk1vZGVgIGRpc2FibGVkLgoKIyMgU2V0dXAgcmVnYXJkaW5nIGRvd25sb2FkIGxpbmsKClRoZSBvcHRpb25hbCBkb3dubG9hZCBsaW5rIHVwbG9hZHMgdGhlIHJlcG9ydCBmaWxlcyB0byBhbiBBenVyZSBzdG9yYWdlIGFjY291bnQgYW5kIHJldHVybnMgYSB0aW1lLWxpbWl0ZWQgbGluay4gSXQgcmVxdWlyZXMgdGhlIHN0b3JhZ2UgYWNjb3VudCBzZXR0aW5ncyBvZiB0aGUgdGVuYW50IChgUkpSZXBvcnQuU3RvcmFnZUFjY291bnQuKmApIHRvIGJlIGNvbmZpZ3VyZWQuIFRoZSBsaW5rIGV4cGlyZXMgYWZ0ZXIgdGhlIG51bWJlciBvZiBkYXlzIHNldCBpbiBgUkpSZXBvcnQuU3RvcmFnZUFjY291bnQuTGlua0V4cGlyeURheXNgLiBJZiB0aGUgdXBsb2FkIGZhaWxzLCB0aGUgZW1haWwgcmVwb3J0IGlzIHN0aWxsIHNlbnQgYW5kIHRoZSBydW4gZW5kcyBhcyBmYWlsZWQgYWZ0ZXJ3YXJkcy4KClNlZSB0aGUgW1JlYWxtSm9pbiBSZXBvcnQgU2V0dGluZ3MgZG9jdW1lbnRhdGlvbl0oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vYXV0b21hdGlvbi9ydW5ib29rcy9ydW5ib29rLXJlcG9ydC1zZXR0aW5ncykgZm9yIGRldGFpbHMgb24gYWxsIGF2YWlsYWJsZSBzZXR0aW5ncy4KCiMjIFNldHVwIHJlZ2FyZGluZyBlbWFpbCBzZW5kaW5nCgpTZW5kaW5nIGFuIGVtYWlsIHJlcG9ydCBpcyBvcHRpb25hbCBhbmQgb25seSBoYXBwZW5zIHdoZW4gdGhlIGBTZW5kRW1haWxSZXBvcnRgIG9wdGlvbiBpcyBlbmFibGVkOyBhIHJlY2lwaWVudCAoYEVtYWlsVG9gKSBpcyB0aGVuIHJlcXVpcmVkLiBUaGUgc2VuZGVyIGFkZHJlc3MgaXMgdGFrZW4gZnJvbSB0aGUgYFJKUmVwb3J0LkVtYWlsU2VuZGVyYCB0ZW5hbnQgc2V0dGluZy4gQW4gZW1haWwgaXMgc2VudCB3aGVuZXZlciBhdCBsZWFzdCBvbmUgcmVjb3JkIHF1YWxpZmllZCBmb3IgcmVtb3ZhbC4gVGhpcyBpbmNsdWRlcyBXaGF0SWYgcnVucywgcnVucyBpbiB3aGljaCBkZWxldGlvbnMgZmFpbGVkIGFuZCBydW5zIGluIHdoaWNoIHRoZSBgTWF4RGV2aWNlc1RvUmVtb3ZlYCBsaW1pdCBzdG9wcGVkIHRoZSBkZWxldGlvbjsgdGhlIHJlc3VsdCBjb2x1bW4gYW5kIGEgbm90ZSBpbiB0aGUgZW1haWwgc2hvdyB3aGF0IGFjdHVhbGx5IGhhcHBlbmVkLiBObyBlbWFpbCBpcyBzZW50IHdoZW4gbm8gcmVjb3JkIHF1YWxpZmllZC4KClRoaXMgcnVuYm9vayBzZW5kcyBlbWFpbHMgdXNpbmcgdGhlIE1pY3Jvc29mdCBHcmFwaCBBUEkuIFRvIHNlbmQgZW1haWxzIHZpYSBHcmFwaCBBUEksIHlvdSBuZWVkIHRvIGNvbmZpZ3VyZSBhbiBleGlzdGluZyBlbWFpbCBhZGRyZXNzIGluIHRoZSBydW5ib29rIGN1c3RvbWl6YXRpb24uCgpUaGUgZW1haWwgY29udGFpbnMgYSBzdW1tYXJ5IGFuZCB0aGUgZmlyc3QgMTAgZGV2aWNlcy4gVGhlIGZ1bGwgbGlzdCBpcyBhdHRhY2hlZCBhcyBDU1YgYW5kL29yIEV4Y2VsIGZpbGUsIGRlcGVuZGluZyBvbiB0aGUgc2VsZWN0ZWQgcmVwb3J0IGZpbGUgZm9ybWF0LgoKU2VlIHRoZSBbUmVhbG1Kb2luIFJlcG9ydCBTZXR0aW5ncyBkb2N1bWVudGF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKSBmb3IgZGV0YWlscyBvbiBhbGwgYXZhaWxhYmxlIHNldHRpbmdzLgoKIyMjIEVtYWlsIGJyYW5kaW5nCgpUaGUgcmVwb3J0IGVtYWlsIGhvbm9ycyB0aGUgb3B0aW9uYWwgYFJKUmVwb3J0LkJyYW5kaW5nLipgIHRlbmFudCBzZXR0aW5nczoKCi0gKipIZWFkZXIgYW5kIGZvb3RlciBpbWFnZSoqIOKAkyBwdWJsaWMgSFRUUFMgVVJMcywgUE5HL0pQRUcvR0lGLCBtYXguIDIwMCBLQiBlYWNoCi0gKipGb290ZXIgbGluayoqIOKAkyB0YXJnZXQgb2YgdGhlIGZvb3RlciBpbWFnZQotICoqQWNjZW50IGFuZCB0ZXh0IGNvbG9yKiog4oCTIDYtZGlnaXQgaGV4IHZhbHVlcywgZS5nLiBgIzAwNTJjY2AKCldoZW4gdGhlc2Ugc2V0dGluZ3MgYXJlIG5vdCBjb25maWd1cmVkLCB0aGUgZGVmYXVsdCBSZWFsbUpvaW4gZ3JhcGhpY3MgYW5kIGNvbG9ycyBhcmUgdXNlZC4gQW4gaW1hZ2UgdGhhdCBjYW5ub3QgYmUgZG93bmxvYWRlZCBvciB2YWxpZGF0ZWQsIG9yIGFuIGludmFsaWQgY29sb3IgdmFsdWUsIG5ldmVyIHByZXZlbnRzIHRoZSByZXBvcnQgZW1haWwg4oCTIHRoZSBjb3JyZXNwb25kaW5nIGRlZmF1bHQgaXMgdXNlZCBpbnN0ZWFkLgoKU2V0dXAgaW5zdHJ1Y3Rpb25zIGFuZCBpbWFnZSByZXF1aXJlbWVudHM6IFtFbWFpbCBicmFuZGluZ10oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vYXV0b21hdGlvbi9ydW5ib29rcy9ydW5ib29rLXJlcG9ydC1zZXR0aW5ncyNlbWFpbC1icmFuZGluZy1vcHRpb25hbCkuCgojIyBJbnRlcnByZXRpbmcgdGhlIHJlc3VsdHMKCi0gVGhlIE91dHB1dCBEYXRhIHRhYmxlICoqRHVwbGljYXRlIGRldmljZXMqKiBsaXN0cyBldmVyeSByZWNvcmQgdGhhdCBxdWFsaWZpZWQgZm9yIHJlbW92YWwgdG9nZXRoZXIgd2l0aCB0aGUgZGV2aWNlIHRoYXQgaXMga2VwdC4gVGhlIHJlc3VsdCBjb2x1bW4gc2hvd3MgYERlbGV0ZWRgLCBgV291bGQgYmUgZGVsZXRlZGAsIGBGYWlsZWRgICh3aXRoIHRoZSByZWFzb24gaW4gdGhlIGBEZXRhaWxzYCBjb2x1bW4pLCBvciB0aGUgbGltaXQtZXhjZWVkZWQgdmFsdWVzIGRlc2NyaWJlZCBhYm92ZS4gVGhlIHJlbW92ZWQgYW5kIHRoZSBrZXB0IHJlY29yZCB1c3VhbGx5IGNhcnJ5IHRoZSBzYW1lIGRldmljZSBuYW1lOyB0aGVpciBlbnJvbGxtZW50IHRpbWVzLCBsYXN0IHN5bmMgdGltZXMgYW5kIEludHVuZSBkZXZpY2UgSURzIHRlbGwgdGhlbSBhcGFydC4KLSBUaGUgT3V0cHV0IERhdGEgdGFibGUgKipTa2lwcGVkIGR1cGxpY2F0ZXMqKiBsaXN0cyBkdXBsaWNhdGVzIHRoYXQgd2VyZSBub3QgcmVtb3ZlZCBhbmQgdGhlIHJlYXNvbiwgZm9yIGV4YW1wbGUgYW1iaWd1b3VzIHRpbWVzdGFtcHMgb3IgYSBsYXN0IHN5bmMgdGhhdCBpcyB0b28gcmVjZW50LgoKIyMgU2NoZWR1bGluZwoKUnVuIHRoZSBydW5ib29rIHJlZ3VsYXJseSwgZm9yIGV4YW1wbGUgd2Vla2x5LCB3aXRoIGBXaGF0SWZNb2RlYCBkaXNhYmxlZCBvbmNlIHRoZSByZXN1bHRzIGhhdmUgYmVlbiByZXZpZXdlZC4gS2VlcCBgTWluaW11bURheXNTaW5jZUxhc3RTeW5jYCBoaWdoIGVub3VnaCB0aGF0IGRldmljZXMgd2hpY2ggYXJlIG9ubHkgdGVtcG9yYXJpbHkgb2ZmbGluZSBhcmUgbm90IGFmZmVjdGVkLgo=",
+    "PermissionsContent": "{\n    \"SchemaVersion\": 2,\n    \"Permissions\": [\n        {\n            \"Name\": \"Microsoft Graph\",\n            \"Id\": \"00000003-0000-0000-c000-000000000000\",\n            \"AppRoleAssignments\": [\n                {\n                    \"Value\": \"DeviceManagementManagedDevices.ReadWrite.All\",\n                    \"Reason\": \"Reads /deviceManagement/managedDevices to find duplicate Intune device records and deletes the stale duplicates via DELETE /deviceManagement/managedDevices/{id}\"\n                },\n                {\n                    \"Value\": \"Mail.Send\",\n                    \"Optional\": true,\n                    \"Feature\": \"Email report\",\n                    \"Reason\": \"Sends the cleanup report email with its CSV/XLSX attachments via Send-RjRbReportEmail when email delivery is selected\"\n                },\n                {\n                    \"Value\": \"Organization.Read.All\",\n                    \"Optional\": true,\n                    \"Feature\": \"Email report\",\n                    \"Reason\": \"Reads /organization?$select=displayName to put the tenant name into the report email subject and footer\"\n                }\n            ]\n        }\n    ],\n    \"Roles\": [],\n    \"ManualPermissions\": [\n        \"Azure: Storage Blob Data Contributor on the report storage account (only needed for the download link feature)\"\n    ]\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "DeviceManagementManagedDevices.ReadWrite.All",
+            "Mail.Send",
+            "Organization.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": [
+        "Azure: Storage Blob Data Contributor on the report storage account (only needed for the download link feature)"
+      ]
+    }
+  },
+  {
     "RunbookDisplayName": "Create Endpoint Analytics Baseline",
     "RunbookDisplayPath": "Org \\ Devices \\ Create Endpoint Analytics Baseline",
     "RelativeRunbookPath": "org/devices/create-endpoint-analytics-baseline.ps1",
