@@ -1,0 +1,17 @@
+{
+  "SchemaVersion": 2,
+  "Permissions": [
+    {
+      "Name": "Microsoft Graph",
+      "Id": "00000003-0000-0000-c000-000000000000",
+      "AppRoleAssignments": [
+        { "Value": "AgentIdentity.ReadWrite.All", "Reason": "Enumerates Agent Identities and reads or changes sponsor relationships." },
+        { "Value": "AgentIdentityBlueprint.Read.All", "Reason": "Enumerates typed Agent Identity Blueprints before sponsorship transfer." },
+        { "Value": "Application.ReadWrite.All", "Reason": "Adds and removes Agent Identity Blueprint sponsor references; Microsoft Graph documents this permission for blueprint relationship writes." },
+        { "Value": "User.Read.All", "Reason": "Revalidates source and target users on every transfer." }
+      ]
+    }
+  ],
+  "Roles": [],
+  "ManualPermissions": []
+}

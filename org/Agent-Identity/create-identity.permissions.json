@@ -1,0 +1,17 @@
+{
+  "SchemaVersion": 2,
+  "Permissions": [
+    {
+      "Name": "Microsoft Graph",
+      "Id": "00000003-0000-0000-c000-000000000000",
+      "AppRoleAssignments": [
+        { "Value": "AgentIdentity.Create.All", "Reason": "Creates Agent Identities through the typed v1.0 endpoint." },
+        { "Value": "AgentIdentityBlueprint.Read.All", "Reason": "Validates the selected blueprint." },
+        { "Value": "AgentIdentityBlueprintPrincipal.Read.All", "Reason": "Confirms the blueprint principal exists before identity creation." },
+        { "Value": "Directory.Read.All", "Reason": "Validates sponsor and owner object types and sponsor-group restrictions." }
+      ]
+    }
+  ],
+  "Roles": [],
+  "ManualPermissions": []
+}

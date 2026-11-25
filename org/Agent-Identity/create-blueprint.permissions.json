@@ -1,0 +1,17 @@
+{
+  "SchemaVersion": 2,
+  "Permissions": [
+    {
+      "Name": "Microsoft Graph",
+      "Id": "00000003-0000-0000-c000-000000000000",
+      "AppRoleAssignments": [
+        { "Value": "AgentIdentityBlueprint.Create", "Reason": "Creates the typed Agent ID blueprint." },
+        { "Value": "AgentIdentityBlueprint.ReadWrite.All", "Reason": "Sets supported Agent Identity Blueprint metadata and relationships during creation." },
+        { "Value": "AgentIdentityBlueprintPrincipal.Create", "Reason": "Creates the mandatory associated blueprint principal." },
+        { "Value": "Directory.Read.All", "Reason": "Validates sponsor and owner directory object types and sponsor-group restrictions." }
+      ]
+    }
+  ],
+  "Roles": [],
+  "ManualPermissions": []
+}

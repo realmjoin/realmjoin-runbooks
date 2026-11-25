@@ -1,0 +1,23 @@
+{
+  "SchemaVersion": 2,
+  "Permissions": [
+    {
+      "Name": "Microsoft Graph",
+      "Id": "00000003-0000-0000-c000-000000000000",
+      "AppRoleAssignments": [
+        {
+          "Value": "AuditLog.Read.All",
+          "Reason": "Reads agent service-principal sign-in events."
+        },
+        {
+          "Value": "Mail.Send",
+          "Optional": true,
+          "Feature": "Email report",
+          "Reason": "Sends the optional report email."
+        }
+      ]
+    }
+  ],
+  "Roles": [],
+  "ManualPermissions": []
+}

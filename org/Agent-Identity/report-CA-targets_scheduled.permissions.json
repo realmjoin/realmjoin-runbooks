@@ -1,0 +1,31 @@
+{
+  "SchemaVersion": 2,
+  "Permissions": [
+    {
+      "Name": "Microsoft Graph",
+      "Id": "00000003-0000-0000-c000-000000000000",
+      "AppRoleAssignments": [
+        {
+          "Value": "AgentIdentity.Read.All",
+          "Reason": "Lists agent identity service principals."
+        },
+        {
+          "Value": "AgentIdentityBlueprintPrincipal.Read.All",
+          "Reason": "Lists blueprint principal service principals."
+        },
+        {
+          "Value": "Policy.Read.All",
+          "Reason": "Reads Conditional Access policies and workload-identity targets."
+        },
+        {
+          "Value": "Mail.Send",
+          "Optional": true,
+          "Feature": "Email report",
+          "Reason": "Sends the optional report email."
+        }
+      ]
+    }
+  ],
+  "Roles": [],
+  "ManualPermissions": []
+}
