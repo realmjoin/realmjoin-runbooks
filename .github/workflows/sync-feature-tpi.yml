@@ -1,0 +1,80 @@
+name: 🔀 Sync master into feature-tpi
+
+# feature-tpi carries the Teams Phone Inventory (TPI) runbooks, which never go to master or production.
+# Every change on master is merged into feature-tpi so the branch stays current. On a merge conflict
+# nothing is pushed and the run fails; a maintainer resolves the conflict locally.
+
+on:
+  workflow_dispatch:  # Manual trigger
+  push:
+    branches: [ master ]
+    paths-ignore:
+      # Generated documentation alone does not need a sync; it arrives with the next runbook change
+      - 'docs/**'
+      - 'README.md'
+
+permissions:
+  contents: write  # push the merge commit to feature-tpi (the ruleset there only blocks force pushes and deletion)
+
+# Never run two syncs at once; queue instead of cancelling so an in-flight push is not interrupted
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  sync-feature-tpi:
+    name: 🔀 Merge master into feature-tpi
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout feature-tpi
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: feature-tpi
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: 🔀 Merge master and push
+        shell: bash
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git fetch --no-tags origin master
+
+          if git merge-base --is-ancestor origin/master HEAD; then
+            echo "feature-tpi already contains master $(git rev-parse --short origin/master). Nothing to do."
+            exit 0
+          fi
+
+          if ! git merge --no-edit -m "Merge master into feature-tpi" origin/master; then
+            conflicts=$(git diff --name-only --diff-filter=U)
+            git merge --abort
+            echo "::error title=Merge conflict::master cannot be merged into feature-tpi automatically. Conflicting files: $(echo $conflicts)"
+            {
+              echo "## ⚠️ Merge conflict between master and feature-tpi"
+              echo ""
+              echo "Nothing was pushed. Conflicting files:"
+              echo ""
+              printf -- '- `%s`\n' $conflicts
+              echo ""
+              echo "Resolve locally:"
+              echo ""
+              echo '```'
+              echo "git switch feature-tpi"
+              echo "git pull"
+              echo "git merge origin/master"
+              echo "# resolve the conflicts, then"
+              echo "git commit"
+              echo "git push"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/feature-tpi"
+          echo "✅ Merged master $(git rev-parse --short origin/master) into feature-tpi."
