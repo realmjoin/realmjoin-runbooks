@@ -65,6 +65,9 @@
 	.PARAMETER StorageAccountName
 	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
+	.PARAMETER SubscriptionId
+	Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty.
+
 	.PARAMETER LinkExpiryDays
 	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
@@ -186,6 +189,9 @@
 			"StorageAccountName": {
 				"Hide": true
 			},
+			"SubscriptionId": {
+				"Hide": true
+			},
 			"LinkExpiryDays": {
 				"Hide": true
 			}
@@ -276,6 +282,8 @@ param(
     [string] $ResourceGroupName,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" } )]
     [string] $StorageAccountName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.SubscriptionId" } )]
+    [string] $SubscriptionId,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" } )]
     [ValidateRange(1, 3650)]
     [int] $LinkExpiryDays = 6,
@@ -293,7 +301,7 @@ param(
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.1.0"
+$Version = "1.2.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
@@ -320,6 +328,7 @@ if ($CreateDownloadLink) {
     Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
     Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
     Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+    Write-RjRbLog -Message "SubscriptionId: $SubscriptionId" -Verbose
     Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
 }
 
@@ -463,9 +472,11 @@ function ConvertTo-MarkdownTableCell {
     # mail as raw HTML, so they are handed over already encoded. The remaining characters are Markdown
     # markup and are backslash-escaped, which the converter resolves back to the literal character.
     # '_' is deliberately not escaped: the converter has no underscore markup, so escaping it would only
-    # leave the escape artefact behind in a value like 'DESKTOP_01'.
-    $encodedValue = $Value -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;'
-    return ($encodedValue -replace '([\\`*\[\]|])', '\$1')
+    # leave the escape artefact behind in a value like 'DESKTOP_01'. The section sign (U+00A7) is encoded
+    # because the converter builds its internal placeholders from it and turns a typed placeholder back
+    # into a raw '<'.
+    $encodedValue = $Value -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;' -replace [char]0xA7, '&#167;'
+    return ($encodedValue -replace '([\\`*\[\]|~])', '\$1')
 }
 
 function Test-PlatformIncluded {
@@ -847,6 +858,7 @@ if ($CreateDownloadLink) {
                 -ContainerName $ContainerName `
                 -ResourceGroupName $ResourceGroupName `
                 -StorageAccountName $StorageAccountName `
+                -SubscriptionId $SubscriptionId `
                 -LinkExpiryDays $LinkExpiryDays `
                 -AddBlobNamePrefix $true
 

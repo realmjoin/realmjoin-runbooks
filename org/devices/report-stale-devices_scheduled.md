@@ -7,11 +7,15 @@
 - Staged reporting with a maximum inactivity, for example 30 to 60 days and 60 to 90 days
 - User scope filtering to focus on specific departments or to exclude service accounts
 
+## Inactivity range
+
+A *Maximum days without activity* only applies when it is above *Days without activity*. A lower or equal value is ignored with a warning, and the report lists all devices inactive for at least *Days without activity*.
+
 ## User scope filtering
 
-The runbook can include or exclude devices based on the group membership of their primary user. The filter applies as soon as a group is selected in *Include users from group* or *Exclude users from group*; both can be combined. Only direct members of a group count.
+The runbook can include or exclude devices based on the group membership of their primary user. The filter applies as soon as a group is selected in *Include users from group* or *Exclude users from group*; both can be combined. Members of nested groups count as well.
 
-With an include group, only devices whose primary user is a member are reported; devices without a primary user are left out. The exclude group skips devices whose primary user is a member. If a selected group cannot be read, the run stops with an error instead of reporting an unfiltered list.
+With an include group, only devices whose primary user is a member are reported; devices without a primary user are left out. The exclude group skips devices whose primary user is a member, and also devices whose Entra ID device object is a member of the group itself, so a device group can be used to leave devices out of the report. If a selected group cannot be read, the run stops with an error instead of reporting an unfiltered list.
 
 Earlier versions asked *Filter by primary user group?* before the group pickers were shown. That choice is gone; schedules created with it keep working, and the groups stored in them now apply directly.
 

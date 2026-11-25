@@ -10,16 +10,18 @@
                     "Reason": "Reads all Intune devices for the CSV export"
                 },
                 {
-                    "Value": "GroupMember.Read.All",
-                    "Reason": "Reads the filter group's transitive user members to limit the export"
-                },
-                {
                     "Value": "Group.Read.All",
                     "Reason": "Covers the same transitive member read for the optional group filter"
+                },
+                {
+                    "Value": "GroupMember.Read.All",
+                    "Reason": "Reads the filter group's transitive user members to limit the export"
                 }
             ]
         }
     ],
     "Roles": [],
-    "ManualPermissions": []
+    "ManualPermissions": [
+        "Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys"
+    ]
 }

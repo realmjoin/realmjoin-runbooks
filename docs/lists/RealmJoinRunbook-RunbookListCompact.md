@@ -14,6 +14,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Remove Primary User | Remove the primary user from this device |
 |  |  | Rename Device | Rename this device in Intune and Autopilot |
 |  |  | Set Primary User | Set a new primary user on this device |
+|  |  | Sync Device | Trigger an Intune sync on this device |
 |  |  | Unenroll Updatable Assets | Unenroll this device from Windows Update for Business |
 |  |  | Wipe Device | Wipe this Windows or macOS device and clean up its records |
 |  |  | Wipe Managed App Data | Remove company app data from this MAM-managed device |
@@ -51,12 +52,14 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Update Application Registration | Update redirect URIs, SAML and sign-in settings of an app registration |
 |  | Collab | Check Onedrive Status | Check whether a user's OneDrive is active, locked or deleted |
 |  |  | List Sharepoint Sitecollection Permission | List the administrators and members of a SharePoint site |
+|  |  | Report Shared Channel Members (Scheduled) | List shared channels of all teams with direct and indirect members |
 |  |  | Report Sharepoint Tenant Storage (Scheduled) | Monitor SharePoint storage and alert when limits are exceeded |
 |  |  | Report Teams Channels (Scheduled) | List private and shared channels of all teams with their owners |
 |  | Devices | Add Autopilot Device | Register a Windows device in Windows Autopilot |
 |  |  | Add Device Via Corporate Identifier | Register a device in Intune by its corporate identifier |
 |  |  | Auto Approve Driver Updates (Scheduled) | Approve pending driver updates in Intune driver update policies |
 |  |  | Cleanup Autopilot Devices (Scheduled) | Remove orphaned and never-enrolled Autopilot registrations |
+|  |  | Cleanup Duplicate Intune Devices (Scheduled) | Remove duplicate Intune devices, keeping the most recently synced |
 |  |  | Create Endpoint Analytics Baseline | Create an Endpoint Analytics baseline with a naming schema |
 |  |  | Dedup Device Names (Scheduled) | Rename Intune devices that share a display name |
 |  |  | Delete Stale Devices (Scheduled) | Delete Intune devices that have been inactive for too long |
@@ -94,7 +97,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Check Assignments Of Users | Show which Intune policies and apps target given users |
 |  |  | Check Autopilot Serialnumbers | Check which serial numbers are registered in Autopilot |
 |  |  | Check Device Onboarding Exclusion (Scheduled) | Keep unenrolled Autopilot devices in a compliance exclusion group |
-|  |  | Enrolled Devices Report (Scheduled) | Report first-time device enrollments of the last weeks |
+|  |  | Enrolled Devices Report (Scheduled) | Report recent first-time enrollments of Windows Autopilot devices |
 |  |  | Export All Autopilot Devices | List or export all Windows Autopilot devices |
 |  |  | Export All Intune Devices | Export all Intune devices with their primary users' usage location |
 |  |  | Export Cloudpc Usage (Scheduled) | Write daily Windows 365 usage data to an Azure table |
@@ -120,10 +123,11 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Add Or Remove Teams Mailcontact | Give a Teams channel a friendly email address or remove it |
 |  |  | Add Or Remove Tenant Allow Block List | Add or remove a Tenant Allow/Block List entry |
 |  |  | Add Room Mailbox | Create a room mailbox with optional booking delegates |
-|  |  | Add Shared Mailbox | Create a shared mailbox with optional delegate |
+|  |  | Add Shared Mailbox | Create a shared mailbox with optional delegates |
 |  |  | Hide Mailboxes (Scheduled) | Hide or show all Bookings calendars in the address book |
 |  |  | Set Booking Config | Configure the Microsoft Bookings settings of the tenant |
-|  | Phone | Add Or Remove Call Queue Agents | Add or remove agents of a Teams call queue |
+|  | Phone | Add Or Remove Auto Attendant Authorized Users | Add or remove authorized users of a Teams auto attendant |
+|  |  | Add Or Remove Call Queue Agents | Add or remove agents of a Teams call queue |
 |  |  | Add Or Remove Call Queue Authorized Users | Add or remove authorized users of a Teams call queue |
 |  |  | Get Teams Phone Number Assignment | Check whether a phone number is assigned in Microsoft Teams |
 |  | Security | Add Defender Indicator | Add an allow or block indicator to Defender for Endpoint |
@@ -139,6 +143,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | List Vulnerable App Regs | List app registrations possibly affected by CVE-2021-42306 |
 |  |  | Monitor Pending EPM Requests (Scheduled) | Alert by email about pending EPM elevation requests |
 |  |  | Notify Changed CA Policies | Alert by email about Conditional Access policy changes |
+|  |  | Report Access Package Assignments (Scheduled) | List access packages with their assignments, requests and policies |
 |  |  | Report EPM Elevation Requests (Scheduled) | Report EPM elevation requests by status and age |
 |  |  | Sync MFA Secure Users To Group (Scheduled) | Keep a group filled with users who registered a secure MFA method |
 | User | AVD | User Signout | Sign this user out of their AVD sessions |
@@ -159,7 +164,7 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  |  | Assign OWA Mailbox Policy | Assign an Outlook on the web policy to this user's mailbox |
 |  |  | Convert To Shared Mailbox | Convert this user's mailbox to a shared mailbox or back |
 |  |  | Delegate Full Access | Grant or remove full access to this user's mailbox |
-|  |  | Delegate Send As | Grant or remove Send As permission on this user's mailbox |
+|  |  | Delegate Send As | Grant or revoke Exchange SendAs permission on a mailbox for one or more delegates |
 |  |  | Delegate Send On Behalf | Grant or remove Send on Behalf permission on this user's mailbox |
 |  |  | Hide Or Unhide In Addressbook | Hide this user's mailbox in the address book or show it |
 |  |  | List Mailbox Permissions | List who has access to this user's mailbox |

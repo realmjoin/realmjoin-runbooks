@@ -55,9 +55,9 @@
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "GroupsTemplate")]
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Source group" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Source group" } )]
     [String] $SourceGroupId,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclusion group" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity Group -DisplayName "Exclusion group" } )]
     [string] $ExclusionGroupId,
     # GroupsTemplate is not used directly, but is used to populate the GroupsString parameter via RJ Portal Customization
     [string] $GroupsTemplate,

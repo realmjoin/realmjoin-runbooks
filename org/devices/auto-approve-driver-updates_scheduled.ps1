@@ -3,13 +3,16 @@
 	Approve pending driver updates in Intune driver update policies
 
 	.DESCRIPTION
-	Approves driver updates that are waiting for review in Intune driver update policies, so drivers roll out without manual approval. The scope can be narrowed to certain policies, driver names, classes, manufacturers or a maximum driver age, and a dry run shows what would be approved. The report of all approvals can be sent by email or provided as a download link.
+	Approves driver updates that are waiting for review in Intune driver update policies, so drivers roll out without manual approval. The scope can be narrowed to recommended or other drivers, certain policies, driver names, classes, manufacturers or a maximum driver age, and a dry run shows what would be approved. The report of all approvals can be sent by email or provided as a download link.
 
 	.PARAMETER PolicyNames
 	Only these driver update policies, separated by commas. Leave empty for all policies.
 
 	.PARAMETER PolicyIds
 	Only these policy IDs, separated by commas. Leave empty for all policies.
+
+	.PARAMETER DriverCategory
+	Which driver list of the policy to approve from. "Recommended drivers" are the updates Windows Update offers by default, "Other drivers" are firmware, optional and superseded updates, "All drivers" takes every driver.
 
 	.PARAMETER DriverDisplayNamePattern
 	Only drivers whose name matches this pattern; wildcards such as * are allowed.
@@ -43,6 +46,9 @@
 
 	.PARAMETER StorageAccountName
 	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
+
+	.PARAMETER SubscriptionId
+	Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty.
 
 	.PARAMETER LinkExpiryDays
 	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
@@ -79,6 +85,14 @@
 			},
 			"PolicyIds": {
 				"DisplayName": "Policy IDs"
+			},
+			"DriverCategory": {
+				"DisplayName": "Driver category",
+				"SelectSimple": {
+					"Recommended drivers": "Recommended",
+					"Other drivers": "Other",
+					"All drivers": "All"
+				}
 			},
 			"DriverDisplayNamePattern": {
 				"DisplayName": "Driver name filter"
@@ -137,6 +151,9 @@
 			"StorageAccountName": {
 				"Hide": true
 			},
+			"SubscriptionId": {
+				"Hide": true
+			},
 			"LinkExpiryDays": {
 				"Hide": true
 			},
@@ -175,6 +192,9 @@ param(
     [Parameter(Mandatory = $false)]
     [string]$PolicyIds,
     [Parameter(Mandatory = $false)]
+    [ValidateSet('Recommended', 'Other', 'All')]
+    [string]$DriverCategory = 'Recommended',
+    [Parameter(Mandatory = $false)]
     [string]$DriverDisplayNamePattern,
     [Parameter(Mandatory = $false)]
     [string]$DriverClass,
@@ -196,6 +216,8 @@ param(
     [string]$ResourceGroupName,
     [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" })]
     [string]$StorageAccountName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.SubscriptionId" } )]
+    [string]$SubscriptionId,
     [ValidateScript({ Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" })]
     [ValidateRange(1, 3650)]
     [int]$LinkExpiryDays = 6,
@@ -227,11 +249,12 @@ if ($CallerName) {
     Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 }
 
-$Version = "1.3.0"
+$Version = "1.5.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "PolicyNames: $PolicyNames" -Verbose
 Write-RjRbLog -Message "PolicyIds: $PolicyIds" -Verbose
+Write-RjRbLog -Message "DriverCategory: $DriverCategory" -Verbose
 Write-RjRbLog -Message "DriverDisplayNamePattern: $DriverDisplayNamePattern" -Verbose
 Write-RjRbLog -Message "DriverClass: $DriverClass" -Verbose
 Write-RjRbLog -Message "DriverManufacturer: $DriverManufacturer" -Verbose
@@ -245,6 +268,7 @@ if ($CreateDownloadLink) {
     Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
     Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
     Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+    Write-RjRbLog -Message "SubscriptionId: $SubscriptionId" -Verbose
     Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
 }
 Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
@@ -278,7 +302,7 @@ if ($PolicyNameList.Count -eq 0 -and $PolicyIdList.Count -eq 0) {
 }
 
 # Validate driver filter criteria
-if (-not $DriverDisplayNamePattern -and -not $DriverClass -and -not $DriverManufacturer -and -not $MaximumDriverAge) {
+if ($DriverCategory -eq 'All' -and -not $DriverDisplayNamePattern -and -not $DriverClass -and -not $DriverManufacturer -and -not $MaximumDriverAge) {
     Write-RjRbLog -Message "WARNING: No driver filter specified - will approve ALL pending drivers in selected policies" -Verbose
 }
 
@@ -309,19 +333,6 @@ try {
 catch {
     Write-Error "Failed to connect to Microsoft Graph: $_" -ErrorAction Continue
     throw
-}
-
-# Connect to RealmJoin RunbookHelper (required for Send-RjRbReportEmail if EmailTo is provided)
-if ($EmailTo) {
-    Write-RjRbLog -Message "Email notification requested - connecting to RJ RunbookHelper Graph..." -Verbose
-    try {
-        Connect-RjRbGraph
-        Write-RjRbLog -Message "Successfully connected to RJ RunbookHelper Graph" -Verbose
-    }
-    catch {
-        Write-Error "Failed to connect to RJ RunbookHelper Graph: $_" -ErrorAction Continue
-        throw
-    }
 }
 
 #endregion
@@ -439,6 +450,12 @@ foreach ($policy in $targetPolicies) {
         # Filter drivers based on criteria
         $driversToApprove = $allDrivers
 
+        # Filter by driver category (the "Recommended drivers" / "Other drivers" tabs in Intune)
+        if ($DriverCategory -ne 'All') {
+            Write-RjRbLog -Message "Filtering by driver category: $DriverCategory" -Verbose
+            $driversToApprove = $driversToApprove | Where-Object { $_.category -eq $DriverCategory }
+        }
+
         # Filter by display name pattern
         if ($DriverDisplayNamePattern) {
             Write-RjRbLog -Message "Filtering by display name pattern: $DriverDisplayNamePattern" -Verbose
@@ -508,6 +525,7 @@ foreach ($policy in $targetPolicies) {
                     Version      = $driver.version
                     Manufacturer = $driver.manufacturer
                     DriverClass  = $driver.driverClass
+                    Category     = $driver.category
                     ReleaseDate  = $driver.releaseDateTime
                     Action       = "Would approve"
                 })
@@ -542,6 +560,7 @@ foreach ($policy in $targetPolicies) {
                             Version      = $driver.version
                             Manufacturer = $driver.manufacturer
                             DriverClass  = $driver.driverClass
+                            Category     = $driver.category
                             ReleaseDate  = $driver.releaseDateTime
                             Action       = "Approved"
                         })
@@ -555,6 +574,7 @@ foreach ($policy in $targetPolicies) {
                             Version      = $driver.version
                             Manufacturer = $driver.manufacturer
                             DriverClass  = $driver.driverClass
+                            Category     = $driver.category
                             ReleaseDate  = $driver.releaseDateTime
                             Action       = "Failed"
                         })
@@ -568,6 +588,7 @@ foreach ($policy in $targetPolicies) {
                             Version      = $driver.version
                             Manufacturer = $driver.manufacturer
                             DriverClass  = $driver.driverClass
+                            Category     = $driver.category
                             ReleaseDate  = $driver.releaseDateTime
                             Action       = "Not found"
                         })
@@ -585,6 +606,7 @@ foreach ($policy in $targetPolicies) {
                         Version      = $driver.version
                         Manufacturer = $driver.manufacturer
                         DriverClass  = $driver.driverClass
+                        Category     = $driver.category
                         ReleaseDate  = $driver.releaseDateTime
                         Action       = "Failed"
                     })
@@ -666,6 +688,7 @@ if ($CreateDownloadLink) {
             -ContainerName $ContainerName `
             -ResourceGroupName $ResourceGroupName `
             -StorageAccountName $StorageAccountName `
+            -SubscriptionId $SubscriptionId `
             -LinkExpiryDays $LinkExpiryDays `
             -AddBlobNamePrefix $true
 
@@ -755,6 +778,7 @@ $(if ($approvalSummary.FailedApprovals -gt 0) { "- **Failed Approvals:** $($appr
 
 ## Filters Applied
 
+- **Driver Category:** $DriverCategory
 $(if ($PolicyNameList.Count -gt 0) { "- **Policy Names:** $($PolicyNameList -join ', ')" })
 $(if ($PolicyIdList.Count -gt 0) { "- **Policy IDs:** $($PolicyIdList -join ', ')" })
 $(if ($DriverDisplayNamePattern) { "- **Driver Name Pattern:** $DriverDisplayNamePattern" })
@@ -818,6 +842,7 @@ $(if ($approvalSummary.FailedApprovals -gt 0) { "- **Failed Approvals:** $($appr
                 MarkdownContent   = $emailBody
                 TenantDisplayName = $tenantDisplayName
                 ReportVersion     = $Version
+                UseNativeGraphRequest = $true
             }
             if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxPath) {
                 Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
@@ -834,6 +859,7 @@ $(if ($approvalSummary.FailedApprovals -gt 0) { "- **Failed Approvals:** $($appr
                 -MarkdownContent $emailBody `
                 -TenantDisplayName $tenantDisplayName `
                 -ReportVersion $Version `
+                -UseNativeGraphRequest `
                 @brandingMailParams
 
             Write-Output "Email notification sent to: $EmailTo"

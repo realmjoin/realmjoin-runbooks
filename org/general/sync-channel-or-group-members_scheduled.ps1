@@ -1,293 +1,299 @@
 <#
-    .SYNOPSIS
-    Mirror members between a Teams shared channel and a group
+	.SYNOPSIS
+	Mirror members between a Teams shared channel and a group
 
-    .DESCRIPTION
-    Copies the members of a source into a target on every run. The source and target can be a shared channel and a security group, two groups, or a group and a shared channel. Missing members are always added; members that exist only in the target are removed only when asked. A dry run shows the changes without applying them, and the report can be sent by email or provided as a download link. Details on the options are in the runbook documentation (docs.realmjoin.com).
+	.DESCRIPTION
+	Copies the members of a source into a target on every run. The source and target can be a shared channel and a security group, two groups, or a group and a shared channel. Missing members are always added; members that exist only in the target are removed only when asked. A dry run shows the changes without applying them, and every run lists the changes in the Output Data tab. The report can be sent by email or provided as a download link. Details on the options are in the runbook documentation (docs.realmjoin.com).
 
-    .PARAMETER Direction
-    What is copied where: shared channel members into the target group, source group members into the target group, or source group members into the shared channel.
+	.PARAMETER Direction
+	What is copied where: shared channel members into the target group, source group members into the target group, or source group members into the shared channel.
 
-    .PARAMETER TeamId
-    Team that hosts the shared channel. Needed for the shared channel directions only.
+	.PARAMETER TeamId
+	Team that hosts the shared channel. Needed for the shared channel directions only.
 
-    .PARAMETER ChannelName
-    Exact name of the shared channel in that team. Needed for the shared channel directions only.
+	.PARAMETER ChannelName
+	Exact name of the shared channel in that team. Needed for the shared channel directions only.
 
-    .PARAMETER SourceGroupId
-    Group whose members are copied. Needed when the source is a group.
+	.PARAMETER SourceGroupId
+	Group whose members are copied. Needed when the source is a group.
 
-    .PARAMETER TargetGroupId
-    Security group that receives the members. Needed when the target is a group.
+	.PARAMETER TargetGroupId
+	Security group that receives the members. Needed when the target is a group.
 
-    .PARAMETER RemoveExtraMembers
-    Also removes members that exist only in the target, so it mirrors the source exactly. Otherwise members are only added.
+	.PARAMETER RemoveExtraMembers
+	Also removes members that exist only in the target, so it mirrors the source exactly. Otherwise members are only added.
 
-    .PARAMETER IncludeGuests
-    Also adds and removes guest users. Otherwise guests are left untouched on both sides.
+	.PARAMETER IncludeGuests
+	Also adds and removes guest users. Otherwise guests are left untouched on both sides.
 
-    .PARAMETER RemoveFromTeam
-    When a member is removed from the shared channel, also removes them from the host team. Only applies when a group is copied into a shared channel.
+	.PARAMETER RemoveFromTeam
+	When a member is removed from the shared channel, also removes them from the host team. Only applies when a group is copied into a shared channel.
 
-    .PARAMETER WhatIfMode
-    Only logs what would change without writing anything.
+	.PARAMETER WhatIfMode
+	Only logs what would change without writing anything.
 
-    .PARAMETER SendEmailReport
-    Send the report to the recipient email address.
+	.PARAMETER SendEmailReport
+	Send the report to the recipient email address. Set by the "Report delivery" choice in the portal.
 
-    .PARAMETER EmailTo
-    Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
+	.PARAMETER EmailTo
+	Send the report to these addresses. Separate several with commas; each recipient gets a separate email.
 
-    .PARAMETER EmailFrom
-    Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
+	.PARAMETER EmailFrom
+	Sender address of the report email. Taken from the tenant setting RJReport.EmailSender.
 
-    .PARAMETER BrandingHeaderImageUrl
-    Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
+	.PARAMETER BrandingHeaderImageUrl
+	Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty.
 
-    .PARAMETER BrandingFooterImageUrl
-    Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
+	.PARAMETER BrandingFooterImageUrl
+	Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty.
 
-    .PARAMETER BrandingFooterLink
-    Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
+	.PARAMETER BrandingFooterLink
+	Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty.
 
-    .PARAMETER BrandingAccentColor
-    Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
+	.PARAMETER BrandingAccentColor
+	Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid.
 
-    .PARAMETER BrandingTextColor
-    Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
+	.PARAMETER BrandingTextColor
+	Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid.
 
-    .PARAMETER ReportFileFormat
-    Deliver the report as CSV, as an Excel workbook, or both.
+	.PARAMETER ReportFileFormat
+	Deliver the report as CSV, as an Excel workbook, or both.
 
-    .PARAMETER CreateDownloadLink
-    Also upload the report and return a download link that expires after a few days.
+	.PARAMETER CreateDownloadLink
+	Also upload the report and return a download link that expires after a few days. Set by the "Report delivery" choice in the portal.
 
-    .PARAMETER ContainerName
-    Storage container the report files are uploaded to. Set per runbook.
+	.PARAMETER ContainerName
+	Storage container the report files are uploaded to. Set per runbook.
 
-    .PARAMETER ResourceGroupName
-    Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
+	.PARAMETER ResourceGroupName
+	Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup.
 
-    .PARAMETER StorageAccountName
-    Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
+	.PARAMETER StorageAccountName
+	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
 
-    .PARAMETER LinkExpiryDays
-    Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
+	.PARAMETER SubscriptionId
+	Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
+	.PARAMETER LinkExpiryDays
+	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
 
-    .INPUTS
-    RunbookCustomization: {
-        "Parameters": {
-            "Direction": {
-                "DisplayName": "Direction",
-                "Default": "SharedChannelToGroup",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Shared channel members to security group",
-                            "ParameterValue": "SharedChannelToGroup",
-                            "Customization": {
-                                "Show": [
-                                    "TeamId",
-                                    "ChannelName",
-                                    "TargetGroupId"
-                                ],
-                                "Hide": [
-                                    "SourceGroupId",
-                                    "RemoveFromTeam"
-                                ],
-                                "Mandatory": [
-                                    "TeamId",
-                                    "ChannelName",
-                                    "TargetGroupId"
-                                ]
-                            }
-                        },
-                        {
-                            "Display": "Group members to group",
-                            "ParameterValue": "GroupToGroup",
-                            "Customization": {
-                                "Show": [
-                                    "SourceGroupId",
-                                    "TargetGroupId"
-                                ],
-                                "Hide": [
-                                    "TeamId",
-                                    "ChannelName",
-                                    "RemoveFromTeam"
-                                ],
-                                "Mandatory": [
-                                    "SourceGroupId",
-                                    "TargetGroupId"
-                                ]
-                            }
-                        },
-                        {
-                            "Display": "Group members to shared channel",
-                            "ParameterValue": "GroupToSharedChannel",
-                            "Customization": {
-                                "Show": [
-                                    "SourceGroupId",
-                                    "TeamId",
-                                    "ChannelName",
-                                    "RemoveFromTeam"
-                                ],
-                                "Hide": [
-                                    "TargetGroupId"
-                                ],
-                                "Mandatory": [
-                                    "SourceGroupId",
-                                    "TeamId",
-                                    "ChannelName"
-                                ]
-                            }
-                        }
-                    ]
-                }
-            },
-            "TeamId": {
-                "DisplayName": "Team hosting the shared channel",
-                "Hide": false
-            },
-            "ChannelName": {
-                "DisplayName": "Shared channel name",
-                "Hide": false
-            },
-            "SourceGroupId": {
-                "DisplayName": "Source group",
-                "Hide": true
-            },
-            "TargetGroupId": {
-                "DisplayName": "Target security group",
-                "Hide": false
-            },
-            "RemoveExtraMembers": {
-                "DisplayName": "Remove members missing in the source?"
-            },
-            "IncludeGuests": {
-                "DisplayName": "Include guest users?"
-            },
-            "RemoveFromTeam": {
-                "DisplayName": "Also remove from the host team?",
-                "Hide": true
-            },
-            "WhatIfMode": {
-                "DisplayName": "Dry run?"
-            },
-            "SendEmailReport": {
-                "DisplayName": "Send email report?",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Yes - send the report via email",
-                            "ParameterValue": true,
-                            "Customization": {
-                                "Show": [
-                                    "EmailTo",
-                                    "ReportFileFormat"
-                                ]
-                            }
-                        },
-                        {
-                            "Display": "No - do not send an email",
-                            "ParameterValue": false,
-                            "Customization": {
-                                "Hide": [
-                                    "EmailTo",
-                                    "ReportFileFormat"
-                                ]
-                            }
-                        }
-                    ]
-                }
-            },
-            "EmailTo": {
-                "DisplayName": "Recipient email address(es)",
-                "Hide": true
-            },
-            "EmailFrom": {
-                "Hide": true
-            },
-            "BrandingHeaderImageUrl": {
-                "Hide": true
-            },
-            "BrandingFooterImageUrl": {
-                "Hide": true
-            },
-            "BrandingFooterLink": {
-                "Hide": true
-            },
-            "BrandingAccentColor": {
-                "Hide": true
-            },
-            "BrandingTextColor": {
-                "Hide": true
-            },
-            "CreateDownloadLink": {
-                "DisplayName": "Create a download link?",
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "Yes - upload report and return a download link",
-                            "ParameterValue": true,
-                            "Customization": {
-                                "Show": [
-                                    "ReportFileFormat"
-                                ]
-                            }
-                        },
-                        {
-                            "Display": "No - do not create a download link",
-                            "ParameterValue": false,
-                            "Customization": {
-                                "Hide": [
-                                    "ReportFileFormat"
-                                ]
-                            }
-                        }
-                    ]
-                }
-            },
-            "ReportFileFormat": {
-                "DisplayName": "Report file format",
-                "Hide": true,
-                "Select": {
-                    "Options": [
-                        {
-                            "Display": "CSV & XLSX",
-                            "ParameterValue": "CSV & XLSX"
-                        },
-                        {
-                            "Display": "CSV only",
-                            "ParameterValue": "CSV only"
-                        },
-                        {
-                            "Display": "XLSX only",
-                            "ParameterValue": "XLSX only"
-                        }
-                    ],
-                    "ShowValue": false
-                }
-            },
-            "ContainerName": {
-                "Hide": true
-            },
-            "ResourceGroupName": {
-                "Hide": true
-            },
-            "StorageAccountName": {
-                "Hide": true
-            },
-            "LinkExpiryDays": {
-                "Hide": true
-            },
-            "CallerName": {
-                "Hide": true
-            }
-        }
-    }
+	.PARAMETER CallerName
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
+
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"Direction": {
+				"DisplayName": "Direction",
+				"Default": "SharedChannelToGroup",
+				"Select": {
+					"Options": [
+						{
+							"Display": "Shared channel members to security group",
+							"ParameterValue": "SharedChannelToGroup",
+							"Customization": {
+								"Show": [
+									"TeamId",
+									"ChannelName",
+									"TargetGroupId"
+								],
+								"Hide": [
+									"SourceGroupId",
+									"RemoveFromTeam"
+								],
+								"Mandatory": [
+									"TeamId",
+									"ChannelName",
+									"TargetGroupId"
+								]
+							}
+						},
+						{
+							"Display": "Group members to group",
+							"ParameterValue": "GroupToGroup",
+							"Customization": {
+								"Show": [
+									"SourceGroupId",
+									"TargetGroupId"
+								],
+								"Hide": [
+									"TeamId",
+									"ChannelName",
+									"RemoveFromTeam"
+								],
+								"Mandatory": [
+									"SourceGroupId",
+									"TargetGroupId"
+								]
+							}
+						},
+						{
+							"Display": "Group members to shared channel",
+							"ParameterValue": "GroupToSharedChannel",
+							"Customization": {
+								"Show": [
+									"SourceGroupId",
+									"TeamId",
+									"ChannelName",
+									"RemoveFromTeam"
+								],
+								"Hide": [
+									"TargetGroupId"
+								],
+								"Mandatory": [
+									"SourceGroupId",
+									"TeamId",
+									"ChannelName"
+								]
+							}
+						}
+					]
+				}
+			},
+			"TeamId": {
+				"DisplayName": "Team hosting the shared channel",
+				"Hide": false
+			},
+			"ChannelName": {
+				"DisplayName": "Shared channel name",
+				"Hide": false
+			},
+			"SourceGroupId": {
+				"DisplayName": "Source group",
+				"Hide": true
+			},
+			"TargetGroupId": {
+				"DisplayName": "Target security group",
+				"Hide": false
+			},
+			"RemoveExtraMembers": {
+				"DisplayName": "Remove members missing in the source?"
+			},
+			"IncludeGuests": {
+				"DisplayName": "Include guest users?"
+			},
+			"RemoveFromTeam": {
+				"DisplayName": "Also remove from the host team?",
+				"Hide": true
+			},
+			"WhatIfMode": {
+				"DisplayName": "Dry run?"
+			},
+			"SendEmailReport": {
+				"Hide": true
+			},
+			"EmailTo": {
+				"DisplayName": "Recipient email address(es)",
+				"Hide": true
+			},
+			"EmailFrom": {
+				"Hide": true
+			},
+			"BrandingHeaderImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterImageUrl": {
+				"Hide": true
+			},
+			"BrandingFooterLink": {
+				"Hide": true
+			},
+			"BrandingAccentColor": {
+				"Hide": true
+			},
+			"BrandingTextColor": {
+				"Hide": true
+			},
+			"CreateDownloadLink": {
+				"Hide": true
+			},
+			"ReportFileFormat": {
+				"DisplayName": "Report file format",
+				"Hide": true,
+				"Select": {
+					"Options": [
+						{
+							"Display": "CSV & XLSX",
+							"ParameterValue": "CSV & XLSX"
+						},
+						{
+							"Display": "CSV only",
+							"ParameterValue": "CSV only"
+						},
+						{
+							"Display": "XLSX only",
+							"ParameterValue": "XLSX only"
+						}
+					],
+					"ShowValue": false
+				}
+			},
+			"ContainerName": {
+				"Hide": true
+			},
+			"ResourceGroupName": {
+				"Hide": true
+			},
+			"StorageAccountName": {
+				"Hide": true
+			},
+			"SubscriptionId": {
+				"Hide": true
+			},
+			"LinkExpiryDays": {
+				"Hide": true
+			},
+			"CallerName": {
+				"Hide": true
+			}
+		},
+		"ParameterList": [
+			{
+				"DisplayName": "Report delivery",
+				"DisplayAfter": "WhatIfMode",
+				"Select": {
+					"Options": [
+						{
+							"Display": "Output Data only",
+							"ParameterValue": "Output Data only",
+							"Customization": {
+								"Default": { "SendEmailReport": false, "CreateDownloadLink": false },
+								"Hide": [ "EmailTo", "ReportFileFormat" ]
+							}
+						},
+						{
+							"Display": "Also email the report",
+							"ParameterValue": "Also email the report",
+							"Customization": {
+								"Default": { "SendEmailReport": true, "CreateDownloadLink": false },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also create a download link",
+							"ParameterValue": "Also create a download link",
+							"Customization": {
+								"Default": { "SendEmailReport": false, "CreateDownloadLink": true },
+								"Show": [ "ReportFileFormat" ],
+								"Hide": [ "EmailTo" ]
+							}
+						},
+						{
+							"Display": "Also email & download link",
+							"ParameterValue": "Also email & download link",
+							"Customization": {
+								"Default": { "SendEmailReport": true, "CreateDownloadLink": true },
+								"Show": [ "EmailTo", "ReportFileFormat" ],
+								"Mandatory": [ "EmailTo" ]
+							}
+						}
+					]
+				},
+				"Default": "Output Data only"
+			}
+		]
+	}
 #>
 
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
@@ -321,7 +327,7 @@ param(
 
     [bool] $WhatIfMode = $false,
 
-    # Enables the email report; when on, EmailTo becomes visible in the portal.
+    # Enables the email report. Hidden in the portal; set via the "Report delivery" dropdown.
     [bool] $SendEmailReport = $false,
 
     [string] $EmailTo,
@@ -347,6 +353,7 @@ param(
     [string] $ReportFileFormat = 'CSV & XLSX',
 
     # Enables uploading the report file(s) to a storage account and returning a download link.
+    # Hidden in the portal; set via the "Report delivery" dropdown.
     [bool] $CreateDownloadLink = $false,
 
     [string] $ContainerName = "channel-group-member-sync",
@@ -355,6 +362,8 @@ param(
     [string] $ResourceGroupName,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" } )]
     [string] $StorageAccountName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.SubscriptionId" } )]
+    [string] $SubscriptionId,
     [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" } )]
     [ValidateRange(1, 3650)]
     [int] $LinkExpiryDays = 6,
@@ -365,27 +374,60 @@ param(
 )
 
 ########################################################
-#region     Function declaration
-##
+#region     Function Definitions
 ########################################################
 
 function Get-GraphPagedResult {
+    <#
+        .SYNOPSIS
+        Retrieves all items from a paginated Microsoft Graph API endpoint.
+
+        .DESCRIPTION
+        Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
+
+        .PARAMETER Uri
+        The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
+
+        .EXAMPLE
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
+    #>
     param(
-        [Parameter(Mandatory = $true)]
-        [string] $Uri
+        [string]$Uri
     )
 
-    $results = @()
+    $allResults = [System.Collections.Generic.List[object]]::new()
     $nextLink = $Uri
+    $pageCount = 0
+
     do {
-        $response = Invoke-MgGraphRequest -Method GET -Uri $nextLink
-        if ($response.value) {
-            $results += $response.value
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
         }
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
         $nextLink = $response.'@odata.nextLink'
     } while ($nextLink)
 
-    return $results
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
 }
 
 function Get-GroupMemberUser {
@@ -433,16 +475,15 @@ function Get-ChannelMemberUser {
     }
 }
 
-#endregion
+#endregion Function Definitions
 
 ########################################################
 #region     RJ Log Part
-##
 ########################################################
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.3.0"
+$Version = "1.4.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "Submitted parameters:" -Verbose
@@ -457,12 +498,14 @@ Write-RjRbLog -Message "RemoveFromTeam: $RemoveFromTeam" -Verbose
 Write-RjRbLog -Message "WhatIfMode: $WhatIfMode" -Verbose
 Write-RjRbLog -Message "SendEmailReport: $SendEmailReport" -Verbose
 Write-RjRbLog -Message "EmailTo: $EmailTo" -Verbose
+Write-RjRbLog -Message "EmailFrom: $EmailFrom" -Verbose
 Write-RjRbLog -Message "ReportFileFormat: $ReportFileFormat" -Verbose
 Write-RjRbLog -Message "CreateDownloadLink: $CreateDownloadLink" -Verbose
 if ($CreateDownloadLink) {
     Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
     Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
     Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+    Write-RjRbLog -Message "SubscriptionId: $SubscriptionId" -Verbose
     Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
 }
 Write-RjRbLog -Message "BrandingHeaderImageUrl: $BrandingHeaderImageUrl" -Verbose
@@ -471,11 +514,10 @@ Write-RjRbLog -Message "BrandingFooterLink: $BrandingFooterLink" -Verbose
 Write-RjRbLog -Message "BrandingAccentColor: $BrandingAccentColor" -Verbose
 Write-RjRbLog -Message "BrandingTextColor: $BrandingTextColor" -Verbose
 
-#endregion
+#endregion RJ Log Part
 
 ########################################################
 #region     Parameter Validation
-##
 ########################################################
 
 $sourceIsChannel = ($Direction -eq "SharedChannelToGroup")
@@ -521,11 +563,10 @@ if ($CreateDownloadLink -and ((-not $ResourceGroupName) -or (-not $StorageAccoun
     throw ("Storage account configuration missing")
 }
 
-#endregion
+#endregion Parameter Validation
 
 ########################################################
 #region     Connect Part
-##
 ########################################################
 
 Write-Output "Initiate MGGraph Session..."
@@ -539,11 +580,22 @@ catch {
     throw ("Graph connection failed")
 }
 
-#endregion
+# Tenant display name for the report email subject and footer, only needed when a report is produced
+$tenantDisplayName = ""
+if ($SendEmailReport -or $CreateDownloadLink) {
+    try {
+        $org = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/organization?`$select=displayName"
+        $tenantDisplayName = @($org.value).displayName | Select-Object -First 1
+    }
+    catch {
+        Write-RjRbLog -Message "Could not resolve tenant display name: $_" -Verbose
+    }
+}
+
+#endregion Connect Part
 
 ########################################################
 #region     StatusQuo & Preflight-Check Part
-##
 ########################################################
 
 $mode = if ($WhatIfMode) { "WhatIf" } else { "Live" }
@@ -665,11 +717,10 @@ if ($RemoveExtraMembers) {
 Write-Output "Members to add: $($toAdd.Count)"
 Write-Output "Members to remove: $($toRemove.Count)$(if (-not $RemoveExtraMembers) { ' (removal disabled)' })"
 
-#endregion
+#endregion StatusQuo & Preflight-Check Part
 
 ########################################################
 #region     Main Part
-##
 ########################################################
 
 Write-Output ""
@@ -809,36 +860,26 @@ if ($WhatIfMode) {
     "## (WhatIf mode - counts reflect what WOULD have been changed.)"
 }
 
-#endregion
+#endregion Main Part
 
 ########################################################
-#region     Report (email and/or download link)
-##
+#region     Report File Export
 ########################################################
 
-$brandingMailParams = @{}
+$reportFiles = @()
+$actionsCsvPath = $null
+$xlsxPath = $null
+
+# Sort once so the Output Data table, the CSV and the XLSX exports use identical data
+$actionRows = @($actionRows | Sort-Object Action, UserUpn)
+
+# Report files are only needed when they are attached to an email and/or uploaded for a download link
 if ($SendEmailReport -or $CreateDownloadLink) {
     Write-Output ""
     Write-Output "## Preparing report..."
 
-    # Tenant display name for the report footer/subject
-    $tenantDisplayName = ""
-    try {
-        $org = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/organization?`$select=displayName"
-        $tenantDisplayName = @($org.value).displayName | Select-Object -First 1
-    }
-    catch {
-        Write-RjRbLog -Message "Could not resolve tenant display name: $_" -Verbose
-    }
-
     $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
     $basePath = (Get-Location).Path
-
-    # Sort once so the CSV and XLSX exports use identical data
-    $actionRows = @($actionRows | Sort-Object Action, UserUpn)
-
-    $reportFiles = @()
-    $xlsxPath = $null
 
     if ($ReportFileFormat -ne 'XLSX only') {
         # CSV: per-change detail
@@ -859,51 +900,64 @@ if ($SendEmailReport -or $CreateDownloadLink) {
         $actionRows | Export-RjRbXlsx -Path $xlsxPath -WorksheetName "Actions"
         $reportFiles += $xlsxPath
     }
+}
 
-    # Upload + download link (optional)
-    $downloadLinks = @()
-    if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
-        Write-Output "## Uploading report to storage account..."
-        $uploadResults = Publish-RjRbFilesToStorageContainer `
-            -FilePaths $reportFiles `
-            -ContainerName $ContainerName `
-            -ResourceGroupName $ResourceGroupName `
-            -StorageAccountName $StorageAccountName `
-            -LinkExpiryDays $LinkExpiryDays `
-            -AddBlobNamePrefix $true
+#endregion Report File Export
 
-        foreach ($uploadResult in $uploadResults) {
-            $downloadLinks += [PSCustomObject]@{
-                FileName = $uploadResult.BlobName
-                SASLink  = $uploadResult.SASLink
-                Expiry   = $uploadResult.EndTime
-            }
-            Write-Output "## Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
-            $uploadResult.SASLink | Out-String | Write-Output
+########################################################
+#region     Upload / Download Link
+########################################################
+
+$downloadLinks = @()
+if ($CreateDownloadLink -and $reportFiles.Count -gt 0) {
+    Write-Output "## Uploading report to storage account..."
+    $uploadResults = Publish-RjRbFilesToStorageContainer `
+        -FilePaths $reportFiles `
+        -ContainerName $ContainerName `
+        -ResourceGroupName $ResourceGroupName `
+        -StorageAccountName $StorageAccountName `
+        -SubscriptionId $SubscriptionId `
+        -LinkExpiryDays $LinkExpiryDays `
+        -AddBlobNamePrefix $true
+
+    foreach ($uploadResult in $uploadResults) {
+        $downloadLinks += [PSCustomObject]@{
+            FileName = $uploadResult.BlobName
+            SASLink  = $uploadResult.SASLink
+            Expiry   = $uploadResult.EndTime
         }
+        Write-Output "## Download link ($($uploadResult.BlobName)) - expires $($uploadResult.EndTime):"
+        $uploadResult.SASLink | Out-String | Write-Output
     }
+}
 
-    # Email report (optional)
-    if ($SendEmailReport) {
-        Write-Output "## Preparing email report for '$EmailTo'..."
+#endregion Upload / Download Link
 
-        $modeNote = if ($WhatIfMode) { "**WhatIf / dry run** - the figures below reflect changes that *would* have been made; nothing was written." } else { "Live run - the figures below reflect changes that were applied." }
+########################################################
+#region     Send Email Report
+########################################################
 
-        # Optional download-link section (when CreateDownloadLink produced links)
-        $downloadSection = ""
-        if ($downloadLinks.Count -gt 0) {
-            $linkLines = foreach ($dl in $downloadLinks) {
-                "- [$($dl.FileName)]($($dl.SASLink)) (expires $($dl.Expiry))"
-            }
-            $downloadSection = @"
+$brandingMailParams = @{}
+if ($SendEmailReport) {
+    Write-Output "## Preparing email report for '$EmailTo'..."
+
+    $modeNote = if ($WhatIfMode) { "**WhatIf / dry run** - the figures below reflect changes that *would* have been made; nothing was written." } else { "Live run - the figures below reflect changes that were applied." }
+
+    # Optional download-link section (when CreateDownloadLink produced links)
+    $downloadSection = ""
+    if ($downloadLinks.Count -gt 0) {
+        $linkLines = foreach ($dl in $downloadLinks) {
+            "- [$($dl.FileName)]($($dl.SASLink)) (expires $($dl.Expiry))"
+        }
+        $downloadSection = @"
 
 ## Download links
 
 $($linkLines -join "`n")
 "@
-        }
+    }
 
-        $markdownContent = @"
+    $markdownContent = @"
 # Member Sync
 
 $modeNote
@@ -933,7 +987,7 @@ $(if ($ReportFileFormat -ne 'CSV only') { "- **$([IO.Path]::GetFileName($xlsxPat
 *This email was automatically generated. Please do not reply to this email.*
 "@
 
-        $markdownFallback = @"
+    $markdownFallback = @"
 # Member Sync
 
 $modeNote
@@ -951,47 +1005,110 @@ $modeNote
 
 - **$([IO.Path]::GetFileName($xlsxPath))** - one row per individual change (target, user, action) as a formatted Excel workbook.
 
-> **Note:** The CSV file was not attached because it exceeds the email attachment size limit. The Excel workbook contains the complete data. Enable the download link option (CreateDownloadLink) to obtain the raw CSV file.
+> **Note:** The CSV file was not attached because it exceeds the email attachment size limit. The Excel workbook contains the complete data. Choose a report delivery with a download link to obtain the raw CSV file.
 
 ---
 
 *This email was automatically generated. Please do not reply to this email.*
 "@
 
-        $emailSubject = "Member Sync - $Direction - added $totalAdded, removed $totalRemoved$(if ($WhatIfMode) { ' [WhatIf]' }) - $tenantDisplayName".Trim()
+    $emailSubject = "Member Sync - $Direction - added $totalAdded, removed $totalRemoved$(if ($WhatIfMode) { ' [WhatIf]' }) - $tenantDisplayName".Trim()
 
-        # Send email (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSV is too large)
-        Write-Output "Sending report to '$EmailTo'..."
+    # Send email (attachment size guarded; "CSV & XLSX" falls back to the workbook alone when the CSV is too large)
+    Write-Output "Sending report to '$EmailTo'..."
 
-        # Resolve optional tenant email branding once per run (never fails the send)
-        $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
+    # Resolve optional tenant email branding once per run (never fails the send)
+    $brandingMailParams = Get-RjRbBrandingMailParams -HeaderImageUrl $BrandingHeaderImageUrl -FooterImageUrl $BrandingFooterImageUrl -FooterLink $BrandingFooterLink -AccentColor $BrandingAccentColor -TextColor $BrandingTextColor
 
-        try {
-            $guardParams = @{
-                EmailFrom         = $EmailFrom
-                EmailTo           = $EmailTo
-                Subject           = $emailSubject
-                MarkdownContent   = $markdownContent
-                TenantDisplayName = $tenantDisplayName
-                ReportVersion     = $Version
-            }
-            $guardParams.UseNativeGraphRequest = $true
-            if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxPath) {
-                Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
-            }
-            else {
-                Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
-            }
-            Write-RjRbLog -Message "Email report sent to: $EmailTo" -Verbose
+    try {
+        $guardParams = @{
+            EmailFrom         = $EmailFrom
+            EmailTo           = $EmailTo
+            Subject           = $emailSubject
+            MarkdownContent   = $markdownContent
+            TenantDisplayName = $tenantDisplayName
+            ReportVersion     = $Version
         }
-        catch {
-            Write-Error "Failed to send email report: $($_.Exception.Message)" -ErrorAction Continue
-            throw
+        $guardParams.UseNativeGraphRequest = $true
+        if ($ReportFileFormat -eq 'CSV & XLSX' -and $xlsxPath) {
+            Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles -FallbackAttachments @($xlsxPath) -FallbackMarkdownContent $markdownFallback
         }
+        else {
+            Send-RjRbReportEmail @guardParams @brandingMailParams -Attachments $reportFiles
+        }
+        Write-RjRbLog -Message "Email report sent to: $EmailTo" -Verbose
+    }
+    catch {
+        Write-Error "Failed to send email report: $($_.Exception.Message)" -ErrorAction Continue
+        throw
     }
 }
 
-#endregion
+#endregion Send Email Report
+
+########################################################
+#region     Structured Output (Output Data)
+########################################################
+
+# Emitted last so the tables are not interleaved with the progress output. Every table has its own
+# RjTableTitle marker and its own column set; a marker is only written when rows follow it.
+Write-Output ""
+
+# Same figures as the summary of the report email
+$summaryRows = @(
+    [PSCustomObject]@{ Metric = "Mode"; Value = "$mode" }
+    [PSCustomObject]@{ Metric = "Direction"; Value = "$Direction" }
+    [PSCustomObject]@{ Metric = "Source"; Value = "$sourceLabel" }
+    [PSCustomObject]@{ Metric = "Target"; Value = "$targetLabel" }
+    [PSCustomObject]@{ Metric = "Source members"; Value = "$($sourceMembers.Count)" }
+    [PSCustomObject]@{ Metric = "Target members (before)"; Value = "$($targetMembers.Count)" }
+    [PSCustomObject]@{ Metric = "Members added"; Value = "$totalAdded" }
+    [PSCustomObject]@{ Metric = "Members removed"; Value = "$totalRemoved" }
+    [PSCustomObject]@{ Metric = "Remove extra members"; Value = "$RemoveExtraMembers" }
+    [PSCustomObject]@{ Metric = "Include guests"; Value = "$IncludeGuests" }
+)
+Write-Output ([PSCustomObject]@{ RjTableTitle = "Summary" })
+Write-Output $summaryRows
+
+if ($actionRows.Count -gt 0) {
+    # Same rows and columns as the CSV file and the "Actions" worksheet
+    Write-Output ([PSCustomObject]@{ RjTableTitle = "Actions" })
+    Write-Output $actionRows
+}
+elseif ($WhatIfMode) {
+    Write-Output "No member would be added or removed."
+}
+else {
+    Write-Output "No member was added or removed."
+}
+
+#endregion Structured Output (Output Data)
+
+########################################################
+#region     Cleanup
+########################################################
+
+# Remove the downloaded branding images and the local report files, if any were created
+foreach ($brandingKey in @('HeaderImage', 'FooterImage')) {
+    if ($brandingMailParams -and $brandingMailParams.ContainsKey($brandingKey) -and (Test-Path -LiteralPath $brandingMailParams[$brandingKey])) {
+        Remove-Item -LiteralPath $brandingMailParams[$brandingKey] -Force -ErrorAction SilentlyContinue
+    }
+}
+foreach ($reportFile in $reportFiles) {
+    if ($reportFile -and (Test-Path -LiteralPath $reportFile)) {
+        Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
+    }
+}
+
+if ($CreateDownloadLink) {
+    Disconnect-AzAccount -ErrorAction SilentlyContinue -Confirm:$false | Out-Null
+}
+
+if (Get-MgContext -ErrorAction SilentlyContinue) {
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+}
 
 Write-Output ""
 Write-Output "Done!"
+
+#endregion Cleanup

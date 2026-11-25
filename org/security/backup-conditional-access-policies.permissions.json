@@ -14,6 +14,6 @@
     ],
     "Roles": [],
     "ManualPermissions": [
-        "Azure IaaS: Access to the given Azure Storage Account / Resource Group"
+        "Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys"
     ]
 }

@@ -1,0 +1,45 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "Channel.ReadBasic.All",
+                    "Reason": "Lists the shared channels of every team via /teams/{id}/channels"
+                },
+                {
+                    "Value": "ChannelMember.Read.All",
+                    "Reason": "Reads the direct members, all members and the teams each shared channel is shared with"
+                },
+                {
+                    "Value": "Team.ReadBasic.All",
+                    "Reason": "Lists every team of the tenant via /teams and reads the selected teams"
+                },
+                {
+                    "Value": "CrossTenantInformation.ReadBasic.All",
+                    "Optional": true,
+                    "Feature": "External organization names",
+                    "Reason": "Resolves the organization name of members and teams from other tenants; without it the tenant ID is shown"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the report email via Send-RjRbReportEmail when email delivery is selected"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Reads the tenant display name for the email subject, the email body, the report file names and the Organization column"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": [
+        "Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required for the download link options)"
+    ]
+}

@@ -22,8 +22,10 @@ An hourly schedule is recommended.
 ## Email behaviour
 
 - Emails are sent individually to each recipient.
+- If some recipients cannot be reached, a warning in the job output names them; the job fails only when no recipient got the email.
 - No email is sent when there are no pending requests.
 - Report file attachments (see `ReportFileFormat`) are only included when `DetailedReport` is enabled.
+- The request details in the email (requesting user, file name, device, justification) are shown as plain text: links, images or formatting typed by the requesting user are not rendered.
 
 ## Setup regarding email sending
 
@@ -50,6 +52,7 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 ### Application permissions
 - **Type**: Microsoft Graph
   - DeviceManagementConfiguration.Read.All
+  - Organization.Read.All
   - Mail.Send *(optional: Email report)*
 
 
@@ -164,6 +167,15 @@ Resource group of the storage account for report uploads. Taken from the tenant 
 
 ### StorageAccountName
 Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName.
+
+| Property | Value |
+|----------|-------|
+| Default Value |  |
+| Required | false |
+| Type | String |
+
+### SubscriptionId
+Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty.
 
 | Property | Value |
 |----------|-------|

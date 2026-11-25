@@ -94,7 +94,7 @@ param (
     [ValidateRange(1, 168)]
     [int]$LookbackHours = 24,
 
-    [bool]$IncludeAdvisories = $false,
+    [bool]$IncludeAdvisories = $true,
 
     [bool]$IncludeResolvedIssues = $false,
 
@@ -130,7 +130,7 @@ param (
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.4.0"
+$Version = "1.5.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
 Write-RjRbLog -Message "Submitted parameters:" -Verbose

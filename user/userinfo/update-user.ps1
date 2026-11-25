@@ -153,13 +153,13 @@ param (
     [string]$Department,
     # think "physicalDeliveryOfficeName" if you are coming from on-prem
     [string]$OfficeLocation,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Number } )]
+    [ValidateScript( { Use-RJInterface -Type Number } )]
     [string]$PostalCode,
     [string]$PreferredLanguage,
     [string]$State,
     [string]$StreetAddress,
     [string]$UsageLocation,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Graph -Entity User -DisplayName "Manager" -Filter "userType eq 'Member'" } )]
+    [ValidateScript( { Use-RJInterface -Type Graph -Entity User -DisplayName "Manager" -Filter "userType eq 'Member'" } )]
     [string]$ManagerId = "",
     [string]$DefaultLicense = "",
     [string]$DefaultGroups = "",

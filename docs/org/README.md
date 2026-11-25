@@ -15,6 +15,7 @@
 ## Collab
   - [Check Onedrive Status](collab/check-onedrive-status.md)
   - [List Sharepoint Sitecollection Permission](collab/list-sharepoint-sitecollection-permission.md)
+  - [Report Shared Channel Members (Scheduled)](collab/report-shared-channel-members_scheduled.md)
   - [Report Sharepoint Tenant Storage (Scheduled)](collab/report-sharepoint-tenant-storage_scheduled.md)
   - [Report Teams Channels (Scheduled)](collab/report-teams-channels_scheduled.md)
 <a name='org-devices'></a>
@@ -23,6 +24,7 @@
   - [Add Device Via Corporate Identifier](devices/add-device-via-corporate-identifier.md)
   - [Auto Approve Driver Updates (Scheduled)](devices/auto-approve-driver-updates_scheduled.md)
   - [Cleanup Autopilot Devices (Scheduled)](devices/cleanup-autopilot-devices_scheduled.md)
+  - [Cleanup Duplicate Intune Devices (Scheduled)](devices/cleanup-duplicate-intune-devices_scheduled.md)
   - [Create Endpoint Analytics Baseline](devices/create-endpoint-analytics-baseline.md)
   - [Dedup Device Names (Scheduled)](devices/dedup-device-names_scheduled.md)
   - [Delete Stale Devices (Scheduled)](devices/delete-stale-devices_scheduled.md)
@@ -95,6 +97,7 @@
   - [Set Booking Config](mail/set-booking-config.md)
 <a name='org-phone'></a>
 ## Phone
+  - [Add Or Remove Auto Attendant Authorized Users](phone/add-or-remove-auto-attendant-authorized-users.md)
   - [Add Or Remove Call Queue Agents](phone/add-or-remove-call-queue-agents.md)
   - [Add Or Remove Call Queue Authorized Users](phone/add-or-remove-call-queue-authorized-users.md)
   - [Get Teams Phone Number Assignment](phone/get-teams-phone-number-assignment.md)
@@ -113,6 +116,7 @@
   - [List Vulnerable App Regs](security/list-vulnerable-app-regs.md)
   - [Monitor Pending EPM Requests (Scheduled)](security/monitor-pending-epm-requests_scheduled.md)
   - [Notify Changed CA Policies](security/notify-changed-ca-policies.md)
+  - [Report Access Package Assignments (Scheduled)](security/report-access-package-assignments_scheduled.md)
   - [Report EPM Elevation Requests (Scheduled)](security/report-epm-elevation-requests_scheduled.md)
   - [Sync MFA Secure Users To Group (Scheduled)](security/sync-mfa-secure-users-to-group_scheduled.md)
 

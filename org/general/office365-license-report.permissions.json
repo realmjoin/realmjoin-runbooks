@@ -6,20 +6,20 @@
             "Id": "00000003-0000-0000-c000-000000000000",
             "AppRoleAssignments": [
                 {
-                    "Value": "Reports.Read.All",
-                    "Reason": "Pulls the Office 365 usage and activity report CSVs from /reports"
-                },
-                {
                     "Value": "Directory.Read.All",
                     "Reason": "Reads /subscribedSkus and group license assignments for the SKU overview"
                 },
                 {
-                    "Value": "User.Read.All",
-                    "Reason": "Lists users and reads their license details for the per-user reports"
+                    "Value": "Reports.Read.All",
+                    "Reason": "Pulls the Office 365 usage and activity report CSVs from /reports"
                 },
                 {
                     "Value": "ReportSettings.ReadWrite.All",
                     "Reason": "Temporarily disables concealed report names when includeUserData is enabled, then restores the setting"
+                },
+                {
+                    "Value": "User.Read.All",
+                    "Reason": "Lists users and reads their license details for the per-user reports"
                 },
                 {
                     "Value": "AuditLog.Read.All",
@@ -51,5 +51,7 @@
             "Reason": "Required for the app-only Exchange Online session when includeExchange is enabled"
         }
     ],
-    "ManualPermissions": []
+    "ManualPermissions": [
+        "Azure Storage Account: 'Reader and Data Access' role for the Automation Account's managed identity on the target storage account - the upload retrieves the account keys via listKeys (only required when exportToFile is enabled)"
+    ]
 }

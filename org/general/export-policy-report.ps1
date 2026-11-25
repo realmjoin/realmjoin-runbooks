@@ -1,84 +1,125 @@
 <#
-    .SYNOPSIS
-    Export Intune and Entra ID policies as a Markdown report
+	.SYNOPSIS
+	Export Intune and Entra ID policies as a Markdown report
 
-    .DESCRIPTION
-    Collects the configuration policies from Intune and Entra ID and writes them into one Markdown report, for documentation or review. The raw policy definitions can be exported as JSON as well. The files can be uploaded to an Azure Storage account with time-limited download links. Nothing is changed.
+	.DESCRIPTION
+	Collects the configuration policies from Intune and Entra ID and writes them into one Markdown report, for documentation or review. The raw policy definitions can be exported as JSON as well. The files can be uploaded to an Azure Storage account with time-limited download links. Nothing is changed.
 
-    .PARAMETER produceLinks
-    Uploads the report files to the storage account configured in the tenant settings and returns download links.
+	.PARAMETER produceLinks
+	Uploads the report files to the storage account configured in the tenant settings and returns download links.
 
-    .PARAMETER exportJson
-    Also exports the raw policy definitions as JSON files.
+	.PARAMETER exportJson
+	Also exports the raw policy definitions as JSON files.
 
-    .PARAMETER renderLatexPagebreaks
-    Adds LaTeX page breaks to the Markdown, so each policy starts on a new page when the Markdown is converted to PDF.
+	.PARAMETER renderLatexPagebreaks
+	Adds LaTeX page breaks to the Markdown, so each policy starts on a new page when the Markdown is converted to PDF.
 
-    .PARAMETER ContainerName
-    Storage container the report files are uploaded to. Taken from the tenant setting TenantPolicyReport.Container.
+	.PARAMETER ContainerName
+	Storage container the report files are uploaded to. Taken from the tenant setting TenantPolicyReport.Container, otherwise set per runbook.
 
-    .PARAMETER ResourceGroupName
-    Resource group of the storage account. Taken from the tenant setting TenantPolicyReport.ResourceGroup.
+	.PARAMETER ResourceGroupName
+	Resource group of the storage account for report uploads. Taken from the tenant setting TenantPolicyReport.ResourceGroup; when it is not set, RJReport.StorageAccount.ResourceGroup is used.
 
-    .PARAMETER StorageAccountName
-    Storage account for the export. Taken from the tenant setting TenantPolicyReport.StorageAccount.Name.
+	.PARAMETER StorageAccountName
+	Storage account for report uploads. Taken from the tenant setting TenantPolicyReport.StorageAccount.Name; when it is not set, RJReport.StorageAccount.StorageAccountName is used.
 
-    .PARAMETER StorageAccountLocation
-    Azure region used when the storage account has to be created. Taken from the tenant setting TenantPolicyReport.StorageAccount.Location.
+	.PARAMETER SubscriptionId
+	Subscription ID of the storage account given in ResourceGroupName and StorageAccountName. Not taken from a tenant setting; the subscription the managed identity signs in to is used when empty.
 
-    .PARAMETER StorageAccountSku
-    Performance tier used when the storage account has to be created. Taken from the tenant setting TenantPolicyReport.StorageAccount.Sku.
+	.PARAMETER StorageAccountLocation
+	No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run.
 
-    .PARAMETER CallerName
-    Name of the user who started the runbook. Set by the portal and recorded for auditing.
+	.PARAMETER StorageAccountSku
+	No longer used, because the storage account is not created any more. Kept so existing schedules and API calls keep starting; a passed value only adds a deprecation warning to the run.
 
-    .INPUTS
-    RunbookCustomization: {
-        "Parameters": {
-            "ContainerName": {
-                "Hide": true
-            },
-            "ResourceGroupName": {
-                "Hide": true
-            },
-            "StorageAccountName": {
-                "Hide": true
-            },
-            "StorageAccountLocation": {
-                "Hide": true
-            },
-            "StorageAccountSku": {
-                "Hide": true
-            },
-            "CallerName": {
-                "Hide": true
-            }
-        }
-    }
+	.PARAMETER RJReportResourceGroupName
+	Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup and used when TenantPolicyReport.ResourceGroup is not set.
+
+	.PARAMETER RJReportStorageAccountName
+	Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName and used when TenantPolicyReport.StorageAccount.Name is not set.
+
+	.PARAMETER RJReportSubscriptionId
+	Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId and used when the storage account comes from RJReport.StorageAccount.
+
+	.PARAMETER LinkExpiryDays
+	Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays.
+
+	.PARAMETER CallerName
+	Name of the user who started the runbook. Set by the portal and recorded for auditing.
+
+	.INPUTS
+	RunbookCustomization: {
+		"Parameters": {
+			"ContainerName": {
+				"Hide": true
+			},
+			"ResourceGroupName": {
+				"Hide": true
+			},
+			"StorageAccountName": {
+				"Hide": true
+			},
+			"SubscriptionId": {
+				"Hide": true
+			},
+			"StorageAccountLocation": {
+				"Hide": true
+			},
+			"StorageAccountSku": {
+				"Hide": true
+			},
+			"RJReportResourceGroupName": {
+				"Hide": true
+			},
+			"RJReportStorageAccountName": {
+				"Hide": true
+			},
+			"RJReportSubscriptionId": {
+				"Hide": true
+			},
+			"LinkExpiryDays": {
+				"Hide": true
+			},
+			"CallerName": {
+				"Hide": true
+			}
+		}
+	}
 #>
 
-#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 #Requires -Modules @{ModuleName = "RealmJoin.RunbookHelper"; ModuleVersion = "0.8.10" }
+#Requires -Modules @{ModuleName = "Az.Accounts"; ModuleVersion = "5.5.2" }
+#Requires -Modules @{ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "2.41.2" }
 
-# Suppress false positive from PSScriptAnalyzer - $blob is used to suppress unwanted output from Set-AzStorageBlobContent
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "blob")]
 param(
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Create download links?" -Type Setting -Attribute "TenantPolicyReport.CreateLinks" } )]
+    # Legacy report settings: TenantPolicyReport.CreateLinks - unbind when it is switched off
+    [ValidateScript( { Use-RJInterface -DisplayName "Create download links?" -Type Setting -Attribute "TenantPolicyReport.CreateLinks" } )]
     [bool] $produceLinks = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Also export raw JSON?" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Also export raw JSON?" } )]
     [bool] $exportJson = $false,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -DisplayName "Add page breaks for PDF?" } )]
+    [ValidateScript( { Use-RJInterface -DisplayName "Add page breaks for PDF?" } )]
     [bool] $renderLatexPagebreaks = $true,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.Container" } )]
-    [string] $ContainerName = "rjrb-licensing-report-v2",
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.ResourceGroup" } )]
+    # Legacy report settings: TenantPolicyReport.* - rebind to RJReport.StorageAccount.* (ContainerName: unbind) when it is switched off
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.Container" } )]
+    [string] $ContainerName = "export-policy-report",
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.ResourceGroup" } )]
     [string] $ResourceGroupName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.StorageAccount.Name" } )]
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.StorageAccount.Name" } )]
     [string] $StorageAccountName,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.StorageAccount.Location" } )]
+    # Legacy report settings: set only explicitly for now - bind to RJReport.StorageAccount.SubscriptionId when it is switched off
+    [string] $SubscriptionId,
+    # Legacy report settings: deprecated and ignored, kept so existing schedules and API calls keep starting
     [string] $StorageAccountLocation,
-    [ValidateScript( { Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; Use-RJInterface -Type Setting -Attribute "TenantPolicyReport.StorageAccount.Sku" } )]
     [string] $StorageAccountSku,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.ResourceGroup" } )]
+    [string] $RJReportResourceGroupName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.StorageAccountName" } )]
+    [string] $RJReportStorageAccountName,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.SubscriptionId" } )]
+    [string] $RJReportSubscriptionId,
+    [ValidateScript( { Use-RJInterface -Type Setting -Attribute "RJReport.StorageAccount.LinkExpiryDays" } )]
+    [ValidateRange(1, 3650)]
+    [int] $LinkExpiryDays = 6,
     # CallerName is tracked purely for auditing purposes
     [Parameter(Mandatory = $true)]
     [string] $CallerName
@@ -92,10 +133,59 @@ $VerbosePreference = "SilentlyContinue"
 
 Write-RjRbLog -Message "Caller: '$CallerName'" -Verbose
 
-$Version = "1.0.3"
+$Version = "1.1.0"
 Write-RjRbLog -Message "Version: $Version" -Verbose
 
-#endregion
+Write-RjRbLog -Message "produceLinks: $produceLinks" -Verbose
+Write-RjRbLog -Message "exportJson: $exportJson" -Verbose
+Write-RjRbLog -Message "renderLatexPagebreaks: $renderLatexPagebreaks" -Verbose
+Write-RjRbLog -Message "ContainerName: $ContainerName" -Verbose
+Write-RjRbLog -Message "ResourceGroupName: $ResourceGroupName" -Verbose
+Write-RjRbLog -Message "StorageAccountName: $StorageAccountName" -Verbose
+Write-RjRbLog -Message "SubscriptionId: $SubscriptionId" -Verbose
+Write-RjRbLog -Message "StorageAccountLocation: $StorageAccountLocation" -Verbose
+Write-RjRbLog -Message "StorageAccountSku: $StorageAccountSku" -Verbose
+Write-RjRbLog -Message "RJReportResourceGroupName: $RJReportResourceGroupName" -Verbose
+Write-RjRbLog -Message "RJReportStorageAccountName: $RJReportStorageAccountName" -Verbose
+Write-RjRbLog -Message "RJReportSubscriptionId: $RJReportSubscriptionId" -Verbose
+Write-RjRbLog -Message "LinkExpiryDays: $LinkExpiryDays" -Verbose
+
+#endregion RJ Log Part
+
+########################################################
+#region     Parameter Validation
+########################################################
+
+# Legacy report settings: TenantPolicyReport.* stays bound to the original parameters, so explicit values, existing schedules
+# and API calls behave as before and the legacy settings win. RJReport.StorageAccount.* fills in when they are not set.
+if (-not ($ResourceGroupName -and $StorageAccountName) -and $RJReportResourceGroupName -and $RJReportStorageAccountName) {
+    Write-RjRbLog -Message "Using RJReport.StorageAccount.* - TenantPolicyReport.* is not configured" -Verbose
+    $ResourceGroupName = $RJReportResourceGroupName
+    $StorageAccountName = $RJReportStorageAccountName
+    $SubscriptionId = $RJReportSubscriptionId
+}
+
+# Legacy report settings: remove with StorageAccountLocation / StorageAccountSku in the switch-off release
+if ($PSBoundParameters.ContainsKey('StorageAccountLocation') -or $PSBoundParameters.ContainsKey('StorageAccountSku')) {
+    $deprecationMessage = "StorageAccountLocation and StorageAccountSku are deprecated and ignored - the storage account is no longer created automatically. Re-create this schedule or drop both parameters from the API call; a later version removes them."
+    Write-RjRbLog -Message "WARNING: $deprecationMessage"
+    Write-Warning $deprecationMessage
+}
+
+# The report files are only delivered via the storage account, so stop before collecting the policies
+if ((-not $ResourceGroupName) -or (-not $StorageAccountName)) {
+    "## To export the policy report, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
+    ""
+    "## Configure the following attributes (see https://docs.realmjoin.com/automation/runbooks/runbook-report-settings):"
+    "## - RJReport.StorageAccount.ResourceGroup"
+    "## - RJReport.StorageAccount.StorageAccountName"
+    "## The runbook-specific TenantPolicyReport.ResourceGroup and TenantPolicyReport.StorageAccount.Name are still read and take precedence."
+    ""
+    "## Stopping execution."
+    throw "Missing Storage Account Configuration."
+}
+
+#endregion Parameter Validation
 
 ########################################################
 #region     Function Definitions
@@ -108,31 +198,90 @@ function Get-GraphPagedResult {
 
         .DESCRIPTION
         Takes an initial Microsoft Graph API URI and retrieves all items across multiple pages
-        by following the @odata.nextLink property in the response.
+        by following the @odata.nextLink property in the response. Logs progress for slow or
+        large pulls and surfaces Graph errors with the failing URI for easier troubleshooting.
 
         .PARAMETER Uri
         The initial Microsoft Graph API endpoint URI to query. This should be a full URL,
-        e.g., "https://graph.microsoft.com/v1.0/applications".
+        e.g., "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/healthOverviews".
 
         .EXAMPLE
-        PS C:\> $allApps = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/applications"
+        PS C:\> $allIssues = Get-GraphPagedResult -Uri "https://graph.microsoft.com/v1.0/admin/serviceAnnouncement/issues"
     #>
     param(
         [string]$Uri
     )
 
-    $allResults = @()
+    $allResults = [System.Collections.Generic.List[object]]::new()
     $nextLink = $Uri
+    $pageCount = 0
 
     do {
-        $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET
-        if ($response.value) {
-            $allResults += $response.value
+        try {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method GET -ErrorAction Stop
         }
+        catch {
+            Write-Error "Failed to retrieve paged data from '$nextLink': $($_.Exception.Message)" -ErrorAction Continue
+            throw
+        }
+
+        $pageCount++
+        if ($response.value) {
+            $allResults.AddRange([object[]]$response.value)
+        }
+
+        if ($pageCount % 5 -eq 0) {
+            Write-RjRbLog -Message "Pagination progress: $pageCount pages, $($allResults.Count) items retrieved so far" -Verbose
+        }
+
         $nextLink = $response.'@odata.nextLink'
     } while ($nextLink)
 
-    return $allResults
+    if ($pageCount -gt 1) {
+        Write-RjRbLog -Message "Pagination complete: $pageCount pages, $($allResults.Count) total items" -Verbose
+    }
+
+    return $allResults.ToArray()
+}
+
+# Reads the items of one report part. A failed request leaves that part empty with a warning, so the other parts are still
+# reported; the run fails at the end, as it did before when a part could not be read
+$failedReportParts = [System.Collections.Generic.List[string]]::new()
+function Get-ReportPartItem {
+    param(
+        [string]$Uri,
+        [string]$Part
+    )
+
+    try {
+        Get-GraphPagedResult -Uri $Uri
+    }
+    catch {
+        $partMessage = "$Part could not be read and are missing from the report: $($_.Exception.Message)"
+        Write-RjRbLog -Message "WARNING: $partMessage"
+        Write-Warning $partMessage
+        $failedReportParts.Add($Part)
+    }
+}
+
+# Display name of an assigned group; a group that cannot be read (deleted, or no permission to read groups) is shown by its ID
+function Get-AssignmentGroupName {
+    param(
+        [string]$groupId
+    )
+
+    try {
+        (Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/groups/$($groupId)?`$select=displayName" -ErrorAction Stop).displayName
+    }
+    catch {
+        Write-RjRbLog -Message "Group '$groupId' of an assignment could not be read: $($_.Exception.Message)" -Verbose
+        if ("$($_.Exception.Response.StatusCode)" -eq 'NotFound') {
+            "$groupId (not found)"
+        }
+        else {
+            "$groupId (not readable)"
+        }
+    }
 }
 
 function ConvertTo-MarkdownPolicyAssignment {
@@ -145,19 +294,13 @@ function ConvertTo-MarkdownPolicyAssignment {
     # enumerate the assignments, will not do anything if there are no assignments
     foreach ($assignment in $assignments.value) {
         if (($assignment.target.'@odata.type' -eq "#microsoft.graph.groupAssignmentTarget") -or ($assignment.target.'@odata.type' -eq "#microsoft.graph.includeDeviceGroupsAssignmentTarget") -or ($assignment.target.'@odata.type' -eq "#microsoft.graph.includeUsersAssignmentTarget")) {
-            try {
-                $groupID = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/groups/$($assignment.target.groupId)?`$select=displayName"
-            }
-            catch {
-                # Suppress PSAvoidUsingEmptyCatchBlock — group may have been deleted, continue report rendering
-                $null = $_
-            }
+            $groupName = Get-AssignmentGroupName -groupId $assignment.target.groupId
             if ($assignment.target.deviceAndAppManagementAssignmentFilterType -ne "none") {
                 $filter = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/assignmentFilters/$($assignment.target.deviceAndAppManagementAssignmentFilterId)?`$select=displayName"
-                "| Included Groups | $($groupID.displayName), Filter ($($assignment.target.deviceAndAppManagementAssignmentFilterType)): $($filter.displayName) |"
+                "| Included Groups | $groupName, Filter ($($assignment.target.deviceAndAppManagementAssignmentFilterType)): $($filter.displayName) |"
             }
             else {
-                "| Included Groups | $($groupID.displayName) |"
+                "| Included Groups | $groupName |"
             }
         }
         #Include all users
@@ -181,19 +324,13 @@ function ConvertTo-MarkdownPolicyAssignment {
             }
         }
         elseif (($assignment.target.'@odata.type' -eq "#microsoft.graph.exclusionGroupAssignmentTarget") -or ($assignment.target.'@odata.type' -eq "microsoft.graph.allDevicesExcludingGroupsAssignmentTarget")) {
-            try {
-                $groupID = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/groups/$($assignment.target.groupId)?`$select=displayName"
-            }
-            catch {
-                # Suppress PSAvoidUsingEmptyCatchBlock — group may have been deleted, continue report rendering
-                $null = $_
-            }
+            $groupName = Get-AssignmentGroupName -groupId $assignment.target.groupId
             if ($assignment.target.deviceAndAppManagementAssignmentFilterType -ne "none") {
                 $filter = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/assignmentFilters/$($assignment.target.deviceAndAppManagementAssignmentFilterId)?`$select=displayName"
-                "| Excluded Groups | $($groupID.displayName), Filter ($($assignment.target.deviceAndAppManagementAssignmentFilterType)): $($filter.displayName) |"
+                "| Excluded Groups | $groupName, Filter ($($assignment.target.deviceAndAppManagementAssignmentFilterType)): $($filter.displayName) |"
             }
             else {
-                "| Excluded Groups | $($groupID.displayName) |"
+                "| Excluded Groups | $groupName |"
             }
 
         }
@@ -560,7 +697,7 @@ function ConvertTo-MarkdownConditionalAccessPolicy {
             if ($app -match '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$') {
                 try {
                     $displayApp = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/v1.0/servicePrincipals?`$filter=appId eq '$app'"
-                    if ($null -ne $displayCloudApp.value.appDescription) {
+                    if ($null -ne $displayApp.value.appDescription) {
                         "|Exclude application|$($displayApp.value.displayName)|$($displayApp.value.appDescription)|"
                     }
                     else {
@@ -804,7 +941,7 @@ function ConvertTo-MarkdownConfigurationPolicy {
     "|Setting|Value|Description|"
     "|-------|-----|-----------|"
 
-    $settings = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/settings?`$expand=settingDefinitions"
+    $settings = Get-ReportPartItem -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/settings?`$expand=settingDefinitions" -Part "Settings of configuration policy '$($policy.name)'"
     foreach ($setting in $settings) {
         if ($setting.settingInstance."@odata.type" -eq "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance") {
             $definition = $setting.settingdefinitions | Where-Object { $_.id -eq $setting.settingInstance.settingDefinitionId }
@@ -1180,31 +1317,10 @@ function ConvertTo-MarkdownGroupPolicyConfiguration {
     }
 }
 
-#endregion
+#endregion Function Definitions
 
 ########################################################
-#region     Sanity Checks
-########################################################
-
-# Sanity checks
-if ($exportToFile -and ((-not $ResourceGroupName) -or (-not $StorageAccountLocation) -or (-not $StorageAccountName) -or (-not $StorageAccountSku))) {
-    "## To export to a CSV, please use RJ Runbooks Customization ( https://portal.realmjoin.com/settings/runbooks-customizations ) to specify an Azure Storage Account for upload."
-    ""
-    "## Please configure the following attributes in the RJ central datastore:"
-    "## - TenantPolicyReport.ResourceGroup"
-    "## - TenantPolicyReport.StorageAccount.Name"
-    "## - TenantPolicyReport.StorageAccount.Location"
-    "## - TenantPolicyReport.StorageAccount.Sku"
-    ""
-    "## Disabling CSV export..."
-    $exportToFile = $false
-    ""
-}
-
-#endregion
-
-########################################################
-#region     Main Logic
+#region     Connect Part
 ########################################################
 
 try {
@@ -1218,6 +1334,12 @@ catch {
     $_
     throw("Auth failed")
 }
+
+#endregion Connect Part
+
+########################################################
+#region     Data Collection
+########################################################
 
 ""
 "## Creating Report..."
@@ -1256,13 +1378,13 @@ toc-own-page: true
 "## Configuration Policies (Settings Catalog)" >> $outputFileMarkdown
 "" >> $outputFileMarkdown
 
-$policies = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies"
+$policies = @(Get-ReportPartItem -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies" -Part "Configuration Policies (Settings Catalog)")
 "Found $($policies.Count) Configuration Policies"
 
 foreach ($policy in $policies) {
     if ($exportJson) {
         $policy | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-confPol-$($policy.id).json" -Encoding UTF8
-        $settings = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/settings?`$expand=settingDefinitions"
+        $settings = Get-ReportPartItem -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/settings?`$expand=settingDefinitions" -Part "Settings of configuration policy '$($policy.name)'"
         $settings | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-confPol-$($policy.id)-settings.json" -Encoding UTF8
         $assignments = Invoke-MgGraphRequest -Uri "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/assignments"
         $assignments | ConvertTo-Json -Depth 100 | Out-File -FilePath "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-confPol-$($policy.id)-assignments.json" -Encoding UTF8
@@ -1274,14 +1396,14 @@ foreach ($policy in $policies) {
     }
     "" >> $outputFileMarkdown
 }
-#endregion
+#endregion Configuration Policy (Settings Catalog, Endpoint Sec.)
 
 #region Device Configurations
 "## - Device Configurations"
 "## Device Configurations" >> $outputFileMarkdown
 "" >> $outputFileMarkdown
 
-$deviceConfigurations = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations"
+$deviceConfigurations = @(Get-ReportPartItem -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations" -Part "Device Configurations")
 "Found $($deviceConfigurations.Count) Device Configurations"
 
 foreach ($policy in $deviceConfigurations) {
@@ -1297,14 +1419,14 @@ foreach ($policy in $deviceConfigurations) {
     }
     "" >> $outputFileMarkdown
 }
-#endregion
+#endregion Device Configurations
 
 #region Group Policy Configurations
 "## - Group Policy Configurations"
 "## Group Policy Configurations" >> $outputFileMarkdown
 "" >> $outputFileMarkdown
 
-$groupPolicyConfigurations = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations"
+$groupPolicyConfigurations = @(Get-ReportPartItem -Uri "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations" -Part "Group Policy Configurations")
 "Found $($groupPolicyConfigurations.Count) Group Policy Configurations"
 
 foreach ($policy in $groupPolicyConfigurations) {
@@ -1322,14 +1444,14 @@ foreach ($policy in $groupPolicyConfigurations) {
     }
     "" >> $outputFileMarkdown
 }
-#endregion
+#endregion Group Policy Configurations
 
 #region Compliance Policies
 "## - Compliance Policies"
 "## Compliance Policies" >> $outputFileMarkdown
 "" >> $outputFileMarkdown
 
-$compliancePolicies = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies"
+$compliancePolicies = @(Get-ReportPartItem -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies" -Part "Compliance Policies")
 "Found $($compliancePolicies.Count) Compliance Policies"
 
 foreach ($policy in $compliancePolicies) {
@@ -1345,14 +1467,14 @@ foreach ($policy in $compliancePolicies) {
     }
     "" >> $outputFileMarkdown
 }
-#endregion
+#endregion Compliance Policies
 
 #region Conditional Access Policies
 "## - Conditional Access Policies"
 "## Conditional Access Policies" >> $outputFileMarkdown
 "" >> $outputFileMarkdown
 
-$conditionalAccessPolicies = Get-GraphPagedResult -Uri "https://graph.microsoft.com/beta/identity/conditionalAccess/policies"
+$conditionalAccessPolicies = @(Get-ReportPartItem -Uri "https://graph.microsoft.com/beta/identity/conditionalAccess/policies" -Part "Conditional Access Policies")
 "Found $($conditionalAccessPolicies.Count) Conditional Access Policies"
 
 foreach ($policy in $conditionalAccessPolicies) {
@@ -1366,11 +1488,56 @@ foreach ($policy in $conditionalAccessPolicies) {
     }
     "" >> $outputFileMarkdown
 }
-#endregion
+#endregion Conditional Access Policies
 
 # Footer
 "" >> $outputFileMarkdown
 ""
+
+#endregion Data Collection
+
+########################################################
+#region     Data Processing
+########################################################
+
+# Remove harmfull characters
+
+# Read Markdown into variable
+$content = Get-Content -Path $outputFileMarkdown
+# Make sure Markdown contains no singular backslash or percent sign (unless intended LaTeX)
+$content = $content -replace '(?!^)([\\%])', '\$1'
+# Replace all cyrillic characters with "." (unless intended LaTeX)
+$content = $content -replace '[Ѐ-ӿ]', '.'
+
+#endregion Data Processing
+
+########################################################
+#region     Report File Export
+########################################################
+
+$reportFiles = @()
+
+# Create a ZIP file of the JSON export
+if ($exportJson) {
+    "## Creating ZIP file of JSON export"
+    $zipFile = "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-policy-report.zip"
+    Compress-Archive -Path "$($env:TEMP)\json-export\*.json" -DestinationPath $zipFile
+    # Without a ZIP file only the Markdown report is uploaded, as before
+    if (Test-Path -LiteralPath $zipFile) {
+        $reportFiles += $zipFile
+    }
+}
+
+# Make sure Markdown is UTF8 - the local file name becomes the blob name, so uploads keep the blob names of earlier versions
+$markdownFile = Join-Path ([System.IO.Path]::GetTempPath()) "$(Get-Date -Format "yyyy-MM-dd")-policy-report.md"
+$content | Set-Content -Path $markdownFile -Encoding UTF8
+$reportFiles += $markdownFile
+
+#endregion Report File Export
+
+########################################################
+#region     Upload / Download Link
+########################################################
 
 "## Uploading to Azure Storage Account..."
 
@@ -1380,71 +1547,62 @@ if (-not $ContainerName) {
     $ContainerName = "tenant-policy-report-" + (Get-Date -Format "yyyy-MM-dd")
 }
 
-# Make sure storage account exists
-$storAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
-if (-not $storAccount) {
-    "## Creating Azure Storage Account $($StorageAccountName)"
-    $storAccount = New-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName -Location $StorageAccountLocation -SkuName $StorageAccountSku
-}
+try {
+    Write-RjRbLog -Message "Upload" -Verbose
+    $uploadResults = Publish-RjRbFilesToStorageContainer `
+        -FilePaths $reportFiles `
+        -ContainerName $ContainerName `
+        -ResourceGroupName $ResourceGroupName `
+        -StorageAccountName $StorageAccountName `
+        -SubscriptionId $SubscriptionId `
+        -LinkExpiryDays $LinkExpiryDays `
+        -AddBlobNamePrefix $false
 
-# Get access to the Storage Account
-$keys = Get-AzStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName
-$context = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $keys[0].Value
-
-# Make sure, container exists
-$container = Get-AzStorageContainer -Name $ContainerName -Context $context -ErrorAction SilentlyContinue
-if (-not $container) {
-    "## Creating Azure Storage Account Container $($ContainerName)"
-    $container = New-AzStorageContainer -Name $ContainerName -Context $context
-}
-
-$EndTime = (Get-Date).AddDays(6)
-
-# Create a ZIP file of the JSON export
-if ($exportJson) {
-    "## Creating ZIP file of JSON export"
-    $zipFile = "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-policy-report.zip"
-    Compress-Archive -Path "$($env:TEMP)\json-export\*.json" -DestinationPath $zipFile
-}
-
-# Upload JSON archive
-if ($exportJson) {
-    $blobname = "$(Get-Date -Format "yyyy-MM-dd")-policy-report.zip"
-    $blob = Set-AzStorageBlobContent -File "$($env:TEMP)\json-export\$(Get-Date -Format "yyyy-MM-dd")-policy-report.zip" -Container $ContainerName -Blob $blobname -Context $context -Force | Out-Null
     if ($produceLinks) {
-        #Create signed (SAS) link
-        $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $blobname -FullUri -ExpiryTime $EndTime
-        "## Raw JSON export"
-        " $SASLink"
-        ""
+        foreach ($uploadResult in $uploadResults) {
+            if ($uploadResult.BlobName -like "*.zip") {
+                "## Raw JSON export"
+                " $($uploadResult.SASLink)"
+                ""
+            }
+            else {
+                ""
+                "## Markdown report:"
+                " $($uploadResult.SASLink)"
+                ""
+            }
+        }
     }
 }
-
-# Remove harmfull characters
-
-# Read Markdown into variable
-$content = Get-Content -Path $outputFileMarkdown
-# Make sure Markdown contains no singular backslash or percent sign (unless intended LaTeX)
-$content = $content -replace '(?!^)([\\%])', '\$1'
-# Replace all cyrillic characters with "." (unless intended LaTeX)
-$content = $content -replace '[\u0400-\u04FF]', '.'
-
-# Make sure Markdown is UTF8
-$content | Set-Content -Path $outputFileMarkdown -Encoding UTF8
-
-# Upload markdown file
-$blobname = "$(Get-Date -Format "yyyy-MM-dd")-policy-report.md"
-$blob = Set-AzStorageBlobContent -File $outputFileMarkdown -Container $ContainerName -Blob $blobname -Context $context -Force | Out-Null
-if ($produceLinks) {
-    #Create signed (SAS) link
-    $SASLink = New-AzStorageBlobSASToken -Permission "r" -Container $ContainerName -Context $context -Blob $blobname -FullUri -ExpiryTime $EndTime
+catch {
+    Write-RjRbLog -Message "Upload to storage account '$StorageAccountName' failed: $($_.Exception.Message). The managed identity needs the 'Reader and Data Access' role on the storage account." -Verbose
+    "## Upload of report failed. Please see log."
     ""
-    "## Markdown report:"
-    " $SASLink"
-    ""
+    # The upload is the delivery of this runbook: fail the job, but remove the local report files first
+    foreach ($reportFile in $reportFiles) {
+        Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
+    }
+    throw
 }
 
-Disconnect-AzAccount | Out-Null
-Disconnect-MgGraph | Out-Null
+#endregion Upload / Download Link
 
-#endregion
+########################################################
+#region     Cleanup
+########################################################
+
+foreach ($reportFile in $reportFiles) {
+    Remove-Item -LiteralPath $reportFile -Force -ErrorAction SilentlyContinue
+}
+
+Disconnect-AzAccount -ErrorAction SilentlyContinue | Out-Null
+Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+
+if ($failedReportParts.Count -gt 0) {
+    throw "The report is incomplete - these parts could not be read: $($failedReportParts -join '; ')"
+}
+
+Write-Output ""
+Write-Output "Done!"
+
+#endregion Cleanup
