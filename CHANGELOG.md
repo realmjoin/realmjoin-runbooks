@@ -2,6 +2,31 @@
 
 ## 2026-11-25
 
+- Add new runbook category **Agent Identity** in Org for Microsoft Entra Agent ID identities and blueprints
+  - All runbooks require `RealmJoin.RunbookHelper` 0.8.10 and `Microsoft.Graph.Authentication` 2.41.2; the required Graph permissions are listed in the `.permissions.json` file next to each runbook
+  - The report runbooks can optionally send the report by email (sender from `RJReport.EmailSender`, branding from the `RJReport.Branding.*` settings)
+- Add **Add Or Remove Sponsor Owner** Runbook in Org/Agent Identity
+  - Adds or removes sponsors or owners on agent identities and blueprints
+  - Revalidates the target and every directory object and enforces the allowed object types for owners and sponsors
+- Add **Create Blueprint** Runbook in Org/Agent Identity
+  - Creates an agent identity blueprint and its blueprint principal; sponsors are mandatory
+  - Optional owners, manager applications, tags and description are validated before they are added
+- Add **Create Identity** Runbook in Org/Agent Identity
+  - Creates an agent identity from an existing blueprint with mandatory sponsors and optional owners
+  - Retries only throttling and recognized directory propagation failures
+- Add **Report CA Targets (Scheduled)** Runbook in Org/Agent Identity (v1.0.1)
+  - Lists which Conditional Access policies include or exclude agent identities and blueprint principals
+  - Reports filters and unknown selectors as Unknown instead of evaluating them; does not infer effective protection or OBO coverage
+- Add **Report Inventory (Scheduled)** Runbook in Org/Agent Identity (v1.0.2)
+  - Inventories agent identities, blueprints, blueprint principals and agent users with sponsors, owners, tags, manager applications and state
+  - Warns when app-only creation approaches the documented limit of 250 identities per blueprint
+- Add **Report Signins (Scheduled)** Runbook in Org/Agent Identity (v1.0.2)
+  - Reports retained agent identity sign-in events for an explicit UTC time window, summarized by result, resource and identity
+- Add **Report Sponsors (Scheduled)** Runbook in Org/Agent Identity (v1.0.2)
+  - Reports agent identities and blueprints with missing, disabled, deleted or guest sponsors; lookup failures stay Unknown
+- Add **Transfer Sponsorships** Runbook in Org/Agent Identity
+  - Finds the agent identity and blueprint sponsorships held by a user and reports them by default
+  - Execute mode requires explicit confirmation, adds the new sponsor before removing the old one, enforces a cap and is idempotent
 - Add **Cleanup Duplicate Intune Devices (Scheduled)** Runbook in Org/Devices (v1.0.0)
   - Finds Intune devices that share a serial number and deletes the older records, keeping the one that synced most recently
   - Deletes only the Intune record; the Entra ID device and the Autopilot registration stay
