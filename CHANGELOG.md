@@ -1,5 +1,15 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-11-25
+
+- Add **Cleanup Duplicate Intune Devices (Scheduled)** Runbook in Org/Devices (v1.0.0)
+  - Finds Intune devices that share a serial number and deletes the older records, keeping the one that synced most recently
+  - Deletes only the Intune record; the Entra ID device and the Autopilot registration stay
+  - Skips records it cannot clearly identify as older, such as ties, a newest record that has not synced yet, or records with different manufacturers, models or platforms, and lists them with the reason
+  - Limits the check by platform, device name prefix and included or excluded serial numbers, and deletes a record only after a minimum number of days without sync
+  - Runs in WhatIf mode by default and deletes nothing when more devices would be removed than the configured maximum
+  - The report can be sent by email or provided as a download link, as CSV, Excel or both
+
 ## 2026-11-23
 - Update **Delegate Send As Runbook** in User/Mail
   - Add support for granting or removing Exchange Online Send As for multiple delegates in a single run via a multi user picker. The picker returns user principal names, so selected delegates are readable in the runbook log from the first line on.
