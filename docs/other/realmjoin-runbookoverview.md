@@ -60,6 +60,15 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Teams](#group-teams)
       - [Archive Team](#archive-team)
 - [Org](#org)
+  - [Agent-Identity](#org-agent-identity)
+      - [Add Or Remove Sponsor Owner](#add-or-remove-sponsor-owner)
+      - [Create Blueprint](#create-blueprint)
+      - [Create Identity](#create-identity)
+      - [Report CA Targets (Scheduled)](#report-ca-targets-(scheduled))
+      - [Report Inventory (Scheduled)](#report-inventory-(scheduled))
+      - [Report Signins (Scheduled)](#report-signins-(scheduled))
+      - [Report Sponsors (Scheduled)](#report-sponsors-(scheduled))
+      - [Transfer Sponsorships](#transfer-sponsorships)
   - [Applications](#org-applications)
       - [Add Application Registration](#add-application-registration)
       - [Add GSA Application Registration](#add-gsa-application-registration)
@@ -1266,6 +1275,604 @@ Archives the Microsoft Teams team that belongs to this Microsoft 365 group. Memb
 #### Where to find
 
 Group \ Teams \ Archive Team
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org'></a>
+
+# Org
+<a name='org-agent-identity'></a>
+
+## Agent-Identity
+<a name='org-agent-identity-add-or-remove-sponsor-owner'></a>
+
+### Add Or Remove Sponsor Owner
+#### Add or remove sponsors or owners on agent identities and blueprints
+
+#### Description
+
+Revalidates the typed target and every directory object, enforces owner and sponsor object-type restrictions, checks sponsor-group eligibility, and changes the selected relationship through the current v1.0 typed cast endpoint.
+
+#### Where to find
+
+Org \ Agent Identity \ Add Or Remove Sponsor Owner
+
+## Usage guidance
+
+Changes sponsor or owner relationships on an Agent Identity or blueprint.
+
+## How it works
+
+Select the target kind, relationship, action, and directory object IDs. The target is revalidated through its v1.0 typed cast. Owners may be users or service principals but never groups. Sponsors may be users or eligible groups; group eligibility is checked before a relationship is changed. Removing the final sponsor is refused.
+
+Already-applied additions and already-absent removals return `NoChange`.
+
+## Access requirements
+
+- `AgentIdentity.ReadWrite.All`
+- `AgentIdentityBlueprint.Read.All`
+- `Application.ReadWrite.All`
+- `Directory.Read.All`
+
+Microsoft Graph currently documents `Application.ReadWrite.All` for Agent Identity Blueprint sponsor and owner relationship writes. The narrower blueprint permission is used for typed blueprint reads. `AgentIdentity.CreateAsManager` is listed by Learn only as a scoped alternative for first-party manager applications and isn't requested.
+
+Microsoft Learn documents that an Agent Identity or Blueprint may have up to 100 sponsors, of which no more than 5 may be groups; the runbook relies on Graph to enforce these limits and surfaces the resulting error.
+
+## RealmJoin output and operator guidance
+
+- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.
+- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.
+- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.
+- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.
+- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.
+
+See [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+
+## Additional operational guidance
+
+Owners can't be groups. Sponsors can be users or eligible groups; group sponsors must be Microsoft 365 or dynamic groups and can't be role-assignable. Removal never removes the final sponsor.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-agent-identity-create-blueprint'></a>
+
+### Create Blueprint
+#### Create an Entra agent identity blueprint and its principal
+
+#### Description
+
+Creates an agent identity blueprint through the v1.0 typed application endpoint, waits for directory propagation, and creates the associated blueprint principal through the typed service principal endpoint. Sponsors are mandatory. Optional owners, manager applications, tags, and description are validated and added when supplied.
+
+#### Where to find
+
+Org \ Agent Identity \ Create Blueprint
+
+## Usage guidance
+
+Principal creation POSTs are not replayed after ambiguous server or transport failures. If the
+blueprint application was created before principal creation failed, its IDs are reported and the
+application is retained. Inspect and reconcile that partial result before starting another creation run.
+
+Creates a Microsoft Entra Agent ID blueprint and its required blueprint principal in the current Microsoft Learn sequence.
+
+## How it works
+
+The runbook validates mandatory user or eligible-group sponsors, optional user/service-principal owners, and optional manager applications supplied by application (client) ID. It posts the blueprint to `/applications/microsoft.graph.agentIdentityBlueprint`, then creates its principal at `/servicePrincipals/microsoft.graph.agentIdentityBlueprintPrincipal`. Principal creation uses bounded exponential retry because the application can take time to propagate.
+
+`description`, `tags`, and the `managerApplications` GUID collection are sent only when supplied. Groups can't be owners. Sponsor groups must be Microsoft 365 or dynamic groups and can't be role assignable. Microsoft Learn documents a maximum of 100 sponsors per blueprint, of which no more than 5 may be groups; Graph enforces these limits.
+
+## Output and safety
+
+Output contains both object IDs, the blueprint app ID, and relationship counts. If principal creation exhausts retries, the error clearly reports a partially created blueprint; rerun only after checking whether the principal now exists.
+
+## Access requirements
+
+- `AgentIdentityBlueprint.Create`
+- `AgentIdentityBlueprint.ReadWrite.All`
+- `AgentIdentityBlueprintPrincipal.Create`
+- `Directory.Read.All`
+
+The specific blueprint permissions are used instead of `Application.ReadWrite.All`. Manager application values are validated as GUIDs, while the typed blueprint API authoritatively enforces the Microsoft first-party application restriction.
+
+## RealmJoin output and operator guidance
+
+- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.
+- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.
+- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.
+- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.
+- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.
+
+See [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+
+## Additional operational guidance
+
+Uses the current v1.0 typed Agent ID creation sequence: blueprint first, then blueprint principal. A partial result is reported if principal creation still fails after bounded retries.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-agent-identity-create-identity'></a>
+
+### Create Identity
+#### Create an Entra agent identity from a blueprint
+
+#### Description
+
+Validates the selected blueprint, its principal, mandatory sponsors and optional owners. Creates an agent identity through the typed v1.0 endpoint, retrying only throttling and recognized propagation failures.
+
+#### Where to find
+
+Org \ Agent Identity \ Create Identity
+
+## Usage guidance
+
+Creation POSTs are not idempotent. Throttling and recognized propagation failures can be retried,
+but an ambiguous server or transport error stops without replaying the POST. Inspect the blueprint's
+identities before trying again; the first request may already have created an identity.
+
+Creates an Agent Identity from a selected existing blueprint.
+
+## How it works
+
+Supply the blueprint application ID, mandatory sponsors, and optional owners, display name, and tags. The runbook verifies the typed blueprint and its required blueprint principal, enforces current sponsor-group restrictions (Microsoft 365 or dynamic groups only, not role assignable; Learn documents at most 100 sponsors with no more than 5 groups, enforced by Graph), then posts to `/servicePrincipals/microsoft.graph.agentIdentity`. When `DisplayName` is omitted, the runbook explicitly uses the validated blueprint display name because the create API requires a display name. Bounded retry handles directory eventual consistency.
+
+Credentials are never added to the identity; they belong on the blueprint.
+
+## Output
+
+Returns the new identity object ID, app ID, display name, blueprint app ID, and sponsor/owner counts.
+
+## Access requirements
+
+- `AgentIdentity.Create.All`
+- `AgentIdentityBlueprint.Read.All`
+- `AgentIdentityBlueprintPrincipal.Read.All`
+- `Directory.Read.All`
+
+## RealmJoin output and operator guidance
+
+- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.
+- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.
+- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.
+- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.
+- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.
+
+See [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+
+## Additional operational guidance
+
+The blueprint principal must already exist. Credentials belong on the blueprint, never on an agent identity.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-agent-identity-report-ca-targets-(scheduled)'></a>
+
+### Report CA Targets (Scheduled)
+#### Report Conditional Access targeting of Entra agent identities
+
+#### Description
+
+Compares agent identity and blueprint principal service-principal object IDs with Conditional Access
+clientApplications includeServicePrincipals and excludeServicePrincipals. This assesses autonomous,
+app-only workload-identity targeting. OBO access is governed through the signed-in user and cannot be
+inferred as agent coverage from this report.
+
+#### Where to find
+
+Org \ Agent Identity \ Report CA Targets_Scheduled
+
+## Usage guidance
+
+Reports Conditional Access target selectors for agent and blueprint principals, not effective protection.
+
+## Output
+
+Per-principal inclusion/exclusion, target kind, policy state, and unknown selectors. Enabled,
+report-only and disabled policies remain distinct. A selector match does not prove that the policy
+applies to a particular sign-in or that its grant controls enforce protection.
+
+## API and safety notes
+
+Uses the beta Conditional Access policy surface to read `includeAgentIdServicePrincipals`,
+`excludeAgentIdServicePrincipals` and `agentIdServicePrincipalFilter`. Ordinary
+`includeServicePrincipals` / `excludeServicePrincipals` selectors are reported separately as
+`WorkloadIdentity`, not silently treated as agent-specific coverage.
+
+Explicit exclusions take precedence. Filters and unrecognized symbolic selectors produce **Unknown**;
+they are not evaluated locally. Other conditions, grant controls and OBO coverage are not inferred.
+See the [Graph client application conditions](https://learn.microsoft.com/graph/api/resources/conditionalaccessclientapplications?view=graph-rest-beta).
+
+Unknown lookup or revalidation states are reported and fail closed. Microsoft Graph pagination is followed, and HTTP 429/5xx responses are retried with backoff.
+
+## Email delivery
+
+Email is optional. Set `EmailTo` to enable it. The sender is read from `RJReport.EmailSender` and the runbook uses `Send-RjRbReportEmail`.
+
+## Access requirements
+
+### Required Graph access
+
+- `AgentIdentity.Read.All`
+- `AgentIdentityBlueprintPrincipal.Read.All`
+- `Policy.Read.All`
+- `Mail.Send (optional)`
+
+`Mail.Send` is optional and is needed only for email delivery.
+
+## Parameter behavior
+
+### IncludeDisabledPolicies
+
+Include disabled policy targeting as informational, non-enforced coverage.
+
+### EmailTo
+
+Optional comma- or semicolon-separated report recipients.
+
+### EmailFrom
+
+Hidden sender setting sourced from `RJReport.EmailSender`.
+
+
+## RealmJoin output and operator guidance
+
+- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.
+- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.
+- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.
+- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.
+- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.
+
+See [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+## Email branding
+
+Report emails use the optional RJReport.Branding settings for header/footer images, footer links and colors. Configure RJReport.EmailSender and grant Mail.Send before enabling email delivery. See the [report settings](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings).
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-agent-identity-report-inventory-(scheduled)'></a>
+
+### Report Inventory (Scheduled)
+#### Inventory Entra agent identities, blueprints and agent users
+
+#### Description
+
+Inventories v1.0 agent identities, blueprints, blueprint principals, and agent users. For every
+agent identity it records enablement, Microsoft disablement, sponsors, owners, creation, tags,
+manager applications, custom security attributes, and blueprint population. Relationship failures
+remain Unknown. It warns when app-only creation approaches the documented 250 identities per
+blueprint constraint; it does not describe this as a tenant-wide quota.
+
+#### Where to find
+
+Org \ Agent Identity \ Report Inventory_Scheduled
+
+## Usage guidance
+
+Reports a complete Microsoft Entra Agent ID inventory and posture view.
+
+## Output
+
+The summary includes the UTC collection start and counts for each object type in both job output
+and email. All returned objects are included, including disposable test objects still present at
+collection time. Counts describe an inventory snapshot, not health or completed test coverage.
+
+A structured row per agent identity and related Agent ID object, including relationship state and per-blueprint counts.
+
+## API and safety notes
+
+Core resources and sponsor/owner relationships use Microsoft Graph v1.0. The 250 constraint applies to agent identities created for a blueprint by an app-only caller; it is not a general tenant quota.
+
+Unknown lookup or revalidation states are reported and fail closed. Microsoft Graph pagination is followed, and HTTP 429/5xx responses are retried with backoff.
+
+## Email delivery
+
+Email is optional. Set `EmailTo` to enable it. The sender is read from `RJReport.EmailSender` and the runbook uses `Send-RjRbReportEmail`.
+
+## Access requirements
+
+### Required Graph access
+
+- `AgentIdentity.Read.All`
+- `AgentIdentity.ReadWrite.All` (Learn exposes no read-only application permission for the Agent Identity `sponsors` relationship)
+- `AgentIdentityBlueprint.Read.All`
+- `AgentIdentityBlueprintPrincipal.Read.All`
+- `User.Read.All`
+- `CustomSecAttributeAssignment.Read.All (optional)`
+- `Mail.Send (optional)`
+
+`Mail.Send` is optional and is needed only for email delivery.
+
+## Parameter behavior
+
+### IncludeCustomSecurityAttributes
+
+Request custom security attributes. Their permission is optional.
+
+### BlueprintQuotaWarningPercent
+
+Warn at this percentage of the documented app-only 250-agent-identities-per-blueprint constraint.
+
+### EmailTo
+
+Optional comma- or semicolon-separated report recipients.
+
+### EmailFrom
+
+Hidden sender setting sourced from `RJReport.EmailSender`.
+
+
+## RealmJoin output and operator guidance
+
+- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.
+- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.
+- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.
+- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.
+- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.
+
+See [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+## Email branding
+
+Report emails use the optional RJReport.Branding settings for header/footer images, footer links and colors. Configure RJReport.EmailSender and grant Mail.Send before enabling email delivery. See the [report settings](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings).
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-agent-identity-report-signins-(scheduled)'></a>
+
+### Report Signins (Scheduled)
+#### Report retained Entra agent identity sign-in events
+
+#### Description
+
+Uses the documented Microsoft Graph beta auditLogs/signIns query for service-principal events whose
+agent/agentType is agenticAppInstance. Applies an explicit UTC time window, follows pagination, summarizes
+success, failure, resources, and identities, and optionally emails the result.
+
+#### Where to find
+
+Org \ Agent Identity \ Report Signins_Scheduled
+
+## Usage guidance
+
+Reports autonomous Agent ID sign-ins over a bounded UTC window.
+
+## Output
+
+Per-event status plus summary counts by success/failure, identity, and target resource.
+
+The same assessment summary appears in job output and email. `NoRetainedEvents` is not proof of
+inactivity or absence of risk: check the time window, retention, licensing, and ingestion delay.
+Missing event status is `Unknown`, not success. `Truncated` explicitly identifies an exceeded
+`MaxEvents` cap; its counts describe only the retained subset.
+
+## API and safety notes
+
+Microsoft Learn documents agent sign-in filtering on the beta /auditLogs/signIns endpoint. The query explicitly requests servicePrincipal events and filters agent/agentType to agenticAppInstance.
+
+Unknown lookup or revalidation states are reported and fail closed. Microsoft Graph pagination is followed, and HTTP 429/5xx responses are retried with backoff.
+
+## Email delivery
+
+Email is optional. Set `EmailTo` to enable it. The sender is read from `RJReport.EmailSender` and the runbook uses `Send-RjRbReportEmail`.
+
+## Access requirements
+
+### Required Graph access
+
+- `AuditLog.Read.All`
+- `Mail.Send (optional)`
+
+`Mail.Send` is optional and is needed only for email delivery.
+
+## Parameter behavior
+
+### MaxEvents
+
+Bounds report size. The report explicitly states when this cap truncates results.
+
+### LookbackHours
+
+UTC time window, from now minus this value through now.
+
+### EmailTo
+
+Optional comma- or semicolon-separated report recipients.
+
+### EmailFrom
+
+Hidden sender setting sourced from `RJReport.EmailSender`.
+
+
+## RealmJoin output and operator guidance
+
+- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.
+- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.
+- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.
+- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.
+- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.
+
+See [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+## Email branding
+
+Report emails use the optional RJReport.Branding settings for header/footer images, footer links and colors. Configure RJReport.EmailSender and grant Mail.Send before enabling email delivery. See the [report settings](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings).
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-agent-identity-report-sponsors-(scheduled)'></a>
+
+### Report Sponsors (Scheduled)
+#### Report missing, disabled or guest sponsors of agent identities
+
+#### Description
+
+Checks v1.0 sponsors for agent identities and blueprints. It reports missing sponsors and sponsors
+that are disabled, soft-deleted, or guest users. A lookup failure is Unknown and is never relabeled
+as missing. This runbook does not assign fallback sponsors; that remediation belongs to an interactive
+runbook.
+
+#### Where to find
+
+Org \ Agent Identity \ Report Sponsors_Scheduled
+
+## Usage guidance
+
+Reports missing, disabled, deleted, guest, and unknown sponsor states.
+
+## Output
+
+Actionable sponsor findings and unknown lookup counts are reported separately. Unknown lookups
+make the assessment partial; they are not healthy sponsors. Findings on existing tenant objects
+remain visible and are not remediated automatically by this report.
+
+One row per sponsor relationship, or a missing/unknown row per target.
+
+## API and safety notes
+
+Uses v1.0 typed sponsor relationships. Lookup failures are Unknown. Fallback sponsor assignment is intentionally out of scope; use the interactive sponsor/owner runbook.
+
+Unknown lookup or revalidation states are reported and fail closed. Microsoft Graph pagination is followed, and HTTP 429/5xx responses are retried with backoff.
+
+## Email delivery
+
+Email is optional. Set `EmailTo` to enable it. The sender is read from `RJReport.EmailSender` and the runbook uses `Send-RjRbReportEmail`.
+
+## Access requirements
+
+### Required Graph access
+
+- `AgentIdentity.Read.All`
+- `AgentIdentity.ReadWrite.All` (Learn exposes no read-only application permission for the Agent Identity `sponsors` relationship)
+- `AgentIdentityBlueprint.Read.All`
+- `Application.Read.All` (blueprint sponsors)
+- `User.Read.All`
+- `Directory.Read.All`
+- `Mail.Send (optional)`
+
+`Mail.Send` is optional and is needed only for email delivery.
+
+## Parameter behavior
+
+### IncludeBlueprints
+
+Include blueprint sponsors in addition to agent identity sponsors.
+
+### EmailTo
+
+Optional comma- or semicolon-separated report recipients.
+
+### EmailFrom
+
+Hidden sender setting sourced from `RJReport.EmailSender`.
+
+
+## RealmJoin output and operator guidance
+
+- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.
+- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.
+- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.
+- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.
+- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.
+
+See [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+## Email branding
+
+Report emails use the optional RJReport.Branding settings for header/footer images, footer links and colors. Configure RJReport.EmailSender and grant Mail.Send before enabling email delivery. See the [report settings](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings).
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-agent-identity-transfer-sponsorships'></a>
+
+### Transfer Sponsorships
+#### Transfer direct agent identity and blueprint sponsorships
+
+#### Description
+
+Enumerates Agent Identities and blueprints with pagination, finds sponsorship references held by the source user, and reports them by default. Execute mode requires explicit confirmation, revalidates each typed object and both users, adds the target first, removes the source second, enforces a cap, and is idempotent.
+
+#### Where to find
+
+Org \ Agent Identity \ Transfer Sponsorships
+
+## Usage guidance
+
+Reports or transfers sponsorship references from one user to another across Agent Identities and blueprints.
+
+## How it works
+
+Report-only is the default. The runbook paginates both typed collections, discovers references held by the source user, and can be narrowed to selected target object IDs. Execute mode requires a second confirmation and is capped by `MaxChanges`.
+
+Each change revalidates both users and the typed object. It adds the target before removing the source and re-reads the sponsor list to confirm the target is present before the source reference is deleted, so accountability overlaps. If the target is already assigned, only the source is removed. Completed or externally changed objects are handled idempotently.
+
+Candidates are processed independently: a Graph rejection for one object (for example the documented limit of 100 sponsors and 5 groups per object) is reported as `Failed safely` for that object and the remaining transfers continue. Objects whose sponsor list could not be read are reported as `Unknown (sponsor lookup failed)` and are never changed.
+
+## Access requirements
+
+- `AgentIdentity.ReadWrite.All`
+- `AgentIdentityBlueprint.Read.All`
+- `Application.ReadWrite.All`
+- `User.Read.All`
+
+Microsoft Graph currently documents `Application.ReadWrite.All` for Agent Identity Blueprint sponsor relationship writes. The narrower blueprint permission is retained for typed blueprint reads.
+
+## RealmJoin output and operator guidance
+
+- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.
+- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.
+- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.
+- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.
+- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.
+
+See [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+
+## Additional operational guidance
+
+The target sponsor is added before the source is removed. Already-complete transfers are reported as NoChange.
+
 
 
 [Back to Table of Content](#table-of-contents)

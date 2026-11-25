@@ -3670,6 +3670,1386 @@
     }
   },
   {
+    "RunbookDisplayName": "Add Or Remove Sponsor Owner",
+    "RunbookDisplayPath": "Org \\ Agent Identity \\ Add Or Remove Sponsor Owner",
+    "RelativeRunbookPath": "org/Agent-Identity/add-or-remove-sponsor-owner.ps1",
+    "RelativeRunbookPath_PathOnly": "org/Agent-Identity",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Agent-Identity",
+    "Synopsis": "Add or remove sponsors or owners on agent identities and blueprints",
+    "Description": "Revalidates the typed target and every directory object, enforces owner and sponsor object-type restrictions, checks sponsor-group eligibility, and changes the selected relationship through the current v1.0 typed cast endpoint.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Operation to perform: Add or Remove."
+          }
+        ],
+        "globbing": "false",
+        "name": "Action",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user or system that started the runbook. Used for auditing."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Comma-separated directory object IDs to add or remove."
+          }
+        ],
+        "globbing": "false",
+        "name": "DirectoryObjectIds",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Relationship to change: Sponsor or Owner."
+          }
+        ],
+        "globbing": "false",
+        "name": "Relationship",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Target resource type: Identity or Blueprint."
+          }
+        ],
+        "globbing": "false",
+        "name": "TargetKind",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Object ID of the target service principal (Identity) or application (Blueprint)."
+          }
+        ],
+        "globbing": "false",
+        "name": "TargetObjectId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": "## Usage guidance\n\nChanges sponsor or owner relationships on an Agent Identity or blueprint.\n\n## How it works\n\nSelect the target kind, relationship, action, and directory object IDs. The target is revalidated through its v1.0 typed cast. Owners may be users or service principals but never groups. Sponsors may be users or eligible groups; group eligibility is checked before a relationship is changed. Removing the final sponsor is refused.\n\nAlready-applied additions and already-absent removals return `NoChange`.\n\n## Access requirements\n\n- `AgentIdentity.ReadWrite.All`\n- `AgentIdentityBlueprint.Read.All`\n- `Application.ReadWrite.All`\n- `Directory.Read.All`\n\nMicrosoft Graph currently documents `Application.ReadWrite.All` for Agent Identity Blueprint sponsor and owner relationship writes. The narrower blueprint permission is used for typed blueprint reads. `AgentIdentity.CreateAsManager` is listed by Learn only as a scoped alternative for first-party manager applications and isn't requested.\n\nMicrosoft Learn documents that an Agent Identity or Blueprint may have up to 100 sponsors, of which no more than 5 may be groups; the runbook relies on Graph to enforce these limits and surfaces the resulting error.\n\n## RealmJoin output and operator guidance\n\n- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.\n- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.\n- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.\n- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.\n- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.\n\nSee [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).\n\n\n## Additional operational guidance\n\nOwners can't be groups. Sponsors can be users or eligible groups; group sponsors must be Microsoft 365 or dynamic groups and can't be role-assignable. Removal never removes the final sponsor.\n",
+    "DocsContentEncoded": "IyMgVXNhZ2UgZ3VpZGFuY2UKCkNoYW5nZXMgc3BvbnNvciBvciBvd25lciByZWxhdGlvbnNoaXBzIG9uIGFuIEFnZW50IElkZW50aXR5IG9yIGJsdWVwcmludC4KCiMjIEhvdyBpdCB3b3JrcwoKU2VsZWN0IHRoZSB0YXJnZXQga2luZCwgcmVsYXRpb25zaGlwLCBhY3Rpb24sIGFuZCBkaXJlY3Rvcnkgb2JqZWN0IElEcy4gVGhlIHRhcmdldCBpcyByZXZhbGlkYXRlZCB0aHJvdWdoIGl0cyB2MS4wIHR5cGVkIGNhc3QuIE93bmVycyBtYXkgYmUgdXNlcnMgb3Igc2VydmljZSBwcmluY2lwYWxzIGJ1dCBuZXZlciBncm91cHMuIFNwb25zb3JzIG1heSBiZSB1c2VycyBvciBlbGlnaWJsZSBncm91cHM7IGdyb3VwIGVsaWdpYmlsaXR5IGlzIGNoZWNrZWQgYmVmb3JlIGEgcmVsYXRpb25zaGlwIGlzIGNoYW5nZWQuIFJlbW92aW5nIHRoZSBmaW5hbCBzcG9uc29yIGlzIHJlZnVzZWQuCgpBbHJlYWR5LWFwcGxpZWQgYWRkaXRpb25zIGFuZCBhbHJlYWR5LWFic2VudCByZW1vdmFscyByZXR1cm4gYE5vQ2hhbmdlYC4KCiMjIEFjY2VzcyByZXF1aXJlbWVudHMKCi0gYEFnZW50SWRlbnRpdHkuUmVhZFdyaXRlLkFsbGAKLSBgQWdlbnRJZGVudGl0eUJsdWVwcmludC5SZWFkLkFsbGAKLSBgQXBwbGljYXRpb24uUmVhZFdyaXRlLkFsbGAKLSBgRGlyZWN0b3J5LlJlYWQuQWxsYAoKTWljcm9zb2Z0IEdyYXBoIGN1cnJlbnRseSBkb2N1bWVudHMgYEFwcGxpY2F0aW9uLlJlYWRXcml0ZS5BbGxgIGZvciBBZ2VudCBJZGVudGl0eSBCbHVlcHJpbnQgc3BvbnNvciBhbmQgb3duZXIgcmVsYXRpb25zaGlwIHdyaXRlcy4gVGhlIG5hcnJvd2VyIGJsdWVwcmludCBwZXJtaXNzaW9uIGlzIHVzZWQgZm9yIHR5cGVkIGJsdWVwcmludCByZWFkcy4gYEFnZW50SWRlbnRpdHkuQ3JlYXRlQXNNYW5hZ2VyYCBpcyBsaXN0ZWQgYnkgTGVhcm4gb25seSBhcyBhIHNjb3BlZCBhbHRlcm5hdGl2ZSBmb3IgZmlyc3QtcGFydHkgbWFuYWdlciBhcHBsaWNhdGlvbnMgYW5kIGlzbid0IHJlcXVlc3RlZC4KCk1pY3Jvc29mdCBMZWFybiBkb2N1bWVudHMgdGhhdCBhbiBBZ2VudCBJZGVudGl0eSBvciBCbHVlcHJpbnQgbWF5IGhhdmUgdXAgdG8gMTAwIHNwb25zb3JzLCBvZiB3aGljaCBubyBtb3JlIHRoYW4gNSBtYXkgYmUgZ3JvdXBzOyB0aGUgcnVuYm9vayByZWxpZXMgb24gR3JhcGggdG8gZW5mb3JjZSB0aGVzZSBsaW1pdHMgYW5kIHN1cmZhY2VzIHRoZSByZXN1bHRpbmcgZXJyb3IuCgojIyBSZWFsbUpvaW4gb3V0cHV0IGFuZCBvcGVyYXRvciBndWlkYW5jZQoKLSBUaGUgKipPdXRwdXQgRGF0YSoqIHRhYiByZWNlaXZlcyByYXcgb2JqZWN0cyBpbiBuYW1lZCB0YWJsZXMsIHdpdGggZnVsbCBpZGVudGlmaWVycyBhbmQgZXhwb3J0YWJsZSBjb2x1bW5zOyBjb25zb2xlIGZvcm1hdHRpbmcgaXMgbm90IHVzZWQgZm9yIHJlcG9ydCBkYXRhLgotIFJlcG9ydHMgaW5jbHVkZSBhIHN0cnVjdHVyZWQgc3VtbWFyeSBldmVuIHdoZW4gbm8gZGV0YWlsIHJvd3MgbWF0Y2guIFVua25vd24sIHBhcnRpYWwsIGFuZCBibG9ja2VkIHN0YXRlcyBhcmUgbm90IGV2aWRlbmNlIG9mIGEgY2xlYW4gYXNzZXNzbWVudC4KLSBQYXJhbWV0ZXIgaW5mb3JtYXRpb24gdG9vbHRpcHMgZGVzY3JpYmUgZXhwZWN0ZWQgaW5wdXRzIGFuZCBzYWZldHkgcmVxdWlyZW1lbnRzLiBDb250ZXh0IGFuZCBjZW50cmFsbHkgY29uZmlndXJlZCBzZXR0aW5ncyBzdGF5IGhpZGRlbjsgc3VwcG9ydGVkIGNob2ljZXMgdXNlIGRyb3Bkb3ducy4KLSBBY3Rpb24gcnVuYm9va3MgcmV0YWluIHRoZWlyIHJ1bnRpbWUgdmFsaWRhdGlvbiBhbmQgY29uZmlybWF0aW9uIGNoZWNrcy4gU2VsZWN0aW5nIGFuIGFjdGlvbiBpbiB0aGUgcG9ydGFsIGRvZXMgbm90IGJ5cGFzcyB0aG9zZSBjaGVja3MuCi0gT3V0cHV0IERhdGEgYXBwbGllcyB0byBuZXcgbGl2ZSBqb2JzLCBub3QgcHJldmlvdXNseSBjb21wbGV0ZWQgb3IgYXJjaGl2ZWQgam9icy4gRXhpc3RpbmcgY29uc29sZSBvdXRwdXQgYW5kIGVtYWlsL2ZpbGUgZGVsaXZlcnkgcmVtYWluIGF2YWlsYWJsZS4KClNlZSBbUmVhbG1Kb2luIE91dHB1dCBEYXRhXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9kZXYtcmVmZXJlbmNlL3J1bmJvb2stb3V0cHV0LWRhdGEpIGFuZCBbcnVuYm9vayBjdXN0b21pemF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stY3VzdG9taXphdGlvbikuCgoKIyMgQWRkaXRpb25hbCBvcGVyYXRpb25hbCBndWlkYW5jZQoKT3duZXJzIGNhbid0IGJlIGdyb3Vwcy4gU3BvbnNvcnMgY2FuIGJlIHVzZXJzIG9yIGVsaWdpYmxlIGdyb3VwczsgZ3JvdXAgc3BvbnNvcnMgbXVzdCBiZSBNaWNyb3NvZnQgMzY1IG9yIGR5bmFtaWMgZ3JvdXBzIGFuZCBjYW4ndCBiZSByb2xlLWFzc2lnbmFibGUuIFJlbW92YWwgbmV2ZXIgcmVtb3ZlcyB0aGUgZmluYWwgc3BvbnNvci4K",
+    "PermissionsContent": "{\n  \"SchemaVersion\": 2,\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        { \"Value\": \"AgentIdentity.ReadWrite.All\", \"Reason\": \"Reads and changes Agent Identity sponsor and owner relationships.\" },\n        { \"Value\": \"AgentIdentityBlueprint.Read.All\", \"Reason\": \"Reads typed Agent Identity Blueprints before relationship changes.\" },\n        { \"Value\": \"Application.ReadWrite.All\", \"Reason\": \"Adds or removes Agent Identity Blueprint sponsor and owner references; Microsoft Graph documents this permission for blueprint relationship writes.\" },\n        { \"Value\": \"Directory.Read.All\", \"Reason\": \"Validates directory object types and sponsor-group eligibility.\" }\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "AgentIdentity.ReadWrite.All",
+            "AgentIdentityBlueprint.Read.All",
+            "Application.ReadWrite.All",
+            "Directory.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Create Blueprint",
+    "RunbookDisplayPath": "Org \\ Agent Identity \\ Create Blueprint",
+    "RelativeRunbookPath": "org/Agent-Identity/create-blueprint.ps1",
+    "RelativeRunbookPath_PathOnly": "org/Agent-Identity",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Agent-Identity",
+    "Synopsis": "Create an Entra agent identity blueprint and its principal",
+    "Description": "Creates an agent identity blueprint through the v1.0 typed application endpoint, waits for directory propagation, and creates the associated blueprint principal through the typed service principal endpoint. Sponsors are mandatory. Optional owners, manager applications, tags, and description are validated and added when supplied.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user or system that started the runbook. Used for auditing."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional blueprint description."
+          }
+        ],
+        "globbing": "false",
+        "name": "Description",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Display name for the new agent identity blueprint."
+          }
+        ],
+        "globbing": "false",
+        "name": "DisplayName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional comma-separated application (client) IDs that manage the blueprint. Agent ID stores these as a GUID collection, not as directory-object references."
+          }
+        ],
+        "globbing": "false",
+        "name": "ManagerApplicationAppIds",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Maximum attempts while waiting for the blueprint to become visible to blueprint-principal creation."
+          }
+        ],
+        "globbing": "false",
+        "name": "MaxRetryAttempts",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional comma-separated user or service principal object IDs to assign as owners. Groups aren't accepted as owners."
+          }
+        ],
+        "globbing": "false",
+        "name": "OwnerObjectIds",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Comma-separated directory object IDs of user or supported group sponsors. At least one is required."
+          }
+        ],
+        "globbing": "false",
+        "name": "SponsorObjectIds",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional comma-separated blueprint tags."
+          }
+        ],
+        "globbing": "false",
+        "name": "Tags",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": "## Usage guidance\n\nPrincipal creation POSTs are not replayed after ambiguous server or transport failures. If the\nblueprint application was created before principal creation failed, its IDs are reported and the\napplication is retained. Inspect and reconcile that partial result before starting another creation run.\n\nCreates a Microsoft Entra Agent ID blueprint and its required blueprint principal in the current Microsoft Learn sequence.\n\n## How it works\n\nThe runbook validates mandatory user or eligible-group sponsors, optional user/service-principal owners, and optional manager applications supplied by application (client) ID. It posts the blueprint to `/applications/microsoft.graph.agentIdentityBlueprint`, then creates its principal at `/servicePrincipals/microsoft.graph.agentIdentityBlueprintPrincipal`. Principal creation uses bounded exponential retry because the application can take time to propagate.\n\n`description`, `tags`, and the `managerApplications` GUID collection are sent only when supplied. Groups can't be owners. Sponsor groups must be Microsoft 365 or dynamic groups and can't be role assignable. Microsoft Learn documents a maximum of 100 sponsors per blueprint, of which no more than 5 may be groups; Graph enforces these limits.\n\n## Output and safety\n\nOutput contains both object IDs, the blueprint app ID, and relationship counts. If principal creation exhausts retries, the error clearly reports a partially created blueprint; rerun only after checking whether the principal now exists.\n\n## Access requirements\n\n- `AgentIdentityBlueprint.Create`\n- `AgentIdentityBlueprint.ReadWrite.All`\n- `AgentIdentityBlueprintPrincipal.Create`\n- `Directory.Read.All`\n\nThe specific blueprint permissions are used instead of `Application.ReadWrite.All`. Manager application values are validated as GUIDs, while the typed blueprint API authoritatively enforces the Microsoft first-party application restriction.\n\n## RealmJoin output and operator guidance\n\n- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.\n- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.\n- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.\n- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.\n- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.\n\nSee [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).\n\n\n## Additional operational guidance\n\nUses the current v1.0 typed Agent ID creation sequence: blueprint first, then blueprint principal. A partial result is reported if principal creation still fails after bounded retries.\n",
+    "DocsContentEncoded": "IyMgVXNhZ2UgZ3VpZGFuY2UKClByaW5jaXBhbCBjcmVhdGlvbiBQT1NUcyBhcmUgbm90IHJlcGxheWVkIGFmdGVyIGFtYmlndW91cyBzZXJ2ZXIgb3IgdHJhbnNwb3J0IGZhaWx1cmVzLiBJZiB0aGUKYmx1ZXByaW50IGFwcGxpY2F0aW9uIHdhcyBjcmVhdGVkIGJlZm9yZSBwcmluY2lwYWwgY3JlYXRpb24gZmFpbGVkLCBpdHMgSURzIGFyZSByZXBvcnRlZCBhbmQgdGhlCmFwcGxpY2F0aW9uIGlzIHJldGFpbmVkLiBJbnNwZWN0IGFuZCByZWNvbmNpbGUgdGhhdCBwYXJ0aWFsIHJlc3VsdCBiZWZvcmUgc3RhcnRpbmcgYW5vdGhlciBjcmVhdGlvbiBydW4uCgpDcmVhdGVzIGEgTWljcm9zb2Z0IEVudHJhIEFnZW50IElEIGJsdWVwcmludCBhbmQgaXRzIHJlcXVpcmVkIGJsdWVwcmludCBwcmluY2lwYWwgaW4gdGhlIGN1cnJlbnQgTWljcm9zb2Z0IExlYXJuIHNlcXVlbmNlLgoKIyMgSG93IGl0IHdvcmtzCgpUaGUgcnVuYm9vayB2YWxpZGF0ZXMgbWFuZGF0b3J5IHVzZXIgb3IgZWxpZ2libGUtZ3JvdXAgc3BvbnNvcnMsIG9wdGlvbmFsIHVzZXIvc2VydmljZS1wcmluY2lwYWwgb3duZXJzLCBhbmQgb3B0aW9uYWwgbWFuYWdlciBhcHBsaWNhdGlvbnMgc3VwcGxpZWQgYnkgYXBwbGljYXRpb24gKGNsaWVudCkgSUQuIEl0IHBvc3RzIHRoZSBibHVlcHJpbnQgdG8gYC9hcHBsaWNhdGlvbnMvbWljcm9zb2Z0LmdyYXBoLmFnZW50SWRlbnRpdHlCbHVlcHJpbnRgLCB0aGVuIGNyZWF0ZXMgaXRzIHByaW5jaXBhbCBhdCBgL3NlcnZpY2VQcmluY2lwYWxzL21pY3Jvc29mdC5ncmFwaC5hZ2VudElkZW50aXR5Qmx1ZXByaW50UHJpbmNpcGFsYC4gUHJpbmNpcGFsIGNyZWF0aW9uIHVzZXMgYm91bmRlZCBleHBvbmVudGlhbCByZXRyeSBiZWNhdXNlIHRoZSBhcHBsaWNhdGlvbiBjYW4gdGFrZSB0aW1lIHRvIHByb3BhZ2F0ZS4KCmBkZXNjcmlwdGlvbmAsIGB0YWdzYCwgYW5kIHRoZSBgbWFuYWdlckFwcGxpY2F0aW9uc2AgR1VJRCBjb2xsZWN0aW9uIGFyZSBzZW50IG9ubHkgd2hlbiBzdXBwbGllZC4gR3JvdXBzIGNhbid0IGJlIG93bmVycy4gU3BvbnNvciBncm91cHMgbXVzdCBiZSBNaWNyb3NvZnQgMzY1IG9yIGR5bmFtaWMgZ3JvdXBzIGFuZCBjYW4ndCBiZSByb2xlIGFzc2lnbmFibGUuIE1pY3Jvc29mdCBMZWFybiBkb2N1bWVudHMgYSBtYXhpbXVtIG9mIDEwMCBzcG9uc29ycyBwZXIgYmx1ZXByaW50LCBvZiB3aGljaCBubyBtb3JlIHRoYW4gNSBtYXkgYmUgZ3JvdXBzOyBHcmFwaCBlbmZvcmNlcyB0aGVzZSBsaW1pdHMuCgojIyBPdXRwdXQgYW5kIHNhZmV0eQoKT3V0cHV0IGNvbnRhaW5zIGJvdGggb2JqZWN0IElEcywgdGhlIGJsdWVwcmludCBhcHAgSUQsIGFuZCByZWxhdGlvbnNoaXAgY291bnRzLiBJZiBwcmluY2lwYWwgY3JlYXRpb24gZXhoYXVzdHMgcmV0cmllcywgdGhlIGVycm9yIGNsZWFybHkgcmVwb3J0cyBhIHBhcnRpYWxseSBjcmVhdGVkIGJsdWVwcmludDsgcmVydW4gb25seSBhZnRlciBjaGVja2luZyB3aGV0aGVyIHRoZSBwcmluY2lwYWwgbm93IGV4aXN0cy4KCiMjIEFjY2VzcyByZXF1aXJlbWVudHMKCi0gYEFnZW50SWRlbnRpdHlCbHVlcHJpbnQuQ3JlYXRlYAotIGBBZ2VudElkZW50aXR5Qmx1ZXByaW50LlJlYWRXcml0ZS5BbGxgCi0gYEFnZW50SWRlbnRpdHlCbHVlcHJpbnRQcmluY2lwYWwuQ3JlYXRlYAotIGBEaXJlY3RvcnkuUmVhZC5BbGxgCgpUaGUgc3BlY2lmaWMgYmx1ZXByaW50IHBlcm1pc3Npb25zIGFyZSB1c2VkIGluc3RlYWQgb2YgYEFwcGxpY2F0aW9uLlJlYWRXcml0ZS5BbGxgLiBNYW5hZ2VyIGFwcGxpY2F0aW9uIHZhbHVlcyBhcmUgdmFsaWRhdGVkIGFzIEdVSURzLCB3aGlsZSB0aGUgdHlwZWQgYmx1ZXByaW50IEFQSSBhdXRob3JpdGF0aXZlbHkgZW5mb3JjZXMgdGhlIE1pY3Jvc29mdCBmaXJzdC1wYXJ0eSBhcHBsaWNhdGlvbiByZXN0cmljdGlvbi4KCiMjIFJlYWxtSm9pbiBvdXRwdXQgYW5kIG9wZXJhdG9yIGd1aWRhbmNlCgotIFRoZSAqKk91dHB1dCBEYXRhKiogdGFiIHJlY2VpdmVzIHJhdyBvYmplY3RzIGluIG5hbWVkIHRhYmxlcywgd2l0aCBmdWxsIGlkZW50aWZpZXJzIGFuZCBleHBvcnRhYmxlIGNvbHVtbnM7IGNvbnNvbGUgZm9ybWF0dGluZyBpcyBub3QgdXNlZCBmb3IgcmVwb3J0IGRhdGEuCi0gUmVwb3J0cyBpbmNsdWRlIGEgc3RydWN0dXJlZCBzdW1tYXJ5IGV2ZW4gd2hlbiBubyBkZXRhaWwgcm93cyBtYXRjaC4gVW5rbm93biwgcGFydGlhbCwgYW5kIGJsb2NrZWQgc3RhdGVzIGFyZSBub3QgZXZpZGVuY2Ugb2YgYSBjbGVhbiBhc3Nlc3NtZW50LgotIFBhcmFtZXRlciBpbmZvcm1hdGlvbiB0b29sdGlwcyBkZXNjcmliZSBleHBlY3RlZCBpbnB1dHMgYW5kIHNhZmV0eSByZXF1aXJlbWVudHMuIENvbnRleHQgYW5kIGNlbnRyYWxseSBjb25maWd1cmVkIHNldHRpbmdzIHN0YXkgaGlkZGVuOyBzdXBwb3J0ZWQgY2hvaWNlcyB1c2UgZHJvcGRvd25zLgotIEFjdGlvbiBydW5ib29rcyByZXRhaW4gdGhlaXIgcnVudGltZSB2YWxpZGF0aW9uIGFuZCBjb25maXJtYXRpb24gY2hlY2tzLiBTZWxlY3RpbmcgYW4gYWN0aW9uIGluIHRoZSBwb3J0YWwgZG9lcyBub3QgYnlwYXNzIHRob3NlIGNoZWNrcy4KLSBPdXRwdXQgRGF0YSBhcHBsaWVzIHRvIG5ldyBsaXZlIGpvYnMsIG5vdCBwcmV2aW91c2x5IGNvbXBsZXRlZCBvciBhcmNoaXZlZCBqb2JzLiBFeGlzdGluZyBjb25zb2xlIG91dHB1dCBhbmQgZW1haWwvZmlsZSBkZWxpdmVyeSByZW1haW4gYXZhaWxhYmxlLgoKU2VlIFtSZWFsbUpvaW4gT3V0cHV0IERhdGFdKGh0dHBzOi8vZG9jcy5yZWFsbWpvaW4uY29tL2Rldi1yZWZlcmVuY2UvcnVuYm9vay1vdXRwdXQtZGF0YSkgYW5kIFtydW5ib29rIGN1c3RvbWl6YXRpb25dKGh0dHBzOi8vZG9jcy5yZWFsbWpvaW4uY29tL2F1dG9tYXRpb24vcnVuYm9va3MvcnVuYm9vay1jdXN0b21pemF0aW9uKS4KCgojIyBBZGRpdGlvbmFsIG9wZXJhdGlvbmFsIGd1aWRhbmNlCgpVc2VzIHRoZSBjdXJyZW50IHYxLjAgdHlwZWQgQWdlbnQgSUQgY3JlYXRpb24gc2VxdWVuY2U6IGJsdWVwcmludCBmaXJzdCwgdGhlbiBibHVlcHJpbnQgcHJpbmNpcGFsLiBBIHBhcnRpYWwgcmVzdWx0IGlzIHJlcG9ydGVkIGlmIHByaW5jaXBhbCBjcmVhdGlvbiBzdGlsbCBmYWlscyBhZnRlciBib3VuZGVkIHJldHJpZXMuCg==",
+    "PermissionsContent": "{\n  \"SchemaVersion\": 2,\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        { \"Value\": \"AgentIdentityBlueprint.Create\", \"Reason\": \"Creates the typed Agent ID blueprint.\" },\n        { \"Value\": \"AgentIdentityBlueprint.ReadWrite.All\", \"Reason\": \"Sets supported Agent Identity Blueprint metadata and relationships during creation.\" },\n        { \"Value\": \"AgentIdentityBlueprintPrincipal.Create\", \"Reason\": \"Creates the mandatory associated blueprint principal.\" },\n        { \"Value\": \"Directory.Read.All\", \"Reason\": \"Validates sponsor and owner directory object types and sponsor-group restrictions.\" }\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "AgentIdentityBlueprint.Create",
+            "AgentIdentityBlueprint.ReadWrite.All",
+            "AgentIdentityBlueprintPrincipal.Create",
+            "Directory.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Create Identity",
+    "RunbookDisplayPath": "Org \\ Agent Identity \\ Create Identity",
+    "RelativeRunbookPath": "org/Agent-Identity/create-identity.ps1",
+    "RelativeRunbookPath_PathOnly": "org/Agent-Identity",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Agent-Identity",
+    "Synopsis": "Create an Entra agent identity from a blueprint",
+    "Description": "Validates the selected blueprint, its principal, mandatory sponsors and optional owners. Creates an agent identity through the typed v1.0 endpoint, retrying only throttling and recognized propagation failures.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Application (client) ID of the selected agent identity blueprint."
+          }
+        ],
+        "globbing": "false",
+        "name": "BlueprintAppId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user or system that started the runbook. Used for auditing."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional display name for the agent identity. If omitted, the runbook uses the validated blueprint's display name."
+          }
+        ],
+        "globbing": "false",
+        "name": "DisplayName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "6",
+        "description": [
+          {
+            "Text": "Maximum creation attempts while blueprint data propagates."
+          }
+        ],
+        "globbing": "false",
+        "name": "MaxRetryAttempts",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional comma-separated user or service principal object IDs. Groups aren't accepted as owners."
+          }
+        ],
+        "globbing": "false",
+        "name": "OwnerObjectIds",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Comma-separated user or supported group object IDs. At least one sponsor is required."
+          }
+        ],
+        "globbing": "false",
+        "name": "SponsorObjectIds",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional comma-separated tags for the agent identity."
+          }
+        ],
+        "globbing": "false",
+        "name": "Tags",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": "## Usage guidance\n\nCreation POSTs are not idempotent. Throttling and recognized propagation failures can be retried,\nbut an ambiguous server or transport error stops without replaying the POST. Inspect the blueprint's\nidentities before trying again; the first request may already have created an identity.\n\nCreates an Agent Identity from a selected existing blueprint.\n\n## How it works\n\nSupply the blueprint application ID, mandatory sponsors, and optional owners, display name, and tags. The runbook verifies the typed blueprint and its required blueprint principal, enforces current sponsor-group restrictions (Microsoft 365 or dynamic groups only, not role assignable; Learn documents at most 100 sponsors with no more than 5 groups, enforced by Graph), then posts to `/servicePrincipals/microsoft.graph.agentIdentity`. When `DisplayName` is omitted, the runbook explicitly uses the validated blueprint display name because the create API requires a display name. Bounded retry handles directory eventual consistency.\n\nCredentials are never added to the identity; they belong on the blueprint.\n\n## Output\n\nReturns the new identity object ID, app ID, display name, blueprint app ID, and sponsor/owner counts.\n\n## Access requirements\n\n- `AgentIdentity.Create.All`\n- `AgentIdentityBlueprint.Read.All`\n- `AgentIdentityBlueprintPrincipal.Read.All`\n- `Directory.Read.All`\n\n## RealmJoin output and operator guidance\n\n- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.\n- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.\n- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.\n- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.\n- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.\n\nSee [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).\n\n\n## Additional operational guidance\n\nThe blueprint principal must already exist. Credentials belong on the blueprint, never on an agent identity.\n",
+    "DocsContentEncoded": "IyMgVXNhZ2UgZ3VpZGFuY2UKCkNyZWF0aW9uIFBPU1RzIGFyZSBub3QgaWRlbXBvdGVudC4gVGhyb3R0bGluZyBhbmQgcmVjb2duaXplZCBwcm9wYWdhdGlvbiBmYWlsdXJlcyBjYW4gYmUgcmV0cmllZCwKYnV0IGFuIGFtYmlndW91cyBzZXJ2ZXIgb3IgdHJhbnNwb3J0IGVycm9yIHN0b3BzIHdpdGhvdXQgcmVwbGF5aW5nIHRoZSBQT1NULiBJbnNwZWN0IHRoZSBibHVlcHJpbnQncwppZGVudGl0aWVzIGJlZm9yZSB0cnlpbmcgYWdhaW47IHRoZSBmaXJzdCByZXF1ZXN0IG1heSBhbHJlYWR5IGhhdmUgY3JlYXRlZCBhbiBpZGVudGl0eS4KCkNyZWF0ZXMgYW4gQWdlbnQgSWRlbnRpdHkgZnJvbSBhIHNlbGVjdGVkIGV4aXN0aW5nIGJsdWVwcmludC4KCiMjIEhvdyBpdCB3b3JrcwoKU3VwcGx5IHRoZSBibHVlcHJpbnQgYXBwbGljYXRpb24gSUQsIG1hbmRhdG9yeSBzcG9uc29ycywgYW5kIG9wdGlvbmFsIG93bmVycywgZGlzcGxheSBuYW1lLCBhbmQgdGFncy4gVGhlIHJ1bmJvb2sgdmVyaWZpZXMgdGhlIHR5cGVkIGJsdWVwcmludCBhbmQgaXRzIHJlcXVpcmVkIGJsdWVwcmludCBwcmluY2lwYWwsIGVuZm9yY2VzIGN1cnJlbnQgc3BvbnNvci1ncm91cCByZXN0cmljdGlvbnMgKE1pY3Jvc29mdCAzNjUgb3IgZHluYW1pYyBncm91cHMgb25seSwgbm90IHJvbGUgYXNzaWduYWJsZTsgTGVhcm4gZG9jdW1lbnRzIGF0IG1vc3QgMTAwIHNwb25zb3JzIHdpdGggbm8gbW9yZSB0aGFuIDUgZ3JvdXBzLCBlbmZvcmNlZCBieSBHcmFwaCksIHRoZW4gcG9zdHMgdG8gYC9zZXJ2aWNlUHJpbmNpcGFscy9taWNyb3NvZnQuZ3JhcGguYWdlbnRJZGVudGl0eWAuIFdoZW4gYERpc3BsYXlOYW1lYCBpcyBvbWl0dGVkLCB0aGUgcnVuYm9vayBleHBsaWNpdGx5IHVzZXMgdGhlIHZhbGlkYXRlZCBibHVlcHJpbnQgZGlzcGxheSBuYW1lIGJlY2F1c2UgdGhlIGNyZWF0ZSBBUEkgcmVxdWlyZXMgYSBkaXNwbGF5IG5hbWUuIEJvdW5kZWQgcmV0cnkgaGFuZGxlcyBkaXJlY3RvcnkgZXZlbnR1YWwgY29uc2lzdGVuY3kuCgpDcmVkZW50aWFscyBhcmUgbmV2ZXIgYWRkZWQgdG8gdGhlIGlkZW50aXR5OyB0aGV5IGJlbG9uZyBvbiB0aGUgYmx1ZXByaW50LgoKIyMgT3V0cHV0CgpSZXR1cm5zIHRoZSBuZXcgaWRlbnRpdHkgb2JqZWN0IElELCBhcHAgSUQsIGRpc3BsYXkgbmFtZSwgYmx1ZXByaW50IGFwcCBJRCwgYW5kIHNwb25zb3Ivb3duZXIgY291bnRzLgoKIyMgQWNjZXNzIHJlcXVpcmVtZW50cwoKLSBgQWdlbnRJZGVudGl0eS5DcmVhdGUuQWxsYAotIGBBZ2VudElkZW50aXR5Qmx1ZXByaW50LlJlYWQuQWxsYAotIGBBZ2VudElkZW50aXR5Qmx1ZXByaW50UHJpbmNpcGFsLlJlYWQuQWxsYAotIGBEaXJlY3RvcnkuUmVhZC5BbGxgCgojIyBSZWFsbUpvaW4gb3V0cHV0IGFuZCBvcGVyYXRvciBndWlkYW5jZQoKLSBUaGUgKipPdXRwdXQgRGF0YSoqIHRhYiByZWNlaXZlcyByYXcgb2JqZWN0cyBpbiBuYW1lZCB0YWJsZXMsIHdpdGggZnVsbCBpZGVudGlmaWVycyBhbmQgZXhwb3J0YWJsZSBjb2x1bW5zOyBjb25zb2xlIGZvcm1hdHRpbmcgaXMgbm90IHVzZWQgZm9yIHJlcG9ydCBkYXRhLgotIFJlcG9ydHMgaW5jbHVkZSBhIHN0cnVjdHVyZWQgc3VtbWFyeSBldmVuIHdoZW4gbm8gZGV0YWlsIHJvd3MgbWF0Y2guIFVua25vd24sIHBhcnRpYWwsIGFuZCBibG9ja2VkIHN0YXRlcyBhcmUgbm90IGV2aWRlbmNlIG9mIGEgY2xlYW4gYXNzZXNzbWVudC4KLSBQYXJhbWV0ZXIgaW5mb3JtYXRpb24gdG9vbHRpcHMgZGVzY3JpYmUgZXhwZWN0ZWQgaW5wdXRzIGFuZCBzYWZldHkgcmVxdWlyZW1lbnRzLiBDb250ZXh0IGFuZCBjZW50cmFsbHkgY29uZmlndXJlZCBzZXR0aW5ncyBzdGF5IGhpZGRlbjsgc3VwcG9ydGVkIGNob2ljZXMgdXNlIGRyb3Bkb3ducy4KLSBBY3Rpb24gcnVuYm9va3MgcmV0YWluIHRoZWlyIHJ1bnRpbWUgdmFsaWRhdGlvbiBhbmQgY29uZmlybWF0aW9uIGNoZWNrcy4gU2VsZWN0aW5nIGFuIGFjdGlvbiBpbiB0aGUgcG9ydGFsIGRvZXMgbm90IGJ5cGFzcyB0aG9zZSBjaGVja3MuCi0gT3V0cHV0IERhdGEgYXBwbGllcyB0byBuZXcgbGl2ZSBqb2JzLCBub3QgcHJldmlvdXNseSBjb21wbGV0ZWQgb3IgYXJjaGl2ZWQgam9icy4gRXhpc3RpbmcgY29uc29sZSBvdXRwdXQgYW5kIGVtYWlsL2ZpbGUgZGVsaXZlcnkgcmVtYWluIGF2YWlsYWJsZS4KClNlZSBbUmVhbG1Kb2luIE91dHB1dCBEYXRhXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9kZXYtcmVmZXJlbmNlL3J1bmJvb2stb3V0cHV0LWRhdGEpIGFuZCBbcnVuYm9vayBjdXN0b21pemF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stY3VzdG9taXphdGlvbikuCgoKIyMgQWRkaXRpb25hbCBvcGVyYXRpb25hbCBndWlkYW5jZQoKVGhlIGJsdWVwcmludCBwcmluY2lwYWwgbXVzdCBhbHJlYWR5IGV4aXN0LiBDcmVkZW50aWFscyBiZWxvbmcgb24gdGhlIGJsdWVwcmludCwgbmV2ZXIgb24gYW4gYWdlbnQgaWRlbnRpdHkuCg==",
+    "PermissionsContent": "{\n  \"SchemaVersion\": 2,\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        { \"Value\": \"AgentIdentity.Create.All\", \"Reason\": \"Creates Agent Identities through the typed v1.0 endpoint.\" },\n        { \"Value\": \"AgentIdentityBlueprint.Read.All\", \"Reason\": \"Validates the selected blueprint.\" },\n        { \"Value\": \"AgentIdentityBlueprintPrincipal.Read.All\", \"Reason\": \"Confirms the blueprint principal exists before identity creation.\" },\n        { \"Value\": \"Directory.Read.All\", \"Reason\": \"Validates sponsor and owner object types and sponsor-group restrictions.\" }\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "AgentIdentity.Create.All",
+            "AgentIdentityBlueprint.Read.All",
+            "AgentIdentityBlueprintPrincipal.Read.All",
+            "Directory.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Report CA Targets_Scheduled",
+    "RunbookDisplayPath": "Org \\ Agent Identity \\ Report CA Targets_Scheduled",
+    "RelativeRunbookPath": "org/Agent-Identity/report-CA-targets_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/Agent-Identity",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Agent-Identity",
+    "Synopsis": "Report Conditional Access targeting of Entra agent identities",
+    "Description": "Compares agent identity and blueprint principal service-principal object IDs with Conditional Access\nclientApplications includeServicePrincipals and excludeServicePrincipals. This assesses autonomous,\napp-only workload-identity targeting. OBO access is governed through the signed-in user and cannot be\ninferred as agent coverage from this report.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Accent color for report emails."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingAccentColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Footer image URL for report emails."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Destination link for the report email footer."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterLink",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Header image URL for report emails."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingHeaderImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Text color for report emails."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingTextColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the caller. This mandatory hidden parameter is used for auditing."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sender mailbox from the RJReport.EmailSender tenant setting. Required only when EmailTo is set."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional comma- or semicolon-separated recipients for the report."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include disabled policies as informational, non-enforced coverage."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeDisabledPolicies",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": "## Usage guidance\n\nReports Conditional Access target selectors for agent and blueprint principals, not effective protection.\n\n## Output\n\nPer-principal inclusion/exclusion, target kind, policy state, and unknown selectors. Enabled,\nreport-only and disabled policies remain distinct. A selector match does not prove that the policy\napplies to a particular sign-in or that its grant controls enforce protection.\n\n## API and safety notes\n\nUses the beta Conditional Access policy surface to read `includeAgentIdServicePrincipals`,\n`excludeAgentIdServicePrincipals` and `agentIdServicePrincipalFilter`. Ordinary\n`includeServicePrincipals` / `excludeServicePrincipals` selectors are reported separately as\n`WorkloadIdentity`, not silently treated as agent-specific coverage.\n\nExplicit exclusions take precedence. Filters and unrecognized symbolic selectors produce **Unknown**;\nthey are not evaluated locally. Other conditions, grant controls and OBO coverage are not inferred.\nSee the [Graph client application conditions](https://learn.microsoft.com/graph/api/resources/conditionalaccessclientapplications?view=graph-rest-beta).\n\nUnknown lookup or revalidation states are reported and fail closed. Microsoft Graph pagination is followed, and HTTP 429/5xx responses are retried with backoff.\n\n## Email delivery\n\nEmail is optional. Set `EmailTo` to enable it. The sender is read from `RJReport.EmailSender` and the runbook uses `Send-RjRbReportEmail`.\n\n## Access requirements\n\n### Required Graph access\n\n- `AgentIdentity.Read.All`\n- `AgentIdentityBlueprintPrincipal.Read.All`\n- `Policy.Read.All`\n- `Mail.Send (optional)`\n\n`Mail.Send` is optional and is needed only for email delivery.\n\n## Parameter behavior\n\n### IncludeDisabledPolicies\n\nInclude disabled policy targeting as informational, non-enforced coverage.\n\n### EmailTo\n\nOptional comma- or semicolon-separated report recipients.\n\n### EmailFrom\n\nHidden sender setting sourced from `RJReport.EmailSender`.\n\n\n## RealmJoin output and operator guidance\n\n- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.\n- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.\n- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.\n- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.\n- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.\n\nSee [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).\n\n## Email branding\n\nReport emails use the optional RJReport.Branding settings for header/footer images, footer links and colors. Configure RJReport.EmailSender and grant Mail.Send before enabling email delivery. See the [report settings](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings).\n",
+    "DocsContentEncoded": "IyMgVXNhZ2UgZ3VpZGFuY2UKClJlcG9ydHMgQ29uZGl0aW9uYWwgQWNjZXNzIHRhcmdldCBzZWxlY3RvcnMgZm9yIGFnZW50IGFuZCBibHVlcHJpbnQgcHJpbmNpcGFscywgbm90IGVmZmVjdGl2ZSBwcm90ZWN0aW9uLgoKIyMgT3V0cHV0CgpQZXItcHJpbmNpcGFsIGluY2x1c2lvbi9leGNsdXNpb24sIHRhcmdldCBraW5kLCBwb2xpY3kgc3RhdGUsIGFuZCB1bmtub3duIHNlbGVjdG9ycy4gRW5hYmxlZCwKcmVwb3J0LW9ubHkgYW5kIGRpc2FibGVkIHBvbGljaWVzIHJlbWFpbiBkaXN0aW5jdC4gQSBzZWxlY3RvciBtYXRjaCBkb2VzIG5vdCBwcm92ZSB0aGF0IHRoZSBwb2xpY3kKYXBwbGllcyB0byBhIHBhcnRpY3VsYXIgc2lnbi1pbiBvciB0aGF0IGl0cyBncmFudCBjb250cm9scyBlbmZvcmNlIHByb3RlY3Rpb24uCgojIyBBUEkgYW5kIHNhZmV0eSBub3RlcwoKVXNlcyB0aGUgYmV0YSBDb25kaXRpb25hbCBBY2Nlc3MgcG9saWN5IHN1cmZhY2UgdG8gcmVhZCBgaW5jbHVkZUFnZW50SWRTZXJ2aWNlUHJpbmNpcGFsc2AsCmBleGNsdWRlQWdlbnRJZFNlcnZpY2VQcmluY2lwYWxzYCBhbmQgYGFnZW50SWRTZXJ2aWNlUHJpbmNpcGFsRmlsdGVyYC4gT3JkaW5hcnkKYGluY2x1ZGVTZXJ2aWNlUHJpbmNpcGFsc2AgLyBgZXhjbHVkZVNlcnZpY2VQcmluY2lwYWxzYCBzZWxlY3RvcnMgYXJlIHJlcG9ydGVkIHNlcGFyYXRlbHkgYXMKYFdvcmtsb2FkSWRlbnRpdHlgLCBub3Qgc2lsZW50bHkgdHJlYXRlZCBhcyBhZ2VudC1zcGVjaWZpYyBjb3ZlcmFnZS4KCkV4cGxpY2l0IGV4Y2x1c2lvbnMgdGFrZSBwcmVjZWRlbmNlLiBGaWx0ZXJzIGFuZCB1bnJlY29nbml6ZWQgc3ltYm9saWMgc2VsZWN0b3JzIHByb2R1Y2UgKipVbmtub3duKio7CnRoZXkgYXJlIG5vdCBldmFsdWF0ZWQgbG9jYWxseS4gT3RoZXIgY29uZGl0aW9ucywgZ3JhbnQgY29udHJvbHMgYW5kIE9CTyBjb3ZlcmFnZSBhcmUgbm90IGluZmVycmVkLgpTZWUgdGhlIFtHcmFwaCBjbGllbnQgYXBwbGljYXRpb24gY29uZGl0aW9uc10oaHR0cHM6Ly9sZWFybi5taWNyb3NvZnQuY29tL2dyYXBoL2FwaS9yZXNvdXJjZXMvY29uZGl0aW9uYWxhY2Nlc3NjbGllbnRhcHBsaWNhdGlvbnM/dmlldz1ncmFwaC1yZXN0LWJldGEpLgoKVW5rbm93biBsb29rdXAgb3IgcmV2YWxpZGF0aW9uIHN0YXRlcyBhcmUgcmVwb3J0ZWQgYW5kIGZhaWwgY2xvc2VkLiBNaWNyb3NvZnQgR3JhcGggcGFnaW5hdGlvbiBpcyBmb2xsb3dlZCwgYW5kIEhUVFAgNDI5LzV4eCByZXNwb25zZXMgYXJlIHJldHJpZWQgd2l0aCBiYWNrb2ZmLgoKIyMgRW1haWwgZGVsaXZlcnkKCkVtYWlsIGlzIG9wdGlvbmFsLiBTZXQgYEVtYWlsVG9gIHRvIGVuYWJsZSBpdC4gVGhlIHNlbmRlciBpcyByZWFkIGZyb20gYFJKUmVwb3J0LkVtYWlsU2VuZGVyYCBhbmQgdGhlIHJ1bmJvb2sgdXNlcyBgU2VuZC1SalJiUmVwb3J0RW1haWxgLgoKIyMgQWNjZXNzIHJlcXVpcmVtZW50cwoKIyMjIFJlcXVpcmVkIEdyYXBoIGFjY2VzcwoKLSBgQWdlbnRJZGVudGl0eS5SZWFkLkFsbGAKLSBgQWdlbnRJZGVudGl0eUJsdWVwcmludFByaW5jaXBhbC5SZWFkLkFsbGAKLSBgUG9saWN5LlJlYWQuQWxsYAotIGBNYWlsLlNlbmQgKG9wdGlvbmFsKWAKCmBNYWlsLlNlbmRgIGlzIG9wdGlvbmFsIGFuZCBpcyBuZWVkZWQgb25seSBmb3IgZW1haWwgZGVsaXZlcnkuCgojIyBQYXJhbWV0ZXIgYmVoYXZpb3IKCiMjIyBJbmNsdWRlRGlzYWJsZWRQb2xpY2llcwoKSW5jbHVkZSBkaXNhYmxlZCBwb2xpY3kgdGFyZ2V0aW5nIGFzIGluZm9ybWF0aW9uYWwsIG5vbi1lbmZvcmNlZCBjb3ZlcmFnZS4KCiMjIyBFbWFpbFRvCgpPcHRpb25hbCBjb21tYS0gb3Igc2VtaWNvbG9uLXNlcGFyYXRlZCByZXBvcnQgcmVjaXBpZW50cy4KCiMjIyBFbWFpbEZyb20KCkhpZGRlbiBzZW5kZXIgc2V0dGluZyBzb3VyY2VkIGZyb20gYFJKUmVwb3J0LkVtYWlsU2VuZGVyYC4KCgojIyBSZWFsbUpvaW4gb3V0cHV0IGFuZCBvcGVyYXRvciBndWlkYW5jZQoKLSBUaGUgKipPdXRwdXQgRGF0YSoqIHRhYiByZWNlaXZlcyByYXcgb2JqZWN0cyBpbiBuYW1lZCB0YWJsZXMsIHdpdGggZnVsbCBpZGVudGlmaWVycyBhbmQgZXhwb3J0YWJsZSBjb2x1bW5zOyBjb25zb2xlIGZvcm1hdHRpbmcgaXMgbm90IHVzZWQgZm9yIHJlcG9ydCBkYXRhLgotIFJlcG9ydHMgaW5jbHVkZSBhIHN0cnVjdHVyZWQgc3VtbWFyeSBldmVuIHdoZW4gbm8gZGV0YWlsIHJvd3MgbWF0Y2guIFVua25vd24sIHBhcnRpYWwsIGFuZCBibG9ja2VkIHN0YXRlcyBhcmUgbm90IGV2aWRlbmNlIG9mIGEgY2xlYW4gYXNzZXNzbWVudC4KLSBQYXJhbWV0ZXIgaW5mb3JtYXRpb24gdG9vbHRpcHMgZGVzY3JpYmUgZXhwZWN0ZWQgaW5wdXRzIGFuZCBzYWZldHkgcmVxdWlyZW1lbnRzLiBDb250ZXh0IGFuZCBjZW50cmFsbHkgY29uZmlndXJlZCBzZXR0aW5ncyBzdGF5IGhpZGRlbjsgc3VwcG9ydGVkIGNob2ljZXMgdXNlIGRyb3Bkb3ducy4KLSBBY3Rpb24gcnVuYm9va3MgcmV0YWluIHRoZWlyIHJ1bnRpbWUgdmFsaWRhdGlvbiBhbmQgY29uZmlybWF0aW9uIGNoZWNrcy4gU2VsZWN0aW5nIGFuIGFjdGlvbiBpbiB0aGUgcG9ydGFsIGRvZXMgbm90IGJ5cGFzcyB0aG9zZSBjaGVja3MuCi0gT3V0cHV0IERhdGEgYXBwbGllcyB0byBuZXcgbGl2ZSBqb2JzLCBub3QgcHJldmlvdXNseSBjb21wbGV0ZWQgb3IgYXJjaGl2ZWQgam9icy4gRXhpc3RpbmcgY29uc29sZSBvdXRwdXQgYW5kIGVtYWlsL2ZpbGUgZGVsaXZlcnkgcmVtYWluIGF2YWlsYWJsZS4KClNlZSBbUmVhbG1Kb2luIE91dHB1dCBEYXRhXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9kZXYtcmVmZXJlbmNlL3J1bmJvb2stb3V0cHV0LWRhdGEpIGFuZCBbcnVuYm9vayBjdXN0b21pemF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stY3VzdG9taXphdGlvbikuCgojIyBFbWFpbCBicmFuZGluZwoKUmVwb3J0IGVtYWlscyB1c2UgdGhlIG9wdGlvbmFsIFJKUmVwb3J0LkJyYW5kaW5nIHNldHRpbmdzIGZvciBoZWFkZXIvZm9vdGVyIGltYWdlcywgZm9vdGVyIGxpbmtzIGFuZCBjb2xvcnMuIENvbmZpZ3VyZSBSSlJlcG9ydC5FbWFpbFNlbmRlciBhbmQgZ3JhbnQgTWFpbC5TZW5kIGJlZm9yZSBlbmFibGluZyBlbWFpbCBkZWxpdmVyeS4gU2VlIHRoZSBbcmVwb3J0IHNldHRpbmdzXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKS4K",
+    "PermissionsContent": "{\n  \"SchemaVersion\": 2,\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        {\n          \"Value\": \"AgentIdentity.Read.All\",\n          \"Reason\": \"Lists agent identity service principals.\"\n        },\n        {\n          \"Value\": \"AgentIdentityBlueprintPrincipal.Read.All\",\n          \"Reason\": \"Lists blueprint principal service principals.\"\n        },\n        {\n          \"Value\": \"Policy.Read.All\",\n          \"Reason\": \"Reads Conditional Access policies and workload-identity targets.\"\n        },\n        {\n          \"Value\": \"Mail.Send\",\n          \"Optional\": true,\n          \"Feature\": \"Email report\",\n          \"Reason\": \"Sends the optional report email.\"\n        }\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "AgentIdentity.Read.All",
+            "AgentIdentityBlueprintPrincipal.Read.All",
+            "Mail.Send",
+            "Policy.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Report Inventory_Scheduled",
+    "RunbookDisplayPath": "Org \\ Agent Identity \\ Report Inventory_Scheduled",
+    "RelativeRunbookPath": "org/Agent-Identity/report-inventory_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/Agent-Identity",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Agent-Identity",
+    "Synopsis": "Inventory Entra agent identities, blueprints and agent users",
+    "Description": "Inventories v1.0 agent identities, blueprints, blueprint principals, and agent users. For every\nagent identity it records enablement, Microsoft disablement, sponsors, owners, creation, tags,\nmanager applications, custom security attributes, and blueprint population. Relationship failures\nremain Unknown. It warns when app-only creation approaches the documented 250 identities per\nblueprint constraint; it does not describe this as a tenant-wide quota.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "80",
+        "description": [
+          {
+            "Text": "Percentage of the documented app-only 250-per-blueprint constraint at which to warn."
+          }
+        ],
+        "globbing": "false",
+        "name": "BlueprintQuotaWarningPercent",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Accent color for report emails."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingAccentColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Footer image URL for report emails."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Destination link for the report email footer."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterLink",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Header image URL for report emails."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingHeaderImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Text color for report emails."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingTextColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the caller. This mandatory hidden parameter is used for auditing."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sender mailbox from the RJReport.EmailSender tenant setting. Required only when EmailTo is set."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional comma- or semicolon-separated recipients for the report."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Request customSecurityAttributes. Disable if the managed identity lacks that separate permission."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeCustomSecurityAttributes",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": "## Usage guidance\n\nReports a complete Microsoft Entra Agent ID inventory and posture view.\n\n## Output\n\nThe summary includes the UTC collection start and counts for each object type in both job output\nand email. All returned objects are included, including disposable test objects still present at\ncollection time. Counts describe an inventory snapshot, not health or completed test coverage.\n\nA structured row per agent identity and related Agent ID object, including relationship state and per-blueprint counts.\n\n## API and safety notes\n\nCore resources and sponsor/owner relationships use Microsoft Graph v1.0. The 250 constraint applies to agent identities created for a blueprint by an app-only caller; it is not a general tenant quota.\n\nUnknown lookup or revalidation states are reported and fail closed. Microsoft Graph pagination is followed, and HTTP 429/5xx responses are retried with backoff.\n\n## Email delivery\n\nEmail is optional. Set `EmailTo` to enable it. The sender is read from `RJReport.EmailSender` and the runbook uses `Send-RjRbReportEmail`.\n\n## Access requirements\n\n### Required Graph access\n\n- `AgentIdentity.Read.All`\n- `AgentIdentity.ReadWrite.All` (Learn exposes no read-only application permission for the Agent Identity `sponsors` relationship)\n- `AgentIdentityBlueprint.Read.All`\n- `AgentIdentityBlueprintPrincipal.Read.All`\n- `User.Read.All`\n- `CustomSecAttributeAssignment.Read.All (optional)`\n- `Mail.Send (optional)`\n\n`Mail.Send` is optional and is needed only for email delivery.\n\n## Parameter behavior\n\n### IncludeCustomSecurityAttributes\n\nRequest custom security attributes. Their permission is optional.\n\n### BlueprintQuotaWarningPercent\n\nWarn at this percentage of the documented app-only 250-agent-identities-per-blueprint constraint.\n\n### EmailTo\n\nOptional comma- or semicolon-separated report recipients.\n\n### EmailFrom\n\nHidden sender setting sourced from `RJReport.EmailSender`.\n\n\n## RealmJoin output and operator guidance\n\n- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.\n- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.\n- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.\n- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.\n- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.\n\nSee [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).\n\n## Email branding\n\nReport emails use the optional RJReport.Branding settings for header/footer images, footer links and colors. Configure RJReport.EmailSender and grant Mail.Send before enabling email delivery. See the [report settings](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings).\n",
+    "DocsContentEncoded": "IyMgVXNhZ2UgZ3VpZGFuY2UKClJlcG9ydHMgYSBjb21wbGV0ZSBNaWNyb3NvZnQgRW50cmEgQWdlbnQgSUQgaW52ZW50b3J5IGFuZCBwb3N0dXJlIHZpZXcuCgojIyBPdXRwdXQKClRoZSBzdW1tYXJ5IGluY2x1ZGVzIHRoZSBVVEMgY29sbGVjdGlvbiBzdGFydCBhbmQgY291bnRzIGZvciBlYWNoIG9iamVjdCB0eXBlIGluIGJvdGggam9iIG91dHB1dAphbmQgZW1haWwuIEFsbCByZXR1cm5lZCBvYmplY3RzIGFyZSBpbmNsdWRlZCwgaW5jbHVkaW5nIGRpc3Bvc2FibGUgdGVzdCBvYmplY3RzIHN0aWxsIHByZXNlbnQgYXQKY29sbGVjdGlvbiB0aW1lLiBDb3VudHMgZGVzY3JpYmUgYW4gaW52ZW50b3J5IHNuYXBzaG90LCBub3QgaGVhbHRoIG9yIGNvbXBsZXRlZCB0ZXN0IGNvdmVyYWdlLgoKQSBzdHJ1Y3R1cmVkIHJvdyBwZXIgYWdlbnQgaWRlbnRpdHkgYW5kIHJlbGF0ZWQgQWdlbnQgSUQgb2JqZWN0LCBpbmNsdWRpbmcgcmVsYXRpb25zaGlwIHN0YXRlIGFuZCBwZXItYmx1ZXByaW50IGNvdW50cy4KCiMjIEFQSSBhbmQgc2FmZXR5IG5vdGVzCgpDb3JlIHJlc291cmNlcyBhbmQgc3BvbnNvci9vd25lciByZWxhdGlvbnNoaXBzIHVzZSBNaWNyb3NvZnQgR3JhcGggdjEuMC4gVGhlIDI1MCBjb25zdHJhaW50IGFwcGxpZXMgdG8gYWdlbnQgaWRlbnRpdGllcyBjcmVhdGVkIGZvciBhIGJsdWVwcmludCBieSBhbiBhcHAtb25seSBjYWxsZXI7IGl0IGlzIG5vdCBhIGdlbmVyYWwgdGVuYW50IHF1b3RhLgoKVW5rbm93biBsb29rdXAgb3IgcmV2YWxpZGF0aW9uIHN0YXRlcyBhcmUgcmVwb3J0ZWQgYW5kIGZhaWwgY2xvc2VkLiBNaWNyb3NvZnQgR3JhcGggcGFnaW5hdGlvbiBpcyBmb2xsb3dlZCwgYW5kIEhUVFAgNDI5LzV4eCByZXNwb25zZXMgYXJlIHJldHJpZWQgd2l0aCBiYWNrb2ZmLgoKIyMgRW1haWwgZGVsaXZlcnkKCkVtYWlsIGlzIG9wdGlvbmFsLiBTZXQgYEVtYWlsVG9gIHRvIGVuYWJsZSBpdC4gVGhlIHNlbmRlciBpcyByZWFkIGZyb20gYFJKUmVwb3J0LkVtYWlsU2VuZGVyYCBhbmQgdGhlIHJ1bmJvb2sgdXNlcyBgU2VuZC1SalJiUmVwb3J0RW1haWxgLgoKIyMgQWNjZXNzIHJlcXVpcmVtZW50cwoKIyMjIFJlcXVpcmVkIEdyYXBoIGFjY2VzcwoKLSBgQWdlbnRJZGVudGl0eS5SZWFkLkFsbGAKLSBgQWdlbnRJZGVudGl0eS5SZWFkV3JpdGUuQWxsYCAoTGVhcm4gZXhwb3NlcyBubyByZWFkLW9ubHkgYXBwbGljYXRpb24gcGVybWlzc2lvbiBmb3IgdGhlIEFnZW50IElkZW50aXR5IGBzcG9uc29yc2AgcmVsYXRpb25zaGlwKQotIGBBZ2VudElkZW50aXR5Qmx1ZXByaW50LlJlYWQuQWxsYAotIGBBZ2VudElkZW50aXR5Qmx1ZXByaW50UHJpbmNpcGFsLlJlYWQuQWxsYAotIGBVc2VyLlJlYWQuQWxsYAotIGBDdXN0b21TZWNBdHRyaWJ1dGVBc3NpZ25tZW50LlJlYWQuQWxsIChvcHRpb25hbClgCi0gYE1haWwuU2VuZCAob3B0aW9uYWwpYAoKYE1haWwuU2VuZGAgaXMgb3B0aW9uYWwgYW5kIGlzIG5lZWRlZCBvbmx5IGZvciBlbWFpbCBkZWxpdmVyeS4KCiMjIFBhcmFtZXRlciBiZWhhdmlvcgoKIyMjIEluY2x1ZGVDdXN0b21TZWN1cml0eUF0dHJpYnV0ZXMKClJlcXVlc3QgY3VzdG9tIHNlY3VyaXR5IGF0dHJpYnV0ZXMuIFRoZWlyIHBlcm1pc3Npb24gaXMgb3B0aW9uYWwuCgojIyMgQmx1ZXByaW50UXVvdGFXYXJuaW5nUGVyY2VudAoKV2FybiBhdCB0aGlzIHBlcmNlbnRhZ2Ugb2YgdGhlIGRvY3VtZW50ZWQgYXBwLW9ubHkgMjUwLWFnZW50LWlkZW50aXRpZXMtcGVyLWJsdWVwcmludCBjb25zdHJhaW50LgoKIyMjIEVtYWlsVG8KCk9wdGlvbmFsIGNvbW1hLSBvciBzZW1pY29sb24tc2VwYXJhdGVkIHJlcG9ydCByZWNpcGllbnRzLgoKIyMjIEVtYWlsRnJvbQoKSGlkZGVuIHNlbmRlciBzZXR0aW5nIHNvdXJjZWQgZnJvbSBgUkpSZXBvcnQuRW1haWxTZW5kZXJgLgoKCiMjIFJlYWxtSm9pbiBvdXRwdXQgYW5kIG9wZXJhdG9yIGd1aWRhbmNlCgotIFRoZSAqKk91dHB1dCBEYXRhKiogdGFiIHJlY2VpdmVzIHJhdyBvYmplY3RzIGluIG5hbWVkIHRhYmxlcywgd2l0aCBmdWxsIGlkZW50aWZpZXJzIGFuZCBleHBvcnRhYmxlIGNvbHVtbnM7IGNvbnNvbGUgZm9ybWF0dGluZyBpcyBub3QgdXNlZCBmb3IgcmVwb3J0IGRhdGEuCi0gUmVwb3J0cyBpbmNsdWRlIGEgc3RydWN0dXJlZCBzdW1tYXJ5IGV2ZW4gd2hlbiBubyBkZXRhaWwgcm93cyBtYXRjaC4gVW5rbm93biwgcGFydGlhbCwgYW5kIGJsb2NrZWQgc3RhdGVzIGFyZSBub3QgZXZpZGVuY2Ugb2YgYSBjbGVhbiBhc3Nlc3NtZW50LgotIFBhcmFtZXRlciBpbmZvcm1hdGlvbiB0b29sdGlwcyBkZXNjcmliZSBleHBlY3RlZCBpbnB1dHMgYW5kIHNhZmV0eSByZXF1aXJlbWVudHMuIENvbnRleHQgYW5kIGNlbnRyYWxseSBjb25maWd1cmVkIHNldHRpbmdzIHN0YXkgaGlkZGVuOyBzdXBwb3J0ZWQgY2hvaWNlcyB1c2UgZHJvcGRvd25zLgotIEFjdGlvbiBydW5ib29rcyByZXRhaW4gdGhlaXIgcnVudGltZSB2YWxpZGF0aW9uIGFuZCBjb25maXJtYXRpb24gY2hlY2tzLiBTZWxlY3RpbmcgYW4gYWN0aW9uIGluIHRoZSBwb3J0YWwgZG9lcyBub3QgYnlwYXNzIHRob3NlIGNoZWNrcy4KLSBPdXRwdXQgRGF0YSBhcHBsaWVzIHRvIG5ldyBsaXZlIGpvYnMsIG5vdCBwcmV2aW91c2x5IGNvbXBsZXRlZCBvciBhcmNoaXZlZCBqb2JzLiBFeGlzdGluZyBjb25zb2xlIG91dHB1dCBhbmQgZW1haWwvZmlsZSBkZWxpdmVyeSByZW1haW4gYXZhaWxhYmxlLgoKU2VlIFtSZWFsbUpvaW4gT3V0cHV0IERhdGFdKGh0dHBzOi8vZG9jcy5yZWFsbWpvaW4uY29tL2Rldi1yZWZlcmVuY2UvcnVuYm9vay1vdXRwdXQtZGF0YSkgYW5kIFtydW5ib29rIGN1c3RvbWl6YXRpb25dKGh0dHBzOi8vZG9jcy5yZWFsbWpvaW4uY29tL2F1dG9tYXRpb24vcnVuYm9va3MvcnVuYm9vay1jdXN0b21pemF0aW9uKS4KCiMjIEVtYWlsIGJyYW5kaW5nCgpSZXBvcnQgZW1haWxzIHVzZSB0aGUgb3B0aW9uYWwgUkpSZXBvcnQuQnJhbmRpbmcgc2V0dGluZ3MgZm9yIGhlYWRlci9mb290ZXIgaW1hZ2VzLCBmb290ZXIgbGlua3MgYW5kIGNvbG9ycy4gQ29uZmlndXJlIFJKUmVwb3J0LkVtYWlsU2VuZGVyIGFuZCBncmFudCBNYWlsLlNlbmQgYmVmb3JlIGVuYWJsaW5nIGVtYWlsIGRlbGl2ZXJ5LiBTZWUgdGhlIFtyZXBvcnQgc2V0dGluZ3NdKGh0dHBzOi8vZG9jcy5yZWFsbWpvaW4uY29tL2F1dG9tYXRpb24vcnVuYm9va3MvcnVuYm9vay1yZXBvcnQtc2V0dGluZ3MpLgo=",
+    "PermissionsContent": "{\n  \"SchemaVersion\": 2,\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        {\n          \"Value\": \"AgentIdentity.Read.All\",\n          \"Reason\": \"Reads agent identity posture and owners.\"\n        },\n        {\n          \"Value\": \"AgentIdentity.ReadWrite.All\",\n          \"Reason\": \"Reads Agent Identity sponsors. Current Learn exposes no read-only application permission for the agentIdentity sponsors relationship.\"\n        },\n        {\n          \"Value\": \"AgentIdentityBlueprint.Read.All\",\n          \"Reason\": \"Reads blueprint inventory.\"\n        },\n        {\n          \"Value\": \"AgentIdentityBlueprintPrincipal.Read.All\",\n          \"Reason\": \"Reads blueprint principal inventory.\"\n        },\n        {\n          \"Value\": \"User.Read.All\",\n          \"Reason\": \"Reads agent users and user sponsor details.\"\n        },\n        {\n          \"Value\": \"CustomSecAttributeAssignment.Read.All\",\n          \"Optional\": true,\n          \"Feature\": \"Custom security attributes\",\n          \"Reason\": \"Reads custom security attribute assignments when enabled.\"\n        },\n        {\n          \"Value\": \"Mail.Send\",\n          \"Optional\": true,\n          \"Feature\": \"Email report\",\n          \"Reason\": \"Sends the optional report email.\"\n        }\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "AgentIdentity.ReadWrite.All",
+            "AgentIdentityBlueprint.Read.All",
+            "AgentIdentityBlueprintPrincipal.Read.All",
+            "CustomSecAttributeAssignment.Read.All",
+            "Mail.Send",
+            "User.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Report Signins_Scheduled",
+    "RunbookDisplayPath": "Org \\ Agent Identity \\ Report Signins_Scheduled",
+    "RelativeRunbookPath": "org/Agent-Identity/report-signins_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/Agent-Identity",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Agent-Identity",
+    "Synopsis": "Report retained Entra agent identity sign-in events",
+    "Description": "Uses the documented Microsoft Graph beta auditLogs/signIns query for service-principal events whose\nagent/agentType is agenticAppInstance. Applies an explicit UTC time window, follows pagination, summarizes\nsuccess, failure, resources, and identities, and optionally emails the result.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Accent color for report emails."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingAccentColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Footer image URL for report emails."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Destination link for the report email footer."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterLink",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Header image URL for report emails."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingHeaderImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Text color for report emails."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingTextColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the caller. This mandatory hidden parameter is used for auditing."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "10",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sender mailbox from the RJReport.EmailSender tenant setting. Required only when EmailTo is set."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional comma- or semicolon-separated recipients for the report."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "24",
+        "description": [
+          {
+            "Text": "UTC lookback window in hours."
+          }
+        ],
+        "globbing": "false",
+        "name": "LookbackHours",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "10000",
+        "description": [
+          {
+            "Text": "Maximum events retained in the report; collection stops at the cap."
+          }
+        ],
+        "globbing": "false",
+        "name": "MaxEvents",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      }
+    ],
+    "DocsContent": "## Usage guidance\n\nReports autonomous Agent ID sign-ins over a bounded UTC window.\n\n## Output\n\nPer-event status plus summary counts by success/failure, identity, and target resource.\n\nThe same assessment summary appears in job output and email. `NoRetainedEvents` is not proof of\ninactivity or absence of risk: check the time window, retention, licensing, and ingestion delay.\nMissing event status is `Unknown`, not success. `Truncated` explicitly identifies an exceeded\n`MaxEvents` cap; its counts describe only the retained subset.\n\n## API and safety notes\n\nMicrosoft Learn documents agent sign-in filtering on the beta /auditLogs/signIns endpoint. The query explicitly requests servicePrincipal events and filters agent/agentType to agenticAppInstance.\n\nUnknown lookup or revalidation states are reported and fail closed. Microsoft Graph pagination is followed, and HTTP 429/5xx responses are retried with backoff.\n\n## Email delivery\n\nEmail is optional. Set `EmailTo` to enable it. The sender is read from `RJReport.EmailSender` and the runbook uses `Send-RjRbReportEmail`.\n\n## Access requirements\n\n### Required Graph access\n\n- `AuditLog.Read.All`\n- `Mail.Send (optional)`\n\n`Mail.Send` is optional and is needed only for email delivery.\n\n## Parameter behavior\n\n### MaxEvents\n\nBounds report size. The report explicitly states when this cap truncates results.\n\n### LookbackHours\n\nUTC time window, from now minus this value through now.\n\n### EmailTo\n\nOptional comma- or semicolon-separated report recipients.\n\n### EmailFrom\n\nHidden sender setting sourced from `RJReport.EmailSender`.\n\n\n## RealmJoin output and operator guidance\n\n- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.\n- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.\n- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.\n- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.\n- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.\n\nSee [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).\n\n## Email branding\n\nReport emails use the optional RJReport.Branding settings for header/footer images, footer links and colors. Configure RJReport.EmailSender and grant Mail.Send before enabling email delivery. See the [report settings](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings).\n",
+    "DocsContentEncoded": "IyMgVXNhZ2UgZ3VpZGFuY2UKClJlcG9ydHMgYXV0b25vbW91cyBBZ2VudCBJRCBzaWduLWlucyBvdmVyIGEgYm91bmRlZCBVVEMgd2luZG93LgoKIyMgT3V0cHV0CgpQZXItZXZlbnQgc3RhdHVzIHBsdXMgc3VtbWFyeSBjb3VudHMgYnkgc3VjY2Vzcy9mYWlsdXJlLCBpZGVudGl0eSwgYW5kIHRhcmdldCByZXNvdXJjZS4KClRoZSBzYW1lIGFzc2Vzc21lbnQgc3VtbWFyeSBhcHBlYXJzIGluIGpvYiBvdXRwdXQgYW5kIGVtYWlsLiBgTm9SZXRhaW5lZEV2ZW50c2AgaXMgbm90IHByb29mIG9mCmluYWN0aXZpdHkgb3IgYWJzZW5jZSBvZiByaXNrOiBjaGVjayB0aGUgdGltZSB3aW5kb3csIHJldGVudGlvbiwgbGljZW5zaW5nLCBhbmQgaW5nZXN0aW9uIGRlbGF5LgpNaXNzaW5nIGV2ZW50IHN0YXR1cyBpcyBgVW5rbm93bmAsIG5vdCBzdWNjZXNzLiBgVHJ1bmNhdGVkYCBleHBsaWNpdGx5IGlkZW50aWZpZXMgYW4gZXhjZWVkZWQKYE1heEV2ZW50c2AgY2FwOyBpdHMgY291bnRzIGRlc2NyaWJlIG9ubHkgdGhlIHJldGFpbmVkIHN1YnNldC4KCiMjIEFQSSBhbmQgc2FmZXR5IG5vdGVzCgpNaWNyb3NvZnQgTGVhcm4gZG9jdW1lbnRzIGFnZW50IHNpZ24taW4gZmlsdGVyaW5nIG9uIHRoZSBiZXRhIC9hdWRpdExvZ3Mvc2lnbklucyBlbmRwb2ludC4gVGhlIHF1ZXJ5IGV4cGxpY2l0bHkgcmVxdWVzdHMgc2VydmljZVByaW5jaXBhbCBldmVudHMgYW5kIGZpbHRlcnMgYWdlbnQvYWdlbnRUeXBlIHRvIGFnZW50aWNBcHBJbnN0YW5jZS4KClVua25vd24gbG9va3VwIG9yIHJldmFsaWRhdGlvbiBzdGF0ZXMgYXJlIHJlcG9ydGVkIGFuZCBmYWlsIGNsb3NlZC4gTWljcm9zb2Z0IEdyYXBoIHBhZ2luYXRpb24gaXMgZm9sbG93ZWQsIGFuZCBIVFRQIDQyOS81eHggcmVzcG9uc2VzIGFyZSByZXRyaWVkIHdpdGggYmFja29mZi4KCiMjIEVtYWlsIGRlbGl2ZXJ5CgpFbWFpbCBpcyBvcHRpb25hbC4gU2V0IGBFbWFpbFRvYCB0byBlbmFibGUgaXQuIFRoZSBzZW5kZXIgaXMgcmVhZCBmcm9tIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAgYW5kIHRoZSBydW5ib29rIHVzZXMgYFNlbmQtUmpSYlJlcG9ydEVtYWlsYC4KCiMjIEFjY2VzcyByZXF1aXJlbWVudHMKCiMjIyBSZXF1aXJlZCBHcmFwaCBhY2Nlc3MKCi0gYEF1ZGl0TG9nLlJlYWQuQWxsYAotIGBNYWlsLlNlbmQgKG9wdGlvbmFsKWAKCmBNYWlsLlNlbmRgIGlzIG9wdGlvbmFsIGFuZCBpcyBuZWVkZWQgb25seSBmb3IgZW1haWwgZGVsaXZlcnkuCgojIyBQYXJhbWV0ZXIgYmVoYXZpb3IKCiMjIyBNYXhFdmVudHMKCkJvdW5kcyByZXBvcnQgc2l6ZS4gVGhlIHJlcG9ydCBleHBsaWNpdGx5IHN0YXRlcyB3aGVuIHRoaXMgY2FwIHRydW5jYXRlcyByZXN1bHRzLgoKIyMjIExvb2tiYWNrSG91cnMKClVUQyB0aW1lIHdpbmRvdywgZnJvbSBub3cgbWludXMgdGhpcyB2YWx1ZSB0aHJvdWdoIG5vdy4KCiMjIyBFbWFpbFRvCgpPcHRpb25hbCBjb21tYS0gb3Igc2VtaWNvbG9uLXNlcGFyYXRlZCByZXBvcnQgcmVjaXBpZW50cy4KCiMjIyBFbWFpbEZyb20KCkhpZGRlbiBzZW5kZXIgc2V0dGluZyBzb3VyY2VkIGZyb20gYFJKUmVwb3J0LkVtYWlsU2VuZGVyYC4KCgojIyBSZWFsbUpvaW4gb3V0cHV0IGFuZCBvcGVyYXRvciBndWlkYW5jZQoKLSBUaGUgKipPdXRwdXQgRGF0YSoqIHRhYiByZWNlaXZlcyByYXcgb2JqZWN0cyBpbiBuYW1lZCB0YWJsZXMsIHdpdGggZnVsbCBpZGVudGlmaWVycyBhbmQgZXhwb3J0YWJsZSBjb2x1bW5zOyBjb25zb2xlIGZvcm1hdHRpbmcgaXMgbm90IHVzZWQgZm9yIHJlcG9ydCBkYXRhLgotIFJlcG9ydHMgaW5jbHVkZSBhIHN0cnVjdHVyZWQgc3VtbWFyeSBldmVuIHdoZW4gbm8gZGV0YWlsIHJvd3MgbWF0Y2guIFVua25vd24sIHBhcnRpYWwsIGFuZCBibG9ja2VkIHN0YXRlcyBhcmUgbm90IGV2aWRlbmNlIG9mIGEgY2xlYW4gYXNzZXNzbWVudC4KLSBQYXJhbWV0ZXIgaW5mb3JtYXRpb24gdG9vbHRpcHMgZGVzY3JpYmUgZXhwZWN0ZWQgaW5wdXRzIGFuZCBzYWZldHkgcmVxdWlyZW1lbnRzLiBDb250ZXh0IGFuZCBjZW50cmFsbHkgY29uZmlndXJlZCBzZXR0aW5ncyBzdGF5IGhpZGRlbjsgc3VwcG9ydGVkIGNob2ljZXMgdXNlIGRyb3Bkb3ducy4KLSBBY3Rpb24gcnVuYm9va3MgcmV0YWluIHRoZWlyIHJ1bnRpbWUgdmFsaWRhdGlvbiBhbmQgY29uZmlybWF0aW9uIGNoZWNrcy4gU2VsZWN0aW5nIGFuIGFjdGlvbiBpbiB0aGUgcG9ydGFsIGRvZXMgbm90IGJ5cGFzcyB0aG9zZSBjaGVja3MuCi0gT3V0cHV0IERhdGEgYXBwbGllcyB0byBuZXcgbGl2ZSBqb2JzLCBub3QgcHJldmlvdXNseSBjb21wbGV0ZWQgb3IgYXJjaGl2ZWQgam9icy4gRXhpc3RpbmcgY29uc29sZSBvdXRwdXQgYW5kIGVtYWlsL2ZpbGUgZGVsaXZlcnkgcmVtYWluIGF2YWlsYWJsZS4KClNlZSBbUmVhbG1Kb2luIE91dHB1dCBEYXRhXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9kZXYtcmVmZXJlbmNlL3J1bmJvb2stb3V0cHV0LWRhdGEpIGFuZCBbcnVuYm9vayBjdXN0b21pemF0aW9uXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stY3VzdG9taXphdGlvbikuCgojIyBFbWFpbCBicmFuZGluZwoKUmVwb3J0IGVtYWlscyB1c2UgdGhlIG9wdGlvbmFsIFJKUmVwb3J0LkJyYW5kaW5nIHNldHRpbmdzIGZvciBoZWFkZXIvZm9vdGVyIGltYWdlcywgZm9vdGVyIGxpbmtzIGFuZCBjb2xvcnMuIENvbmZpZ3VyZSBSSlJlcG9ydC5FbWFpbFNlbmRlciBhbmQgZ3JhbnQgTWFpbC5TZW5kIGJlZm9yZSBlbmFibGluZyBlbWFpbCBkZWxpdmVyeS4gU2VlIHRoZSBbcmVwb3J0IHNldHRpbmdzXShodHRwczovL2RvY3MucmVhbG1qb2luLmNvbS9hdXRvbWF0aW9uL3J1bmJvb2tzL3J1bmJvb2stcmVwb3J0LXNldHRpbmdzKS4K",
+    "PermissionsContent": "{\n  \"SchemaVersion\": 2,\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        {\n          \"Value\": \"AuditLog.Read.All\",\n          \"Reason\": \"Reads agent service-principal sign-in events.\"\n        },\n        {\n          \"Value\": \"Mail.Send\",\n          \"Optional\": true,\n          \"Feature\": \"Email report\",\n          \"Reason\": \"Sends the optional report email.\"\n        }\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "AuditLog.Read.All",
+            "Mail.Send"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Report Sponsors_Scheduled",
+    "RunbookDisplayPath": "Org \\ Agent Identity \\ Report Sponsors_Scheduled",
+    "RelativeRunbookPath": "org/Agent-Identity/report-sponsors_scheduled.ps1",
+    "RelativeRunbookPath_PathOnly": "org/Agent-Identity",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Agent-Identity",
+    "Synopsis": "Report missing, disabled or guest sponsors of agent identities",
+    "Description": "Checks v1.0 sponsors for agent identities and blueprints. It reports missing sponsors and sponsors\nthat are disabled, soft-deleted, or guest users. A lookup failure is Unknown and is never relabeled\nas missing. This runbook does not assign fallback sponsors; that remediation belongs to an interactive\nrunbook.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Accent color for report emails."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingAccentColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Footer image URL for report emails."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Destination link for the report email footer."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingFooterLink",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Header image URL for report emails."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingHeaderImageUrl",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Text color for report emails."
+          }
+        ],
+        "globbing": "false",
+        "name": "BrandingTextColor",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "8",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the caller. This mandatory hidden parameter is used for auditing."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "9",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Sender mailbox from the RJReport.EmailSender tenant setting. Required only when EmailTo is set."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailFrom",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional comma- or semicolon-separated recipients for the report."
+          }
+        ],
+        "globbing": "false",
+        "name": "EmailTo",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "True",
+        "description": [
+          {
+            "Text": "Include agent identity blueprints as well as agent identities."
+          }
+        ],
+        "globbing": "false",
+        "name": "IncludeBlueprints",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      }
+    ],
+    "DocsContent": "## Usage guidance\n\nReports missing, disabled, deleted, guest, and unknown sponsor states.\n\n## Output\n\nActionable sponsor findings and unknown lookup counts are reported separately. Unknown lookups\nmake the assessment partial; they are not healthy sponsors. Findings on existing tenant objects\nremain visible and are not remediated automatically by this report.\n\nOne row per sponsor relationship, or a missing/unknown row per target.\n\n## API and safety notes\n\nUses v1.0 typed sponsor relationships. Lookup failures are Unknown. Fallback sponsor assignment is intentionally out of scope; use the interactive sponsor/owner runbook.\n\nUnknown lookup or revalidation states are reported and fail closed. Microsoft Graph pagination is followed, and HTTP 429/5xx responses are retried with backoff.\n\n## Email delivery\n\nEmail is optional. Set `EmailTo` to enable it. The sender is read from `RJReport.EmailSender` and the runbook uses `Send-RjRbReportEmail`.\n\n## Access requirements\n\n### Required Graph access\n\n- `AgentIdentity.Read.All`\n- `AgentIdentity.ReadWrite.All` (Learn exposes no read-only application permission for the Agent Identity `sponsors` relationship)\n- `AgentIdentityBlueprint.Read.All`\n- `Application.Read.All` (blueprint sponsors)\n- `User.Read.All`\n- `Directory.Read.All`\n- `Mail.Send (optional)`\n\n`Mail.Send` is optional and is needed only for email delivery.\n\n## Parameter behavior\n\n### IncludeBlueprints\n\nInclude blueprint sponsors in addition to agent identity sponsors.\n\n### EmailTo\n\nOptional comma- or semicolon-separated report recipients.\n\n### EmailFrom\n\nHidden sender setting sourced from `RJReport.EmailSender`.\n\n\n## RealmJoin output and operator guidance\n\n- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.\n- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.\n- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.\n- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.\n- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.\n\nSee [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).\n\n## Email branding\n\nReport emails use the optional RJReport.Branding settings for header/footer images, footer links and colors. Configure RJReport.EmailSender and grant Mail.Send before enabling email delivery. See the [report settings](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings).\n",
+    "DocsContentEncoded": "IyMgVXNhZ2UgZ3VpZGFuY2UKClJlcG9ydHMgbWlzc2luZywgZGlzYWJsZWQsIGRlbGV0ZWQsIGd1ZXN0LCBhbmQgdW5rbm93biBzcG9uc29yIHN0YXRlcy4KCiMjIE91dHB1dAoKQWN0aW9uYWJsZSBzcG9uc29yIGZpbmRpbmdzIGFuZCB1bmtub3duIGxvb2t1cCBjb3VudHMgYXJlIHJlcG9ydGVkIHNlcGFyYXRlbHkuIFVua25vd24gbG9va3VwcwptYWtlIHRoZSBhc3Nlc3NtZW50IHBhcnRpYWw7IHRoZXkgYXJlIG5vdCBoZWFsdGh5IHNwb25zb3JzLiBGaW5kaW5ncyBvbiBleGlzdGluZyB0ZW5hbnQgb2JqZWN0cwpyZW1haW4gdmlzaWJsZSBhbmQgYXJlIG5vdCByZW1lZGlhdGVkIGF1dG9tYXRpY2FsbHkgYnkgdGhpcyByZXBvcnQuCgpPbmUgcm93IHBlciBzcG9uc29yIHJlbGF0aW9uc2hpcCwgb3IgYSBtaXNzaW5nL3Vua25vd24gcm93IHBlciB0YXJnZXQuCgojIyBBUEkgYW5kIHNhZmV0eSBub3RlcwoKVXNlcyB2MS4wIHR5cGVkIHNwb25zb3IgcmVsYXRpb25zaGlwcy4gTG9va3VwIGZhaWx1cmVzIGFyZSBVbmtub3duLiBGYWxsYmFjayBzcG9uc29yIGFzc2lnbm1lbnQgaXMgaW50ZW50aW9uYWxseSBvdXQgb2Ygc2NvcGU7IHVzZSB0aGUgaW50ZXJhY3RpdmUgc3BvbnNvci9vd25lciBydW5ib29rLgoKVW5rbm93biBsb29rdXAgb3IgcmV2YWxpZGF0aW9uIHN0YXRlcyBhcmUgcmVwb3J0ZWQgYW5kIGZhaWwgY2xvc2VkLiBNaWNyb3NvZnQgR3JhcGggcGFnaW5hdGlvbiBpcyBmb2xsb3dlZCwgYW5kIEhUVFAgNDI5LzV4eCByZXNwb25zZXMgYXJlIHJldHJpZWQgd2l0aCBiYWNrb2ZmLgoKIyMgRW1haWwgZGVsaXZlcnkKCkVtYWlsIGlzIG9wdGlvbmFsLiBTZXQgYEVtYWlsVG9gIHRvIGVuYWJsZSBpdC4gVGhlIHNlbmRlciBpcyByZWFkIGZyb20gYFJKUmVwb3J0LkVtYWlsU2VuZGVyYCBhbmQgdGhlIHJ1bmJvb2sgdXNlcyBgU2VuZC1SalJiUmVwb3J0RW1haWxgLgoKIyMgQWNjZXNzIHJlcXVpcmVtZW50cwoKIyMjIFJlcXVpcmVkIEdyYXBoIGFjY2VzcwoKLSBgQWdlbnRJZGVudGl0eS5SZWFkLkFsbGAKLSBgQWdlbnRJZGVudGl0eS5SZWFkV3JpdGUuQWxsYCAoTGVhcm4gZXhwb3NlcyBubyByZWFkLW9ubHkgYXBwbGljYXRpb24gcGVybWlzc2lvbiBmb3IgdGhlIEFnZW50IElkZW50aXR5IGBzcG9uc29yc2AgcmVsYXRpb25zaGlwKQotIGBBZ2VudElkZW50aXR5Qmx1ZXByaW50LlJlYWQuQWxsYAotIGBBcHBsaWNhdGlvbi5SZWFkLkFsbGAgKGJsdWVwcmludCBzcG9uc29ycykKLSBgVXNlci5SZWFkLkFsbGAKLSBgRGlyZWN0b3J5LlJlYWQuQWxsYAotIGBNYWlsLlNlbmQgKG9wdGlvbmFsKWAKCmBNYWlsLlNlbmRgIGlzIG9wdGlvbmFsIGFuZCBpcyBuZWVkZWQgb25seSBmb3IgZW1haWwgZGVsaXZlcnkuCgojIyBQYXJhbWV0ZXIgYmVoYXZpb3IKCiMjIyBJbmNsdWRlQmx1ZXByaW50cwoKSW5jbHVkZSBibHVlcHJpbnQgc3BvbnNvcnMgaW4gYWRkaXRpb24gdG8gYWdlbnQgaWRlbnRpdHkgc3BvbnNvcnMuCgojIyMgRW1haWxUbwoKT3B0aW9uYWwgY29tbWEtIG9yIHNlbWljb2xvbi1zZXBhcmF0ZWQgcmVwb3J0IHJlY2lwaWVudHMuCgojIyMgRW1haWxGcm9tCgpIaWRkZW4gc2VuZGVyIHNldHRpbmcgc291cmNlZCBmcm9tIGBSSlJlcG9ydC5FbWFpbFNlbmRlcmAuCgoKIyMgUmVhbG1Kb2luIG91dHB1dCBhbmQgb3BlcmF0b3IgZ3VpZGFuY2UKCi0gVGhlICoqT3V0cHV0IERhdGEqKiB0YWIgcmVjZWl2ZXMgcmF3IG9iamVjdHMgaW4gbmFtZWQgdGFibGVzLCB3aXRoIGZ1bGwgaWRlbnRpZmllcnMgYW5kIGV4cG9ydGFibGUgY29sdW1uczsgY29uc29sZSBmb3JtYXR0aW5nIGlzIG5vdCB1c2VkIGZvciByZXBvcnQgZGF0YS4KLSBSZXBvcnRzIGluY2x1ZGUgYSBzdHJ1Y3R1cmVkIHN1bW1hcnkgZXZlbiB3aGVuIG5vIGRldGFpbCByb3dzIG1hdGNoLiBVbmtub3duLCBwYXJ0aWFsLCBhbmQgYmxvY2tlZCBzdGF0ZXMgYXJlIG5vdCBldmlkZW5jZSBvZiBhIGNsZWFuIGFzc2Vzc21lbnQuCi0gUGFyYW1ldGVyIGluZm9ybWF0aW9uIHRvb2x0aXBzIGRlc2NyaWJlIGV4cGVjdGVkIGlucHV0cyBhbmQgc2FmZXR5IHJlcXVpcmVtZW50cy4gQ29udGV4dCBhbmQgY2VudHJhbGx5IGNvbmZpZ3VyZWQgc2V0dGluZ3Mgc3RheSBoaWRkZW47IHN1cHBvcnRlZCBjaG9pY2VzIHVzZSBkcm9wZG93bnMuCi0gQWN0aW9uIHJ1bmJvb2tzIHJldGFpbiB0aGVpciBydW50aW1lIHZhbGlkYXRpb24gYW5kIGNvbmZpcm1hdGlvbiBjaGVja3MuIFNlbGVjdGluZyBhbiBhY3Rpb24gaW4gdGhlIHBvcnRhbCBkb2VzIG5vdCBieXBhc3MgdGhvc2UgY2hlY2tzLgotIE91dHB1dCBEYXRhIGFwcGxpZXMgdG8gbmV3IGxpdmUgam9icywgbm90IHByZXZpb3VzbHkgY29tcGxldGVkIG9yIGFyY2hpdmVkIGpvYnMuIEV4aXN0aW5nIGNvbnNvbGUgb3V0cHV0IGFuZCBlbWFpbC9maWxlIGRlbGl2ZXJ5IHJlbWFpbiBhdmFpbGFibGUuCgpTZWUgW1JlYWxtSm9pbiBPdXRwdXQgRGF0YV0oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vZGV2LXJlZmVyZW5jZS9ydW5ib29rLW91dHB1dC1kYXRhKSBhbmQgW3J1bmJvb2sgY3VzdG9taXphdGlvbl0oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vYXV0b21hdGlvbi9ydW5ib29rcy9ydW5ib29rLWN1c3RvbWl6YXRpb24pLgoKIyMgRW1haWwgYnJhbmRpbmcKClJlcG9ydCBlbWFpbHMgdXNlIHRoZSBvcHRpb25hbCBSSlJlcG9ydC5CcmFuZGluZyBzZXR0aW5ncyBmb3IgaGVhZGVyL2Zvb3RlciBpbWFnZXMsIGZvb3RlciBsaW5rcyBhbmQgY29sb3JzLiBDb25maWd1cmUgUkpSZXBvcnQuRW1haWxTZW5kZXIgYW5kIGdyYW50IE1haWwuU2VuZCBiZWZvcmUgZW5hYmxpbmcgZW1haWwgZGVsaXZlcnkuIFNlZSB0aGUgW3JlcG9ydCBzZXR0aW5nc10oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vYXV0b21hdGlvbi9ydW5ib29rcy9ydW5ib29rLXJlcG9ydC1zZXR0aW5ncykuCg==",
+    "PermissionsContent": "{\n  \"SchemaVersion\": 2,\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        {\n          \"Value\": \"AgentIdentity.Read.All\",\n          \"Reason\": \"Lists typed agent identities.\"\n        },\n        {\n          \"Value\": \"AgentIdentity.ReadWrite.All\",\n          \"Reason\": \"Reads Agent Identity sponsors. Current Learn exposes no read-only application permission for the agentIdentity sponsors relationship.\"\n        },\n        {\n          \"Value\": \"AgentIdentityBlueprint.Read.All\",\n          \"Reason\": \"Lists typed blueprints.\"\n        },\n        {\n          \"Value\": \"Application.Read.All\",\n          \"Reason\": \"Reads blueprint sponsors, which Learn documents under Application.Read.All.\"\n        },\n        {\n          \"Value\": \"User.Read.All\",\n          \"Reason\": \"Checks user sponsor enablement and guest status.\"\n        },\n        {\n          \"Value\": \"Directory.Read.All\",\n          \"Reason\": \"Checks whether a missing sponsor is soft-deleted.\"\n        },\n        {\n          \"Value\": \"Mail.Send\",\n          \"Optional\": true,\n          \"Feature\": \"Email report\",\n          \"Reason\": \"Sends the optional report email.\"\n        }\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "AgentIdentity.ReadWrite.All",
+            "AgentIdentityBlueprint.Read.All",
+            "Application.Read.All",
+            "Directory.Read.All",
+            "Mail.Send",
+            "User.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
+    "RunbookDisplayName": "Transfer Sponsorships",
+    "RunbookDisplayPath": "Org \\ Agent Identity \\ Transfer Sponsorships",
+    "RelativeRunbookPath": "org/Agent-Identity/transfer-sponsorships.ps1",
+    "RelativeRunbookPath_PathOnly": "org/Agent-Identity",
+    "PrimaryFolder": "Org",
+    "SubFolder": "Agent-Identity",
+    "Synopsis": "Transfer direct agent identity and blueprint sponsorships",
+    "Description": "Enumerates Agent Identities and blueprints with pagination, finds sponsorship references held by the source user, and reports them by default. Execute mode requires explicit confirmation, revalidates each typed object and both users, adds the target first, removes the source second, enforces a cap, and is idempotent.",
+    "Notes": null,
+    "Parameters": [
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Name of the user or system that started the runbook. Used for auditing."
+          }
+        ],
+        "globbing": "false",
+        "name": "CallerName",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "7",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "Second interlock that must be true with Execute."
+          }
+        ],
+        "globbing": "false",
+        "name": "ConfirmExecute",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "5",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "False",
+        "description": [
+          {
+            "Text": "When false, produces a report only. Set true to request changes."
+          }
+        ],
+        "globbing": "false",
+        "name": "Execute",
+        "parameterValue": "Boolean",
+        "pipelineInput": "false",
+        "position": "4",
+        "required": "false",
+        "type": {
+          "name": "Boolean"
+        }
+      },
+      {
+        "defaultValue": "20",
+        "description": [
+          {
+            "Text": "Maximum number of objects changed in one execution."
+          }
+        ],
+        "globbing": "false",
+        "name": "MaxChanges",
+        "parameterValue": "Int32",
+        "pipelineInput": "false",
+        "position": "6",
+        "required": "false",
+        "type": {
+          "name": "Int32"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Optional comma-separated Agent Identity or blueprint object IDs. Leave empty to consider all discovered references."
+          }
+        ],
+        "globbing": "false",
+        "name": "SelectedTargetObjectIds",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "3",
+        "required": "false",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Object ID of the user whose sponsorship references are being transferred."
+          }
+        ],
+        "globbing": "false",
+        "name": "SourceUserObjectId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "1",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      },
+      {
+        "defaultValue": "",
+        "description": [
+          {
+            "Text": "Object ID of the user receiving sponsorship references."
+          }
+        ],
+        "globbing": "false",
+        "name": "TargetUserObjectId",
+        "parameterValue": "String",
+        "pipelineInput": "false",
+        "position": "2",
+        "required": "true",
+        "type": {
+          "name": "String"
+        }
+      }
+    ],
+    "DocsContent": "## Usage guidance\n\nReports or transfers sponsorship references from one user to another across Agent Identities and blueprints.\n\n## How it works\n\nReport-only is the default. The runbook paginates both typed collections, discovers references held by the source user, and can be narrowed to selected target object IDs. Execute mode requires a second confirmation and is capped by `MaxChanges`.\n\nEach change revalidates both users and the typed object. It adds the target before removing the source and re-reads the sponsor list to confirm the target is present before the source reference is deleted, so accountability overlaps. If the target is already assigned, only the source is removed. Completed or externally changed objects are handled idempotently.\n\nCandidates are processed independently: a Graph rejection for one object (for example the documented limit of 100 sponsors and 5 groups per object) is reported as `Failed safely` for that object and the remaining transfers continue. Objects whose sponsor list could not be read are reported as `Unknown (sponsor lookup failed)` and are never changed.\n\n## Access requirements\n\n- `AgentIdentity.ReadWrite.All`\n- `AgentIdentityBlueprint.Read.All`\n- `Application.ReadWrite.All`\n- `User.Read.All`\n\nMicrosoft Graph currently documents `Application.ReadWrite.All` for Agent Identity Blueprint sponsor relationship writes. The narrower blueprint permission is retained for typed blueprint reads.\n\n## RealmJoin output and operator guidance\n\n- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.\n- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.\n- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.\n- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.\n- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.\n\nSee [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).\n\n\n## Additional operational guidance\n\nThe target sponsor is added before the source is removed. Already-complete transfers are reported as NoChange.\n",
+    "DocsContentEncoded": "IyMgVXNhZ2UgZ3VpZGFuY2UKClJlcG9ydHMgb3IgdHJhbnNmZXJzIHNwb25zb3JzaGlwIHJlZmVyZW5jZXMgZnJvbSBvbmUgdXNlciB0byBhbm90aGVyIGFjcm9zcyBBZ2VudCBJZGVudGl0aWVzIGFuZCBibHVlcHJpbnRzLgoKIyMgSG93IGl0IHdvcmtzCgpSZXBvcnQtb25seSBpcyB0aGUgZGVmYXVsdC4gVGhlIHJ1bmJvb2sgcGFnaW5hdGVzIGJvdGggdHlwZWQgY29sbGVjdGlvbnMsIGRpc2NvdmVycyByZWZlcmVuY2VzIGhlbGQgYnkgdGhlIHNvdXJjZSB1c2VyLCBhbmQgY2FuIGJlIG5hcnJvd2VkIHRvIHNlbGVjdGVkIHRhcmdldCBvYmplY3QgSURzLiBFeGVjdXRlIG1vZGUgcmVxdWlyZXMgYSBzZWNvbmQgY29uZmlybWF0aW9uIGFuZCBpcyBjYXBwZWQgYnkgYE1heENoYW5nZXNgLgoKRWFjaCBjaGFuZ2UgcmV2YWxpZGF0ZXMgYm90aCB1c2VycyBhbmQgdGhlIHR5cGVkIG9iamVjdC4gSXQgYWRkcyB0aGUgdGFyZ2V0IGJlZm9yZSByZW1vdmluZyB0aGUgc291cmNlIGFuZCByZS1yZWFkcyB0aGUgc3BvbnNvciBsaXN0IHRvIGNvbmZpcm0gdGhlIHRhcmdldCBpcyBwcmVzZW50IGJlZm9yZSB0aGUgc291cmNlIHJlZmVyZW5jZSBpcyBkZWxldGVkLCBzbyBhY2NvdW50YWJpbGl0eSBvdmVybGFwcy4gSWYgdGhlIHRhcmdldCBpcyBhbHJlYWR5IGFzc2lnbmVkLCBvbmx5IHRoZSBzb3VyY2UgaXMgcmVtb3ZlZC4gQ29tcGxldGVkIG9yIGV4dGVybmFsbHkgY2hhbmdlZCBvYmplY3RzIGFyZSBoYW5kbGVkIGlkZW1wb3RlbnRseS4KCkNhbmRpZGF0ZXMgYXJlIHByb2Nlc3NlZCBpbmRlcGVuZGVudGx5OiBhIEdyYXBoIHJlamVjdGlvbiBmb3Igb25lIG9iamVjdCAoZm9yIGV4YW1wbGUgdGhlIGRvY3VtZW50ZWQgbGltaXQgb2YgMTAwIHNwb25zb3JzIGFuZCA1IGdyb3VwcyBwZXIgb2JqZWN0KSBpcyByZXBvcnRlZCBhcyBgRmFpbGVkIHNhZmVseWAgZm9yIHRoYXQgb2JqZWN0IGFuZCB0aGUgcmVtYWluaW5nIHRyYW5zZmVycyBjb250aW51ZS4gT2JqZWN0cyB3aG9zZSBzcG9uc29yIGxpc3QgY291bGQgbm90IGJlIHJlYWQgYXJlIHJlcG9ydGVkIGFzIGBVbmtub3duIChzcG9uc29yIGxvb2t1cCBmYWlsZWQpYCBhbmQgYXJlIG5ldmVyIGNoYW5nZWQuCgojIyBBY2Nlc3MgcmVxdWlyZW1lbnRzCgotIGBBZ2VudElkZW50aXR5LlJlYWRXcml0ZS5BbGxgCi0gYEFnZW50SWRlbnRpdHlCbHVlcHJpbnQuUmVhZC5BbGxgCi0gYEFwcGxpY2F0aW9uLlJlYWRXcml0ZS5BbGxgCi0gYFVzZXIuUmVhZC5BbGxgCgpNaWNyb3NvZnQgR3JhcGggY3VycmVudGx5IGRvY3VtZW50cyBgQXBwbGljYXRpb24uUmVhZFdyaXRlLkFsbGAgZm9yIEFnZW50IElkZW50aXR5IEJsdWVwcmludCBzcG9uc29yIHJlbGF0aW9uc2hpcCB3cml0ZXMuIFRoZSBuYXJyb3dlciBibHVlcHJpbnQgcGVybWlzc2lvbiBpcyByZXRhaW5lZCBmb3IgdHlwZWQgYmx1ZXByaW50IHJlYWRzLgoKIyMgUmVhbG1Kb2luIG91dHB1dCBhbmQgb3BlcmF0b3IgZ3VpZGFuY2UKCi0gVGhlICoqT3V0cHV0IERhdGEqKiB0YWIgcmVjZWl2ZXMgcmF3IG9iamVjdHMgaW4gbmFtZWQgdGFibGVzLCB3aXRoIGZ1bGwgaWRlbnRpZmllcnMgYW5kIGV4cG9ydGFibGUgY29sdW1uczsgY29uc29sZSBmb3JtYXR0aW5nIGlzIG5vdCB1c2VkIGZvciByZXBvcnQgZGF0YS4KLSBSZXBvcnRzIGluY2x1ZGUgYSBzdHJ1Y3R1cmVkIHN1bW1hcnkgZXZlbiB3aGVuIG5vIGRldGFpbCByb3dzIG1hdGNoLiBVbmtub3duLCBwYXJ0aWFsLCBhbmQgYmxvY2tlZCBzdGF0ZXMgYXJlIG5vdCBldmlkZW5jZSBvZiBhIGNsZWFuIGFzc2Vzc21lbnQuCi0gUGFyYW1ldGVyIGluZm9ybWF0aW9uIHRvb2x0aXBzIGRlc2NyaWJlIGV4cGVjdGVkIGlucHV0cyBhbmQgc2FmZXR5IHJlcXVpcmVtZW50cy4gQ29udGV4dCBhbmQgY2VudHJhbGx5IGNvbmZpZ3VyZWQgc2V0dGluZ3Mgc3RheSBoaWRkZW47IHN1cHBvcnRlZCBjaG9pY2VzIHVzZSBkcm9wZG93bnMuCi0gQWN0aW9uIHJ1bmJvb2tzIHJldGFpbiB0aGVpciBydW50aW1lIHZhbGlkYXRpb24gYW5kIGNvbmZpcm1hdGlvbiBjaGVja3MuIFNlbGVjdGluZyBhbiBhY3Rpb24gaW4gdGhlIHBvcnRhbCBkb2VzIG5vdCBieXBhc3MgdGhvc2UgY2hlY2tzLgotIE91dHB1dCBEYXRhIGFwcGxpZXMgdG8gbmV3IGxpdmUgam9icywgbm90IHByZXZpb3VzbHkgY29tcGxldGVkIG9yIGFyY2hpdmVkIGpvYnMuIEV4aXN0aW5nIGNvbnNvbGUgb3V0cHV0IGFuZCBlbWFpbC9maWxlIGRlbGl2ZXJ5IHJlbWFpbiBhdmFpbGFibGUuCgpTZWUgW1JlYWxtSm9pbiBPdXRwdXQgRGF0YV0oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vZGV2LXJlZmVyZW5jZS9ydW5ib29rLW91dHB1dC1kYXRhKSBhbmQgW3J1bmJvb2sgY3VzdG9taXphdGlvbl0oaHR0cHM6Ly9kb2NzLnJlYWxtam9pbi5jb20vYXV0b21hdGlvbi9ydW5ib29rcy9ydW5ib29rLWN1c3RvbWl6YXRpb24pLgoKCiMjIEFkZGl0aW9uYWwgb3BlcmF0aW9uYWwgZ3VpZGFuY2UKClRoZSB0YXJnZXQgc3BvbnNvciBpcyBhZGRlZCBiZWZvcmUgdGhlIHNvdXJjZSBpcyByZW1vdmVkLiBBbHJlYWR5LWNvbXBsZXRlIHRyYW5zZmVycyBhcmUgcmVwb3J0ZWQgYXMgTm9DaGFuZ2UuCg==",
+    "PermissionsContent": "{\n  \"SchemaVersion\": 2,\n  \"Permissions\": [\n    {\n      \"Name\": \"Microsoft Graph\",\n      \"Id\": \"00000003-0000-0000-c000-000000000000\",\n      \"AppRoleAssignments\": [\n        { \"Value\": \"AgentIdentity.ReadWrite.All\", \"Reason\": \"Enumerates Agent Identities and reads or changes sponsor relationships.\" },\n        { \"Value\": \"AgentIdentityBlueprint.Read.All\", \"Reason\": \"Enumerates typed Agent Identity Blueprints before sponsorship transfer.\" },\n        { \"Value\": \"Application.ReadWrite.All\", \"Reason\": \"Adds and removes Agent Identity Blueprint sponsor references; Microsoft Graph documents this permission for blueprint relationship writes.\" },\n        { \"Value\": \"User.Read.All\", \"Reason\": \"Revalidates source and target users on every transfer.\" }\n      ]\n    }\n  ],\n  \"Roles\": [],\n  \"ManualPermissions\": []\n}\n",
+    "PermissionsJson": {
+      "Permissions": [
+        {
+          "Name": "Microsoft Graph",
+          "Id": "00000003-0000-0000-c000-000000000000",
+          "AppRoleAssignments": [
+            "AgentIdentity.ReadWrite.All",
+            "AgentIdentityBlueprint.Read.All",
+            "Application.ReadWrite.All",
+            "User.Read.All"
+          ]
+        }
+      ],
+      "Roles": [],
+      "ManualPermissions": []
+    }
+  },
+  {
     "RunbookDisplayName": "Add Application Registration",
     "RunbookDisplayPath": "Org \\ Applications \\ Add Application Registration",
     "RelativeRunbookPath": "org/applications/add-application-registration.ps1",

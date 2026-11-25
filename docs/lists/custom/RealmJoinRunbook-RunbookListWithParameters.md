@@ -148,7 +148,73 @@ This document combines the permission requirements and RBAC roles with the expos
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 |  | Teams | Archive Team | Archive the team of this group | - **Type**: Microsoft Graph<br>&emsp;- TeamSettings.ReadWrite.All<br>&emsp;- Group.Read.All<br> |  | GroupID | ✓ | String | Object ID of the group the runbook acts on. Set by the portal from the selected group. |
 |  |  |  |  |  |  | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
-| Organization | Applications | Add Application Registration | Create an application registration in Entra ID | - **Type**: Microsoft Graph<br>&emsp;- Application.ReadWrite.OwnedBy<br>&emsp;- Organization.Read.All<br>&emsp;- Group.ReadWrite.All<br> | - Application Developer<br> | ApplicationName | ✓ | String | Display name of the new application registration. |
+| Organization | Agent-Identity | Add Or Remove Sponsor Owner | Add or remove sponsors or owners on agent identities and blueprints | - **Type**: Microsoft Graph<br>&emsp;- AgentIdentity.ReadWrite.All<br>&emsp;- AgentIdentityBlueprint.Read.All<br>&emsp;- Application.ReadWrite.All<br>&emsp;- Directory.Read.All<br> |  | TargetKind | ✓ | String | Target resource type: Identity or Blueprint. |
+|  |  |  |  |  |  | TargetObjectId | ✓ | String | Object ID of the target service principal (Identity) or application (Blueprint). |
+|  |  |  |  |  |  | Relationship | ✓ | String | Relationship to change: Sponsor or Owner. |
+|  |  |  |  |  |  | Action | ✓ | String | Operation to perform: Add or Remove. |
+|  |  |  |  |  |  | DirectoryObjectIds | ✓ | String | Comma-separated directory object IDs to add or remove. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user or system that started the runbook. Used for auditing. |
+|  |  | Create Blueprint | Create an Entra agent identity blueprint and its principal | - **Type**: Microsoft Graph<br>&emsp;- AgentIdentityBlueprint.Create<br>&emsp;- AgentIdentityBlueprint.ReadWrite.All<br>&emsp;- AgentIdentityBlueprintPrincipal.Create<br>&emsp;- Directory.Read.All<br> |  | DisplayName | ✓ | String | Display name for the new agent identity blueprint. |
+|  |  |  |  |  |  | SponsorObjectIds | ✓ | String | Comma-separated directory object IDs of user or supported group sponsors. At least one is required. |
+|  |  |  |  |  |  | OwnerObjectIds |  | String | Optional comma-separated user or service principal object IDs to assign as owners. Groups aren't accepted as owners. |
+|  |  |  |  |  |  | ManagerApplicationAppIds |  | String | Optional comma-separated application (client) IDs that manage the blueprint. Agent ID stores these as a GUID collection, not as directory-object references. |
+|  |  |  |  |  |  | Tags |  | String | Optional comma-separated blueprint tags. |
+|  |  |  |  |  |  | Description |  | String | Optional blueprint description. |
+|  |  |  |  |  |  | MaxRetryAttempts |  | Int32 | Maximum attempts while waiting for the blueprint to become visible to blueprint-principal creation. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user or system that started the runbook. Used for auditing. |
+|  |  | Create Identity | Create an Entra agent identity from a blueprint | - **Type**: Microsoft Graph<br>&emsp;- AgentIdentity.Create.All<br>&emsp;- AgentIdentityBlueprint.Read.All<br>&emsp;- AgentIdentityBlueprintPrincipal.Read.All<br>&emsp;- Directory.Read.All<br> |  | BlueprintAppId | ✓ | String | Application (client) ID of the selected agent identity blueprint. |
+|  |  |  |  |  |  | SponsorObjectIds | ✓ | String | Comma-separated user or supported group object IDs. At least one sponsor is required. |
+|  |  |  |  |  |  | OwnerObjectIds |  | String | Optional comma-separated user or service principal object IDs. Groups aren't accepted as owners. |
+|  |  |  |  |  |  | DisplayName |  | String | Optional display name for the agent identity. If omitted, the runbook uses the validated blueprint's display name. |
+|  |  |  |  |  |  | Tags |  | String | Optional comma-separated tags for the agent identity. |
+|  |  |  |  |  |  | MaxRetryAttempts |  | Int32 | Maximum creation attempts while blueprint data propagates. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user or system that started the runbook. Used for auditing. |
+|  |  | Report CA Targets (Scheduled) | Report Conditional Access targeting of Entra agent identities | - **Type**: Microsoft Graph<br>&emsp;- AgentIdentity.Read.All<br>&emsp;- AgentIdentityBlueprintPrincipal.Read.All<br>&emsp;- Policy.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br> |  | IncludeDisabledPolicies |  | Boolean | Include disabled policies as informational, non-enforced coverage. |
+|  |  |  |  |  |  | EmailTo |  | String | Optional comma- or semicolon-separated recipients for the report. |
+|  |  |  |  |  |  | EmailFrom |  | String | Sender mailbox from the RJReport.EmailSender tenant setting. Required only when EmailTo is set. |
+|  |  |  |  |  |  | BrandingHeaderImageUrl |  | String | Header image URL for report emails. |
+|  |  |  |  |  |  | BrandingFooterImageUrl |  | String | Footer image URL for report emails. |
+|  |  |  |  |  |  | BrandingFooterLink |  | String | Destination link for the report email footer. |
+|  |  |  |  |  |  | BrandingAccentColor |  | String | Accent color for report emails. |
+|  |  |  |  |  |  | BrandingTextColor |  | String | Text color for report emails. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the caller. This mandatory hidden parameter is used for auditing. |
+|  |  | Report Inventory (Scheduled) | Inventory Entra agent identities, blueprints and agent users | - **Type**: Microsoft Graph<br>&emsp;- AgentIdentity.Read.All<br>&emsp;- AgentIdentity.ReadWrite.All<br>&emsp;- AgentIdentityBlueprint.Read.All<br>&emsp;- AgentIdentityBlueprintPrincipal.Read.All<br>&emsp;- User.Read.All<br>&emsp;- CustomSecAttributeAssignment.Read.All *(optional: Custom security attributes)*<br>&emsp;- Mail.Send *(optional: Email report)*<br> |  | BlueprintQuotaWarningPercent |  | Int32 | Percentage of the documented app-only 250-per-blueprint constraint at which to warn. |
+|  |  |  |  |  |  | IncludeCustomSecurityAttributes |  | Boolean | Request customSecurityAttributes. Disable if the managed identity lacks that separate permission. |
+|  |  |  |  |  |  | EmailTo |  | String | Optional comma- or semicolon-separated recipients for the report. |
+|  |  |  |  |  |  | EmailFrom |  | String | Sender mailbox from the RJReport.EmailSender tenant setting. Required only when EmailTo is set. |
+|  |  |  |  |  |  | BrandingHeaderImageUrl |  | String | Header image URL for report emails. |
+|  |  |  |  |  |  | BrandingFooterImageUrl |  | String | Footer image URL for report emails. |
+|  |  |  |  |  |  | BrandingFooterLink |  | String | Destination link for the report email footer. |
+|  |  |  |  |  |  | BrandingAccentColor |  | String | Accent color for report emails. |
+|  |  |  |  |  |  | BrandingTextColor |  | String | Text color for report emails. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the caller. This mandatory hidden parameter is used for auditing. |
+|  |  | Report Signins (Scheduled) | Report retained Entra agent identity sign-in events | - **Type**: Microsoft Graph<br>&emsp;- AuditLog.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br> |  | LookbackHours |  | Int32 | UTC lookback window in hours. |
+|  |  |  |  |  |  | MaxEvents |  | Int32 | Maximum events retained in the report; collection stops at the cap. |
+|  |  |  |  |  |  | EmailTo |  | String | Optional comma- or semicolon-separated recipients for the report. |
+|  |  |  |  |  |  | EmailFrom |  | String | Sender mailbox from the RJReport.EmailSender tenant setting. Required only when EmailTo is set. |
+|  |  |  |  |  |  | BrandingHeaderImageUrl |  | String | Header image URL for report emails. |
+|  |  |  |  |  |  | BrandingFooterImageUrl |  | String | Footer image URL for report emails. |
+|  |  |  |  |  |  | BrandingFooterLink |  | String | Destination link for the report email footer. |
+|  |  |  |  |  |  | BrandingAccentColor |  | String | Accent color for report emails. |
+|  |  |  |  |  |  | BrandingTextColor |  | String | Text color for report emails. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the caller. This mandatory hidden parameter is used for auditing. |
+|  |  | Report Sponsors (Scheduled) | Report missing, disabled or guest sponsors of agent identities | - **Type**: Microsoft Graph<br>&emsp;- AgentIdentity.Read.All<br>&emsp;- AgentIdentity.ReadWrite.All<br>&emsp;- AgentIdentityBlueprint.Read.All<br>&emsp;- Application.Read.All<br>&emsp;- User.Read.All<br>&emsp;- Directory.Read.All<br>&emsp;- Mail.Send *(optional: Email report)*<br> |  | IncludeBlueprints |  | Boolean | Include agent identity blueprints as well as agent identities. |
+|  |  |  |  |  |  | EmailTo |  | String | Optional comma- or semicolon-separated recipients for the report. |
+|  |  |  |  |  |  | EmailFrom |  | String | Sender mailbox from the RJReport.EmailSender tenant setting. Required only when EmailTo is set. |
+|  |  |  |  |  |  | BrandingHeaderImageUrl |  | String | Header image URL for report emails. |
+|  |  |  |  |  |  | BrandingFooterImageUrl |  | String | Footer image URL for report emails. |
+|  |  |  |  |  |  | BrandingFooterLink |  | String | Destination link for the report email footer. |
+|  |  |  |  |  |  | BrandingAccentColor |  | String | Accent color for report emails. |
+|  |  |  |  |  |  | BrandingTextColor |  | String | Text color for report emails. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the caller. This mandatory hidden parameter is used for auditing. |
+|  |  | Transfer Sponsorships | Transfer direct agent identity and blueprint sponsorships | - **Type**: Microsoft Graph<br>&emsp;- AgentIdentity.ReadWrite.All<br>&emsp;- AgentIdentityBlueprint.Read.All<br>&emsp;- Application.ReadWrite.All<br>&emsp;- User.Read.All<br> |  | SourceUserObjectId | ✓ | String | Object ID of the user whose sponsorship references are being transferred. |
+|  |  |  |  |  |  | TargetUserObjectId | ✓ | String | Object ID of the user receiving sponsorship references. |
+|  |  |  |  |  |  | SelectedTargetObjectIds |  | String | Optional comma-separated Agent Identity or blueprint object IDs. Leave empty to consider all discovered references. |
+|  |  |  |  |  |  | Execute |  | Boolean | When false, produces a report only. Set true to request changes. |
+|  |  |  |  |  |  | ConfirmExecute |  | Boolean | Second interlock that must be true with Execute. |
+|  |  |  |  |  |  | MaxChanges |  | Int32 | Maximum number of objects changed in one execution. |
+|  |  |  |  |  |  | CallerName | ✓ | String | Name of the user or system that started the runbook. Used for auditing. |
+|  | Applications | Add Application Registration | Create an application registration in Entra ID | - **Type**: Microsoft Graph<br>&emsp;- Application.ReadWrite.OwnedBy<br>&emsp;- Organization.Read.All<br>&emsp;- Group.ReadWrite.All<br> | - Application Developer<br> | ApplicationName | ✓ | String | Display name of the new application registration. |
 |  |  |  |  |  |  | RedirectURI |  | String | Type of sign-in to set up: none, a web redirect URI, SAML, a public client (mobile and desktop) or a single-page application. The matching fields appear once you choose. |
 |  |  |  |  |  |  | signInAudience |  | String | Who may sign in to the application. Preset to accounts in this tenant only (AzureADMyOrg). |
 |  |  |  |  |  |  | webRedirectURI |  | String | Redirect URI of a web application, for example https://myapp.com/auth. Separate several with semicolons. |
