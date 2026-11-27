@@ -82,6 +82,16 @@ Apart from the following runbook descriptions, further content such as runbook o
 
     - [Archive Team](docs/group/teams/archive-team.md)
 - [Org](docs/org/README.md)
+  - [Agent-Identity](docs/org/README.md#org-agent-identity)
+
+    - [Add Or Remove Sponsor Owner](docs/org/agent-identity/add-or-remove-sponsor-owner.md)
+    - [Create Blueprint](docs/org/agent-identity/create-blueprint.md)
+    - [Create Identity](docs/org/agent-identity/create-identity.md)
+    - [Report CA Targets (Scheduled)](docs/org/agent-identity/report-ca-targets_scheduled.md)
+    - [Report Inventory (Scheduled)](docs/org/agent-identity/report-inventory_scheduled.md)
+    - [Report Signins (Scheduled)](docs/org/agent-identity/report-signins_scheduled.md)
+    - [Report Sponsors (Scheduled)](docs/org/agent-identity/report-sponsors_scheduled.md)
+    - [Transfer Sponsorships](docs/org/agent-identity/transfer-sponsorships.md)
   - [Applications](docs/org/README.md#org-applications)
 
     - [Add Application Registration](docs/org/applications/add-application-registration.md)

@@ -41,7 +41,15 @@ This document provides a comprehensive overview of all runbooks currently availa
 |  | Mail | Enable Or Disable External Mail | Allow or block external senders for this Microsoft 365 group |
 |  |  | Show Or Hide In Address Book | Show or hide this group in the address book |
 |  | Teams | Archive Team | Archive the team of this group |
-| Organization | Applications | Add Application Registration | Create an application registration in Entra ID |
+| Organization | Agent-Identity | Add Or Remove Sponsor Owner | Add or remove sponsors or owners on agent identities and blueprints |
+|  |  | Create Blueprint | Create an Entra agent identity blueprint and its principal |
+|  |  | Create Identity | Create an Entra agent identity from a blueprint |
+|  |  | Report CA Targets (Scheduled) | Report Conditional Access targeting of Entra agent identities |
+|  |  | Report Inventory (Scheduled) | Inventory Entra agent identities, blueprints and agent users |
+|  |  | Report Signins (Scheduled) | Report retained Entra agent identity sign-in events |
+|  |  | Report Sponsors (Scheduled) | Report missing, disabled or guest sponsors of agent identities |
+|  |  | Transfer Sponsorships | Transfer direct agent identity and blueprint sponsorships |
+|  | Applications | Add Application Registration | Create an application registration in Entra ID |
 |  |  | Add GSA Application Registration | Create a Global Secure Access application with its access group |
 |  |  | Delete Application Registration | Delete an application registration and its service principal |
 |  |  | Delete GSA Application Registration | Delete a Global Secure Access application and its access group |

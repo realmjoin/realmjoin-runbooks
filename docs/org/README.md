@@ -1,5 +1,15 @@
 # Org Overview
 
+<a name='org-agent-identity'></a>
+## Agent-Identity
+  - [Add Or Remove Sponsor Owner](agent-identity/add-or-remove-sponsor-owner.md)
+  - [Create Blueprint](agent-identity/create-blueprint.md)
+  - [Create Identity](agent-identity/create-identity.md)
+  - [Report CA Targets (Scheduled)](agent-identity/report-ca-targets_scheduled.md)
+  - [Report Inventory (Scheduled)](agent-identity/report-inventory_scheduled.md)
+  - [Report Signins (Scheduled)](agent-identity/report-signins_scheduled.md)
+  - [Report Sponsors (Scheduled)](agent-identity/report-sponsors_scheduled.md)
+  - [Transfer Sponsorships](agent-identity/transfer-sponsorships.md)
 <a name='org-applications'></a>
 ## Applications
   - [Add Application Registration](applications/add-application-registration.md)

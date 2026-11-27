@@ -59,6 +59,15 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Teams](#group-teams)
     - [Archive Team](#group-teams-archive-team)
 - [Organization](#organization)
+  - [Agent-Identity](#organization-agent-identity)
+    - [Add Or Remove Sponsor Owner](#organization-agent-identity-add-or-remove-sponsor-owner)
+    - [Create Blueprint](#organization-agent-identity-create-blueprint)
+    - [Create Identity](#organization-agent-identity-create-identity)
+    - [Report CA Targets (Scheduled)](#organization-agent-identity-report-ca-targets-scheduled)
+    - [Report Inventory (Scheduled)](#organization-agent-identity-report-inventory-scheduled)
+    - [Report Signins (Scheduled)](#organization-agent-identity-report-signins-scheduled)
+    - [Report Sponsors (Scheduled)](#organization-agent-identity-report-sponsors-scheduled)
+    - [Transfer Sponsorships](#organization-agent-identity-transfer-sponsorships)
   - [Applications](#organization-applications)
     - [Add Application Registration](#organization-applications-add-application-registration)
     - [Add GSA Application Registration](#organization-applications-add-gsa-application-registration)
@@ -714,6 +723,141 @@ Archive the team of this group
 
 <a name='organization'></a>
 # Organization
+<a name='organization-agent-identity'></a>
+## Agent-Identity
+
+<a name='organization-agent-identity-add-or-remove-sponsor-owner'></a>
+
+### Add Or Remove Sponsor Owner
+Add or remove sponsors or owners on agent identities and blueprints
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| TargetKind | ✓ | String | Target resource type: Identity or Blueprint. |
+| TargetObjectId | ✓ | String | Object ID of the target service principal (Identity) or application (Blueprint). |
+| Relationship | ✓ | String | Relationship to change: Sponsor or Owner. |
+| Action | ✓ | String | Operation to perform: Add or Remove. |
+| DirectoryObjectIds | ✓ | String | Comma-separated directory object IDs to add or remove. |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Used for auditing. |
+
+<a name='organization-agent-identity-create-blueprint'></a>
+
+### Create Blueprint
+Create an Entra agent identity blueprint and its principal
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| DisplayName | ✓ | String | Display name for the new agent identity blueprint. |
+| SponsorObjectIds | ✓ | String | Comma-separated directory object IDs of user or supported group sponsors. At least one is required. |
+| OwnerObjectIds |  | String | Optional comma-separated user or service principal object IDs to assign as owners. Groups aren't accepted as owners. |
+| ManagerApplicationAppIds |  | String | Optional comma-separated application (client) IDs that manage the blueprint. Agent ID stores these as a GUID collection, not as directory-object references. |
+| Tags |  | String | Optional comma-separated blueprint tags. |
+| Description |  | String | Optional blueprint description. |
+| MaxRetryAttempts |  | Int32 | Maximum attempts while waiting for the blueprint to become visible to blueprint-principal creation. |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Used for auditing. |
+
+<a name='organization-agent-identity-create-identity'></a>
+
+### Create Identity
+Create an Entra agent identity from a blueprint
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| BlueprintAppId | ✓ | String | Application (client) ID of the selected agent identity blueprint. |
+| SponsorObjectIds | ✓ | String | Comma-separated user or supported group object IDs. At least one sponsor is required. |
+| OwnerObjectIds |  | String | Optional comma-separated user or service principal object IDs. Groups aren't accepted as owners. |
+| DisplayName |  | String | Optional display name for the agent identity. If omitted, the runbook uses the validated blueprint's display name. |
+| Tags |  | String | Optional comma-separated tags for the agent identity. |
+| MaxRetryAttempts |  | Int32 | Maximum creation attempts while blueprint data propagates. |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Used for auditing. |
+
+<a name='organization-agent-identity-report-ca-targets-scheduled'></a>
+
+### Report CA Targets (Scheduled)
+Report Conditional Access targeting of Entra agent identities
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| IncludeDisabledPolicies |  | Boolean | Include disabled policies as informational, non-enforced coverage. |
+| EmailTo |  | String | Optional comma- or semicolon-separated recipients for the report. |
+| EmailFrom |  | String | Sender mailbox from the RJReport.EmailSender tenant setting. Required only when EmailTo is set. |
+| BrandingHeaderImageUrl |  | String | Header image URL for report emails. |
+| BrandingFooterImageUrl |  | String | Footer image URL for report emails. |
+| BrandingFooterLink |  | String | Destination link for the report email footer. |
+| BrandingAccentColor |  | String | Accent color for report emails. |
+| BrandingTextColor |  | String | Text color for report emails. |
+| CallerName | ✓ | String | Name of the caller. This mandatory hidden parameter is used for auditing. |
+
+<a name='organization-agent-identity-report-inventory-scheduled'></a>
+
+### Report Inventory (Scheduled)
+Inventory Entra agent identities, blueprints and agent users
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| BlueprintQuotaWarningPercent |  | Int32 | Percentage of the documented app-only 250-per-blueprint constraint at which to warn. |
+| IncludeCustomSecurityAttributes |  | Boolean | Request customSecurityAttributes. Disable if the managed identity lacks that separate permission. |
+| EmailTo |  | String | Optional comma- or semicolon-separated recipients for the report. |
+| EmailFrom |  | String | Sender mailbox from the RJReport.EmailSender tenant setting. Required only when EmailTo is set. |
+| BrandingHeaderImageUrl |  | String | Header image URL for report emails. |
+| BrandingFooterImageUrl |  | String | Footer image URL for report emails. |
+| BrandingFooterLink |  | String | Destination link for the report email footer. |
+| BrandingAccentColor |  | String | Accent color for report emails. |
+| BrandingTextColor |  | String | Text color for report emails. |
+| CallerName | ✓ | String | Name of the caller. This mandatory hidden parameter is used for auditing. |
+
+<a name='organization-agent-identity-report-signins-scheduled'></a>
+
+### Report Signins (Scheduled)
+Report retained Entra agent identity sign-in events
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| LookbackHours |  | Int32 | UTC lookback window in hours. |
+| MaxEvents |  | Int32 | Maximum events retained in the report; collection stops at the cap. |
+| EmailTo |  | String | Optional comma- or semicolon-separated recipients for the report. |
+| EmailFrom |  | String | Sender mailbox from the RJReport.EmailSender tenant setting. Required only when EmailTo is set. |
+| BrandingHeaderImageUrl |  | String | Header image URL for report emails. |
+| BrandingFooterImageUrl |  | String | Footer image URL for report emails. |
+| BrandingFooterLink |  | String | Destination link for the report email footer. |
+| BrandingAccentColor |  | String | Accent color for report emails. |
+| BrandingTextColor |  | String | Text color for report emails. |
+| CallerName | ✓ | String | Name of the caller. This mandatory hidden parameter is used for auditing. |
+
+<a name='organization-agent-identity-report-sponsors-scheduled'></a>
+
+### Report Sponsors (Scheduled)
+Report missing, disabled or guest sponsors of agent identities
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| IncludeBlueprints |  | Boolean | Include agent identity blueprints as well as agent identities. |
+| EmailTo |  | String | Optional comma- or semicolon-separated recipients for the report. |
+| EmailFrom |  | String | Sender mailbox from the RJReport.EmailSender tenant setting. Required only when EmailTo is set. |
+| BrandingHeaderImageUrl |  | String | Header image URL for report emails. |
+| BrandingFooterImageUrl |  | String | Footer image URL for report emails. |
+| BrandingFooterLink |  | String | Destination link for the report email footer. |
+| BrandingAccentColor |  | String | Accent color for report emails. |
+| BrandingTextColor |  | String | Text color for report emails. |
+| CallerName | ✓ | String | Name of the caller. This mandatory hidden parameter is used for auditing. |
+
+<a name='organization-agent-identity-transfer-sponsorships'></a>
+
+### Transfer Sponsorships
+Transfer direct agent identity and blueprint sponsorships
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| SourceUserObjectId | ✓ | String | Object ID of the user whose sponsorship references are being transferred. |
+| TargetUserObjectId | ✓ | String | Object ID of the user receiving sponsorship references. |
+| SelectedTargetObjectIds |  | String | Optional comma-separated Agent Identity or blueprint object IDs. Leave empty to consider all discovered references. |
+| Execute |  | Boolean | When false, produces a report only. Set true to request changes. |
+| ConfirmExecute |  | Boolean | Second interlock that must be true with Execute. |
+| MaxChanges |  | Int32 | Maximum number of objects changed in one execution. |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Used for auditing. |
+
+[Back to the RealmJoin runbook parameter overview](#table-of-contents)
+
 <a name='organization-applications'></a>
 ## Applications
 

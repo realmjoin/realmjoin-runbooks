@@ -89,6 +89,19 @@ Each category contains multiple runbooks that are further divided into subcatego
 
 <a name='organization'></a>
 ## Organization
+<a name='organization-agent-identity'></a>
+### Agent-Identity
+| Runbook Name | Synopsis |
+|--------------|----------|
+| Add Or Remove Sponsor Owner | Add or remove sponsors or owners on agent identities and blueprints |
+| Create Blueprint | Create an Entra agent identity blueprint and its principal |
+| Create Identity | Create an Entra agent identity from a blueprint |
+| Report CA Targets (Scheduled) | Report Conditional Access targeting of Entra agent identities |
+| Report Inventory (Scheduled) | Inventory Entra agent identities, blueprints and agent users |
+| Report Signins (Scheduled) | Report retained Entra agent identity sign-in events |
+| Report Sponsors (Scheduled) | Report missing, disabled or guest sponsors of agent identities |
+| Transfer Sponsorships | Transfer direct agent identity and blueprint sponsorships |
+
 <a name='organization-applications'></a>
 ### Applications
 | Runbook Name | Synopsis |
