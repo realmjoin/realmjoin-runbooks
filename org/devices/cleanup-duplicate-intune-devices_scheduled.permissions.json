@@ -1,0 +1,31 @@
+{
+    "SchemaVersion": 2,
+    "Permissions": [
+        {
+            "Name": "Microsoft Graph",
+            "Id": "00000003-0000-0000-c000-000000000000",
+            "AppRoleAssignments": [
+                {
+                    "Value": "DeviceManagementManagedDevices.ReadWrite.All",
+                    "Reason": "Reads /deviceManagement/managedDevices to find duplicate Intune device records and deletes the stale duplicates via DELETE /deviceManagement/managedDevices/{id}"
+                },
+                {
+                    "Value": "Mail.Send",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Sends the cleanup report email with its CSV/XLSX attachments via Send-RjRbReportEmail when email delivery is selected"
+                },
+                {
+                    "Value": "Organization.Read.All",
+                    "Optional": true,
+                    "Feature": "Email report",
+                    "Reason": "Reads /organization?$select=displayName to put the tenant name into the report email subject and footer"
+                }
+            ]
+        }
+    ],
+    "Roles": [],
+    "ManualPermissions": [
+        "Azure: Storage Blob Data Contributor on the report storage account (only needed for the download link feature)"
+    ]
+}

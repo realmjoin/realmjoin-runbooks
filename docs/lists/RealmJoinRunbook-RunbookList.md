@@ -59,6 +59,15 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Teams](#group-teams)
     - Archive Team
 - [Organization](#organization)
+  - [Agent-Identity](#organization-agent-identity)
+    - Add Or Remove Sponsor Owner
+    - Create Blueprint
+    - Create Identity
+    - Report CA Targets (Scheduled)
+    - Report Inventory (Scheduled)
+    - Report Signins (Scheduled)
+    - Report Sponsors (Scheduled)
+    - Transfer Sponsorships
   - [Applications](#organization-applications)
     - Add Application Registration
     - Add GSA Application Registration
@@ -72,6 +81,7 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Collab](#organization-collab)
     - Check Onedrive Status
     - List Sharepoint Sitecollection Permission
+    - Report Shared Channel Members (Scheduled)
     - Report Sharepoint Tenant Storage (Scheduled)
     - Report Teams Channels (Scheduled)
   - [Devices](#organization-devices)
@@ -79,6 +89,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Add Device Via Corporate Identifier
     - Auto Approve Driver Updates (Scheduled)
     - Cleanup Autopilot Devices (Scheduled)
+    - Cleanup Duplicate Intune Devices (Scheduled)
     - Create Endpoint Analytics Baseline
     - Dedup Device Names (Scheduled)
     - Delete Stale Devices (Scheduled)
@@ -148,6 +159,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - Hide Mailboxes (Scheduled)
     - Set Booking Config
   - [Phone](#organization-phone)
+    - Add Or Remove Auto Attendant Authorized Users
     - Add Or Remove Call Queue Agents
     - Add Or Remove Call Queue Authorized Users
     - Get Teams Phone Number Assignment
@@ -165,6 +177,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - List Vulnerable App Regs
     - Monitor Pending EPM Requests (Scheduled)
     - Notify Changed CA Policies
+    - Report Access Package Assignments (Scheduled)
     - Report EPM Elevation Requests (Scheduled)
     - Sync MFA Secure Users To Group (Scheduled)
 - [User](#user)
@@ -313,6 +326,21 @@ Each category contains multiple runbooks that are further divided into subcatego
 
 <a name='organization'></a>
 ## Organization
+<a name='organization-agent-identity'></a>
+### Agent-Identity
+| Runbook Name | Synopsis |
+|--------------|----------|
+| Add Or Remove Sponsor Owner | Add or remove sponsors or owners on agent identities and blueprints |
+| Create Blueprint | Create an Entra agent identity blueprint and its principal |
+| Create Identity | Create an Entra agent identity from a blueprint |
+| Report CA Targets (Scheduled) | Report Conditional Access targeting of Entra agent identities |
+| Report Inventory (Scheduled) | Inventory Entra agent identities, blueprints and agent users |
+| Report Signins (Scheduled) | Report retained Entra agent identity sign-in events |
+| Report Sponsors (Scheduled) | Report missing, disabled or guest sponsors of agent identities |
+| Transfer Sponsorships | Transfer direct agent identity and blueprint sponsorships |
+
+[Back to the RealmJoin runbook overview](#table-of-contents)
+
 <a name='organization-applications'></a>
 ### Applications
 | Runbook Name | Synopsis |
@@ -335,6 +363,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 |--------------|----------|
 | Check Onedrive Status | Check whether a user's OneDrive is active, locked or deleted |
 | List Sharepoint Sitecollection Permission | List the administrators and members of a SharePoint site |
+| Report Shared Channel Members (Scheduled) | List shared channels of all teams with direct and indirect members |
 | Report Sharepoint Tenant Storage (Scheduled) | Monitor SharePoint storage and alert when limits are exceeded |
 | Report Teams Channels (Scheduled) | List private and shared channels of all teams with their owners |
 
@@ -348,6 +377,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Add Device Via Corporate Identifier | Register a device in Intune by its corporate identifier |
 | Auto Approve Driver Updates (Scheduled) | Approve pending driver updates in Intune driver update policies |
 | Cleanup Autopilot Devices (Scheduled) | Remove orphaned and never-enrolled Autopilot registrations |
+| Cleanup Duplicate Intune Devices (Scheduled) | Remove duplicate Intune devices, keeping the most recently synced |
 | Create Endpoint Analytics Baseline | Create an Endpoint Analytics baseline with a naming schema |
 | Dedup Device Names (Scheduled) | Rename Intune devices that share a display name |
 | Delete Stale Devices (Scheduled) | Delete Intune devices that have been inactive for too long |
@@ -435,6 +465,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 ### Phone
 | Runbook Name | Synopsis |
 |--------------|----------|
+| Add Or Remove Auto Attendant Authorized Users | Add or remove authorized users of a Teams auto attendant |
 | Add Or Remove Call Queue Agents | Add or remove agents of a Teams call queue |
 | Add Or Remove Call Queue Authorized Users | Add or remove authorized users of a Teams call queue |
 | Get Teams Phone Number Assignment | Check whether a phone number is assigned in Microsoft Teams |
@@ -458,6 +489,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | List Vulnerable App Regs | List app registrations possibly affected by CVE-2021-42306 |
 | Monitor Pending EPM Requests (Scheduled) | Alert by email about pending EPM elevation requests |
 | Notify Changed CA Policies | Alert by email about Conditional Access policy changes |
+| Report Access Package Assignments (Scheduled) | List access packages with their assignments, requests and policies |
 | Report EPM Elevation Requests (Scheduled) | Report EPM elevation requests by status and age |
 | Sync MFA Secure Users To Group (Scheduled) | Keep a group filled with users who registered a secure MFA method |
 
@@ -508,7 +540,7 @@ Each category contains multiple runbooks that are further divided into subcatego
 | Assign OWA Mailbox Policy | Assign an Outlook on the web policy to this user's mailbox |
 | Convert To Shared Mailbox | Convert this user's mailbox to a shared mailbox or back |
 | Delegate Full Access | Grant or remove full access to this user's mailbox |
-| Delegate Send As | Grant or remove Send As permission on this user's mailbox |
+| Delegate Send As | Grant or revoke Exchange SendAs permission on a mailbox for one or more delegates |
 | Delegate Send On Behalf | Grant or remove Send on Behalf permission on this user's mailbox |
 | Hide Or Unhide In Addressbook | Hide this user's mailbox in the address book or show it |
 | List Mailbox Permissions | List who has access to this user's mailbox |

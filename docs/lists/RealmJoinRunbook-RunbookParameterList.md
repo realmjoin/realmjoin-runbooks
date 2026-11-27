@@ -59,6 +59,15 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Teams](#group-teams)
     - [Archive Team](#group-teams-archive-team)
 - [Organization](#organization)
+  - [Agent-Identity](#organization-agent-identity)
+    - [Add Or Remove Sponsor Owner](#organization-agent-identity-add-or-remove-sponsor-owner)
+    - [Create Blueprint](#organization-agent-identity-create-blueprint)
+    - [Create Identity](#organization-agent-identity-create-identity)
+    - [Report CA Targets (Scheduled)](#organization-agent-identity-report-ca-targets-scheduled)
+    - [Report Inventory (Scheduled)](#organization-agent-identity-report-inventory-scheduled)
+    - [Report Signins (Scheduled)](#organization-agent-identity-report-signins-scheduled)
+    - [Report Sponsors (Scheduled)](#organization-agent-identity-report-sponsors-scheduled)
+    - [Transfer Sponsorships](#organization-agent-identity-transfer-sponsorships)
   - [Applications](#organization-applications)
     - [Add Application Registration](#organization-applications-add-application-registration)
     - [Add GSA Application Registration](#organization-applications-add-gsa-application-registration)
@@ -72,6 +81,7 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Collab](#organization-collab)
     - [Check Onedrive Status](#organization-collab-check-onedrive-status)
     - [List Sharepoint Sitecollection Permission](#organization-collab-list-sharepoint-sitecollection-permission)
+    - [Report Shared Channel Members (Scheduled)](#organization-collab-report-shared-channel-members-scheduled)
     - [Report Sharepoint Tenant Storage (Scheduled)](#organization-collab-report-sharepoint-tenant-storage-scheduled)
     - [Report Teams Channels (Scheduled)](#organization-collab-report-teams-channels-scheduled)
   - [Devices](#organization-devices)
@@ -79,6 +89,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Add Device Via Corporate Identifier](#organization-devices-add-device-via-corporate-identifier)
     - [Auto Approve Driver Updates (Scheduled)](#organization-devices-auto-approve-driver-updates-scheduled)
     - [Cleanup Autopilot Devices (Scheduled)](#organization-devices-cleanup-autopilot-devices-scheduled)
+    - [Cleanup Duplicate Intune Devices (Scheduled)](#organization-devices-cleanup-duplicate-intune-devices-scheduled)
     - [Create Endpoint Analytics Baseline](#organization-devices-create-endpoint-analytics-baseline)
     - [Dedup Device Names (Scheduled)](#organization-devices-dedup-device-names-scheduled)
     - [Delete Stale Devices (Scheduled)](#organization-devices-delete-stale-devices-scheduled)
@@ -148,6 +159,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [Hide Mailboxes (Scheduled)](#organization-mail-hide-mailboxes-scheduled)
     - [Set Booking Config](#organization-mail-set-booking-config)
   - [Phone](#organization-phone)
+    - [Add Or Remove Auto Attendant Authorized Users](#organization-phone-add-or-remove-auto-attendant-authorized-users)
     - [Add Or Remove Call Queue Agents](#organization-phone-add-or-remove-call-queue-agents)
     - [Add Or Remove Call Queue Authorized Users](#organization-phone-add-or-remove-call-queue-authorized-users)
     - [Get Teams Phone Number Assignment](#organization-phone-get-teams-phone-number-assignment)
@@ -165,6 +177,7 @@ Each category contains multiple runbooks that are further divided into subcatego
     - [List Vulnerable App Regs](#organization-security-list-vulnerable-app-regs)
     - [Monitor Pending EPM Requests (Scheduled)](#organization-security-monitor-pending-epm-requests-scheduled)
     - [Notify Changed CA Policies](#organization-security-notify-changed-ca-policies)
+    - [Report Access Package Assignments (Scheduled)](#organization-security-report-access-package-assignments-scheduled)
     - [Report EPM Elevation Requests (Scheduled)](#organization-security-report-epm-elevation-requests-scheduled)
     - [Sync MFA Secure Users To Group (Scheduled)](#organization-security-sync-mfa-secure-users-to-group-scheduled)
 - [User](#user)
@@ -710,6 +723,141 @@ Archive the team of this group
 
 <a name='organization'></a>
 # Organization
+<a name='organization-agent-identity'></a>
+## Agent-Identity
+
+<a name='organization-agent-identity-add-or-remove-sponsor-owner'></a>
+
+### Add Or Remove Sponsor Owner
+Add or remove sponsors or owners on agent identities and blueprints
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| TargetKind | ✓ | String | Target resource type: Identity or Blueprint. |
+| TargetObjectId | ✓ | String | Object ID of the target service principal (Identity) or application (Blueprint). |
+| Relationship | ✓ | String | Relationship to change: Sponsor or Owner. |
+| Action | ✓ | String | Operation to perform: Add or Remove. |
+| DirectoryObjectIds | ✓ | String | Comma-separated directory object IDs to add or remove. |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Used for auditing. |
+
+<a name='organization-agent-identity-create-blueprint'></a>
+
+### Create Blueprint
+Create an Entra agent identity blueprint and its principal
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| DisplayName | ✓ | String | Display name for the new agent identity blueprint. |
+| SponsorObjectIds | ✓ | String | Comma-separated directory object IDs of user or supported group sponsors. At least one is required. |
+| OwnerObjectIds |  | String | Optional comma-separated user or service principal object IDs to assign as owners. Groups aren't accepted as owners. |
+| ManagerApplicationAppIds |  | String | Optional comma-separated application (client) IDs that manage the blueprint. Agent ID stores these as a GUID collection, not as directory-object references. |
+| Tags |  | String | Optional comma-separated blueprint tags. |
+| Description |  | String | Optional blueprint description. |
+| MaxRetryAttempts |  | Int32 | Maximum attempts while waiting for the blueprint to become visible to blueprint-principal creation. |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Used for auditing. |
+
+<a name='organization-agent-identity-create-identity'></a>
+
+### Create Identity
+Create an Entra agent identity from a blueprint
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| BlueprintAppId | ✓ | String | Application (client) ID of the selected agent identity blueprint. |
+| SponsorObjectIds | ✓ | String | Comma-separated user or supported group object IDs. At least one sponsor is required. |
+| OwnerObjectIds |  | String | Optional comma-separated user or service principal object IDs. Groups aren't accepted as owners. |
+| DisplayName |  | String | Optional display name for the agent identity. If omitted, the runbook uses the validated blueprint's display name. |
+| Tags |  | String | Optional comma-separated tags for the agent identity. |
+| MaxRetryAttempts |  | Int32 | Maximum creation attempts while blueprint data propagates. |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Used for auditing. |
+
+<a name='organization-agent-identity-report-ca-targets-scheduled'></a>
+
+### Report CA Targets (Scheduled)
+Report Conditional Access targeting of Entra agent identities
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| IncludeDisabledPolicies |  | Boolean | Include disabled policies as informational, non-enforced coverage. |
+| EmailTo |  | String | Optional comma- or semicolon-separated recipients for the report. |
+| EmailFrom |  | String | Sender mailbox from the RJReport.EmailSender tenant setting. Required only when EmailTo is set. |
+| BrandingHeaderImageUrl |  | String | Header image URL for report emails. |
+| BrandingFooterImageUrl |  | String | Footer image URL for report emails. |
+| BrandingFooterLink |  | String | Destination link for the report email footer. |
+| BrandingAccentColor |  | String | Accent color for report emails. |
+| BrandingTextColor |  | String | Text color for report emails. |
+| CallerName | ✓ | String | Name of the caller. This mandatory hidden parameter is used for auditing. |
+
+<a name='organization-agent-identity-report-inventory-scheduled'></a>
+
+### Report Inventory (Scheduled)
+Inventory Entra agent identities, blueprints and agent users
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| BlueprintQuotaWarningPercent |  | Int32 | Percentage of the documented app-only 250-per-blueprint constraint at which to warn. |
+| IncludeCustomSecurityAttributes |  | Boolean | Request customSecurityAttributes. Disable if the managed identity lacks that separate permission. |
+| EmailTo |  | String | Optional comma- or semicolon-separated recipients for the report. |
+| EmailFrom |  | String | Sender mailbox from the RJReport.EmailSender tenant setting. Required only when EmailTo is set. |
+| BrandingHeaderImageUrl |  | String | Header image URL for report emails. |
+| BrandingFooterImageUrl |  | String | Footer image URL for report emails. |
+| BrandingFooterLink |  | String | Destination link for the report email footer. |
+| BrandingAccentColor |  | String | Accent color for report emails. |
+| BrandingTextColor |  | String | Text color for report emails. |
+| CallerName | ✓ | String | Name of the caller. This mandatory hidden parameter is used for auditing. |
+
+<a name='organization-agent-identity-report-signins-scheduled'></a>
+
+### Report Signins (Scheduled)
+Report retained Entra agent identity sign-in events
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| LookbackHours |  | Int32 | UTC lookback window in hours. |
+| MaxEvents |  | Int32 | Maximum events retained in the report; collection stops at the cap. |
+| EmailTo |  | String | Optional comma- or semicolon-separated recipients for the report. |
+| EmailFrom |  | String | Sender mailbox from the RJReport.EmailSender tenant setting. Required only when EmailTo is set. |
+| BrandingHeaderImageUrl |  | String | Header image URL for report emails. |
+| BrandingFooterImageUrl |  | String | Footer image URL for report emails. |
+| BrandingFooterLink |  | String | Destination link for the report email footer. |
+| BrandingAccentColor |  | String | Accent color for report emails. |
+| BrandingTextColor |  | String | Text color for report emails. |
+| CallerName | ✓ | String | Name of the caller. This mandatory hidden parameter is used for auditing. |
+
+<a name='organization-agent-identity-report-sponsors-scheduled'></a>
+
+### Report Sponsors (Scheduled)
+Report missing, disabled or guest sponsors of agent identities
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| IncludeBlueprints |  | Boolean | Include agent identity blueprints as well as agent identities. |
+| EmailTo |  | String | Optional comma- or semicolon-separated recipients for the report. |
+| EmailFrom |  | String | Sender mailbox from the RJReport.EmailSender tenant setting. Required only when EmailTo is set. |
+| BrandingHeaderImageUrl |  | String | Header image URL for report emails. |
+| BrandingFooterImageUrl |  | String | Footer image URL for report emails. |
+| BrandingFooterLink |  | String | Destination link for the report email footer. |
+| BrandingAccentColor |  | String | Accent color for report emails. |
+| BrandingTextColor |  | String | Text color for report emails. |
+| CallerName | ✓ | String | Name of the caller. This mandatory hidden parameter is used for auditing. |
+
+<a name='organization-agent-identity-transfer-sponsorships'></a>
+
+### Transfer Sponsorships
+Transfer direct agent identity and blueprint sponsorships
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| SourceUserObjectId | ✓ | String | Object ID of the user whose sponsorship references are being transferred. |
+| TargetUserObjectId | ✓ | String | Object ID of the user receiving sponsorship references. |
+| SelectedTargetObjectIds |  | String | Optional comma-separated Agent Identity or blueprint object IDs. Leave empty to consider all discovered references. |
+| Execute |  | Boolean | When false, produces a report only. Set true to request changes. |
+| ConfirmExecute |  | Boolean | Second interlock that must be true with Execute. |
+| MaxChanges |  | Int32 | Maximum number of objects changed in one execution. |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Used for auditing. |
+
+[Back to the RealmJoin runbook parameter overview](#table-of-contents)
+
 <a name='organization-applications'></a>
 ## Applications
 
@@ -941,6 +1089,33 @@ List the administrators and members of a SharePoint site
 | SiteUrl | ✓ | String | Full URL of the site, for example https://contoso.sharepoint.com/sites/marketing. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
+<a name='organization-collab-report-shared-channel-members-scheduled'></a>
+
+### Report Shared Channel Members (Scheduled)
+List shared channels of all teams with direct and indirect members
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| ReportScope |  | String | "All shared channels, one table" lists every member in one table. "All shared channels, one table per channel" gives each channel its own table and worksheet. "Shared channels by name, one table" reports only the named channels. |
+| TeamIds |  | String Array | Only the shared channels hosted by the selected teams are read. Leave empty to include every team of the tenant. |
+| ChannelNames |  | String | Names of the shared channels to report, separated by commas; upper and lower case do not matter. Without "Limit to these teams", matching channels of every team are reported. |
+| EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
+| BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
+| BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
+| BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
+| BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
+| BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
+| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
+| ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
+| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+| ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
+| ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
+| StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+
 <a name='organization-collab-report-sharepoint-tenant-storage-scheduled'></a>
 
 ### Report Sharepoint Tenant Storage (Scheduled)
@@ -1030,6 +1205,7 @@ Approve pending driver updates in Intune driver update policies
 |-----------|----------|------|-------------|
 | PolicyNames |  | String | Only these driver update policies, separated by commas. Leave empty for all policies. |
 | PolicyIds |  | String | Only these policy IDs, separated by commas. Leave empty for all policies. |
+| DriverCategory |  | String | Which driver list of the policy to approve from. "Recommended drivers" are the updates Windows Update offers by default, "Other drivers" are firmware, optional and superseded updates, "All drivers" takes every driver. |
 | DriverDisplayNamePattern |  | String | Only drivers whose name matches this pattern; wildcards such as * are allowed. |
 | DriverClass |  | String | Only these driver classes, separated by commas, for example Bluetooth,Networking,Firmware. |
 | DriverManufacturer |  | String | Only drivers from this manufacturer. |
@@ -1075,6 +1251,40 @@ Remove orphaned and never-enrolled Autopilot registrations
 | BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
 | BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
 | BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
+| ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
+| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+| ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
+| ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
+| StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+
+<a name='organization-devices-cleanup-duplicate-intune-devices-scheduled'></a>
+
+### Cleanup Duplicate Intune Devices (Scheduled)
+Remove duplicate Intune devices, keeping the most recently synced
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| WhatIfMode |  | Boolean | List duplicate devices without deleting them. Disable to actually delete the older duplicate records. |
+| IncludeWindows |  | Boolean | Include Windows devices in the duplicate detection. |
+| IncludeMacOS |  | Boolean | Include macOS devices in the duplicate detection. |
+| IncludeIOS |  | Boolean | Include iOS and iPadOS devices in the duplicate detection. |
+| IncludeAndroid |  | Boolean | Include Android devices in the duplicate detection. |
+| DeviceNamePrefix |  | String | Check only devices whose name starts with this prefix. Leave empty to check all device names. |
+| IncludeSerialNumbers |  | String | Check only devices with one of these serial numbers (comma-separated). Leave empty to check all serial numbers. |
+| ExcludeSerialNumbers |  | String | Skip devices with any of these serial numbers (comma-separated). Leave empty to exclude none. |
+| MinimumDaysSinceLastSync |  | Int32 | An older duplicate record is deleted only when its last sync is at least this many days ago. For a record that never synced, its enrollment date counts instead. The kept record is not subject to this limit. |
+| MaxDevicesToRemove |  | Int32 | Whole-run deletion cap. When more than this many devices would be deleted in a single run, nothing is removed and the affected records are listed as "Would not be deleted (limit exceeded)". |
+| EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
+| BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
+| BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
+| BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
+| BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
+| BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address when duplicates are or would be removed. |
+| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
 | ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
 | CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
 | ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
@@ -2326,6 +2536,20 @@ Configure the Microsoft Bookings settings of the tenant
 <a name='organization-phone'></a>
 ## Phone
 
+<a name='organization-phone-add-or-remove-auto-attendant-authorized-users'></a>
+
+### Add Or Remove Auto Attendant Authorized Users
+Add or remove authorized users of a Teams auto attendant
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| AutoAttendantName | ✓ | String | Exact name of the auto attendant as it is shown in the Teams admin center. Upper and lower case do not matter. |
+| UserIds | ✓ | String Array | Users that are added to or removed from the list of authorized users. Several users can be picked at once; each one needs to be enabled for Teams Phone. |
+| Remove |  | Boolean | Add users as authorized users puts them on the authorized user list of the auto attendant. Remove users as authorized users takes them off it again. |
+| VoiceApplicationsPolicyAction |  | String | Leave the policy unchanged touches no policy. Assign a voice applications policy grants the policy entered under "Policy name". Remove the voice applications policy resets a per-user assignment when the users are taken off the list. |
+| VoiceApplicationsPolicyName |  | String | Voice applications policy to grant, named exactly as in the Teams admin center. Only used with "Assign a voice applications policy". |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+
 <a name='organization-phone-add-or-remove-call-queue-agents'></a>
 
 ### Add Or Remove Call Queue Agents
@@ -2566,6 +2790,33 @@ Alert by email about Conditional Access policy changes
 |-----------|----------|------|-------------|
 | From | ✓ | String | User in the tenant the alert is sent as; needs a mailbox. |
 | To | ✓ | String | Gets the email with the list of changed policies. |
+| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+
+<a name='organization-security-report-access-package-assignments-scheduled'></a>
+
+### Report Access Package Assignments (Scheduled)
+List access packages with their assignments, requests and policies
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| AccessPackageName |  | String | Only access packages whose name matches are reported. Use * as a wildcard, for example "Sales -*" for names starting with "Sales -"; text without * matches anywhere in the name. Case does not matter. Leave empty for all packages. |
+| CatalogName |  | String | Only access packages in catalogs whose name matches are reported, with the same rules as "Access package name filter". Both filters apply together. Leave empty for all catalogs. |
+| IncludeExpiredAssignments |  | Boolean | Also list the assignments that have already expired, in a separate table. Expired assignments are always counted; the list can be long in tenants that have used access packages for years. |
+| EmailFrom |  | String | Sender address of the report email. Taken from the tenant setting RJReport.EmailSender. |
+| BrandingHeaderImageUrl |  | String | Header image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.HeaderImageUrl; the default RealmJoin header is used when empty. |
+| BrandingFooterImageUrl |  | String | Footer image of the report email (HTTPS URL, PNG/JPEG/GIF, max 200 KB). Taken from the tenant setting RJReport.Branding.FooterImageUrl; the default RealmJoin footer is used when empty. |
+| BrandingFooterLink |  | String | Link behind the footer image of the report email. Taken from the tenant setting RJReport.Branding.FooterLink; realmjoin.com is used when empty. |
+| BrandingAccentColor |  | String | Accent color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.AccentColor; the RealmJoin default is used when empty or invalid. |
+| BrandingTextColor |  | String | Text color of the report email as a 6-digit hex value. Taken from the tenant setting RJReport.Branding.TextColor; the RealmJoin default is used when empty or invalid. |
+| SendEmailReport |  | Boolean | Send the report to the recipient email address. |
+| EmailTo |  | String | Send the report to these addresses. Separate several with commas; each recipient gets a separate email. |
+| ReportFileFormat |  | String | Deliver the report as CSV, as an Excel workbook, or both. |
+| CreateDownloadLink |  | Boolean | Also upload the report and return a download link that expires after a few days. |
+| ContainerName |  | String | Storage container the report files are uploaded to. Set per runbook. |
+| ResourceGroupName |  | String | Resource group of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.ResourceGroup. |
+| StorageAccountName |  | String | Storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.StorageAccountName. |
+| SubscriptionId |  | String | Subscription ID of the storage account for report uploads. Taken from the tenant setting RJReport.StorageAccount.SubscriptionId; the subscription the managed identity signs in to is used when empty. |
+| LinkExpiryDays |  | Int32 | Number of days a download link stays valid. Taken from the tenant setting RJReport.StorageAccount.LinkExpiryDays. |
 | CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
 
 <a name='organization-security-report-epm-elevation-requests-scheduled'></a>
@@ -2972,14 +3223,14 @@ Grant or remove full access to this user's mailbox
 <a name='user-mail-delegate-send-as'></a>
 
 ### Delegate Send As
-Grant or remove Send As permission on this user's mailbox
+Grant or revoke Exchange SendAs permission on a mailbox for one or more delegates
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| UserName | ✓ | String | User principal name of the user the runbook acts on. Set by the portal from the selected user. |
-| delegateTo | ✓ | String | Person who gets or loses the Send As permission. |
-| Remove |  | Boolean | Whether the permission is removed instead of granted. Set by the "Action" choice. |
-| CallerName | ✓ | String | Name of the user who started the runbook. Set by the portal and recorded for auditing. |
+| UserName | ✓ | String | User principal name of the mailbox owner. |
+| delegateTo | ✓ | String Array | One or more users to whom you want to grant or revoke SendAs permission. You can select multiple delegates to apply the same action to all of them simultaneously. |
+| Remove |  | Boolean | If set to true, the script will revoke SendAs permission from the selected delegates. If false, it will grant SendAs permission. |
+| CallerName | ✓ | String | Name of the user or system that started the runbook. Tracked for auditing purposes. |
 
 <a name='user-mail-delegate-send-on-behalf'></a>
 

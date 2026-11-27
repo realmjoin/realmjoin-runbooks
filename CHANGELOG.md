@@ -1,5 +1,87 @@
 # RealmJoin Runbooks Changelog
 
+## 2026-11-25
+
+- Add new runbook category **Agent Identity** in Org for Microsoft Entra Agent ID identities and blueprints
+  - All runbooks require `RealmJoin.RunbookHelper` 0.8.10 and `Microsoft.Graph.Authentication` 2.41.2; the required Graph permissions are listed in the `.permissions.json` file next to each runbook
+  - The report runbooks can optionally send the report by email (sender from `RJReport.EmailSender`, branding from the `RJReport.Branding.*` settings)
+- Add **Add Or Remove Sponsor Owner** Runbook in Org/Agent Identity
+  - Adds or removes sponsors or owners on agent identities and blueprints
+  - Revalidates the target and every directory object and enforces the allowed object types for owners and sponsors
+- Add **Create Blueprint** Runbook in Org/Agent Identity
+  - Creates an agent identity blueprint and its blueprint principal; sponsors are mandatory
+  - Optional owners, manager applications, tags and description are validated before they are added
+- Add **Create Identity** Runbook in Org/Agent Identity
+  - Creates an agent identity from an existing blueprint with mandatory sponsors and optional owners
+  - Retries only throttling and recognized directory propagation failures
+- Add **Report CA Targets (Scheduled)** Runbook in Org/Agent Identity (v1.0.1)
+  - Lists which Conditional Access policies include or exclude agent identities and blueprint principals
+  - Reports filters and unknown selectors as Unknown instead of evaluating them; does not infer effective protection or OBO coverage
+- Add **Report Inventory (Scheduled)** Runbook in Org/Agent Identity (v1.0.2)
+  - Inventories agent identities, blueprints, blueprint principals and agent users with sponsors, owners, tags, manager applications and state
+  - Warns when app-only creation approaches the documented limit of 250 identities per blueprint
+- Add **Report Signins (Scheduled)** Runbook in Org/Agent Identity (v1.0.2)
+  - Reports retained agent identity sign-in events for an explicit UTC time window, summarized by result, resource and identity
+- Add **Report Sponsors (Scheduled)** Runbook in Org/Agent Identity (v1.0.2)
+  - Reports agent identities and blueprints with missing, disabled, deleted or guest sponsors; lookup failures stay Unknown
+- Add **Transfer Sponsorships** Runbook in Org/Agent Identity
+  - Finds the agent identity and blueprint sponsorships held by a user and reports them by default
+  - Execute mode requires explicit confirmation, adds the new sponsor before removing the old one, enforces a cap and is idempotent
+- Add **Cleanup Duplicate Intune Devices (Scheduled)** Runbook in Org/Devices (v1.0.0)
+  - Finds Intune devices that share a serial number and deletes the older records, keeping the one that synced most recently
+  - Deletes only the Intune record; the Entra ID device and the Autopilot registration stay
+  - Skips records it cannot clearly identify as older, such as ties, a newest record that has not synced yet, or records with different manufacturers, models or platforms, and lists them with the reason
+  - Limits the check by platform, device name prefix and included or excluded serial numbers, and deletes a record only after a minimum number of days without sync
+  - Runs in WhatIf mode by default and deletes nothing when more devices would be removed than the configured maximum
+  - The report can be sent by email or provided as a download link, as CSV, Excel or both
+
+## 2026-11-23
+- Update **Delegate Send As Runbook** in User/Mail
+  - Add support for granting or removing Exchange Online Send As for multiple delegates in a single run via a multi user picker. The picker returns user principal names, so selected delegates are readable in the runbook log from the first line on.
+  - Skip delegates without a mailbox instead of aborting the run, and treat already-granted or already-absent delegations as no-ops.
+  - Print a per-delegate summary of changed, unchanged, failed, and skipped delegations; the run reports a failure if any delegate could not be processed, so a partial success is visible instead of being reported as a clean run. 
+
+## 2026-11-18
+
+- Update **Disable Auto Approve Driver Updates** Runbook in Org/Devices
+  - Add Parameter Category to differentiate between Recommended or Other Drivers
+
+## 2026-11-12
+
+- Add **Report Access Package Assignments (Scheduled)** Runbook in Org/Security (v1.0.0)
+  - Lists all access packages of Entra ID entitlement management, or those matching a package or catalog name filter with * as wildcard, such as a name prefix
+  - Lists every assignment of users, guests and service principals and shows whether it came from a user request, an admin or an auto-assignment policy
+  - Shows state, start, end and days left per assignment and counts assignments that expire within 30 days or failed to deliver
+  - Adds tables for open requests, the groups, applications and SharePoint sites each package grants, and the assignment policies with approval and reviews
+  - Counts expired assignments and optionally lists them in a separate table; the report can be sent by email or as a download link
+  - Names every gap: lists that cannot be read completely are noted per access package and counted, never skipped
+
+## 2026-11-09
+
+- Update **Check Updateable Assets** Runbook in Group/Devices
+  - Output the list to Output Data
+- Add **Report Shared Channel Members (Scheduled)** Runbook in Org/Collab (v1.0.0)
+  - Lists the shared channels hosted by the teams of the tenant with one row per member, including owners, guests and people from other tenants
+  - Shows whether a person was added directly or reaches the channel through a team it is shared with, and names that team
+  - Offers one table for all shared channels, one table and worksheet per channel, or shared channels given by comma-separated names
+  - Reports all teams of the tenant or only the shared channels of several selected teams, with every table layout
+  - Reads the members of partner teams one team at a time when the complete member list breaks off
+  - Names every gap: teams that cannot be read and channels whose members cannot be read completely are listed and counted, never skipped
+  - Shows the organization name of external members and the teams each channel is shared with; the report can be sent by email or as a download link
+
+## 2026-11-06
+
+- Update **Add Or Remove Teams Mailcontact** Runbook in Org/Mail (v1.0.2)
+  - Accept the channel email address as Teams copies it ("Channel name <address>") and use only the address in the brackets
+- Add **Add Or Remove Auto Attendant Authorized Users** Runbook in Org/Phone (v1.0.0)
+  - Adds several users at once as authorized users of an auto attendant given by its name, or removes them again
+  - Checks every user for Enterprise Voice and enforces the limit of 15 authorized users before anything is written
+  - Optionally assigns or removes the Teams voice applications policy; it is kept while the user is authorized on another auto attendant or call queue
+  - Changes only the authorized users of the auto attendant, reads it back to confirm and lists the results in the Output Data tab
+- Update **Add Or Remove Call Queue Authorized Users** Runbook in Org/Phone (v1.1.0)
+  - Lists the changed, skipped and unchanged users and the authorized users after the run as separate tables in the Output Data tab
+  - Shows per user what happened to the voice applications policy; a user with the Global policy gets a warning that it usually allows no changes
+
 ## 2026-11-02
 
 - Update **Check Intune Enrollment Readiness** Runbook in User/General (v1.0.1)

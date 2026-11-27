@@ -1,0 +1,43 @@
+{
+  "SchemaVersion": 2,
+  "Permissions": [
+    {
+      "Name": "Microsoft Graph",
+      "Id": "00000003-0000-0000-c000-000000000000",
+      "AppRoleAssignments": [
+        {
+          "Value": "AgentIdentity.Read.All",
+          "Reason": "Lists typed agent identities."
+        },
+        {
+          "Value": "AgentIdentity.ReadWrite.All",
+          "Reason": "Reads Agent Identity sponsors. Current Learn exposes no read-only application permission for the agentIdentity sponsors relationship."
+        },
+        {
+          "Value": "AgentIdentityBlueprint.Read.All",
+          "Reason": "Lists typed blueprints."
+        },
+        {
+          "Value": "Application.Read.All",
+          "Reason": "Reads blueprint sponsors, which Learn documents under Application.Read.All."
+        },
+        {
+          "Value": "User.Read.All",
+          "Reason": "Checks user sponsor enablement and guest status."
+        },
+        {
+          "Value": "Directory.Read.All",
+          "Reason": "Checks whether a missing sponsor is soft-deleted."
+        },
+        {
+          "Value": "Mail.Send",
+          "Optional": true,
+          "Feature": "Email report",
+          "Reason": "Sends the optional report email."
+        }
+      ]
+    }
+  ],
+  "Roles": [],
+  "ManualPermissions": []
+}

@@ -3,7 +3,7 @@
 Approve pending driver updates in Intune driver update policies
 
 ## Detailed description
-Approves driver updates that are waiting for review in Intune driver update policies, so drivers roll out without manual approval. The scope can be narrowed to certain policies, driver names, classes, manufacturers or a maximum driver age, and a dry run shows what would be approved. The report of all approvals can be sent by email or provided as a download link.
+Approves driver updates that are waiting for review in Intune driver update policies, so drivers roll out without manual approval. The scope can be narrowed to recommended or other drivers, certain policies, driver names, classes, manufacturers or a maximum driver age, and a dry run shows what would be approved. The report of all approvals can be sent by email or provided as a download link.
 
 ## Where to find
 Org \ Devices \ Auto Approve Driver Updates_Scheduled
@@ -72,6 +72,15 @@ Only these policy IDs, separated by commas. Leave empty for all policies.
 | Property | Value |
 |----------|-------|
 | Default Value |  |
+| Required | false |
+| Type | String |
+
+### DriverCategory
+Which driver list of the policy to approve from. "Recommended drivers" are the updates Windows Update offers by default, "Other drivers" are firmware, optional and superseded updates, "All drivers" takes every driver.
+
+| Property | Value |
+|----------|-------|
+| Default Value | Recommended |
 | Required | false |
 | Type | String |
 

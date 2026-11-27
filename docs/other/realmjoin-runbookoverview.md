@@ -60,6 +60,15 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Teams](#group-teams)
       - [Archive Team](#archive-team)
 - [Org](#org)
+  - [Agent-Identity](#org-agent-identity)
+      - [Add Or Remove Sponsor Owner](#add-or-remove-sponsor-owner)
+      - [Create Blueprint](#create-blueprint)
+      - [Create Identity](#create-identity)
+      - [Report CA Targets (Scheduled)](#report-ca-targets-(scheduled))
+      - [Report Inventory (Scheduled)](#report-inventory-(scheduled))
+      - [Report Signins (Scheduled)](#report-signins-(scheduled))
+      - [Report Sponsors (Scheduled)](#report-sponsors-(scheduled))
+      - [Transfer Sponsorships](#transfer-sponsorships)
   - [Applications](#org-applications)
       - [Add Application Registration](#add-application-registration)
       - [Add GSA Application Registration](#add-gsa-application-registration)
@@ -73,6 +82,7 @@ Each category contains multiple runbooks that are further divided into subcatego
   - [Collab](#org-collab)
       - [Check Onedrive Status](#check-onedrive-status)
       - [List Sharepoint Sitecollection Permission](#list-sharepoint-sitecollection-permission)
+      - [Report Shared Channel Members (Scheduled)](#report-shared-channel-members-(scheduled))
       - [Report Sharepoint Tenant Storage (Scheduled)](#report-sharepoint-tenant-storage-(scheduled))
       - [Report Teams Channels (Scheduled)](#report-teams-channels-(scheduled))
   - [Devices](#org-devices)
@@ -80,6 +90,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Add Device Via Corporate Identifier](#add-device-via-corporate-identifier)
       - [Auto Approve Driver Updates (Scheduled)](#auto-approve-driver-updates-(scheduled))
       - [Cleanup Autopilot Devices (Scheduled)](#cleanup-autopilot-devices-(scheduled))
+      - [Cleanup Duplicate Intune Devices (Scheduled)](#cleanup-duplicate-intune-devices-(scheduled))
       - [Create Endpoint Analytics Baseline](#create-endpoint-analytics-baseline)
       - [Dedup Device Names (Scheduled)](#dedup-device-names-(scheduled))
       - [Delete Stale Devices (Scheduled)](#delete-stale-devices-(scheduled))
@@ -149,6 +160,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [Hide Mailboxes (Scheduled)](#hide-mailboxes-(scheduled))
       - [Set Booking Config](#set-booking-config)
   - [Phone](#org-phone)
+      - [Add Or Remove Auto Attendant Authorized Users](#add-or-remove-auto-attendant-authorized-users)
       - [Add Or Remove Call Queue Agents](#add-or-remove-call-queue-agents)
       - [Add Or Remove Call Queue Authorized Users](#add-or-remove-call-queue-authorized-users)
       - [Get Teams Phone Number Assignment](#get-teams-phone-number-assignment)
@@ -166,6 +178,7 @@ Each category contains multiple runbooks that are further divided into subcatego
       - [List Vulnerable App Regs](#list-vulnerable-app-regs)
       - [Monitor Pending EPM Requests (Scheduled)](#monitor-pending-epm-requests-(scheduled))
       - [Notify Changed CA Policies](#notify-changed-ca-policies)
+      - [Report Access Package Assignments (Scheduled)](#report-access-package-assignments-(scheduled))
       - [Report EPM Elevation Requests (Scheduled)](#report-epm-elevation-requests-(scheduled))
       - [Sync MFA Secure Users To Group (Scheduled)](#sync-mfa-secure-users-to-group-(scheduled))
 - [User](#user)
@@ -987,7 +1000,7 @@ Device \ Security \ Show Laps Password
 
 #### Description
 
-Checks for every device in this group whether it is registered as an updatable asset in Windows Update for Business. The result shows the enrollment state per update category and any error Windows Update returns. Nothing is changed.
+Checks every device in this group for registration as an updatable asset in Windows Update for Business. The result is written to Output Data as a summary line, then one table with a row per device. Each row shows the enrollment state for the feature, quality and driver update categories and any error Windows Update returns. Nothing is changed on the devices or in the group.
 
 #### Where to find
 
@@ -1262,6 +1275,604 @@ Archives the Microsoft Teams team that belongs to this Microsoft 365 group. Memb
 #### Where to find
 
 Group \ Teams \ Archive Team
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org'></a>
+
+# Org
+<a name='org-agent-identity'></a>
+
+## Agent-Identity
+<a name='org-agent-identity-add-or-remove-sponsor-owner'></a>
+
+### Add Or Remove Sponsor Owner
+#### Add or remove sponsors or owners on agent identities and blueprints
+
+#### Description
+
+Revalidates the typed target and every directory object, enforces owner and sponsor object-type restrictions, checks sponsor-group eligibility, and changes the selected relationship through the current v1.0 typed cast endpoint.
+
+#### Where to find
+
+Org \ Agent Identity \ Add Or Remove Sponsor Owner
+
+## Usage guidance
+
+Changes sponsor or owner relationships on an Agent Identity or blueprint.
+
+## How it works
+
+Select the target kind, relationship, action, and directory object IDs. The target is revalidated through its v1.0 typed cast. Owners may be users or service principals but never groups. Sponsors may be users or eligible groups; group eligibility is checked before a relationship is changed. Removing the final sponsor is refused.
+
+Already-applied additions and already-absent removals return `NoChange`.
+
+## Access requirements
+
+- `AgentIdentity.ReadWrite.All`
+- `AgentIdentityBlueprint.Read.All`
+- `Application.ReadWrite.All`
+- `Directory.Read.All`
+
+Microsoft Graph currently documents `Application.ReadWrite.All` for Agent Identity Blueprint sponsor and owner relationship writes. The narrower blueprint permission is used for typed blueprint reads. `AgentIdentity.CreateAsManager` is listed by Learn only as a scoped alternative for first-party manager applications and isn't requested.
+
+Microsoft Learn documents that an Agent Identity or Blueprint may have up to 100 sponsors, of which no more than 5 may be groups; the runbook relies on Graph to enforce these limits and surfaces the resulting error.
+
+## RealmJoin output and operator guidance
+
+- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.
+- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.
+- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.
+- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.
+- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.
+
+See [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+
+## Additional operational guidance
+
+Owners can't be groups. Sponsors can be users or eligible groups; group sponsors must be Microsoft 365 or dynamic groups and can't be role-assignable. Removal never removes the final sponsor.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-agent-identity-create-blueprint'></a>
+
+### Create Blueprint
+#### Create an Entra agent identity blueprint and its principal
+
+#### Description
+
+Creates an agent identity blueprint through the v1.0 typed application endpoint, waits for directory propagation, and creates the associated blueprint principal through the typed service principal endpoint. Sponsors are mandatory. Optional owners, manager applications, tags, and description are validated and added when supplied.
+
+#### Where to find
+
+Org \ Agent Identity \ Create Blueprint
+
+## Usage guidance
+
+Principal creation POSTs are not replayed after ambiguous server or transport failures. If the
+blueprint application was created before principal creation failed, its IDs are reported and the
+application is retained. Inspect and reconcile that partial result before starting another creation run.
+
+Creates a Microsoft Entra Agent ID blueprint and its required blueprint principal in the current Microsoft Learn sequence.
+
+## How it works
+
+The runbook validates mandatory user or eligible-group sponsors, optional user/service-principal owners, and optional manager applications supplied by application (client) ID. It posts the blueprint to `/applications/microsoft.graph.agentIdentityBlueprint`, then creates its principal at `/servicePrincipals/microsoft.graph.agentIdentityBlueprintPrincipal`. Principal creation uses bounded exponential retry because the application can take time to propagate.
+
+`description`, `tags`, and the `managerApplications` GUID collection are sent only when supplied. Groups can't be owners. Sponsor groups must be Microsoft 365 or dynamic groups and can't be role assignable. Microsoft Learn documents a maximum of 100 sponsors per blueprint, of which no more than 5 may be groups; Graph enforces these limits.
+
+## Output and safety
+
+Output contains both object IDs, the blueprint app ID, and relationship counts. If principal creation exhausts retries, the error clearly reports a partially created blueprint; rerun only after checking whether the principal now exists.
+
+## Access requirements
+
+- `AgentIdentityBlueprint.Create`
+- `AgentIdentityBlueprint.ReadWrite.All`
+- `AgentIdentityBlueprintPrincipal.Create`
+- `Directory.Read.All`
+
+The specific blueprint permissions are used instead of `Application.ReadWrite.All`. Manager application values are validated as GUIDs, while the typed blueprint API authoritatively enforces the Microsoft first-party application restriction.
+
+## RealmJoin output and operator guidance
+
+- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.
+- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.
+- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.
+- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.
+- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.
+
+See [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+
+## Additional operational guidance
+
+Uses the current v1.0 typed Agent ID creation sequence: blueprint first, then blueprint principal. A partial result is reported if principal creation still fails after bounded retries.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-agent-identity-create-identity'></a>
+
+### Create Identity
+#### Create an Entra agent identity from a blueprint
+
+#### Description
+
+Validates the selected blueprint, its principal, mandatory sponsors and optional owners. Creates an agent identity through the typed v1.0 endpoint, retrying only throttling and recognized propagation failures.
+
+#### Where to find
+
+Org \ Agent Identity \ Create Identity
+
+## Usage guidance
+
+Creation POSTs are not idempotent. Throttling and recognized propagation failures can be retried,
+but an ambiguous server or transport error stops without replaying the POST. Inspect the blueprint's
+identities before trying again; the first request may already have created an identity.
+
+Creates an Agent Identity from a selected existing blueprint.
+
+## How it works
+
+Supply the blueprint application ID, mandatory sponsors, and optional owners, display name, and tags. The runbook verifies the typed blueprint and its required blueprint principal, enforces current sponsor-group restrictions (Microsoft 365 or dynamic groups only, not role assignable; Learn documents at most 100 sponsors with no more than 5 groups, enforced by Graph), then posts to `/servicePrincipals/microsoft.graph.agentIdentity`. When `DisplayName` is omitted, the runbook explicitly uses the validated blueprint display name because the create API requires a display name. Bounded retry handles directory eventual consistency.
+
+Credentials are never added to the identity; they belong on the blueprint.
+
+## Output
+
+Returns the new identity object ID, app ID, display name, blueprint app ID, and sponsor/owner counts.
+
+## Access requirements
+
+- `AgentIdentity.Create.All`
+- `AgentIdentityBlueprint.Read.All`
+- `AgentIdentityBlueprintPrincipal.Read.All`
+- `Directory.Read.All`
+
+## RealmJoin output and operator guidance
+
+- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.
+- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.
+- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.
+- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.
+- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.
+
+See [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+
+## Additional operational guidance
+
+The blueprint principal must already exist. Credentials belong on the blueprint, never on an agent identity.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-agent-identity-report-ca-targets-(scheduled)'></a>
+
+### Report CA Targets (Scheduled)
+#### Report Conditional Access targeting of Entra agent identities
+
+#### Description
+
+Compares agent identity and blueprint principal service-principal object IDs with Conditional Access
+clientApplications includeServicePrincipals and excludeServicePrincipals. This assesses autonomous,
+app-only workload-identity targeting. OBO access is governed through the signed-in user and cannot be
+inferred as agent coverage from this report.
+
+#### Where to find
+
+Org \ Agent Identity \ Report CA Targets_Scheduled
+
+## Usage guidance
+
+Reports Conditional Access target selectors for agent and blueprint principals, not effective protection.
+
+## Output
+
+Per-principal inclusion/exclusion, target kind, policy state, and unknown selectors. Enabled,
+report-only and disabled policies remain distinct. A selector match does not prove that the policy
+applies to a particular sign-in or that its grant controls enforce protection.
+
+## API and safety notes
+
+Uses the beta Conditional Access policy surface to read `includeAgentIdServicePrincipals`,
+`excludeAgentIdServicePrincipals` and `agentIdServicePrincipalFilter`. Ordinary
+`includeServicePrincipals` / `excludeServicePrincipals` selectors are reported separately as
+`WorkloadIdentity`, not silently treated as agent-specific coverage.
+
+Explicit exclusions take precedence. Filters and unrecognized symbolic selectors produce **Unknown**;
+they are not evaluated locally. Other conditions, grant controls and OBO coverage are not inferred.
+See the [Graph client application conditions](https://learn.microsoft.com/graph/api/resources/conditionalaccessclientapplications?view=graph-rest-beta).
+
+Unknown lookup or revalidation states are reported and fail closed. Microsoft Graph pagination is followed, and HTTP 429/5xx responses are retried with backoff.
+
+## Email delivery
+
+Email is optional. Set `EmailTo` to enable it. The sender is read from `RJReport.EmailSender` and the runbook uses `Send-RjRbReportEmail`.
+
+## Access requirements
+
+### Required Graph access
+
+- `AgentIdentity.Read.All`
+- `AgentIdentityBlueprintPrincipal.Read.All`
+- `Policy.Read.All`
+- `Mail.Send (optional)`
+
+`Mail.Send` is optional and is needed only for email delivery.
+
+## Parameter behavior
+
+### IncludeDisabledPolicies
+
+Include disabled policy targeting as informational, non-enforced coverage.
+
+### EmailTo
+
+Optional comma- or semicolon-separated report recipients.
+
+### EmailFrom
+
+Hidden sender setting sourced from `RJReport.EmailSender`.
+
+
+## RealmJoin output and operator guidance
+
+- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.
+- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.
+- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.
+- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.
+- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.
+
+See [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+## Email branding
+
+Report emails use the optional RJReport.Branding settings for header/footer images, footer links and colors. Configure RJReport.EmailSender and grant Mail.Send before enabling email delivery. See the [report settings](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings).
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-agent-identity-report-inventory-(scheduled)'></a>
+
+### Report Inventory (Scheduled)
+#### Inventory Entra agent identities, blueprints and agent users
+
+#### Description
+
+Inventories v1.0 agent identities, blueprints, blueprint principals, and agent users. For every
+agent identity it records enablement, Microsoft disablement, sponsors, owners, creation, tags,
+manager applications, custom security attributes, and blueprint population. Relationship failures
+remain Unknown. It warns when app-only creation approaches the documented 250 identities per
+blueprint constraint; it does not describe this as a tenant-wide quota.
+
+#### Where to find
+
+Org \ Agent Identity \ Report Inventory_Scheduled
+
+## Usage guidance
+
+Reports a complete Microsoft Entra Agent ID inventory and posture view.
+
+## Output
+
+The summary includes the UTC collection start and counts for each object type in both job output
+and email. All returned objects are included, including disposable test objects still present at
+collection time. Counts describe an inventory snapshot, not health or completed test coverage.
+
+A structured row per agent identity and related Agent ID object, including relationship state and per-blueprint counts.
+
+## API and safety notes
+
+Core resources and sponsor/owner relationships use Microsoft Graph v1.0. The 250 constraint applies to agent identities created for a blueprint by an app-only caller; it is not a general tenant quota.
+
+Unknown lookup or revalidation states are reported and fail closed. Microsoft Graph pagination is followed, and HTTP 429/5xx responses are retried with backoff.
+
+## Email delivery
+
+Email is optional. Set `EmailTo` to enable it. The sender is read from `RJReport.EmailSender` and the runbook uses `Send-RjRbReportEmail`.
+
+## Access requirements
+
+### Required Graph access
+
+- `AgentIdentity.Read.All`
+- `AgentIdentity.ReadWrite.All` (Learn exposes no read-only application permission for the Agent Identity `sponsors` relationship)
+- `AgentIdentityBlueprint.Read.All`
+- `AgentIdentityBlueprintPrincipal.Read.All`
+- `User.Read.All`
+- `CustomSecAttributeAssignment.Read.All (optional)`
+- `Mail.Send (optional)`
+
+`Mail.Send` is optional and is needed only for email delivery.
+
+## Parameter behavior
+
+### IncludeCustomSecurityAttributes
+
+Request custom security attributes. Their permission is optional.
+
+### BlueprintQuotaWarningPercent
+
+Warn at this percentage of the documented app-only 250-agent-identities-per-blueprint constraint.
+
+### EmailTo
+
+Optional comma- or semicolon-separated report recipients.
+
+### EmailFrom
+
+Hidden sender setting sourced from `RJReport.EmailSender`.
+
+
+## RealmJoin output and operator guidance
+
+- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.
+- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.
+- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.
+- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.
+- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.
+
+See [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+## Email branding
+
+Report emails use the optional RJReport.Branding settings for header/footer images, footer links and colors. Configure RJReport.EmailSender and grant Mail.Send before enabling email delivery. See the [report settings](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings).
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-agent-identity-report-signins-(scheduled)'></a>
+
+### Report Signins (Scheduled)
+#### Report retained Entra agent identity sign-in events
+
+#### Description
+
+Uses the documented Microsoft Graph beta auditLogs/signIns query for service-principal events whose
+agent/agentType is agenticAppInstance. Applies an explicit UTC time window, follows pagination, summarizes
+success, failure, resources, and identities, and optionally emails the result.
+
+#### Where to find
+
+Org \ Agent Identity \ Report Signins_Scheduled
+
+## Usage guidance
+
+Reports autonomous Agent ID sign-ins over a bounded UTC window.
+
+## Output
+
+Per-event status plus summary counts by success/failure, identity, and target resource.
+
+The same assessment summary appears in job output and email. `NoRetainedEvents` is not proof of
+inactivity or absence of risk: check the time window, retention, licensing, and ingestion delay.
+Missing event status is `Unknown`, not success. `Truncated` explicitly identifies an exceeded
+`MaxEvents` cap; its counts describe only the retained subset.
+
+## API and safety notes
+
+Microsoft Learn documents agent sign-in filtering on the beta /auditLogs/signIns endpoint. The query explicitly requests servicePrincipal events and filters agent/agentType to agenticAppInstance.
+
+Unknown lookup or revalidation states are reported and fail closed. Microsoft Graph pagination is followed, and HTTP 429/5xx responses are retried with backoff.
+
+## Email delivery
+
+Email is optional. Set `EmailTo` to enable it. The sender is read from `RJReport.EmailSender` and the runbook uses `Send-RjRbReportEmail`.
+
+## Access requirements
+
+### Required Graph access
+
+- `AuditLog.Read.All`
+- `Mail.Send (optional)`
+
+`Mail.Send` is optional and is needed only for email delivery.
+
+## Parameter behavior
+
+### MaxEvents
+
+Bounds report size. The report explicitly states when this cap truncates results.
+
+### LookbackHours
+
+UTC time window, from now minus this value through now.
+
+### EmailTo
+
+Optional comma- or semicolon-separated report recipients.
+
+### EmailFrom
+
+Hidden sender setting sourced from `RJReport.EmailSender`.
+
+
+## RealmJoin output and operator guidance
+
+- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.
+- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.
+- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.
+- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.
+- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.
+
+See [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+## Email branding
+
+Report emails use the optional RJReport.Branding settings for header/footer images, footer links and colors. Configure RJReport.EmailSender and grant Mail.Send before enabling email delivery. See the [report settings](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings).
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-agent-identity-report-sponsors-(scheduled)'></a>
+
+### Report Sponsors (Scheduled)
+#### Report missing, disabled or guest sponsors of agent identities
+
+#### Description
+
+Checks v1.0 sponsors for agent identities and blueprints. It reports missing sponsors and sponsors
+that are disabled, soft-deleted, or guest users. A lookup failure is Unknown and is never relabeled
+as missing. This runbook does not assign fallback sponsors; that remediation belongs to an interactive
+runbook.
+
+#### Where to find
+
+Org \ Agent Identity \ Report Sponsors_Scheduled
+
+## Usage guidance
+
+Reports missing, disabled, deleted, guest, and unknown sponsor states.
+
+## Output
+
+Actionable sponsor findings and unknown lookup counts are reported separately. Unknown lookups
+make the assessment partial; they are not healthy sponsors. Findings on existing tenant objects
+remain visible and are not remediated automatically by this report.
+
+One row per sponsor relationship, or a missing/unknown row per target.
+
+## API and safety notes
+
+Uses v1.0 typed sponsor relationships. Lookup failures are Unknown. Fallback sponsor assignment is intentionally out of scope; use the interactive sponsor/owner runbook.
+
+Unknown lookup or revalidation states are reported and fail closed. Microsoft Graph pagination is followed, and HTTP 429/5xx responses are retried with backoff.
+
+## Email delivery
+
+Email is optional. Set `EmailTo` to enable it. The sender is read from `RJReport.EmailSender` and the runbook uses `Send-RjRbReportEmail`.
+
+## Access requirements
+
+### Required Graph access
+
+- `AgentIdentity.Read.All`
+- `AgentIdentity.ReadWrite.All` (Learn exposes no read-only application permission for the Agent Identity `sponsors` relationship)
+- `AgentIdentityBlueprint.Read.All`
+- `Application.Read.All` (blueprint sponsors)
+- `User.Read.All`
+- `Directory.Read.All`
+- `Mail.Send (optional)`
+
+`Mail.Send` is optional and is needed only for email delivery.
+
+## Parameter behavior
+
+### IncludeBlueprints
+
+Include blueprint sponsors in addition to agent identity sponsors.
+
+### EmailTo
+
+Optional comma- or semicolon-separated report recipients.
+
+### EmailFrom
+
+Hidden sender setting sourced from `RJReport.EmailSender`.
+
+
+## RealmJoin output and operator guidance
+
+- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.
+- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.
+- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.
+- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.
+- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.
+
+See [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+## Email branding
+
+Report emails use the optional RJReport.Branding settings for header/footer images, footer links and colors. Configure RJReport.EmailSender and grant Mail.Send before enabling email delivery. See the [report settings](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings).
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-agent-identity-transfer-sponsorships'></a>
+
+### Transfer Sponsorships
+#### Transfer direct agent identity and blueprint sponsorships
+
+#### Description
+
+Enumerates Agent Identities and blueprints with pagination, finds sponsorship references held by the source user, and reports them by default. Execute mode requires explicit confirmation, revalidates each typed object and both users, adds the target first, removes the source second, enforces a cap, and is idempotent.
+
+#### Where to find
+
+Org \ Agent Identity \ Transfer Sponsorships
+
+## Usage guidance
+
+Reports or transfers sponsorship references from one user to another across Agent Identities and blueprints.
+
+## How it works
+
+Report-only is the default. The runbook paginates both typed collections, discovers references held by the source user, and can be narrowed to selected target object IDs. Execute mode requires a second confirmation and is capped by `MaxChanges`.
+
+Each change revalidates both users and the typed object. It adds the target before removing the source and re-reads the sponsor list to confirm the target is present before the source reference is deleted, so accountability overlaps. If the target is already assigned, only the source is removed. Completed or externally changed objects are handled idempotently.
+
+Candidates are processed independently: a Graph rejection for one object (for example the documented limit of 100 sponsors and 5 groups per object) is reported as `Failed safely` for that object and the remaining transfers continue. Objects whose sponsor list could not be read are reported as `Unknown (sponsor lookup failed)` and are never changed.
+
+## Access requirements
+
+- `AgentIdentity.ReadWrite.All`
+- `AgentIdentityBlueprint.Read.All`
+- `Application.ReadWrite.All`
+- `User.Read.All`
+
+Microsoft Graph currently documents `Application.ReadWrite.All` for Agent Identity Blueprint sponsor relationship writes. The narrower blueprint permission is retained for typed blueprint reads.
+
+## RealmJoin output and operator guidance
+
+- The **Output Data** tab receives raw objects in named tables, with full identifiers and exportable columns; console formatting is not used for report data.
+- Reports include a structured summary even when no detail rows match. Unknown, partial, and blocked states are not evidence of a clean assessment.
+- Parameter information tooltips describe expected inputs and safety requirements. Context and centrally configured settings stay hidden; supported choices use dropdowns.
+- Action runbooks retain their runtime validation and confirmation checks. Selecting an action in the portal does not bypass those checks.
+- Output Data applies to new live jobs, not previously completed or archived jobs. Existing console output and email/file delivery remain available.
+
+See [RealmJoin Output Data](https://docs.realmjoin.com/dev-reference/runbook-output-data) and [runbook customization](https://docs.realmjoin.com/automation/runbooks/runbook-customization).
+
+
+## Additional operational guidance
+
+The target sponsor is added before the source is removed. Already-complete transfers are reported as NoChange.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -1658,6 +2269,120 @@ Org \ Collab \ List Sharepoint Sitecollection Permission
  
  
 
+<a name='org-collab-report-shared-channel-members-(scheduled)'></a>
+
+### Report Shared Channel Members (Scheduled)
+#### List shared channels of all teams with direct and indirect members
+
+#### Description
+
+Lists the shared channels hosted by the teams of the tenant with everyone who can open them. This includes owners, guests, people from other tenants and members of teams the channel is shared with. The report covers every team or selected teams, with the members in one table, in one table per channel or for channels given by name. The report can be sent by email or provided as a download link.
+
+#### Where to find
+
+Org \ Collab \ Report Shared Channel Members_Scheduled
+
+## How it works
+
+The runbook lists every team of the tenant, or only the selected teams, and reads the shared channels each team hosts. The team list comes from the Teams service itself, so old teams whose group is not marked as a team are included as well. For every shared channel it reads the direct members, the complete member list including people who reach the channel through another team, and the teams the channel is shared with.
+
+Every member row names the team and the channel, the member with email address, the role in the channel, how the person reaches the channel, the user type and the organization the account belongs to. The *Shared channels* table adds one row per channel with the number of members, owners, guests, external members and members who only come through a team, the teams the channel is shared with, whether it is archived and when it was created.
+
+### Channels and table layout
+
+- **All shared channels, one table** - every member of every shared channel in one table *Shared channel members*, with team and channel as columns.
+- **All shared channels, one table per channel** - one table per shared channel in the Output Data tab and one worksheet per channel in the Excel workbook. The CSV file still holds all members in one file with team and channel as columns.
+- **Shared channels by name, one table** - only the channels entered in *Shared channel names (comma-separated)*, for example `Project X, Partner Hub`. Each name is compared in full, upper and lower case do not matter. The members of all named channels appear in one table with team and channel as columns.
+
+Names without a matching channel are listed in the console output, in the *Channel names not found* row of the summary and in the report email; the run continues with the channels it found. When none of the names matches, the run fails and lists the shared channels it found. A channel whose name contains a comma cannot be selected by name; use one of the other options for it.
+
+### Limit to these teams
+
+*Limit to these teams* is offered with every option and accepts several teams. Leave it empty to read all teams of the tenant. With teams selected, only the shared channels hosted by those teams are read and reported, for example all shared channels of two teams with one table per channel, or channels given by name searched only in those teams. Reading a few teams is also much faster than reading all teams.
+
+A selected group that is not a team or cannot be read is listed in the *Teams not readable* table and skipped; the run fails only when none of the selected groups is a readable team.
+
+### Direct and indirect members
+
+A shared channel can be shared with teams, in the same tenant or in another one, and also with the team that hosts it. All members of such a team can open the channel without being added to it. The *SharedWithTeams* column lists these teams and marks the host team with *(host team)*. The *Membership* column shows the way a person reaches the channel:
+
+- **Direct** - added to the channel itself.
+- **Via team** - only through a team the channel is shared with; *ViaTeams* names that team.
+- **Direct and via team** - both.
+
+Channel owners are always direct members. People who only come through a team are listed with the role *Member* (or *Guest*), whatever role they hold in their own team.
+
+### Guests and external members
+
+- **Internal** - an account of the home tenant.
+- **Guest** - a guest account in the home tenant (B2B collaboration). Teams does not let guests join shared channels, so this value only appears when Graph reports a member with the guest role.
+- **External** - a person from another tenant who joined the channel directly or through a team of their organization (B2B direct connect). The *Organization* column shows the name of that organization; without the optional `CrossTenantInformation.ReadBasic.All` permission it shows the tenant ID.
+
+### Table and worksheet names
+
+With *All channels, one table each*, the channel name becomes the table and worksheet name. Excel allows at most 31 characters and none of `\ / ? * [ ] :`, so longer names are shortened and channels with the same name get a counter such as `Project (2)`. The *Table* column of the *Shared channels* table shows which table belongs to which team and channel.
+
+### Gaps in the report
+
+The runbook never shortens a list silently. Whatever it cannot read is named, and the run continues with the rest:
+
+- **Team not readable** - a team whose channel list cannot be read, or whose list is cut off because a further page fails, is listed in the *Teams not readable* table with the reason. Selected groups that are not teams are listed there as well.
+- **Members not readable** - a channel whose member lists cannot be read at all keeps its row in *Shared channels* with the reason in the *Note* column and is counted in *Channels not readable*.
+- **Incomplete member list** - when the members who come through a team cannot be read, or the complete member list is cut off, the reason is in the *Note* column and the channel is counted in *Incomplete member lists*. Direct members are still listed.
+- **No response** - a request that Graph does not answer is treated like a failed one.
+
+When any of these counters is above zero, the job log shows a warning that the report is incomplete.
+
+### Members of teams from other organizations
+
+Graph returns the complete member list of a shared channel page by page, the members of teams from other organizations last. In some tenants it refuses those later pages (HTTP 400), so the people who reach a channel through a partner organization's team would be missing. In that case, and when the complete list cannot be read at all, the runbook reads the members of each affected shared team on its own and adds them as *Via team*. The *Note* column then says that the members were read per team; the channel is not counted as incomplete. Only when a shared team cannot be read this way either, the note names that team and the channel counts in *Incomplete member lists*.
+
+### Runtime
+
+Channels and members are read through Graph batch requests, twenty at a time: one request per team and three per shared channel. A tenant with several thousand teams still takes a while; the job log shows the progress. Use *Limit to these teams* to read only the teams you need.
+
+## Report delivery
+
+The results always appear as named tables in the Output Data tab of the run in the RealmJoin portal. Report files are only generated when the **Report delivery** option includes an email and/or a download link; *Output Data only* creates no report files. Email delivery and download link generation are independent and can be combined.
+
+For the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Reader and Data Access** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when *Also email the report* or *Also email & download link* is selected as report delivery; a recipient is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings:
+
+- **Header and footer image** - public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** - target of the footer image
+- **Accent and text color** - 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email - the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
+
+## Notes and limitations
+
+- The report lists the shared channels hosted in this tenant. Shared channels that another organization hosts and shares with a team of this tenant are not listed, so people of this tenant who reach a channel of another organization do not appear.
+- People who were invited to a shared channel but have not accepted yet are not members and do not appear; Graph does not list pending invitations.
+- Deleted shared channels (restorable for 30 days) are not listed. Archiving a team removes the sharing with other teams, so the members who came through those teams no longer appear.
+- *Limit to these teams* only offers groups that are marked as teams. An old team without this mark is still part of the report when the field is left empty.
+- The report is read-only. Members of shared channels are changed in Teams or in the Teams admin center; the runbooks **Sync Channel Or Group Members (Scheduled)** and **Sync Shared Channel Owners (Scheduled)** cover the automated cases.
+- For an overview of private and shared channels with their owners, use **Report Teams Channels (Scheduled)**.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-collab-report-sharepoint-tenant-storage-(scheduled)'></a>
 
 ### Report Sharepoint Tenant Storage (Scheduled)
@@ -1786,7 +2511,7 @@ Setup instructions and image requirements: [Email branding](https://docs.realmjo
 
 - The report is read-only. Owners and members of private and shared channels are changed in the Teams admin center or in Teams itself; the runbooks **Sync Channel Or Group Members (Scheduled)** and **Sync Shared Channel Owners (Scheduled)** cover the automated cases for shared channels.
 - Standard channels are not listed; their membership equals the team membership, which the RealmJoin Portal shows.
-- The member list of a shared channel contains its direct members. People who reach a shared channel through another team that the channel is shared with are not listed.
+- The member list of a shared channel contains its direct members. People who reach a shared channel through another team that the channel is shared with are not listed; **Report Shared Channel Members (Scheduled)** lists them with one row per member.
 
 
 
@@ -1846,7 +2571,7 @@ Org \ Devices \ Add Device Via Corporate Identifier
 
 #### Description
 
-Approves driver updates that are waiting for review in Intune driver update policies, so drivers roll out without manual approval. The scope can be narrowed to certain policies, driver names, classes, manufacturers or a maximum driver age, and a dry run shows what would be approved. The report of all approvals can be sent by email or provided as a download link.
+Approves driver updates that are waiting for review in Intune driver update policies, so drivers roll out without manual approval. The scope can be narrowed to recommended or other drivers, certain policies, driver names, classes, manufacturers or a maximum driver age, and a dry run shows what would be approved. The report of all approvals can be sent by email or provided as a download link.
 
 #### Where to find
 
@@ -1950,6 +2675,109 @@ The report email honors the optional `RJReport.Branding.*` tenant settings:
 When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
 
 Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-devices-cleanup-duplicate-intune-devices-(scheduled)'></a>
+
+### Cleanup Duplicate Intune Devices (Scheduled)
+#### Remove duplicate Intune devices, keeping the most recently synced
+
+#### Description
+
+Finds Intune devices that share a serial number and deletes the older records, keeping the one that synced most recently. Only the Intune record is deleted; the Entra ID device and the Autopilot registration stay. A deleted record cannot be restored. A preview mode lists the records without deleting anything. The report can be sent by email or provided as a download link.
+
+#### Where to find
+
+Org \ Devices \ Cleanup Duplicate Intune Devices_Scheduled
+
+## How it works
+
+The runbook lists the Intune managed devices of the tenant and looks for records that share the same serial number. Such duplicates typically appear when a device is re-enrolled or reinstalled and the old record stays behind. For each serial number it keeps the most recent record and removes the older ones.
+
+### Scope and filters
+
+- Platform toggles (`IncludeWindows`, `IncludeMacOS`, `IncludeIOS`, `IncludeAndroid`) limit the check to the selected operating systems.
+- `DeviceNamePrefix` restricts the check to devices whose name starts with the given prefix.
+- `IncludeSerialNumbers` and `ExcludeSerialNumbers` accept comma-separated serial numbers to restrict the check to, or to leave out, specific devices.
+- Serial numbers are normalized before they are compared: upper and lower case and whitespace are ignored. Empty serial numbers and placeholder values such as `0`, `Default string`, `System Serial Number` or `To Be Filled By O.E.M.` (with or without spaces) are ignored, because they do not identify a device.
+
+### Which record is kept
+
+- Within a group of records with the same serial number, the record with the newest last sync time (`lastSyncDateTime`) is kept. A record that never synced is ranked by its enrollment time (`enrolledDateTime`) instead. The enrollment time also breaks ties.
+- An older record is removed only when its own last sync is at least `MinimumDaysSinceLastSync` days ago, counted in whole days. For a record that never synced, the enrollment time is used. The kept record is not checked against this value.
+- A device name that is empty is shown as `Unknown` in the output.
+
+### When nothing is removed
+
+The runbook removes a record only when the data clearly shows that it is the older one. All other duplicates are left alone and listed in the **Skipped duplicates** table together with the reason.
+
+No record of a serial number is removed when:
+
+- the two newest records have identical timestamps,
+- the newest record has not synced yet, for example a fresh enrollment that has not checked in. The older records are removed by a later run, once the new record has synced,
+- the records report different manufacturers, models or platforms. Different machines that share a serial number are not duplicates of one device. iOS and iPadOS count as one platform.
+
+A single older record is skipped when:
+
+- its last sync, or its enrollment if it never synced, is more recent than `MinimumDaysSinceLastSync` days,
+- it was enrolled after the kept record, because last sync and enrollment time then disagree about which record is the newer one,
+- it has neither a last sync nor an enrollment time.
+
+### Safety measures
+
+- **WhatIf mode is on by default.** In this mode (`WhatIfMode`) the runbook only lists what it would delete.
+- `MaxDevicesToRemove` caps the number of deletions per run. The cap is checked before WhatIf: when more records qualify than the cap allows, nothing is deleted, and a WhatIf preview shows exactly the same outcome. The affected rows are marked `Would not be deleted (limit exceeded)` in WhatIf mode and `Not deleted (limit exceeded)` in a live run. Review the list and raise the cap deliberately if the number is correct.
+- Only the Intune managed device record is deleted. The Entra ID device object and the Autopilot registration are not touched.
+- A failed deletion does not stop the run. The record is marked `Failed`, the reason is shown in the `Details` column, and the runbook continues with the next one.
+
+Recommended rollout:
+
+1. Run the runbook with `WhatIfMode` enabled and review the output tables and the report.
+2. Adjust filters, `MinimumDaysSinceLastSync` and `MaxDevicesToRemove` until the list matches your expectations.
+3. Schedule the runbook with `WhatIfMode` disabled.
+
+## Setup regarding download link
+
+The optional download link uploads the report files to an Azure storage account and returns a time-limited link. It requires the storage account settings of the tenant (`RJReport.StorageAccount.*`) to be configured. The link expires after the number of days set in `RJReport.StorageAccount.LinkExpiryDays`. If the upload fails, the email report is still sent and the run ends as failed afterwards.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when the `SendEmailReport` option is enabled; a recipient (`EmailTo`) is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting. An email is sent whenever at least one record qualified for removal. This includes WhatIf runs, runs in which deletions failed and runs in which the `MaxDevicesToRemove` limit stopped the deletion; the result column and a note in the email show what actually happened. No email is sent when no record qualified.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+The email contains a summary and the first 10 devices. The full list is attached as CSV and/or Excel file, depending on the selected report file format.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings:
+
+- **Header and footer image** – public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** – target of the footer image
+- **Accent and text color** – 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email – the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
+
+## Interpreting the results
+
+- The Output Data table **Duplicate devices** lists every record that qualified for removal together with the device that is kept. The result column shows `Deleted`, `Would be deleted`, `Failed` (with the reason in the `Details` column), or the limit-exceeded values described above. The removed and the kept record usually carry the same device name; their enrollment times, last sync times and Intune device IDs tell them apart.
+- The Output Data table **Skipped duplicates** lists duplicates that were not removed and the reason, for example ambiguous timestamps or a last sync that is too recent.
+
+## Scheduling
+
+Run the runbook regularly, for example weekly, with `WhatIfMode` disabled once the results have been reviewed. Keep `MinimumDaysSinceLastSync` high enough that devices which are only temporarily offline are not affected.
 
 
 
@@ -4980,6 +5808,77 @@ Org \ Mail \ Set Booking Config
 <a name='org-phone'></a>
 
 ## Phone
+<a name='org-phone-add-or-remove-auto-attendant-authorized-users'></a>
+
+### Add Or Remove Auto Attendant Authorized Users
+#### Add or remove authorized users of a Teams auto attendant
+
+#### Description
+
+Adds the selected users to the authorized users of an auto attendant or removes them. Authorized users can change the auto attendant settings in the Teams app; Microsoft allows 15 of them per auto attendant. The Teams voice applications policy they need for that can be assigned or removed in the same run. Details on the checks and options are in the runbook documentation (docs.realmjoin.com).
+
+#### Where to find
+
+Org \ Phone \ Add Or Remove Auto Attendant Authorized Users
+
+## How it works
+
+The auto attendant is looked up by its exact name. Upper and lower case do not matter. If no auto attendant matches, the runbook lists similar names it found; if two auto attendants share the same name, it stops and asks for unique names.
+
+Before anything is changed, the runbook prints the current authorized users of the auto attendant with their voice applications policy, then the planned change per selected user. A user who cannot be found in Microsoft Teams, is not a regular user account or is not enabled for Enterprise Voice is skipped with the reason and the remaining users are still processed. Users who are already authorized (when adding) or not authorized at all (when removing) are reported and left alone.
+
+Microsoft allows 15 authorized users per auto attendant. If the selection would push the auto attendant over that limit, the runbook stops before any change instead of applying part of it.
+
+Auto attendants also keep a list of hidden authorized users. When an authorized user is removed, the runbook removes them from that list in the same write, so no entry is left dangling.
+
+Teams PowerShell can only save an auto attendant as a whole. The runbook therefore reads the full configuration right before the change, replaces only the authorized users (and, on removal, the hidden authorized users) and saves it back. Greetings, call flows, schedules and the other settings stay as they are.
+
+After the write, the auto attendant is read again and the resulting list is compared with the expected one. A mismatch is reported as a warning rather than an error, because the service applies the change asynchronously.
+
+## Voice applications policy
+
+Being an authorized user is only half of the permission. To actually change auto attendant settings in Teams, the user also needs a Teams voice applications policy that allows the auto attendant changes, for example the business hours, after hours or holiday greetings. The Global policy usually does not, which is why the runbook warns about it when it adds an authorized user who has no policy of their own.
+
+The policy field offers three options:
+
+- **Leave the policy unchanged** does not touch any policy assignment.
+- **Assign a voice applications policy** grants the named policy to every user that was added or was already authorized. The policy has to exist in the tenant; the name is checked before any change is made. A user who already uses that policy is reported and not touched again.
+- **Remove the voice applications policy** resets the per-user assignment of every user that was taken off the list.
+
+Assigning a policy is only offered together with adding users, removing one only together with removing users. The other two combinations are rejected right away, because they would change permissions in the opposite direction of the auto attendant change.
+
+A policy that reaches the user through a group policy assignment cannot be removed per user. The runbook reports the policy and the group instead, so the assignment can be changed where it comes from. If a user has both a direct and a group assignment, removing the direct one lets the group assignment take over; the runbook says so in the output.
+
+Before removing a policy, the runbook scans all other auto attendants and all call queues for that user. If the user is still an authorized user somewhere else, the policy is kept and the affected objects are named in a warning. The user is still removed from this auto attendant.
+
+## Output Data
+
+At the end of every run the results are listed in the Output Data tab, one table per outcome:
+
+- **Authorized user changes**: users that were added or removed, with their voice applications policy and what happened to it.
+- **Skipped users**: users that could not be processed, with the reason.
+- **No change needed**: users that were already authorized when adding, or not authorized when removing.
+- **Authorized users**: the authorized users of the auto attendant after the run, with their policy and whether they are hidden.
+
+A table only appears when it has rows.
+
+## Notes and limitations
+
+Authorized users have to be enabled for Enterprise Voice, which in practice means a Teams Phone license. A freshly licensed user can take up to an hour to become visible to Teams PowerShell; until then the runbook reports them as not found.
+
+Greetings can be changed by authorized users directly in the Teams desktop client; the new options show up after they sign out and sign in again. Changing the call routing for business hours, after hours and holidays requires the Queues app, which needs a Teams Premium license for every user of the app. The runbook only grants the permission and does not check the licensing of the app.
+
+Changes to authorized users and policy assignments are replicated by the service and can take a few minutes to show up in the Teams admin center and in the Teams client.
+
+Whether an authorized user is hidden is only maintained, never changed on purpose. Hiding or unhiding an authorized user is only possible with Teams PowerShell (`Set-CsAutoAttendant`), not in the Teams admin center.
+
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
 <a name='org-phone-add-or-remove-call-queue-agents'></a>
 
 ### Add Or Remove Call Queue Agents
@@ -5095,6 +5994,17 @@ A policy that reaches the user through a group policy assignment cannot be remov
 
 Before removing a policy, the runbook scans all other call queues and auto attendants for that user. If the user is still an authorized user somewhere else, the policy is kept and the affected objects are named in a warning. The user is still removed from this call queue.
 
+## Output Data
+
+At the end of every run the results are listed in the Output Data tab, one table per outcome:
+
+- **Authorized user changes**: users that were added or removed, with their voice applications policy and what happened to it.
+- **Skipped users**: users that could not be processed, with the reason.
+- **No change needed**: users that were already authorized when adding, or not authorized when removing.
+- **Authorized users**: the authorized users of the call queue after the run, with their policy and whether they are hidden.
+
+A table only appears when it has rows.
+
 ## Notes and limitations
 
 Authorized users have to be enabled for Enterprise Voice, which in practice means a Teams Phone license. A freshly licensed user can take up to an hour to become visible to Teams PowerShell; until then the runbook reports them as not found.
@@ -5103,7 +6013,7 @@ Greetings and holiday call flows can be changed by authorized users directly in 
 
 Changes to authorized users and policy assignments are replicated by the service and can take a few minutes to show up in the Teams admin center and in the Teams client.
 
-Whether an authorized user is hidden is only maintained, never changed on purpose. Use the Teams admin center to hide or unhide an authorized user.
+Whether an authorized user is hidden is only maintained, never changed on purpose. Hiding or unhiding an authorized user is only possible with Teams PowerShell (`Set-CsCallQueue -HideAuthorizedUsers`), not in the Teams admin center.
 
 
 
@@ -5429,6 +6339,129 @@ Checks which Conditional Access policies were created or changed within the last
 #### Where to find
 
 Org \ Security \ Notify Changed CA Policies
+
+
+[Back to Table of Content](#table-of-contents)
+
+ 
+ 
+
+<a name='org-security-report-access-package-assignments-(scheduled)'></a>
+
+### Report Access Package Assignments (Scheduled)
+#### List access packages with their assignments, requests and policies
+
+#### Description
+
+Lists the access packages of Entra ID entitlement management, all or those matching a name or catalog filter, with everyone assigned to them. Users, guests and service principals are listed, whether they requested access, were added by an admin or by an auto-assignment policy. Further tables show the resource roles each package grants, open requests and assignment policies. The report can be sent by email or provided as a download link.
+
+#### Where to find
+
+Org \ Security \ Report Access Package Assignments_Scheduled
+
+## How it works
+
+The runbook reads the access packages of Entra ID entitlement management, all of them or only those that match the access package or catalog filter, and for each package its assignments, its assignment requests, its assignment policies and the resource roles it grants. The resources of the catalogs involved are read as well, so groups, applications and SharePoint sites appear with their names.
+
+The results are split into separate tables:
+
+- **Summary** - counts for the whole report.
+- **Access packages** - one row per package with catalog, description, whether it is hidden, the number of active assignments (members, guests, service principals), assignments expiring within 30 days, delivery problems, expired assignments, open requests, policies and resource roles.
+- **Assignments** - one row per active assignment.
+- **Expired assignments** - only when *Include expired assignments?* is selected.
+- **Open requests** - requests that are not finished yet.
+- **Resource roles** - what each package grants.
+- **Policies** - who can get each package and under which conditions.
+
+Entitlement management requires a Microsoft Entra ID P2 or Microsoft Entra ID Governance license in the tenant.
+
+### Access package and catalog filter
+
+*Access package name filter* selects packages by their name, *Catalog name filter* by the name of the catalog they belong to. Both work the same way and apply together: `Sales -*` as name filter with `HR` as catalog filter reports the packages starting with `Sales -` that sit in a catalog with `HR` in its name. Leave both empty to report every access package of the tenant. Upper and lower case do not matter.
+
+- **Starts with** - `Sales -*` reports all packages whose name starts with `Sales -`.
+- **Ends with** - `*- Pilot` reports all packages whose name ends with `- Pilot`.
+- **Contains** - `*Finance*`, or just `Finance` without a wildcard, reports all packages with `Finance` anywhere in the name.
+- **Pattern** - `Sales*Pilot` reports all packages whose name starts with `Sales` and ends with `Pilot`.
+
+A filter with `*` must match the whole name; a filter without `*` matches anywhere in the name. `*` is the only wildcard. Other characters such as `?`, `[` and `]` are matched as they are, so names containing them need no escaping. When the filters match no package, the run fails and lists the access packages of the tenant with their catalogs. When the catalogs cannot be read, a catalog filter cannot be applied and the run fails as well.
+
+### Assignments
+
+Every assignment of the package is listed, whatever its origin: users who requested access, users and service principals an admin assigned directly, and users added by an auto-assignment policy. The **AssignedVia** column shows the origin:
+
+- **User request** - the user requested the package in the My Access portal.
+- **Admin assignment** - an admin assigned the package directly.
+- **Auto-assignment** - an auto-assignment policy added the user based on an attribute rule.
+- **Not recorded** - the request that created the assignment is no longer available and the policy allows more than one way. When the policy allows only admin assignments or is an auto-assignment policy, the origin is taken from the policy instead.
+
+The **SubjectType** column distinguishes **Member**, **Guest**, **External (not in tenant yet)** and **Service principal**. Guests are recognized by the `#EXT#` marker in their user principal name or by a guest lifecycle governed by entitlement management. **External (not in tenant yet)** is a requestor from a connected organization whose guest account has not been created yet.
+
+**State** shows whether the access was delivered (*Delivered*, *Delivering*, *Partially delivered*, *Delivery failed*). **Status** adds the detailed lifecycle status from entitlement management, for example `AutoAssignmentInGracePeriod` or `NearExpiry1DayNotificationTriggered`. **Start** and **End** are given in UTC; **End** is *Never* for assignments without expiration. **DaysLeft** counts the full days until the end; the summary counts assignments that end within 30 days.
+
+### Expired assignments
+
+Expired assignments are always counted in the summary and per package. With *Include expired assignments?* they are also listed in their own table with the date they expired. Tenants that have used access packages for years can have a long history, so the option is off by default.
+
+### Open requests
+
+Requests in the states *Submitted*, *Pending approval*, *Scheduled* and *Delivering* are listed with the request type, the requested start and end and the justification. This includes requests to remove or extend access, not only new requests. Finished, denied and canceled requests are not listed.
+
+### Resource roles
+
+Each row names a resource the package grants, its type (*Group*, *Application*, *SharePoint site*, *Azure resource*, *Custom data*) and the role in it, for example *Member* or *Owner* of a group, an app role of an application or a SharePoint site group. **ResourceId** is the object ID of the group or service principal, or the site URL.
+
+### Policies
+
+Each row describes one assignment policy of a package:
+
+- **PolicyType** - *Request* (users request access), *Admin assignment only* or *Auto-assignment*.
+- **WhoCanBeAssigned** and **AllowedTargets** - the principals the policy is meant for; for auto-assignment policies the attribute rule.
+- **ApprovalRequired** and **Approvers** - approval stages with their primary approvers.
+- **Expiration**, **UsersCanExtend** and **AccessReviews** - how long assignments last, whether users can extend them and how often they are reviewed.
+- **Assignments** - the number of active assignments made through the policy.
+
+Approvers and allowed users or groups are shown with the description stored in the policy. When the policy stores no description, the object ID is shown, because resolving names would need further directory permissions.
+
+### Gaps in the report
+
+The runbook never shortens a list silently. When the assignments, requests, policies or resource roles of a package cannot be read, or a further page of them fails, the reason is in the **Note** column of *Access packages* and the package is counted in *Packages not fully read*; the job log then shows a warning that the report is incomplete. When the resources of a catalog cannot be read, resources are shown by their origin ID instead of their name.
+
+## Report delivery
+
+The results always appear as named tables in the Output Data tab of the run in the RealmJoin portal. Report files are only generated when the **Report delivery** option includes an email and/or a download link; *Output Data only* creates no report files. Email delivery and download link generation are independent and can be combined.
+
+The Excel workbook holds one worksheet per table plus a cover sheet with the summary. With CSV, each table is written to its own CSV file. When the CSV files and the workbook together exceed the email attachment limit, the email carries the workbook only.
+
+For the download link, the report files are uploaded to the Azure storage account configured in the `RJReport.StorageAccount.*` tenant settings, and time-limited SAS download links are returned. The storage upload authenticates with the Automation account's managed identity; that identity needs the **Reader and Data Access** RBAC role on the target storage account (this is an Azure RBAC assignment, not a Graph application permission).
+
+## Setup regarding email sending
+
+Sending an email report is optional and only happens when *Also email the report* or *Also email & download link* is selected as report delivery; a recipient is then required. The sender address is taken from the `RJReport.EmailSender` tenant setting.
+
+This runbook sends emails using the Microsoft Graph API. To send emails via Graph API, you need to configure an existing email address in the runbook customization.
+
+See the [RealmJoin Report Settings documentation](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings) for details on all available settings.
+
+### Email branding
+
+The report email honors the optional `RJReport.Branding.*` tenant settings:
+
+- **Header and footer image** - public HTTPS URLs, PNG/JPEG/GIF, max. 200 KB each
+- **Footer link** - target of the footer image
+- **Accent and text color** - 6-digit hex values, e.g. `#0052cc`
+
+When these settings are not configured, the default RealmJoin graphics and colors are used. An image that cannot be downloaded or validated, or an invalid color value, never prevents the report email - the corresponding default is used instead.
+
+Setup instructions and image requirements: [Email branding](https://docs.realmjoin.com/automation/runbooks/runbook-report-settings#email-branding-optional).
+
+## Notes and limitations
+
+- The report is read-only. Assignments, requests and policies are changed in the Entra admin center under Identity Governance.
+- Group memberships the package delivers are not expanded: the report lists who is assigned to the package and which resource roles it grants, not every member of those groups.
+- Incompatible access packages and groups, custom extensions and the answers to requestor questions are not part of the report.
+- All dates and times are in UTC.
+
 
 
 [Back to Table of Content](#table-of-contents)
@@ -6584,15 +7617,86 @@ The runbook makes no Microsoft Graph calls - the user picker is a portal-side an
 <a name='user-mail-delegate-send-as'></a>
 
 ### Delegate Send As
-#### Grant or remove Send As permission on this user's mailbox
+#### Grant or revoke Exchange SendAs permission on a mailbox for one or more delegates
 
 #### Description
 
-Lets another person send email as this user, so messages appear to come from this mailbox, or removes that permission again. The permissions are shown before and after the change.
+Grants or removes SendAs permission on the selected user's mailbox to one or more delegate users. The runbook displays current SendAs delegations before and after the change, processes each delegate independently, and reports a summary of successes, failures and skipped delegates. SendAs permission allows the delegate to send email that appears to come from the mailbox owner.
 
 #### Where to find
 
 User \ Mail \ Delegate Send As
+
+## How it works
+
+On each run the runbook:
+
+1. Connects to Exchange Online with the Automation account's managed identity.
+2. Verifies that the selected mailbox owner (`UserName`) actually has a mailbox - if not, the run stops before anything is changed.
+3. Resolves every selected delegate to its primary SMTP address and drops duplicates and the mailbox owner itself.
+4. Reads and prints the current **SendAs** delegations on the mailbox (the *status quo*).
+5. Grants or removes SendAs for each remaining delegate, one at a time.
+6. Re-reads the recipient permissions and prints the resulting state plus a per-run summary.
+
+The runbook only ever touches the **SendAs** right on the one selected mailbox. Full Access, Send on Behalf and folder-level permissions are not affected.
+
+### Selecting delegates
+
+The **Delegate access to** field is a **multi-select** user picker. Select as many delegates as needed - all of them receive the same action (*Grant access* or *Remove access*) from the form in a single run.
+
+The picker is restricted to member accounts (`userType eq 'Member'`), so guest accounts are not offered. It hands over each selected delegate as a **user principal name**, so the very first log line already reads as a list of UPNs instead of raw object IDs. Each value is then resolved against Exchange Online, and from the preflight step onward all output shows the delegate's primary SMTP address.
+
+Two picker entries that resolve to the same mailbox are de-duplicated, and a delegate that resolves to the mailbox owner is dropped with a warning - a mailbox cannot be delegated to itself.
+
+### What gets changed
+
+- **Grant access (`Remove` = false):** `Add-RecipientPermission` with `-AccessRights SendAs` for each delegate.
+- **Remove access (`Remove` = true):** `Remove-RecipientPermission` with `-AccessRights SendAs` for each delegate.
+
+SendAs lets the delegate send messages that appear to come **from the mailbox owner** - the recipient sees only the owner's address as the sender. This differs from *Send on Behalf*, which shows "delegate on behalf of owner", and from *Full Access*, which grants read access to the mailbox contents but no ability to send as the owner. Granting SendAs does **not** give the delegate access to the mailbox itself.
+
+### Idempotent by design
+
+Nothing is done twice and nothing fails just because it was already true:
+
+- Granting SendAs to a delegate who already holds it is reported as *unchanged*, not as an error.
+- Removing SendAs from a delegate who has no such entry is reported as *unchanged*, not as an error.
+- When the pre-change snapshot cannot classify an existing permission entry, the runbook does **not** take the shortcut - it calls Exchange Online and lets its response decide, so a removable delegation is never silently skipped.
+
+### Partial results
+
+Delegates are processed independently:
+
+- A delegate **without a mailbox** is skipped during the preflight check and counted as *skipped*; the remaining delegates are still processed. If none of the selected delegates has a mailbox, the run stops.
+- A delegate whose change **fails** is reported with a targeted reason (directory-replication delay, insufficient Exchange Online permissions on the managed identity, an ambiguous recipient, or a shared/unlicensed mailbox) and the loop continues with the rest.
+
+Every run ends with a summary line in the form `Summary: <changed>, <unchanged>, <failed>, <skipped (no mailbox)>`, followed by the resulting SendAs delegations on the mailbox.
+
+If **any** delegate failed, the runbook itself reports a failure. This is deliberate: with a multi-select picker, a partial success reported as a clean run would hide delegates that never received access.
+
+### Mailbox identity resolution
+
+The target mailbox is looked up once with `Get-EXOMailbox` and then addressed by its **primary SMTP address** for every permission operation. Exchange Online's `Identity` property is the mailbox *Name*, which is derived from the display name and is not unique - if any other recipient in the tenant carries the same name, Exchange rejects the call with *"&lt;name&gt; doesn't represent a unique recipient"*. This is common for shared mailboxes. A primary SMTP address cannot be duplicated across recipients, so it is used instead.
+
+If an ambiguity error still occurs, the runbook reports it explicitly and points at the duplicate recipient rather than showing the raw Exchange exception.
+
+### Limitations
+
+- **Only explicit Allow grants are managed.** An explicit **Deny** entry on the mailbox is displayed for transparency, but the runbook never adds or removes one.
+- **Distribution groups and mail-enabled security groups are not offered as delegates.** The picker resolves member user accounts, and every delegate must have a mailbox to pass the preflight check.
+- **Unlike Full Access, SendAs has no AutoMapping option.** There is nothing for Outlook to map, so no such parameter exists on this runbook.
+
+### Prerequisites
+
+The Automation account's managed identity connects to Exchange Online via `Connect-RjRbExchangeOnline` and needs:
+
+- the `Exchange.ManageAsApp` application permission on *Office 365 Exchange Online*, and
+- the **Exchange Administrator** role (or an equivalent Exchange Online RBAC role that includes `Add-RecipientPermission` and `Remove-RecipientPermission`).
+
+`Exchange.ManageAsApp` is a broad, admin-equivalent grant. It is used here because Exchange Online offers no narrower app-only permission that covers recipient permission management - it is the minimal available scope for this operation, not a convenience choice.
+
+The runbook makes no Microsoft Graph calls - the user picker is a portal-side annotation only, so no Graph application permissions are required.
+
 
 
 [Back to Table of Content](#table-of-contents)

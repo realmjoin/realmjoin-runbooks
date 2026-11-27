@@ -1,0 +1,45 @@
+{
+  "SchemaVersion": 2,
+  "Permissions": [
+    {
+      "Name": "Microsoft Graph",
+      "Id": "00000003-0000-0000-c000-000000000000",
+      "AppRoleAssignments": [
+        {
+          "Value": "AgentIdentity.Read.All",
+          "Reason": "Reads agent identity posture and owners."
+        },
+        {
+          "Value": "AgentIdentity.ReadWrite.All",
+          "Reason": "Reads Agent Identity sponsors. Current Learn exposes no read-only application permission for the agentIdentity sponsors relationship."
+        },
+        {
+          "Value": "AgentIdentityBlueprint.Read.All",
+          "Reason": "Reads blueprint inventory."
+        },
+        {
+          "Value": "AgentIdentityBlueprintPrincipal.Read.All",
+          "Reason": "Reads blueprint principal inventory."
+        },
+        {
+          "Value": "User.Read.All",
+          "Reason": "Reads agent users and user sponsor details."
+        },
+        {
+          "Value": "CustomSecAttributeAssignment.Read.All",
+          "Optional": true,
+          "Feature": "Custom security attributes",
+          "Reason": "Reads custom security attribute assignments when enabled."
+        },
+        {
+          "Value": "Mail.Send",
+          "Optional": true,
+          "Feature": "Email report",
+          "Reason": "Sends the optional report email."
+        }
+      ]
+    }
+  ],
+  "Roles": [],
+  "ManualPermissions": []
+}

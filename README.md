@@ -82,6 +82,16 @@ Apart from the following runbook descriptions, further content such as runbook o
 
     - [Archive Team](docs/group/teams/archive-team.md)
 - [Org](docs/org/README.md)
+  - [Agent-Identity](docs/org/README.md#org-agent-identity)
+
+    - [Add Or Remove Sponsor Owner](docs/org/agent-identity/add-or-remove-sponsor-owner.md)
+    - [Create Blueprint](docs/org/agent-identity/create-blueprint.md)
+    - [Create Identity](docs/org/agent-identity/create-identity.md)
+    - [Report CA Targets (Scheduled)](docs/org/agent-identity/report-ca-targets_scheduled.md)
+    - [Report Inventory (Scheduled)](docs/org/agent-identity/report-inventory_scheduled.md)
+    - [Report Signins (Scheduled)](docs/org/agent-identity/report-signins_scheduled.md)
+    - [Report Sponsors (Scheduled)](docs/org/agent-identity/report-sponsors_scheduled.md)
+    - [Transfer Sponsorships](docs/org/agent-identity/transfer-sponsorships.md)
   - [Applications](docs/org/README.md#org-applications)
 
     - [Add Application Registration](docs/org/applications/add-application-registration.md)
@@ -97,6 +107,7 @@ Apart from the following runbook descriptions, further content such as runbook o
 
     - [Check Onedrive Status](docs/org/collab/check-onedrive-status.md)
     - [List Sharepoint Sitecollection Permission](docs/org/collab/list-sharepoint-sitecollection-permission.md)
+    - [Report Shared Channel Members (Scheduled)](docs/org/collab/report-shared-channel-members_scheduled.md)
     - [Report Sharepoint Tenant Storage (Scheduled)](docs/org/collab/report-sharepoint-tenant-storage_scheduled.md)
     - [Report Teams Channels (Scheduled)](docs/org/collab/report-teams-channels_scheduled.md)
   - [Devices](docs/org/README.md#org-devices)
@@ -105,6 +116,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Add Device Via Corporate Identifier](docs/org/devices/add-device-via-corporate-identifier.md)
     - [Auto Approve Driver Updates (Scheduled)](docs/org/devices/auto-approve-driver-updates_scheduled.md)
     - [Cleanup Autopilot Devices (Scheduled)](docs/org/devices/cleanup-autopilot-devices_scheduled.md)
+    - [Cleanup Duplicate Intune Devices (Scheduled)](docs/org/devices/cleanup-duplicate-intune-devices_scheduled.md)
     - [Create Endpoint Analytics Baseline](docs/org/devices/create-endpoint-analytics-baseline.md)
     - [Dedup Device Names (Scheduled)](docs/org/devices/dedup-device-names_scheduled.md)
     - [Delete Stale Devices (Scheduled)](docs/org/devices/delete-stale-devices_scheduled.md)
@@ -177,6 +189,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [Set Booking Config](docs/org/mail/set-booking-config.md)
   - [Phone](docs/org/README.md#org-phone)
 
+    - [Add Or Remove Auto Attendant Authorized Users](docs/org/phone/add-or-remove-auto-attendant-authorized-users.md)
     - [Add Or Remove Call Queue Agents](docs/org/phone/add-or-remove-call-queue-agents.md)
     - [Add Or Remove Call Queue Authorized Users](docs/org/phone/add-or-remove-call-queue-authorized-users.md)
     - [Get Teams Phone Number Assignment](docs/org/phone/get-teams-phone-number-assignment.md)
@@ -195,6 +208,7 @@ Apart from the following runbook descriptions, further content such as runbook o
     - [List Vulnerable App Regs](docs/org/security/list-vulnerable-app-regs.md)
     - [Monitor Pending EPM Requests (Scheduled)](docs/org/security/monitor-pending-epm-requests_scheduled.md)
     - [Notify Changed CA Policies](docs/org/security/notify-changed-ca-policies.md)
+    - [Report Access Package Assignments (Scheduled)](docs/org/security/report-access-package-assignments_scheduled.md)
     - [Report EPM Elevation Requests (Scheduled)](docs/org/security/report-epm-elevation-requests_scheduled.md)
     - [Sync MFA Secure Users To Group (Scheduled)](docs/org/security/sync-mfa-secure-users-to-group_scheduled.md)
 - [User](docs/user/README.md)

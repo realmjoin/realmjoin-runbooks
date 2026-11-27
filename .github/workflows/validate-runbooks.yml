@@ -1,14 +1,10 @@
 name: Runbook validation
 
+# Runs on every pull request into master because it is a required status check; pull requests without
+# runbook-related changes skip the validation steps in the job instead of not starting it at all.
 on:
   pull_request:
     branches: [ master ]
-    paths:
-      - '**/*.ps1'
-      - '**/*.permissions.json'
-      - '**/*.permission.json'
-      - '.schema/permissions.schema.json'
-      - 'CHANGELOG.md'
 
 permissions:
   contents: read
@@ -82,7 +78,16 @@ jobs:
           fi
           echo "::endgroup::"
 
+          # Same file set as the former paths filter of this workflow
+          relevant=false
+          if printf '%s\n' "$changed_files" | grep -qE '\.ps1$|\.permissions?\.json$|^\.schema/permissions\.schema\.json$|^CHANGELOG\.md$'; then
+            relevant=true
+          else
+            echo "No runbook-related changes (*.ps1, *.permissions.json, permissions schema, CHANGELOG.md). Validation steps are skipped."
+          fi
+
           {
+            echo "relevant=$relevant"
             echo "changed<<EOF"
             printf '%s\n' "$changed_files"
             echo "EOF"
@@ -90,6 +95,7 @@ jobs:
 
       - name: 📝 Enforce CHANGELOG for ps1 changes
         id: changelog
+        if: steps.changes.outputs.relevant == 'true'
         shell: pwsh
         env:
           CHANGED_FILES: ${{ steps.changes.outputs.changed }}
@@ -122,6 +128,7 @@ jobs:
 
       - name: 🔒 Validate permissions JSON
         id: permissions
+        if: steps.changes.outputs.relevant == 'true'
         shell: pwsh
         env:
           CHANGED_FILES: ${{ steps.changes.outputs.changed }}
@@ -141,7 +148,7 @@ jobs:
 
       - name: 🔍 Validate changed runbooks
         id: runbooks
-        if: always()
+        if: always() && steps.changes.outputs.relevant == 'true'
         shell: pwsh
         env:
           CHANGED_FILES: ${{ steps.changes.outputs.changed }}
@@ -159,7 +166,7 @@ jobs:
           exit 0
 
       - name: ❌ Fail if validation failed
-        if: always()
+        if: always() && steps.changes.outputs.relevant == 'true'
         shell: pwsh
         env:
           PERMISSIONS_EXIT_CODE: ${{ steps.permissions.outputs.exitCode }}
